@@ -1,0 +1,4788 @@
+<%- include('partials/header', { title: title }) %>
+
+<!-- Import Checkout CSS -->
+<link rel="stylesheet" href="/css/checkout.css">
+
+<!-- Checkout Page -->
+<div class="checkout-page" style=" margin-top: 80px;">
+  <div class="checkout-container">
+    <!-- Breadcrumb -->
+    <nav class="checkout-breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active">Checkout</li>
+      </ol>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="checkout-content">
+      <!-- Checkout Form -->
+      <div class="checkout-form-card">
+        <div class="checkout-form-header">
+          <h2 class="checkout-form-title">
+            <i class="fas fa-credit-card"></i>
+            Checkout
+          </h2>
+          <p class="checkout-form-subtitle">
+            Complete your purchase and start learning today!
+          </p>
+        </div>
+
+        <form id="checkoutForm" class="checkout-form">
+          <!-- Billing Information -->
+          <div class="checkout-form-section">
+            <h3 class="checkout-section-title">
+              <i class="fas fa-user"></i>
+              Billing Information
+            </h3>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="checkout-form-group">
+                  <label for="firstName" class="checkout-form-label">First Name *</label>
+                  <input type="text" id="firstName" name="firstName" class="checkout-form-control" value="<%= user.firstName %>" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="checkout-form-group">
+                  <label for="lastName" class="checkout-form-label">Last Name *</label>
+                  <input type="text" id="lastName" name="lastName" class="checkout-form-control" value="<%= user.lastName %>" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="checkout-form-group">
+                  <label for="email" class="checkout-form-label">Email Address *</label>
+                  <input type="email" id="email" name="email" class="checkout-form-control" value="<%= user.studentEmail %>" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="checkout-form-group">
+                  <label for="phone" class="checkout-form-label">Phone Number *</label>
+                  <input type="tel" id="phone" name="phone" class="checkout-form-control" value="<%= user.parentCountryCode %><%= user.parentNumber %>" required>
+                </div>
+              </div>
+            </div>
+
+            <!-- Street Name -->
+            <div class="checkout-form-group">
+              <label for="streetName" class="checkout-form-label">Street Name / اسم الشارع *</label>
+              <input type="text" id="streetName" name="streetName" class="checkout-form-control" placeholder="Enter street name / أدخل اسم الشارع" required>
+            </div>
+
+            <!-- Building Number -->
+            <div class="checkout-form-group">
+              <label for="buildingNumber" class="checkout-form-label">Building Number / رقم المبنى *</label>
+              <input type="text" id="buildingNumber" name="buildingNumber" class="checkout-form-control" placeholder="Enter building number / أدخل رقم المبنى" required>
+            </div>
+
+            <!-- Apartment Number -->
+            <div class="checkout-form-group">
+              <label for="apartmentNumber" class="checkout-form-label">Apartment Number / رقم الشقة *</label>
+              <input type="text" id="apartmentNumber" name="apartmentNumber" class="checkout-form-control" placeholder="Enter apartment number / أدخل رقم الشقة" required>
+            </div>
+
+            <!-- Country -->
+            <div class="checkout-form-group">
+              <label for="country" class="checkout-form-label">Country / البلد *</label>
+              <select id="country" name="country" class="checkout-form-control" required>
+                <option value="">Select Country / اختر البلد</option>
+                <option value="Egypt">Egypt / مصر</option>
+                <option value="Saudi Arabia">Saudi Arabia / السعودية</option>
+                <option value="UAE">United Arab Emirates / الإمارات العربية المتحدة</option>
+                <option value="Kuwait">Kuwait / الكويت</option>
+                <option value="Qatar">Qatar / قطر</option>
+                <option value="Bahrain">Bahrain / البحرين</option>
+                <option value="Oman">Oman / عمان</option>
+                <option value="Jordan">Jordan / الأردن</option>
+                <option value="Lebanon">Lebanon / لبنان</option>
+                <option value="USA">United States / الولايات المتحدة</option>
+                <option value="UK">United Kingdom / المملكة المتحدة</option>
+                <option value="Canada">Canada / كندا</option>
+                <option value="Australia">Australia / أستراليا</option>
+                <option value="Germany">Germany / ألمانيا</option>
+                <option value="France">France / فرنسا</option>
+                <option value="Italy">Italy / إيطاليا</option>
+                <option value="Spain">Spain / إسبانيا</option>
+                <option value="Turkey">Turkey / تركيا</option>
+                <option value="Other">Other / أخرى</option>
+              </select>
+            </div>
+
+            <!-- Governorate/State -->
+            <div class="checkout-form-group">
+              <label for="governorate" class="checkout-form-label">
+                <span id="governorateLabel">State/Province / الولاية/المحافظة</span> *
+              </label>
+              <select id="governorate" name="governorate" class="checkout-form-control" required disabled>
+                <option value="">Please select a country first / يرجى اختيار البلد أولاً</option>
+              </select>
+            </div>
+
+            <!-- City/Zone -->
+            <div class="checkout-form-group">
+              <label for="city" class="checkout-form-label">City/Zone / المدينة/المنطقة *</label>
+              <input type="text" id="city" name="city" class="checkout-form-control" placeholder="Enter city or zone name / أدخل اسم المدينة أو المنطقة" required>
+            </div>
+
+            <!-- Google Maps Location Picker -->
+            <div class="checkout-form-group">
+              <label class="checkout-form-label">Location on Map / الموقع على الخريطة *</label>
+              <div class="map-picker-container">
+                <div class="map-instructions">
+                  <i class="fas fa-info-circle me-2"></i>
+                  <span>Search for your address or click on the map to select your exact delivery location</span>
+                </div>
+                <!-- Search Box -->
+                <div class="map-search-container">
+                  <input 
+                    type="text" 
+                    id="mapSearchInput" 
+                    class="map-search-input" 
+                    placeholder="Search for address, place, or location..."
+                    autocomplete="off">
+                  <button type="button" id="mapSearchBtn" class="map-search-btn">
+                    <i class="fas fa-search"></i>
+                  </button>
+                  <button type="button" id="mapCurrentLocationBtn" class="map-current-location-btn" title="Use current location">
+                    <i class="fas fa-crosshairs"></i>
+                  </button>
+                </div>
+                <div id="mapPicker" class="map-picker-wrapper">
+                  <!-- Google Maps will be embedded here -->
+                </div>
+                <div id="selectedLocationInfo" class="selected-location-info" style="display: none;">
+                  <div class="location-display">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    <span id="locationText">Location selected successfully!</span>
+                    <button type="button" id="clearLocationBtn" class="btn btn-sm btn-outline-danger ms-2">
+                      <i class="fas fa-times"></i> Clear
+                    </button>
+                  </div>
+                  <div class="location-details mt-2">
+                    <div class="location-coordinates">
+                      <small class="text-muted">
+                        <i class="fas fa-map-pin me-1"></i>
+                        Coordinates: <span id="locationCoordinates"></span>
+                      </small>
+                    </div>
+                    <div class="location-full-address mt-1">
+                      <small class="text-muted">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        <span id="locationFullAddress"></span>
+                      </small>
+                    </div>
+                    <div class="location-map-link mt-1">
+                      <a href="#" id="locationMapLink" target="_blank" class="text-primary">
+                        <i class="fas fa-external-link-alt me-1"></i>
+                        View on Google Maps
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                <input type="hidden" id="locationLat" name="locationLat">
+                <input type="hidden" id="locationLng" name="locationLng">
+                <input type="hidden" id="locationAddress" name="locationAddress">
+                <input type="hidden" id="locationLink" name="locationLink">
+              </div>
+            </div>
+
+            <!-- Hidden fields for backward compatibility -->
+            <input type="hidden" id="address" name="address">
+            <input type="hidden" id="state" name="state" value="Egypt">
+            <input type="hidden" id="zipCode" name="zipCode" value="11311">
+          </div>
+
+          <!-- Available Books Section -->
+          <% if (availableBooks && availableBooks.length > 0) { %>
+          <div class="checkout-form-section">
+            <h3 class="checkout-section-title">
+              <i class="fas fa-book"></i>
+              Available Books
+            </h3>
+            <p class="checkout-section-subtitle" style="color: #6c757d; font-size: 0.9rem; margin-bottom: 1rem;">
+              Add physical books for your bundles (shipping address required)
+            </p>
+            <div class="checkout-shipping-note" style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 12px 16px; margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 10px;">
+              <i class="fas fa-info-circle" style="color: #856404; font-size: 1.1rem; margin-top: 2px;"></i>
+              <p style="color: #856404; font-size: 0.9rem; margin: 0; line-height: 1.5;">
+                <strong>ملاحظة:</strong> سعر الكتاب لا يشمل رسوم الشحن. يتم تحديد رسوم الشحن لاحقاً.
+                <br>
+                <strong>Note:</strong> Book price does not include shipping fees. Shipping fees will be determined later.
+              </p>
+            </div>
+
+            <div class="checkout-books-list">
+              <% availableBooks.forEach(book => { %>
+              <div class="checkout-book-item-wrapper">
+                <input type="checkbox" 
+                       id="book_<%= book.bundleId %>" 
+                       name="selectedBooks" 
+                       value="<%= book.bundleId %>"
+                       class="book-checkbox"
+                       data-book-price="<%= book.bookPrice %>"
+                       data-book-name="<%= book.bookName %>"
+                       data-bundle-code="<%= book.bundleCode %>"
+                       data-bundle-title="<%= book.bundleTitle %>"
+                       <% if (typeof isBookOnly !== 'undefined' && isBookOnly) { %>checked disabled<% } %>>
+                <label for="book_<%= book.bundleId %>" class="checkout-book-label">
+                  <div class="checkout-book-item">
+                    <div class="checkout-book-content">
+                      <div class="checkout-book-checkbox-indicator">
+                        <i class="fas fa-check"></i>
+                      </div>
+                      <div class="checkout-book-icon-wrapper">
+                        <div class="checkout-book-icon">
+                          <i class="fas fa-book"></i>
+                        </div>
+                      </div>
+                      <div class="checkout-book-details">
+                        <h5 class="checkout-book-title"><%= book.bookName %></h5>
+                        <div class="checkout-book-meta">
+                          <span class="checkout-book-bundle-badge">
+                            <i class="fas fa-layer-group"></i>
+                            <%= book.bundleTitle %>
+                          </span>
+                          <span class="checkout-book-code-badge">
+                            <i class="fas fa-hashtag"></i>
+                            <%= book.bundleCode %>
+                          </span>
+                        </div>
+                      </div>
+                      <div class="checkout-book-price">
+                        <span class="checkout-book-price-value">EGP <%= book.bookPrice.toFixed(2) %></span>
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+              <% }); %>
+            </div>
+          </div>
+          <% } %>
+
+          <!-- Payment Method -->
+          <div class="checkout-form-section">
+            <h3 class="checkout-section-title">
+              <i class="fas fa-credit-card"></i>
+              Payment Method
+            </h3>
+
+            <div class="checkout-payment-methods">
+              <div class="checkout-payment-option">
+                <input type="radio" id="creditCard" name="selectedPaymentMethod" value="card" checked>
+                <label for="creditCard" class="checkout-payment-label">
+                  <div class="checkout-payment-icon">
+                    <i class="fas fa-credit-card"></i>
+                  </div>
+                  <div class="checkout-payment-info">
+                    <span class="checkout-payment-name">Credit/Debit Card</span>
+                    <span class="checkout-payment-desc">Visa, Mastercard via Paymob</span>
+                  </div>
+                </label>
+              </div>
+
+              <div class="checkout-payment-option ">
+                <input type="radio" id="mobileWallet" name="selectedPaymentMethod" value="wallet">
+                <label for="mobileWallet" class="checkout-payment-label">
+                  <div class="checkout-payment-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                  </div>
+                  <div class="checkout-payment-info">
+                    <span class="checkout-payment-name">Mobile Wallet</span>
+                    <span class="checkout-payment-desc">Vodafone Cash, Orange Money via Paymob</span>
+                  </div>
+                </label>
+              </div>
+
+              <div class="checkout-payment-option kiosk-pay disabled d-none">
+                <input type="radio" id="kiosk" name="selectedPaymentMethod" value="kiosk" disabled>
+                <label for="kiosk" class="checkout-payment-label kiosk-pay-label disabled">
+                  <div class="checkout-payment-icon kiosk-icon">
+                    <i class="fas fa-store"></i>
+                  </div>
+                  <div class="checkout-payment-info">
+                    <span class="checkout-payment-name">Kiosk Payment</span>
+                    <span class="checkout-payment-desc">Pay at Aman, Masary, Fawry stores</span>
+                    <span class="checkout-payment-coming-soon">Available Soon</span>
+                  </div>
+                </label>
+              </div>
+
+              <% if (typeof paymentMethods !== 'undefined' && paymentMethods.applePay) { %>
+              <div class="checkout-payment-option">
+                <input type="radio" id="applePay" name="selectedPaymentMethod" value="applePay">
+                <label for="applePay" class="checkout-payment-label">
+                  <div class="checkout-payment-icon">
+                    <i class="fab fa-apple-pay"></i>
+                  </div>
+                  <div class="checkout-payment-info">
+                    <span class="checkout-payment-name">Apple Pay</span>
+                    <span class="checkout-payment-desc">Pay securely with Face ID, Touch ID, or passcode</span>
+                  </div>
+                </label>
+              </div>
+              <% } else { %>
+              <div class="checkout-payment-option disabled">
+                <input type="radio" id="applePay" name="selectedPaymentMethod" value="applePay" disabled>
+                <label for="applePay" class="checkout-payment-label disabled">
+                  <div class="checkout-payment-icon">
+                    <i class="fab fa-apple-pay"></i>
+                  </div>
+                  <div class="checkout-payment-info">
+                    <span class="checkout-payment-name">Apple Pay</span>
+                    <span class="checkout-payment-desc">Pay securely with Face ID, Touch ID, or passcode</span>
+                    <span class="checkout-payment-coming-soon">Available Soon</span>
+                  </div>
+                </label>
+              </div>
+              <% } %>
+            </div>
+
+            <div class="paymob-security-notice">
+              <i class="fas fa-shield-alt"></i>
+              <span>Payments are processed securely through Paymob Payment Gateway</span>
+            </div>
+          </div>
+
+          <!-- Promo Code Section -->
+          <div class="checkout-form-section">
+            <h3 class="checkout-section-title">
+              <i class="fas fa-tag"></i>
+              Promo Code
+            </h3>
+
+            <div class="promo-code-container">
+              <div class="promo-code-input-group">
+                <input type="text" id="promoCodeInput" class="checkout-form-control" placeholder="Enter promo code" maxlength="20">
+                <button type="button" id="applyPromoBtn" class="promo-apply-btn">
+                  <i class="fas fa-check"></i>
+                  Apply
+                </button>
+              </div>
+              <div id="promoCodeMessage" class="promo-code-message" style="display: none;"></div>
+            </div>
+
+            <div id="appliedPromoCode" class="applied-promo-code" style="display: none;">
+              <div class="applied-promo-info">
+                <i class="fas fa-tag"></i>
+                <span class="promo-code-text"></span>
+                <span class="promo-discount-amount"></span>
+                <button type="button" id="removePromoBtn" class="promo-remove-btn">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Summary -->
+          <div class="checkout-form-section" style="position: relative;">
+            <!-- Loading overlay for when promo is being recalculated -->
+            <div id="orderSummaryLoadingOverlay" class="order-summary-loading-overlay" style="display: none;">
+              <div class="order-summary-loading-content">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Updating...</span>
+              </div>
+            </div>
+            
+            <h3 class="checkout-section-title">
+              <i class="fas fa-shopping-bag"></i>
+              Order Summary
+            </h3>
+
+
+            <div class="checkout-order-items">
+              <% if (typeof isBookOnly !== 'undefined' && isBookOnly && bookPurchaseInfo) { %>
+              <!-- Book-only purchase display -->
+              <div class="checkout-order-item">
+                <div class="checkout-order-item-media">
+                  <img src="<%= bookPurchaseInfo.thumbnail %>" alt="<%= bookPurchaseInfo.bookName %>">
+                  <div class="checkout-order-item-badge">
+                    <i class="fas fa-book"></i>
+                  </div>
+                </div>
+                <div class="checkout-order-item-details">
+                  <h4 class="checkout-order-item-title"><%= bookPurchaseInfo.bookName %></h4>
+                  <span class="checkout-order-item-type">Physical Book</span>
+                  <p class="text-muted mt-1 mb-0" style="font-size: 0.85rem;">
+                    <i class="fas fa-box me-1"></i>
+                    Bundle: <%= bookPurchaseInfo.bundleTitle %>
+                  </p>
+                </div>
+                <div class="checkout-order-item-price">
+                  EGP <%= bookPurchaseInfo.bookPrice.toFixed(2) %>
+                </div>
+              </div>
+              <% } else { %>
+              <!-- Regular cart items -->
+              <% cart.forEach(item => { %>
+              <div class="checkout-order-item">
+                <div class="checkout-order-item-media">
+                  <img src="<%= item.image %>" alt="<%= item.title %>">
+                  <div class="checkout-order-item-badge">
+                    <i class="fas fa-<%= item.type === 'bundle' ? 'box' : 'book' %>"></i>
+                  </div>
+                </div>
+                <div class="checkout-order-item-details">
+                  <h4 class="checkout-order-item-title"><%= item.title %></h4>
+                  <span class="checkout-order-item-type"><%= item.type === 'bundle' ? 'Course Bundle' : 'Individual Course' %></span>
+                </div>
+                <div class="checkout-order-item-price">
+                  <% if (item.discountPrice && item.discountPrice > 0) { %>
+                  <span class="checkout-original-price">EGP <%= item.originalPrice.toFixed(2) %></span>
+                  <span class="checkout-discount-badge">-<%= item.discountPrice.toFixed(0) %>%</span>
+                  <br>
+                  <span class="checkout-final-price">EGP <%= item.price.toFixed(2) %></span>
+                  <% } else { %>
+                  EGP <%= item.price.toFixed(2) %>
+                  <% } %>
+                </div>
+              </div>
+              <% }); %>
+              <% } %>
+            </div>
+
+            <!-- Selected Books in Order Summary -->
+            <div id="selectedBooksSummary" class="checkout-selected-books" style="display: none;">
+              <div class="checkout-books-summary-header">
+                <h5><i class="fas fa-book me-2"></i>Selected Books</h5>
+              </div>
+              <div id="selectedBooksList" class="checkout-books-summary-list">
+                <!-- Books will be dynamically added here -->
+              </div>
+            </div>
+
+            <!-- Order Breakdown -->
+            <div class="checkout-order-breakdown">
+              <div class="checkout-breakdown-row">
+                <span class="checkout-breakdown-label">Courses/Bundles:</span>
+                <span class="checkout-breakdown-value" id="coursesSubtotal">EGP <%= subtotal.toFixed(2) %></span>
+              </div>
+              <div class="checkout-breakdown-row" id="booksBreakdownRow" style="display: none;">
+                <span class="checkout-breakdown-label">Books:</span>
+                <span class="checkout-breakdown-value" id="booksSubtotalDisplay">EGP 0.00</span>
+              </div>
+              <div id="shippingNoteRow" class="checkout-shipping-note-row" style="display: none; padding: 8px 0; margin-top: 4px;">
+                <p style="color: #856404; font-size: 0.8rem; margin: 0; font-style: italic; line-height: 1.4;">
+                  <i class="fas fa-info-circle" style="font-size: 0.75rem; margin-left: 4px;"></i>
+                  <span>ملاحظة: سعر الكتاب لا يشمل رسوم الشحن. يتم تحديد رسوم الشحن لاحقاً. | <strong>Note:</strong> Book price does not include shipping fees. Shipping fees will be determined later.</span>
+                </p>
+              </div>
+              <div class="checkout-breakdown-row" id="promoDiscountBreakdownRow" style="display: none;">
+                <span class="checkout-breakdown-label" style="color: #059669;">Promo Discount:</span>
+                <span class="checkout-breakdown-value" style="color: #059669;" id="promoDiscountBreakdown">-EGP 0.00</span>
+              </div>
+              <div class="checkout-breakdown-row checkout-breakdown-total">
+                <span class="checkout-breakdown-label">Total:</span>
+                <span class="checkout-breakdown-value" id="orderTotalDisplay">EGP <%= total.toFixed(2) %></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Terms Agreement Section -->
+          <div class="checkout-terms-agreement-section">
+            <div class="checkout-terms-agreement-header">
+              <i class="fas fa-shield-check"></i>
+              <h4>Terms & Conditions Agreement Required</h4>
+            </div>
+            
+            <p class="checkout-terms-agreement-text">
+              Please read and agree to our Terms & Conditions before proceeding with payment:
+            </p>
+            
+            <div class="checkout-terms-document-card">
+              <a href="javascript:void(0)" class="checkout-document-card" id="openCheckoutTermsModal">
+                <div class="checkout-document-card-icon">
+                  <i class="fas fa-file-contract"></i>
+                </div>
+                <div class="checkout-document-card-content">
+                  <h5>Terms & Conditions</h5>
+                  <span id="checkoutTermsReadStatus" class="checkout-document-status status-pending">
+                    <i class="fas fa-clock"></i> Click to Read
+                  </span>
+                </div>
+                <div class="checkout-document-card-arrow">
+                  <i class="fas fa-arrow-right"></i>
+                </div>
+              </a>
+            </div>
+            
+            <div class="checkout-terms-completion-notice" id="checkoutTermsCompletionNotice" style="display: none;">
+              <i class="fas fa-check-circle"></i>
+              <span>Terms & Conditions read. You may proceed with payment!</span>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="checkout-form-actions">
+            <button type="submit" class="checkout-btn-process" id="processPaymentBtn" disabled>
+              <i class="fas fa-lock"></i>
+              <span class="checkout-btn-text">Process Payment</span>
+              <div class="checkout-btn-loading" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i>
+              </div>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Checkout Summary -->
+      <div class="checkout-summary-card">
+        <div class="checkout-summary-header">
+          <h3 class="checkout-summary-title">
+            <i class="fas fa-shopping-bag"></i>
+            Order Summary
+          </h3>
+        </div>
+
+        <div class="checkout-summary-content">
+          <div class="checkout-summary-row">
+            <span class="checkout-summary-label">Subtotal:</span>
+            <span class="checkout-summary-value" id="subtotalValue">EGP <%= subtotal.toFixed(2) %></span>
+          </div>
+          <div id="promoCodeDiscountRow" class="checkout-summary-row" style="display: none;">
+            <span class="checkout-summary-label">Promo Code Discount:</span>
+            <span class="checkout-summary-value promo-discount" id="promoDiscountValue">-EGP 0.00</span>
+          </div>
+          <div class="checkout-summary-row checkout-summary-total">
+            <span class="checkout-summary-label">Total:</span>
+            <span class="checkout-summary-value" id="totalValue">EGP <%= total.toFixed(2) %></span>
+          </div>
+        </div>
+
+        <div class="checkout-summary-guarantees">
+          <div class="checkout-guarantee-item">
+            <i class="fas fa-lock"></i>
+            <span>Secure Payment Processing</span>
+          </div>
+          <div class="checkout-guarantee-item">
+            <i class="fas fa-headset"></i>
+            <span>24/7 Customer Support</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const checkoutForm = document.getElementById('checkoutForm');
+    const processPaymentBtn = document.getElementById('processPaymentBtn');
+
+    // Promo code elements
+    const promoCodeInput = document.getElementById('promoCodeInput');
+    const applyPromoBtn = document.getElementById('applyPromoBtn');
+    const removePromoBtn = document.getElementById('removePromoBtn');
+    const promoCodeMessage = document.getElementById('promoCodeMessage');
+    const appliedPromoCode = document.getElementById('appliedPromoCode');
+    const promoCodeDiscountRow = document.getElementById('promoCodeDiscountRow');
+    const promoDiscountValue = document.getElementById('promoDiscountValue');
+    const totalValue = document.getElementById('totalValue');
+
+    // Google Maps Location Picker - Embedded Map
+    const selectedLocationInfo = document.getElementById('selectedLocationInfo');
+    const locationText = document.getElementById('locationText');
+    const locationCoordinates = document.getElementById('locationCoordinates');
+    const locationFullAddress = document.getElementById('locationFullAddress');
+    const locationMapLink = document.getElementById('locationMapLink');
+    const clearLocationBtn = document.getElementById('clearLocationBtn');
+    const locationLat = document.getElementById('locationLat');
+    const locationLng = document.getElementById('locationLng');
+    const locationAddress = document.getElementById('locationAddress');
+    const locationLink = document.getElementById('locationLink');
+    const mapPicker = document.getElementById('mapPicker');
+
+    let map;
+    let marker;
+    let geocoder;
+    let autocomplete;
+    let searchBox;
+    let placesService;
+
+    // Country center coordinates for map initialization
+    const countryCenterMap = {
+      'Egypt': { lat: 30.0444, lng: 31.2357 },
+      'Saudi Arabia': { lat: 23.8859, lng: 45.0792 },
+      'UAE': { lat: 23.4241, lng: 53.8478 },
+      'Kuwait': { lat: 29.3117, lng: 47.4818 },
+      'Qatar': { lat: 25.3548, lng: 51.1839 },
+      'Bahrain': { lat: 26.0667, lng: 50.5577 },
+      'Oman': { lat: 21.4735, lng: 55.9754 },
+      'Jordan': { lat: 30.5852, lng: 36.2384 },
+      'Lebanon': { lat: 33.8547, lng: 35.8623 },
+      'USA': { lat: 37.0902, lng: -95.7129 },
+      'UK': { lat: 55.3781, lng: -3.4360 },
+      'Canada': { lat: 56.1304, lng: -106.3468 },
+      'Australia': { lat: -25.2744, lng: 133.7751 },
+      'Germany': { lat: 51.1657, lng: 10.4515 },
+      'France': { lat: 46.2276, lng: 2.2137 },
+      'Italy': { lat: 41.8719, lng: 12.5674 },
+      'Spain': { lat: 40.4637, lng: -3.7492 },
+      'Turkey': { lat: 38.9637, lng: 35.2433 }
+    };
+
+    // Initialize Google Maps
+    function initMap() {
+      // Default center: Cairo, Egypt
+      const defaultCenter = countryCenterMap['Egypt'] || { lat: 30.0444, lng: 31.2357 };
+      
+      // Create map
+      map = new google.maps.Map(mapPicker, {
+        center: defaultCenter,
+        zoom: 12,
+        mapTypeControl: true,
+        streetViewControl: true,
+        fullscreenControl: true,
+        zoomControl: true,
+      });
+
+      // Initialize geocoder and places service
+      geocoder = new google.maps.Geocoder();
+      placesService = new google.maps.places.PlacesService(map);
+
+      // Country code mapping for Google Maps API
+      const countryCodeMap = {
+        'Egypt': 'eg',
+        'Saudi Arabia': 'sa',
+        'UAE': 'ae',
+        'Kuwait': 'kw',
+        'Qatar': 'qa',
+        'Bahrain': 'bh',
+        'Oman': 'om',
+        'Jordan': 'jo',
+        'Lebanon': 'lb',
+        'USA': 'us',
+        'UK': 'gb',
+        'Canada': 'ca',
+        'Australia': 'au',
+        'Germany': 'de',
+        'France': 'fr',
+        'Italy': 'it',
+        'Spain': 'es',
+        'Turkey': 'tr'
+      };
+
+      // Initialize Autocomplete for search
+      const searchInput = document.getElementById('mapSearchInput');
+      if (searchInput) {
+        const selectedCountry = document.getElementById('country').value;
+        const countryCode = countryCodeMap[selectedCountry] || 'eg';
+        
+        autocomplete = new google.maps.places.Autocomplete(searchInput, {
+          types: ['geocode', 'establishment'],
+          componentRestrictions: { country: countryCode },
+          fields: ['geometry', 'formatted_address', 'name', 'place_id']
+        });
+
+        // When user selects a place from autocomplete
+        autocomplete.addListener('place_changed', function() {
+          const place = autocomplete.getPlace();
+          if (!place.geometry) {
+            showNotification('No details available for this place. Please try another location.', 'error');
+            return;
+          }
+
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          setLocationFromCoordinates(lat, lng, place.formatted_address || place.name);
+        });
+      }
+
+      // Search button handler
+      const searchBtn = document.getElementById('mapSearchBtn');
+      if (searchBtn) {
+        searchBtn.addEventListener('click', function() {
+          performSearch();
+        });
+      }
+
+      // Enter key handler for search
+      if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch();
+          }
+        });
+      }
+
+      // Current location button
+      const currentLocationBtn = document.getElementById('mapCurrentLocationBtn');
+      if (currentLocationBtn) {
+        currentLocationBtn.addEventListener('click', function() {
+          getCurrentLocation();
+        });
+      }
+
+      // Add click listener to map
+      map.addListener('click', function(event) {
+        const lat = event.latLng.lat();
+        const lng = event.latLng.lng();
+        setLocationFromCoordinates(lat, lng);
+      });
+    }
+
+    // Perform search
+    function performSearch() {
+      const searchInput = document.getElementById('mapSearchInput');
+      const query = searchInput.value.trim();
+      
+      if (!query) {
+        showNotification('Please enter a location to search', 'error');
+        return;
+      }
+
+      // Use Places API to search
+      const request = {
+        query: query,
+        fields: ['geometry', 'formatted_address', 'name'],
+        locationBias: map.getCenter()
+      };
+
+      placesService.textSearch(request, function(results, status) {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+          const place = results[0];
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          setLocationFromCoordinates(lat, lng, place.formatted_address || place.name);
+          
+          // Update search input
+          searchInput.value = place.formatted_address || place.name;
+        } else {
+          showNotification('Location not found. Please try a different search term.', 'error');
+        }
+      });
+    }
+
+    // Get current location
+    function getCurrentLocation() {
+      if (!navigator.geolocation) {
+        showNotification('Geolocation is not supported by your browser', 'error');
+        return;
+      }
+
+      const currentLocationBtn = document.getElementById('mapCurrentLocationBtn');
+      if (currentLocationBtn) {
+        currentLocationBtn.disabled = true;
+        currentLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          map.setCenter(userLocation);
+          map.setZoom(16);
+          setLocationFromCoordinates(userLocation.lat, userLocation.lng);
+          
+          if (currentLocationBtn) {
+            currentLocationBtn.disabled = false;
+            currentLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i>';
+          }
+        },
+        function(error) {
+          console.log('Geolocation error:', error);
+          showNotification('Unable to get your location. Please search or click on the map.', 'error');
+          
+          if (currentLocationBtn) {
+            currentLocationBtn.disabled = false;
+            currentLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i>';
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    }
+
+    // Function to set location from coordinates
+    async function setLocationFromCoordinates(lat, lng, providedAddress = null) {
+      try {
+        // Create Google Maps link
+        const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+        
+        // Use provided address or reverse geocode to get address
+        let address = providedAddress;
+        
+        if (!address) {
+          // Reverse geocode to get address
+          geocoder.geocode({ location: { lat, lng } }, function(results, status) {
+            address = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            
+            if (status === 'OK' && results[0]) {
+              address = results[0].formatted_address;
+            }
+            
+            updateLocationDisplay(lat, lng, address, mapsLink);
+          });
+          return; // Exit early, updateLocationDisplay will be called from geocoder callback
+        }
+        
+        updateLocationDisplay(lat, lng, address, mapsLink);
+      } catch (error) {
+        console.error('Error setting location:', error);
+        showNotification('Error setting location. Please try again.', 'error');
+      }
+    }
+
+    // Update location display
+    function updateLocationDisplay(lat, lng, address, mapsLink) {
+      // Ensure mapsLink is always generated (create if missing)
+      if (!mapsLink) {
+        mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+      }
+
+      // Update hidden fields
+      locationLat.value = lat;
+      locationLng.value = lng;
+      locationAddress.value = address;
+      locationLink.value = mapsLink; // Always ensure link is set
+
+      // Update marker on map
+      if (marker) {
+        marker.setPosition({ lat, lng });
+      } else {
+        marker = new google.maps.Marker({
+          position: { lat, lng },
+          map: map,
+          draggable: true,
+          animation: google.maps.Animation.DROP,
+          title: 'Selected Location',
+          icon: {
+            url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+            scaledSize: new google.maps.Size(40, 40)
+          }
+        });
+
+        // Add drag listener to marker
+        marker.addListener('dragend', function(event) {
+          const newLat = event.latLng.lat();
+          const newLng = event.latLng.lng();
+          setLocationFromCoordinates(newLat, newLng);
+        });
+      }
+
+      // Center map on selected location
+      map.setCenter({ lat, lng });
+      map.setZoom(16);
+
+      // Update display
+      locationText.textContent = 'Location selected successfully!';
+      locationCoordinates.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      locationFullAddress.textContent = address;
+      locationMapLink.href = mapsLink;
+      selectedLocationInfo.style.display = 'block';
+      mapPicker.classList.add('has-location');
+
+      // Update the combined address field for backward compatibility
+      updateCombinedAddress();
+
+      // Show success notification
+      showNotification('Location selected successfully! Click and drag the marker to adjust if needed.', 'success');
+    }
+
+    // Clear location
+    if (clearLocationBtn) {
+      clearLocationBtn.addEventListener('click', function() {
+        locationLat.value = '';
+        locationLng.value = '';
+        locationAddress.value = '';
+        locationLink.value = '';
+        selectedLocationInfo.style.display = 'none';
+        mapPicker.classList.remove('has-location');
+        
+        // Clear search input
+        const searchInput = document.getElementById('mapSearchInput');
+        if (searchInput) {
+          searchInput.value = '';
+        }
+        
+        // Remove marker
+        if (marker) {
+          marker.setMap(null);
+          marker = null;
+        }
+
+        showNotification('Location cleared', 'info');
+      });
+    }
+
+    // Load Google Maps API and initialize map
+    function loadGoogleMaps() {
+      // Check if Google Maps is already loaded
+      if (window.google && window.google.maps) {
+        initMap();
+        return;
+      }
+
+      // Load Google Maps JavaScript API
+      // Note: Google Maps API key is required for full functionality
+      // Add GOOGLE_MAPS_API_KEY to your .env file
+      const apiKey = '<%= typeof googleMapsApiKey !== "undefined" && googleMapsApiKey ? googleMapsApiKey : "" %>';
+      
+      if (!apiKey) {
+        mapPicker.innerHTML = `
+          <div class="map-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p><strong>Google Maps API Key Required</strong></p>
+            <p>Please add GOOGLE_MAPS_API_KEY to your .env file to enable map functionality.</p>
+            <small>Get your API key from: <a href="https://console.cloud.google.com/google/maps-apis" target="_blank">Google Cloud Console</a></small>
+          </div>
+        `;
+        return;
+      }
+      
+      const script = document.createElement('script');
+      const apiUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initCheckoutMap`;
+      
+      script.src = apiUrl;
+      script.async = true;
+      script.defer = true;
+      script.onerror = function() {
+        console.error('Failed to load Google Maps API');
+        mapPicker.innerHTML = `
+          <div class="map-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p><strong>Failed to load Google Maps</strong></p>
+            <p>Please check your API key and ensure it has the necessary permissions.</p>
+            <small>Error: Invalid API key or API not enabled</small>
+          </div>
+        `;
+      };
+      document.head.appendChild(script);
+
+      // Global callback function
+      window.initCheckoutMap = function() {
+        initMap();
+      };
+    }
+
+    // Load Google Maps when page is ready
+    if (mapPicker) {
+      loadGoogleMaps();
+    }
+
+    // Update address field when street address changes
+    const streetNameField = document.getElementById('streetName');
+    const buildingNumberField = document.getElementById('buildingNumber');
+    const apartmentNumberField = document.getElementById('apartmentNumber');
+    const cityField = document.getElementById('city');
+    const governorateField = document.getElementById('governorate');
+    const countryField = document.getElementById('country');
+
+    function updateCombinedAddress() {
+      const streetName = streetNameField.value;
+      const buildingNumber = buildingNumberField.value;
+      const apartmentNumber = apartmentNumberField.value;
+      const cityVal = cityField.value;
+      const govVal = governorateField.value;
+      
+      let combined = '';
+      if (streetName) combined += streetName;
+      if (buildingNumber) combined += (combined ? ', ' : '') + 'Bldg. ' + buildingNumber;
+      if (apartmentNumber) combined += (combined ? ', ' : '') + 'Apt. ' + apartmentNumber;
+      if (cityVal) combined += (combined ? ', ' : '') + cityVal;
+      if (govVal) {
+        const govName = govVal.split('|')[0];
+        combined += (combined ? ', ' : '') + govName;
+      }
+      
+      document.getElementById('address').value = combined;
+    }
+
+    if (streetNameField) streetNameField.addEventListener('input', updateCombinedAddress);
+    if (buildingNumberField) buildingNumberField.addEventListener('input', updateCombinedAddress);
+    if (apartmentNumberField) apartmentNumberField.addEventListener('input', updateCombinedAddress);
+    if (cityField) cityField.addEventListener('input', updateCombinedAddress);
+    if (governorateField) governorateField.addEventListener('change', updateCombinedAddress);
+    if (countryField) countryField.addEventListener('change', updateCombinedAddress);
+
+    // Comprehensive data for governorates/states by country
+    const countryRegionsData = {
+      'Egypt': [
+        { value: 'Cairo|القاهرة', label: 'Cairo / القاهرة' },
+        { value: 'Giza|الجيزة', label: 'Giza / الجيزة' },
+        { value: 'Alexandria|الإسكندرية', label: 'Alexandria / الإسكندرية' },
+        { value: 'Dakahlia|الدقهلية', label: 'Dakahlia / الدقهلية' },
+        { value: 'Red Sea|البحر الأحمر', label: 'Red Sea / البحر الأحمر' },
+        { value: 'Beheira|البحيرة', label: 'Beheira / البحيرة' },
+        { value: 'Faiyum|الفيوم', label: 'Faiyum / الفيوم' },
+        { value: 'Gharbia|الغربية', label: 'Gharbia / الغربية' },
+        { value: 'Ismailia|الإسماعيلية', label: 'Ismailia / الإسماعيلية' },
+        { value: 'Monufia|المنوفية', label: 'Monufia / المنوفية' },
+        { value: 'Minya|المنيا', label: 'Minya / المنيا' },
+        { value: 'Qalyubia|القليوبية', label: 'Qalyubia / القليوبية' },
+        { value: 'New Valley|الوادي الجديد', label: 'New Valley / الوادي الجديد' },
+        { value: 'Suez|السويس', label: 'Suez / السويس' },
+        { value: 'Sharqia|الشرقية', label: 'Sharqia / الشرقية' },
+        { value: 'North Sinai|شمال سيناء', label: 'North Sinai / شمال سيناء' },
+        { value: 'South Sinai|جنوب سيناء', label: 'South Sinai / جنوب سيناء' },
+        { value: 'Port Said|بورسعيد', label: 'Port Said / بورسعيد' },
+        { value: 'Damietta|دمياط', label: 'Damietta / دمياط' },
+        { value: 'Aswan|أسوان', label: 'Aswan / أسوان' },
+        { value: 'Asyut|أسيوط', label: 'Asyut / أسيوط' },
+        { value: 'Beni Suef|بني سويف', label: 'Beni Suef / بني سويف' },
+        { value: 'Luxor|الأقصر', label: 'Luxor / الأقصر' },
+        { value: 'Qena|قنا', label: 'Qena / قنا' },
+        { value: 'Sohag|سوهاج', label: 'Sohag / سوهاج' },
+        { value: 'Kafr El Sheikh|كفر الشيخ', label: 'Kafr El Sheikh / كفر الشيخ' },
+        { value: 'Matruh|مطروح', label: 'Matruh / مطروح' }
+      ],
+      'Saudi Arabia': [
+        { value: 'Riyadh|الرياض', label: 'Riyadh / الرياض' },
+        { value: 'Makkah|مكة المكرمة', label: 'Makkah / مكة المكرمة' },
+        { value: 'Madinah|المدينة المنورة', label: 'Madinah / المدينة المنورة' },
+        { value: 'Eastern Province|المنطقة الشرقية', label: 'Eastern Province / المنطقة الشرقية' },
+        { value: 'Asir|عسير', label: 'Asir / عسير' },
+        { value: 'Tabuk|تبوك', label: 'Tabuk / تبوك' },
+        { value: 'Qassim|القصيم', label: 'Qassim / القصيم' },
+        { value: 'Ha\'il|حائل', label: 'Ha\'il / حائل' },
+        { value: 'Jazan|جازان', label: 'Jazan / جازان' },
+        { value: 'Najran|نجران', label: 'Najran / نجران' },
+        { value: 'Al Bahah|الباحة', label: 'Al Bahah / الباحة' },
+        { value: 'Northern Borders|الحدود الشمالية', label: 'Northern Borders / الحدود الشمالية' },
+        { value: 'Al Jouf|الجوف', label: 'Al Jouf / الجوف' }
+      ],
+      'UAE': [
+        { value: 'Abu Dhabi|أبو ظبي', label: 'Abu Dhabi / أبو ظبي' },
+        { value: 'Dubai|دبي', label: 'Dubai / دبي' },
+        { value: 'Sharjah|الشارقة', label: 'Sharjah / الشارقة' },
+        { value: 'Ajman|عجمان', label: 'Ajman / عجمان' },
+        { value: 'Umm Al Quwain|أم القيوين', label: 'Umm Al Quwain / أم القيوين' },
+        { value: 'Ras Al Khaimah|رأس الخيمة', label: 'Ras Al Khaimah / رأس الخيمة' },
+        { value: 'Fujairah|الفجيرة', label: 'Fujairah / الفجيرة' }
+      ],
+      'Kuwait': [
+        { value: 'Capital|العاصمة', label: 'Capital Governorate / محافظة العاصمة' },
+        { value: 'Hawalli|حولي', label: 'Hawalli / حولي' },
+        { value: 'Farwaniya|الفروانية', label: 'Farwaniya / الفروانية' },
+        { value: 'Mubarak Al-Kabeer|مبارك الكبير', label: 'Mubarak Al-Kabeer / مبارك الكبير' },
+        { value: 'Ahmadi|الأحمدي', label: 'Ahmadi / الأحمدي' },
+        { value: 'Jahra|الجهراء', label: 'Jahra / الجهراء' }
+      ],
+      'Qatar': [
+        { value: 'Doha|الدوحة', label: 'Doha / الدوحة' },
+        { value: 'Al Rayyan|الريان', label: 'Al Rayyan / الريان' },
+        { value: 'Al Wakrah|الوكرة', label: 'Al Wakrah / الوكرة' },
+        { value: 'Al Khor|الخور', label: 'Al Khor / الخور' },
+        { value: 'Al Shamal|الشمال', label: 'Al Shamal / الشمال' },
+        { value: 'Umm Salal|أم صلال', label: 'Umm Salal / أم صلال' },
+        { value: 'Al Daayen|الضعاين', label: 'Al Daayen / الضعاين' },
+        { value: 'Al Shahaniya|الشحانية', label: 'Al Shahaniya / الشحانية' }
+      ],
+      'Bahrain': [
+        { value: 'Capital|العاصمة', label: 'Capital Governorate / محافظة العاصمة' },
+        { value: 'Muharraq|المحرق', label: 'Muharraq / المحرق' },
+        { value: 'Northern|الشمالية', label: 'Northern / الشمالية' },
+        { value: 'Southern|الجنوبية', label: 'Southern / الجنوبية' }
+      ],
+      'Oman': [
+        { value: 'Muscat|مسقط', label: 'Muscat / مسقط' },
+        { value: 'Dhofar|ظفار', label: 'Dhofar / ظفار' },
+        { value: 'Musandam|مسندم', label: 'Musandam / مسندم' },
+        { value: 'Al Buraimi|البريمي', label: 'Al Buraimi / البريمي' },
+        { value: 'Ad Dakhiliyah|الداخلية', label: 'Ad Dakhiliyah / الداخلية' },
+        { value: 'North Al Batinah|شمال الباطنة', label: 'North Al Batinah / شمال الباطنة' },
+        { value: 'South Al Batinah|جنوب الباطنة', label: 'South Al Batinah / جنوب الباطنة' },
+        { value: 'North Al Sharqiyah|شمال الشرقية', label: 'North Al Sharqiyah / شمال الشرقية' },
+        { value: 'South Al Sharqiyah|جنوب الشرقية', label: 'South Al Sharqiyah / جنوب الشرقية' },
+        { value: 'Ad Dhahirah|الظاهرة', label: 'Ad Dhahirah / الظاهرة' },
+        { value: 'Al Wusta|الوسطى', label: 'Al Wusta / الوسطى' }
+      ],
+      'Jordan': [
+        { value: 'Amman|عمان', label: 'Amman / عمان' },
+        { value: 'Irbid|إربد', label: 'Irbid / إربد' },
+        { value: 'Zarqa|الزرقاء', label: 'Zarqa / الزرقاء' },
+        { value: 'Balqa|البلقاء', label: 'Balqa / البلقاء' },
+        { value: 'Mafraq|المفرق', label: 'Mafraq / المفرق' },
+        { value: 'Jerash|جرش', label: 'Jerash / جرش' },
+        { value: 'Ajloun|عجلون', label: 'Ajloun / عجلون' },
+        { value: 'Karak|الكرك', label: 'Karak / الكرك' },
+        { value: 'Tafilah|الطفيلة', label: 'Tafilah / الطفيلة' },
+        { value: 'Ma\'an|معان', label: 'Ma\'an / معان' },
+        { value: 'Aqaba|العقبة', label: 'Aqaba / العقبة' },
+        { value: 'Madaba|مادبا', label: 'Madaba / مادبا' }
+      ],
+      'Lebanon': [
+        { value: 'Beirut|بيروت', label: 'Beirut / بيروت' },
+        { value: 'Mount Lebanon|جبل لبنان', label: 'Mount Lebanon / جبل لبنان' },
+        { value: 'North|الشمال', label: 'North / الشمال' },
+        { value: 'South|الجنوب', label: 'South / الجنوب' },
+        { value: 'Bekaa|البقاع', label: 'Bekaa / البقاع' },
+        { value: 'Nabatieh|النبطية', label: 'Nabatieh / النبطية' },
+        { value: 'Akkar|عكار', label: 'Akkar / عكار' },
+        { value: 'Baalbek-Hermel|بعلبك الهرمل', label: 'Baalbek-Hermel / بعلبك الهرمل' }
+      ],
+      'USA': [
+        { value: 'Alabama', label: 'Alabama' },
+        { value: 'Alaska', label: 'Alaska' },
+        { value: 'Arizona', label: 'Arizona' },
+        { value: 'Arkansas', label: 'Arkansas' },
+        { value: 'California', label: 'California' },
+        { value: 'Colorado', label: 'Colorado' },
+        { value: 'Connecticut', label: 'Connecticut' },
+        { value: 'Delaware', label: 'Delaware' },
+        { value: 'Florida', label: 'Florida' },
+        { value: 'Georgia', label: 'Georgia' },
+        { value: 'Hawaii', label: 'Hawaii' },
+        { value: 'Idaho', label: 'Idaho' },
+        { value: 'Illinois', label: 'Illinois' },
+        { value: 'Indiana', label: 'Indiana' },
+        { value: 'Iowa', label: 'Iowa' },
+        { value: 'Kansas', label: 'Kansas' },
+        { value: 'Kentucky', label: 'Kentucky' },
+        { value: 'Louisiana', label: 'Louisiana' },
+        { value: 'Maine', label: 'Maine' },
+        { value: 'Maryland', label: 'Maryland' },
+        { value: 'Massachusetts', label: 'Massachusetts' },
+        { value: 'Michigan', label: 'Michigan' },
+        { value: 'Minnesota', label: 'Minnesota' },
+        { value: 'Mississippi', label: 'Mississippi' },
+        { value: 'Missouri', label: 'Missouri' },
+        { value: 'Montana', label: 'Montana' },
+        { value: 'Nebraska', label: 'Nebraska' },
+        { value: 'Nevada', label: 'Nevada' },
+        { value: 'New Hampshire', label: 'New Hampshire' },
+        { value: 'New Jersey', label: 'New Jersey' },
+        { value: 'New Mexico', label: 'New Mexico' },
+        { value: 'New York', label: 'New York' },
+        { value: 'North Carolina', label: 'North Carolina' },
+        { value: 'North Dakota', label: 'North Dakota' },
+        { value: 'Ohio', label: 'Ohio' },
+        { value: 'Oklahoma', label: 'Oklahoma' },
+        { value: 'Oregon', label: 'Oregon' },
+        { value: 'Pennsylvania', label: 'Pennsylvania' },
+        { value: 'Rhode Island', label: 'Rhode Island' },
+        { value: 'South Carolina', label: 'South Carolina' },
+        { value: 'South Dakota', label: 'South Dakota' },
+        { value: 'Tennessee', label: 'Tennessee' },
+        { value: 'Texas', label: 'Texas' },
+        { value: 'Utah', label: 'Utah' },
+        { value: 'Vermont', label: 'Vermont' },
+        { value: 'Virginia', label: 'Virginia' },
+        { value: 'Washington', label: 'Washington' },
+        { value: 'West Virginia', label: 'West Virginia' },
+        { value: 'Wisconsin', label: 'Wisconsin' },
+        { value: 'Wyoming', label: 'Wyoming' }
+      ],
+      'UK': [
+        { value: 'England', label: 'England' },
+        { value: 'Scotland', label: 'Scotland' },
+        { value: 'Wales', label: 'Wales' },
+        { value: 'Northern Ireland', label: 'Northern Ireland' }
+      ],
+      'Canada': [
+        { value: 'Alberta', label: 'Alberta' },
+        { value: 'British Columbia', label: 'British Columbia' },
+        { value: 'Manitoba', label: 'Manitoba' },
+        { value: 'New Brunswick', label: 'New Brunswick' },
+        { value: 'Newfoundland and Labrador', label: 'Newfoundland and Labrador' },
+        { value: 'Nova Scotia', label: 'Nova Scotia' },
+        { value: 'Ontario', label: 'Ontario' },
+        { value: 'Prince Edward Island', label: 'Prince Edward Island' },
+        { value: 'Quebec', label: 'Quebec' },
+        { value: 'Saskatchewan', label: 'Saskatchewan' },
+        { value: 'Northwest Territories', label: 'Northwest Territories' },
+        { value: 'Nunavut', label: 'Nunavut' },
+        { value: 'Yukon', label: 'Yukon' }
+      ],
+      'Australia': [
+        { value: 'New South Wales', label: 'New South Wales' },
+        { value: 'Victoria', label: 'Victoria' },
+        { value: 'Queensland', label: 'Queensland' },
+        { value: 'Western Australia', label: 'Western Australia' },
+        { value: 'South Australia', label: 'South Australia' },
+        { value: 'Tasmania', label: 'Tasmania' },
+        { value: 'Australian Capital Territory', label: 'Australian Capital Territory' },
+        { value: 'Northern Territory', label: 'Northern Territory' }
+      ],
+      'Germany': [
+        { value: 'Baden-Württemberg', label: 'Baden-Württemberg' },
+        { value: 'Bavaria|بافاريا', label: 'Bavaria / بافاريا' },
+        { value: 'Berlin|برلين', label: 'Berlin / برلين' },
+        { value: 'Brandenburg', label: 'Brandenburg' },
+        { value: 'Bremen', label: 'Bremen' },
+        { value: 'Hamburg|هامبورغ', label: 'Hamburg / هامبورغ' },
+        { value: 'Hesse', label: 'Hesse' },
+        { value: 'Lower Saxony', label: 'Lower Saxony' },
+        { value: 'Mecklenburg-Vorpommern', label: 'Mecklenburg-Vorpommern' },
+        { value: 'North Rhine-Westphalia', label: 'North Rhine-Westphalia' },
+        { value: 'Rhineland-Palatinate', label: 'Rhineland-Palatinate' },
+        { value: 'Saarland', label: 'Saarland' },
+        { value: 'Saxony', label: 'Saxony' },
+        { value: 'Saxony-Anhalt', label: 'Saxony-Anhalt' },
+        { value: 'Schleswig-Holstein', label: 'Schleswig-Holstein' },
+        { value: 'Thuringia', label: 'Thuringia' }
+      ],
+      'France': [
+        { value: 'Île-de-France|إيل دو فرانس', label: 'Île-de-France / إيل دو فرانس' },
+        { value: 'Auvergne-Rhône-Alpes', label: 'Auvergne-Rhône-Alpes' },
+        { value: 'Provence-Alpes-Côte d\'Azur', label: 'Provence-Alpes-Côte d\'Azur' },
+        { value: 'Occitanie', label: 'Occitanie' },
+        { value: 'Nouvelle-Aquitaine', label: 'Nouvelle-Aquitaine' },
+        { value: 'Grand Est', label: 'Grand Est' },
+        { value: 'Hauts-de-France', label: 'Hauts-de-France' },
+        { value: 'Normandy', label: 'Normandy' },
+        { value: 'Brittany', label: 'Brittany' },
+        { value: 'Pays de la Loire', label: 'Pays de la Loire' },
+        { value: 'Centre-Val de Loire', label: 'Centre-Val de Loire' },
+        { value: 'Bourgogne-Franche-Comté', label: 'Bourgogne-Franche-Comté' },
+        { value: 'Corsica', label: 'Corsica' }
+      ],
+      'Italy': [
+        { value: 'Lazio|لاتسيو', label: 'Lazio / لاتسيو' },
+        { value: 'Lombardy|لومبارديا', label: 'Lombardy / لومبارديا' },
+        { value: 'Campania|كامبانيا', label: 'Campania / كامبانيا' },
+        { value: 'Sicily|صقلية', label: 'Sicily / صقلية' },
+        { value: 'Veneto|فينيتو', label: 'Veneto / فينيتو' },
+        { value: 'Piedmont|بيدمونت', label: 'Piedmont / بيدمونت' },
+        { value: 'Emilia-Romagna', label: 'Emilia-Romagna' },
+        { value: 'Tuscany|توسكانا', label: 'Tuscany / توسكانا' },
+        { value: 'Apulia|بوليا', label: 'Apulia / بوليا' },
+        { value: 'Calabria|كالابريا', label: 'Calabria / كالابريا' },
+        { value: 'Sardinia|سردينيا', label: 'Sardinia / سردينيا' },
+        { value: 'Liguria', label: 'Liguria' },
+        { value: 'Marche', label: 'Marche' },
+        { value: 'Abruzzo', label: 'Abruzzo' },
+        { value: 'Friuli-Venezia Giulia', label: 'Friuli-Venezia Giulia' },
+        { value: 'Trentino-Alto Adige', label: 'Trentino-Alto Adige' },
+        { value: 'Umbria', label: 'Umbria' },
+        { value: 'Basilicata', label: 'Basilicata' },
+        { value: 'Molise', label: 'Molise' },
+        { value: 'Aosta Valley', label: 'Aosta Valley' }
+      ],
+      'Spain': [
+        { value: 'Madrid|مدريد', label: 'Madrid / مدريد' },
+        { value: 'Catalonia|كاتالونيا', label: 'Catalonia / كاتالونيا' },
+        { value: 'Andalusia|الأندلس', label: 'Andalusia / الأندلس' },
+        { value: 'Valencia|فالنسيا', label: 'Valencia / فالنسيا' },
+        { value: 'Galicia', label: 'Galicia' },
+        { value: 'Castile and León', label: 'Castile and León' },
+        { value: 'Basque Country|إقليم الباسك', label: 'Basque Country / إقليم الباسك' },
+        { value: 'Canary Islands|جزر الكناري', label: 'Canary Islands / جزر الكناري' },
+        { value: 'Castilla-La Mancha', label: 'Castilla-La Mancha' },
+        { value: 'Murcia|مرسية', label: 'Murcia / مرسية' },
+        { value: 'Aragon', label: 'Aragon' },
+        { value: 'Extremadura', label: 'Extremadura' },
+        { value: 'Balearic Islands|جزر البليار', label: 'Balearic Islands / جزر البليار' },
+        { value: 'Asturias', label: 'Asturias' },
+        { value: 'Navarre', label: 'Navarre' },
+        { value: 'Cantabria', label: 'Cantabria' },
+        { value: 'La Rioja', label: 'La Rioja' }
+      ],
+      'Turkey': [
+        { value: 'Istanbul|إسطنبول', label: 'Istanbul / إسطنبول' },
+        { value: 'Ankara|أنقرة', label: 'Ankara / أنقرة' },
+        { value: 'Izmir|إزمير', label: 'Izmir / إزمير' },
+        { value: 'Bursa|بورصة', label: 'Bursa / بورصة' },
+        { value: 'Antalya|أنطاليا', label: 'Antalya / أنطاليا' },
+        { value: 'Adana|أضنة', label: 'Adana / أضنة' },
+        { value: 'Konya|قونية', label: 'Konya / قونية' },
+        { value: 'Gaziantep|غازي عنتاب', label: 'Gaziantep / غازي عنتاب' },
+        { value: 'Şanlıurfa|شانلي أورفا', label: 'Şanlıurfa / شانلي أورفا' },
+        { value: 'Kocaeli', label: 'Kocaeli' },
+        { value: 'Mersin', label: 'Mersin' },
+        { value: 'Diyarbakır|ديار بكر', label: 'Diyarbakır / ديار بكر' },
+        { value: 'Hatay', label: 'Hatay' },
+        { value: 'Manisa', label: 'Manisa' },
+        { value: 'Kayseri', label: 'Kayseri' },
+        { value: 'Samsun', label: 'Samsun' },
+        { value: 'Denizli', label: 'Denizli' },
+        { value: 'Trabzon|طرابزون', label: 'Trabzon / طرابزون' }
+      ],
+      'Other': [
+        { value: 'Not Listed', label: 'Not Listed / غير مدرج' }
+      ]
+    };
+
+    // Update governorate label based on country
+    const governorateLabelMap = {
+      'Egypt': 'Governorate / المحافظة',
+      'Saudi Arabia': 'Region / المنطقة',
+      'UAE': 'Emirate / الإمارة',
+      'Kuwait': 'Governorate / المحافظة',
+      'Qatar': 'Municipality / البلدية',
+      'Bahrain': 'Governorate / المحافظة',
+      'Oman': 'Governorate / المحافظة',
+      'Jordan': 'Governorate / المحافظة',
+      'Lebanon': 'Governorate / المحافظة',
+      'USA': 'State / الولاية',
+      'UK': 'Country / البلد',
+      'Canada': 'Province/Territory / المقاطعة',
+      'Australia': 'State/Territory / الولاية',
+      'Germany': 'State / الولاية',
+      'France': 'Region / المنطقة',
+      'Italy': 'Region / المنطقة',
+      'Spain': 'Community / المجتمع',
+      'Turkey': 'Province / المحافظة',
+      'Other': 'State/Province / الولاية/المحافظة'
+    };
+
+    // Function to update governorates based on selected country
+    function updateGovernorateOptions(country) {
+      const governorateField = document.getElementById('governorate');
+      const governorateLabel = document.getElementById('governorateLabel');
+      
+      if (!governorateField) return;
+
+      // Clear existing options
+      governorateField.innerHTML = '';
+      
+      if (!country || country === '') {
+        governorateField.disabled = true;
+        governorateField.innerHTML = '<option value="">Please select a country first / يرجى اختيار البلد أولاً</option>';
+        if (governorateLabel) {
+          governorateLabel.textContent = 'State/Province / الولاية/المحافظة';
+        }
+        return;
+      }
+
+      // Update label based on country
+      if (governorateLabel && governorateLabelMap[country]) {
+        governorateLabel.textContent = governorateLabelMap[country];
+      }
+
+      // Add placeholder option
+      const placeholderText = governorateLabelMap[country] || 'State/Province / الولاية/المحافظة';
+      governorateField.innerHTML = `<option value="">Select ${placeholderText.split('/')[0].trim()} / اختر ${placeholderText.split('/')[1].trim()}</option>`;
+
+      // Get regions for selected country
+      const regions = countryRegionsData[country] || [];
+      
+      if (regions.length === 0) {
+        governorateField.innerHTML = '<option value="Not Listed">Not Listed / غير مدرج</option>';
+        governorateField.disabled = false;
+        return;
+      }
+
+      // Add region options
+      regions.forEach(region => {
+        const option = document.createElement('option');
+        option.value = region.value;
+        option.textContent = region.label;
+        governorateField.appendChild(option);
+      });
+
+      governorateField.disabled = false;
+    }
+
+    // Function to update map center and autocomplete restrictions based on country
+    function updateMapForCountry(country) {
+      if (!map || !country) return;
+      
+      // Country code mapping for Google Maps API
+      const countryCodeMap = {
+        'Egypt': 'eg',
+        'Saudi Arabia': 'sa',
+        'UAE': 'ae',
+        'Kuwait': 'kw',
+        'Qatar': 'qa',
+        'Bahrain': 'bh',
+        'Oman': 'om',
+        'Jordan': 'jo',
+        'Lebanon': 'lb',
+        'USA': 'us',
+        'UK': 'gb',
+        'Canada': 'ca',
+        'Australia': 'au',
+        'Germany': 'de',
+        'France': 'fr',
+        'Italy': 'it',
+        'Spain': 'es',
+        'Turkey': 'tr'
+      };
+
+      // Update map center
+      const newCenter = countryCenterMap[country] || countryCenterMap['Egypt'];
+      map.setCenter(newCenter);
+      map.setZoom(6);
+
+      // Reinitialize autocomplete with new country restriction
+      const searchInput = document.getElementById('mapSearchInput');
+      if (searchInput && window.google && window.google.maps && window.google.maps.places) {
+        const countryCode = countryCodeMap[country] || 'eg';
+        
+        // Remove old autocomplete listeners
+        if (autocomplete) {
+          google.maps.event.clearInstanceListeners(autocomplete);
+        }
+        
+        // Create new autocomplete with updated country restriction
+        autocomplete = new google.maps.places.Autocomplete(searchInput, {
+          types: ['geocode', 'establishment'],
+          componentRestrictions: { country: countryCode },
+          fields: ['geometry', 'formatted_address', 'name', 'place_id']
+        });
+
+        // Re-attach place_changed listener
+        autocomplete.addListener('place_changed', function() {
+          const place = autocomplete.getPlace();
+          if (!place.geometry) {
+            showNotification('No details available for this place. Please try another location.', 'error');
+            return;
+          }
+
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          setLocationFromCoordinates(lat, lng, place.formatted_address || place.name);
+        });
+      }
+    }
+
+    // Add event listener to country field
+    if (countryField) {
+      countryField.addEventListener('change', function() {
+        updateGovernorateOptions(this.value);
+        updateCombinedAddress();
+        
+        // Update map center and autocomplete when country changes
+        updateMapForCountry(this.value);
+      });
+    }
+
+    // Set default country to Egypt and update governorates
+    if (countryField && !countryField.value) {
+      countryField.value = 'Egypt';
+      updateGovernorateOptions('Egypt');
+    } else if (countryField && countryField.value) {
+      // If country is already set, update governorates accordingly
+      updateGovernorateOptions(countryField.value);
+    }
+
+    // Original totals - ensure they are numbers
+    const originalSubtotal = parseFloat(<%= subtotal || 0 %>) || 0;
+    const originalTotal = parseFloat(<%= total || 0 %>) || 0;
+    <% const isBookOnlyFlag = typeof isBookOnly !== 'undefined' && isBookOnly; %>
+    const isBookOnly = <%= isBookOnlyFlag ? 'true' : 'false' %>;
+    let booksSubtotal = 0;
+    
+    // For book-only purchases, booksSubtotal is already included in originalTotal
+    <% if (isBookOnlyFlag && bookPurchaseInfo) { %>
+    booksSubtotal = parseFloat(<%= bookPurchaseInfo.bookPrice || 0 %>) || 0;
+    <% } %>
+    
+    // Promo code state from server
+    let currentPromoDiscount = 0;
+    let currentPromoCode = null;
+    <% if (appliedPromoCode) { %>
+    currentPromoDiscount = parseFloat(<%= appliedPromoCode.discountAmount || 0 %>) || 0;
+    currentPromoCode = '<%= appliedPromoCode.code %>';
+    <% } %>
+
+    // Handle book selection - only if books are available and not book-only purchase
+    <% if (!isBookOnlyFlag) { %>
+    const bookCheckboxes = document.querySelectorAll('.book-checkbox');
+    const orderSummaryOverlay = document.getElementById('orderSummaryLoadingOverlay');
+    
+    // Helper functions for loading overlay
+    function showOrderSummaryLoading() {
+      if (orderSummaryOverlay) {
+        orderSummaryOverlay.style.display = 'flex';
+      }
+    }
+    
+    function hideOrderSummaryLoading() {
+      if (orderSummaryOverlay) {
+        orderSummaryOverlay.style.display = 'none';
+      }
+    }
+    
+    if (bookCheckboxes.length > 0) {
+      bookCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', async function() {
+          updateBooksSubtotal();
+          updateOrderSummaryWithBooks();
+          
+          // Show loading if there's a promo code to revalidate
+          if (currentPromoCode) {
+            showOrderSummaryLoading();
+          }
+          
+          // Re-validate promo code if one is applied to include books in discount
+          await revalidatePromoWithBooks();
+          
+          // Hide loading after revalidation
+          hideOrderSummaryLoading();
+        });
+      });
+    }
+
+
+    function updateBooksSubtotal() {
+      booksSubtotal = 0;
+      bookCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+          const price = parseFloat(checkbox.dataset.bookPrice || 0) || 0;
+          booksSubtotal += price;
+        }
+      });
+    }
+
+    // Re-validate promo code when books change to recalculate discount including books
+    async function revalidatePromoWithBooks() {
+      // Only revalidate if a promo code is currently applied
+      if (!currentPromoCode) {
+        return;
+      }
+
+      try {
+        const response = await fetch('/purchase/promo-code/validate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            promoCode: currentPromoCode,
+            booksSubtotal: booksSubtotal || 0
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Update currentPromoDiscount FIRST before updating displays
+          currentPromoDiscount = data.discountAmount;
+          
+          // Update the promo discount with new calculation including books
+          updateOrderSummary(data.originalAmount, data.discountAmount, data.finalAmount, data.promoCode);
+          
+          // Update the applied promo code badge to match
+          showAppliedPromoCode(data.promoCode, data.discountAmount);
+          
+          // Re-update the order summary with correct discount value
+          updateOrderSummaryWithBooks();
+          
+          console.log('Promo code re-validated with books:', {
+            originalAmount: data.originalAmount,
+            discountAmount: data.discountAmount,
+            finalAmount: data.finalAmount,
+            booksSubtotal: booksSubtotal
+          });
+        }
+      } catch (error) {
+        console.error('Error re-validating promo code with books:', error);
+      }
+    }
+    <% } %>
+
+
+    function updateOrderSummaryWithBooks() {
+      // For book-only purchases, originalTotal already includes the book price
+      const newSubtotal = isBookOnly 
+        ? originalSubtotal 
+        : (originalSubtotal || 0) + (booksSubtotal || 0);
+      
+      // If a promo code is applied, use the backend-calculated value (stored in window.currentTotal)
+      // because backend already includes books in its calculation
+      const hasPromoApplied = currentPromoCode && currentPromoDiscount > 0;
+      const newTotal = hasPromoApplied 
+        ? (window.currentTotal || 0)  // Use backend value - already includes books
+        : (isBookOnly
+            ? (originalTotal || 0)
+            : (originalTotal || 0) + (booksSubtotal || 0));
+
+
+      // Update selected books summary
+      const selectedBooksSummary = document.getElementById('selectedBooksSummary');
+      const selectedBooksList = document.getElementById('selectedBooksList');
+      const booksBreakdownRow = document.getElementById('booksBreakdownRow');
+      const booksSubtotalDisplay = document.getElementById('booksSubtotalDisplay');
+      const orderTotalDisplay = document.getElementById('orderTotalDisplay');
+      const shippingNoteRow = document.getElementById('shippingNoteRow');
+      const promoDiscountBreakdownRow = document.getElementById('promoDiscountBreakdownRow');
+      const promoDiscountBreakdown = document.getElementById('promoDiscountBreakdown');
+
+      if (booksSubtotal > 0) {
+        // Show books summary
+        if (selectedBooksSummary) {
+          selectedBooksSummary.style.display = 'block';
+        }
+        if (booksBreakdownRow) {
+          booksBreakdownRow.style.display = 'flex';
+        }
+        if (shippingNoteRow) {
+          shippingNoteRow.style.display = 'block';
+        }
+
+        // Update books list
+        if (selectedBooksList) {
+          selectedBooksList.innerHTML = '';
+          bookCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+              const bookName = checkbox.dataset.bookName || 'Book';
+              const bookPrice = parseFloat(checkbox.dataset.bookPrice || 0);
+              const bundleTitle = checkbox.dataset.bundleTitle || '';
+              
+              const bookItem = document.createElement('div');
+              bookItem.className = 'checkout-book-summary-item';
+              bookItem.innerHTML = `
+                <div class="checkout-book-summary-info">
+                  <i class="fas fa-book text-primary me-2"></i>
+                  <span><strong>${bookName}</strong></span>
+                  ${bundleTitle ? `<small class="text-muted ms-2">(${bundleTitle})</small>` : ''}
+                </div>
+                <div class="checkout-book-summary-price">
+                  EGP ${bookPrice.toFixed(2)}
+                </div>
+              `;
+              selectedBooksList.appendChild(bookItem);
+            }
+          });
+        }
+
+        // Update books subtotal
+        if (booksSubtotalDisplay) {
+          booksSubtotalDisplay.textContent = `EGP ${booksSubtotal.toFixed(2)}`;
+        }
+      } else {
+        // Hide books summary
+        if (selectedBooksSummary) {
+          selectedBooksSummary.style.display = 'none';
+        }
+        if (booksBreakdownRow) {
+          booksBreakdownRow.style.display = 'none';
+        }
+        if (shippingNoteRow) {
+          shippingNoteRow.style.display = 'none';
+        }
+        if (selectedBooksList) {
+          selectedBooksList.innerHTML = '';
+        }
+      }
+
+      // Update promo discount display in order breakdown
+      if (currentPromoDiscount > 0) {
+        if (promoDiscountBreakdownRow) {
+          promoDiscountBreakdownRow.style.display = 'flex';
+        }
+        if (promoDiscountBreakdown) {
+          promoDiscountBreakdown.textContent = `-EGP ${currentPromoDiscount.toFixed(2)}`;
+        }
+      } else {
+        if (promoDiscountBreakdownRow) {
+          promoDiscountBreakdownRow.style.display = 'none';
+        }
+      }
+
+      // Update order total
+      if (orderTotalDisplay) {
+        orderTotalDisplay.textContent = `EGP ${Math.max(0, newTotal).toFixed(2)}`;
+      }
+
+      // Update subtotal display (in summary card) - only if no promo
+      if (!hasPromoApplied) {
+        const subtotalValue = document.getElementById('subtotalValue');
+        if (subtotalValue) {
+          subtotalValue.textContent = `EGP ${(newSubtotal || 0).toFixed(2)}`;
+        }
+      }
+
+      // Update total display (in summary card)
+      const totalValue = document.getElementById('totalValue');
+      if (totalValue) {
+        totalValue.textContent = `EGP ${Math.max(0, newTotal).toFixed(2)}`;
+      }
+
+      // Store updated values for form submission - only if no promo
+      if (!hasPromoApplied) {
+        window.currentSubtotal = newSubtotal || 0;
+        window.currentTotal = newTotal || 0;
+      }
+    }
+
+
+    // Initialize promo code display on page load
+    function initializePromoCode() {
+      <% if (appliedPromoCode) { %>
+      // Show applied promo code from session
+      const promoCode = '<%= appliedPromoCode.code %>';
+      const discountAmount = parseFloat(<%= appliedPromoCode.discountAmount || 0 %>);
+      const finalAmount = parseFloat(<%= appliedPromoCode.finalAmount || 0 %>);
+      const originalAmount = parseFloat(<%= appliedPromoCode.originalAmount || 0 %>);
+      
+      if (promoCode && discountAmount > 0) {
+        updateOrderSummary(originalAmount, discountAmount, finalAmount, promoCode);
+        showAppliedPromoCode(promoCode, discountAmount);
+      }
+      <% } %>
+    }
+
+    // Call initialization
+    initializePromoCode();
+
+    // Promo code functionality
+    applyPromoBtn.addEventListener('click', applyPromoCode);
+    removePromoBtn.addEventListener('click', removePromoCode);
+
+    // Allow Enter key to apply promo code
+    promoCodeInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyPromoCode();
+      }
+    });
+
+    async function applyPromoCode() {
+      const promoCode = promoCodeInput.value.trim().toUpperCase();
+
+      if (!promoCode) {
+        showPromoMessage('Please enter a promo code', 'error');
+        return;
+      }
+
+      applyPromoBtn.disabled = true;
+      applyPromoBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Applying...';
+
+      try {
+        const response = await fetch('/purchase/promo-code/validate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            promoCode,
+            booksSubtotal: booksSubtotal || 0 // Include books in promo calculation
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showPromoMessage(`Promo code "${data.promoCode}" applied successfully!`, 'success');
+          updateOrderSummary(data.originalAmount, data.discountAmount, data.finalAmount, data.promoCode);
+          showAppliedPromoCode(data.promoCode, data.discountAmount);
+          promoCodeInput.value = '';
+        } else {
+          showPromoMessage(data.message, 'error');
+        }
+      } catch (error) {
+        console.error('Error applying promo code:', error);
+        showPromoMessage('Error applying promo code. Please try again.', 'error');
+      } finally {
+        applyPromoBtn.disabled = false;
+        applyPromoBtn.innerHTML = '<i class="fas fa-check"></i> Apply';
+      }
+    }
+
+
+    async function removePromoCode() {
+      // Show loading state on remove button
+      removePromoBtn.disabled = true;
+      removePromoBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      
+      try {
+        const response = await fetch('/purchase/promo-code/remove', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showPromoMessage('Promo code removed successfully', 'info');
+          resetOrderSummary();
+          hideAppliedPromoCode();
+        } else {
+          showPromoMessage(data.message, 'error');
+        }
+      } catch (error) {
+        console.error('Error removing promo code:', error);
+        showPromoMessage('Error removing promo code. Please try again.', 'error');
+      } finally {
+        // Reset button state
+        removePromoBtn.disabled = false;
+        removePromoBtn.innerHTML = '<i class="fas fa-times"></i>';
+      }
+    }
+
+
+    function showPromoMessage(message, type) {
+      promoCodeMessage.textContent = message;
+      promoCodeMessage.className = `promo-code-message ${type}`;
+      promoCodeMessage.style.display = 'block';
+
+      setTimeout(() => {
+        promoCodeMessage.style.display = 'none';
+      }, 5000);
+    }
+
+    function updateOrderSummary(originalAmount, discountAmount, finalAmount, promoCode) {
+      // SECURITY: Use server-calculated amounts only
+      // NOTE: originalAmount and finalAmount from backend ALREADY include books
+      // because we send booksSubtotal to the validation endpoint
+      const discount = parseFloat(discountAmount || 0) || 0;
+      const final = parseFloat(finalAmount || 0) || 0;
+      const original = parseFloat(originalAmount || 0) || 0;
+      
+      // Update global promo state
+      currentPromoDiscount = discount;
+      currentPromoCode = promoCode;
+      
+      // Update summary card promo discount
+      if (promoDiscountValue) {
+        promoDiscountValue.textContent = `-EGP ${discount.toFixed(2)}`;
+      }
+      if (totalValue) {
+        // Use finalAmount directly - it already includes books from backend
+        totalValue.textContent = `EGP ${Math.max(0, final).toFixed(2)}`;
+      }
+      if (promoCodeDiscountRow) {
+        promoCodeDiscountRow.style.display = 'flex';
+      }
+
+      // Update the subtotal display to show original amount (includes books)
+      const subtotalValue = document.getElementById('subtotalValue');
+      if (subtotalValue) {
+        subtotalValue.textContent = `EGP ${original.toFixed(2)}`;
+      }
+
+      // Update order breakdown section with promo discount
+      const promoDiscountBreakdownRow = document.getElementById('promoDiscountBreakdownRow');
+      const promoDiscountBreakdown = document.getElementById('promoDiscountBreakdown');
+      const orderTotalDisplay = document.getElementById('orderTotalDisplay');
+      
+      if (promoDiscountBreakdownRow) {
+        promoDiscountBreakdownRow.style.display = 'flex';
+      }
+      if (promoDiscountBreakdown) {
+        promoDiscountBreakdown.textContent = `-EGP ${discount.toFixed(2)}`;
+      }
+      if (orderTotalDisplay) {
+        // Use finalAmount directly - it already includes books from backend
+        orderTotalDisplay.textContent = `EGP ${Math.max(0, final).toFixed(2)}`;
+      }
+      
+      // Store the backend-calculated final amount for form submission
+      window.currentTotal = Math.max(0, final);
+    }
+
+
+    function resetOrderSummary() {
+      // Reset global promo state
+      currentPromoDiscount = 0;
+      currentPromoCode = null;
+      
+      // Recalculate total with books but without promo
+      const newTotal = (originalTotal || 0) + (booksSubtotal || 0);
+      
+      if (totalValue) {
+        totalValue.textContent = `EGP ${newTotal.toFixed(2)}`;
+      }
+      if (promoCodeDiscountRow) {
+        promoCodeDiscountRow.style.display = 'none';
+      }
+
+      // Reset order breakdown section
+      const promoDiscountBreakdownRow = document.getElementById('promoDiscountBreakdownRow');
+      const orderTotalDisplay = document.getElementById('orderTotalDisplay');
+      const subtotalValue = document.getElementById('subtotalValue');
+      
+      if (promoDiscountBreakdownRow) {
+        promoDiscountBreakdownRow.style.display = 'none';
+      }
+      if (orderTotalDisplay) {
+        orderTotalDisplay.textContent = `EGP ${newTotal.toFixed(2)}`;
+      }
+      if (subtotalValue) {
+        const newSubtotal = (originalSubtotal || 0) + (booksSubtotal || 0);
+        subtotalValue.textContent = `EGP ${newSubtotal.toFixed(2)}`;
+      }
+    }
+
+    function showAppliedPromoCode(promoCode, discountAmount) {
+      const promoCodeText = appliedPromoCode.querySelector('.promo-code-text');
+      const promoDiscountAmount = appliedPromoCode.querySelector('.promo-discount-amount');
+
+      promoCodeText.textContent = promoCode;
+      promoDiscountAmount.textContent = `-EGP ${discountAmount.toFixed(2)}`;
+      appliedPromoCode.style.display = 'block';
+    }
+
+    function hideAppliedPromoCode() {
+      appliedPromoCode.style.display = 'none';
+    }
+
+    checkoutForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      // Check if terms are read
+      if (!window.checkoutTermsRead) {
+        showNotification('Please read and agree to the Terms & Conditions before proceeding.', 'error');
+        // Scroll to terms section
+        const termsSection = document.querySelector('.checkout-terms-agreement-section');
+        if (termsSection) {
+          termsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+      }
+
+      // SECURITY: Validate that frontend amounts match server expectations
+      const currentTotal = parseFloat(totalValue.textContent.replace('EGP ', ''));
+      const originalTotalAmount = <%= total %>;
+      <% const isBookOnlyCheck = typeof isBookOnly !== 'undefined' && isBookOnly; %>
+      const isBookOnlyCheckFlag = <%= isBookOnlyCheck ? 'true' : 'false' %>;
+
+      // Calculate expected total based on books and promo discount
+      // For book-only purchases, originalTotalAmount already includes the book price
+      const expectedTotalWithBooks = isBookOnlyCheckFlag 
+        ? (originalTotalAmount || 0) - (currentPromoDiscount || 0)
+        : (originalTotalAmount || 0) + (booksSubtotal || 0) - (currentPromoDiscount || 0);
+      
+      // If promo code is applied, ensure the total is less than original (without books)
+      const appliedPromoCodeEl = document.getElementById('appliedPromoCode');
+      const hasAppliedPromo = appliedPromoCodeEl && appliedPromoCodeEl.style.display !== 'none';
+      if (hasAppliedPromo && currentPromoDiscount > 0) {
+        // Validate that displayed total matches our calculation
+        if (Math.abs(currentTotal - expectedTotalWithBooks) > 0.01) {
+          showNotification('Invalid order total. Please refresh the page and try again.', 'error');
+          return;
+        }
+      } else if (!hasAppliedPromo) {
+        // For book-only without promo, total should equal original
+        if (isBookOnlyCheckFlag && Math.abs(currentTotal - originalTotalAmount) > 0.01) {
+          showNotification('Invalid order total. Please refresh the page and try again.', 'error');
+          return;
+        }
+      }
+
+      // Show loading state
+      processPaymentBtn.disabled = true;
+      processPaymentBtn.classList.add('loading');
+      processPaymentBtn.querySelector('.checkout-btn-text').textContent = 'Creating Payment Session...';
+      processPaymentBtn.querySelector('.checkout-btn-loading').style.display = 'inline-block';
+
+      try {
+        // Validate ALL address fields are filled
+        const streetName = document.getElementById('streetName').value.trim();
+        const buildingNumber = document.getElementById('buildingNumber').value.trim();
+        const governorate = document.getElementById('governorate').value;
+        const city = document.getElementById('city').value.trim();
+        
+        if (!streetName) {
+          showNotification('Please enter Street Name / يرجى إدخال اسم الشارع', 'error');
+          document.getElementById('streetName').focus();
+          processPaymentBtn.disabled = false;
+          processPaymentBtn.classList.remove('loading');
+          processPaymentBtn.querySelector('.checkout-btn-text').textContent = 'Process Payment';
+          processPaymentBtn.querySelector('.checkout-btn-loading').style.display = 'none';
+          return;
+        }
+        
+        if (!buildingNumber) {
+          showNotification('Please enter Building Number / يرجى إدخال رقم المبنى', 'error');
+          document.getElementById('buildingNumber').focus();
+          processPaymentBtn.disabled = false;
+          processPaymentBtn.classList.remove('loading');
+          processPaymentBtn.querySelector('.checkout-btn-text').textContent = 'Process Payment';
+          processPaymentBtn.querySelector('.checkout-btn-loading').style.display = 'none';
+          return;
+        }
+        
+        const apartmentNumber = document.getElementById('apartmentNumber').value.trim();
+        if (!apartmentNumber) {
+          showNotification('Please enter Apartment Number / يرجى إدخال رقم الشقة', 'error');
+          document.getElementById('apartmentNumber').focus();
+          processPaymentBtn.disabled = false;
+          processPaymentBtn.classList.remove('loading');
+          processPaymentBtn.querySelector('.checkout-btn-text').textContent = 'Process Payment';
+          processPaymentBtn.querySelector('.checkout-btn-loading').style.display = 'none';
+          return;
+        }
+        
+        if (!governorate) {
+          showNotification('Please select a Governorate / يرجى اختيار المحافظة', 'error');
+          document.getElementById('governorate').focus();
+          processPaymentBtn.disabled = false;
+          processPaymentBtn.classList.remove('loading');
+          processPaymentBtn.querySelector('.checkout-btn-text').textContent = 'Process Payment';
+          processPaymentBtn.querySelector('.checkout-btn-loading').style.display = 'none';
+          return;
+        }
+        
+        if (!city) {
+          showNotification('Please enter Zone / يرجى إدخال المنطقة', 'error');
+          document.getElementById('city').focus();
+          processPaymentBtn.disabled = false;
+          processPaymentBtn.classList.remove('loading');
+          processPaymentBtn.querySelector('.checkout-btn-text').textContent = 'Process Payment';
+          processPaymentBtn.querySelector('.checkout-btn-loading').style.display = 'none';
+          return;
+        }
+
+        // Validate location is selected - MANDATORY for all orders
+        const locationLatValue = document.getElementById('locationLat').value;
+        const locationLngValue = document.getElementById('locationLng').value;
+        const locationLinkValue = document.getElementById('locationLink').value;
+        
+        if (!locationLatValue || !locationLngValue || !locationLinkValue) {
+          showNotification('Please select your location on the map. This is required for delivery.', 'error');
+          // Scroll to map section
+          const mapSection = document.querySelector('.map-picker-container');
+          if (mapSection) {
+            mapSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          processPaymentBtn.disabled = false;
+          processPaymentBtn.classList.remove('loading');
+          processPaymentBtn.querySelector('.checkout-btn-text').textContent = 'Process Payment';
+          processPaymentBtn.querySelector('.checkout-btn-loading').style.display = 'none';
+          return;
+        }
+
+        // Collect form data
+        const formData = new FormData(checkoutForm);
+        const billingAddress = {
+          firstName: formData.get('firstName'),
+          lastName: formData.get('lastName'),
+          email: formData.get('email'),
+          phone: formData.get('phone'),
+          streetName: formData.get('streetName'),
+          buildingNumber: formData.get('buildingNumber'),
+          apartmentNumber: formData.get('apartmentNumber'),
+          governorate: formData.get('governorate'),
+          city: formData.get('city'),
+          address: formData.get('address'), // Combined address for backward compatibility
+          state: formData.get('state'),
+          zipCode: formData.get('zipCode'),
+          country: formData.get('country'),
+          location: {
+            lat: formData.get('locationLat'),
+            lng: formData.get('locationLng'),
+            address: formData.get('locationAddress'),
+            link: formData.get('locationLink')
+          }
+        };
+
+        const selectedPaymentMethod = formData.get('selectedPaymentMethod');
+
+        // Collect selected books
+        const selectedBooks = [];
+        <% if (isBookOnlyFlag && bookPurchaseInfo) { %>
+        // For book-only purchase, automatically select the book
+        selectedBooks.push('<%= bookPurchaseInfo.bundleId %>');
+        <% } else { %>
+        const bookCheckboxes = document.querySelectorAll('.book-checkbox');
+        if (bookCheckboxes.length > 0) {
+          bookCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+              selectedBooks.push(checkbox.value);
+            }
+          });
+        }
+        <% } %>
+
+        // Process payment - server will handle promo code validation and amounts
+        const response = await fetch('/purchase/checkout/process', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            paymentMethod: 'paymob',
+            selectedPaymentMethod,
+            billingAddress,
+            selectedBooks: selectedBooks
+            // Note: Promo code is handled server-side from session
+          })
+        });
+
+        const data = await response.json();
+
+        // Handle zero-payment orders (100% discount)
+        if (data.success && data.skipPayment) {
+          showNotification('Order completed successfully with 100% discount!', 'success');
+          // Redirect to success page
+          setTimeout(() => {
+            window.location.href = `/purchase/payment/success?orderNumber=${data.paymentData.orderNumber}`;
+          }, 1500);
+          return;
+        }
+
+        if (data.success && data.paymentData && (data.paymentData.iframeUrl || data.paymentData.checkoutUrl)) {
+          showNotification('Redirecting to payment gateway...', 'success');
+
+          // SECURITY: Verify that the payment total matches our expected total
+          // For book-only purchases, originalTotalAmount already includes the book price
+          <% const isBookOnlyPayment = typeof isBookOnly !== 'undefined' && isBookOnly; %>
+          const isBookOnlyPaymentFlag = <%= isBookOnlyPayment ? 'true' : 'false' %>;
+          const expectedTotal = isBookOnlyPaymentFlag 
+            ? (originalTotalAmount || 0) - (currentPromoDiscount || 0)
+            : (originalTotalAmount || 0) + (booksSubtotal || 0) - (currentPromoDiscount || 0);
+          
+          if (Math.abs(data.paymentData.total - expectedTotal) > 0.01) {
+            showNotification('Payment amount mismatch detected. Please refresh and try again.', 'error');
+            console.error('Payment mismatch:', {
+              expected: expectedTotal,
+              received: data.paymentData.total,
+              originalTotal: originalTotalAmount,
+              booksSubtotal: booksSubtotal,
+              promoDiscount: currentPromoDiscount,
+              isBookOnly: isBookOnlyPaymentFlag
+            });
+            return;
+          }
+
+          // Check if this is unified checkout (mobile wallet) - redirect instead of iframe
+          if (data.paymentData.isUnifiedCheckout || data.paymentData.checkoutUrl) {
+            // Unified checkout - redirect to payment page
+            const checkoutUrl = data.paymentData.checkoutUrl || data.paymentData.iframeUrl;
+            window.location.href = checkoutUrl;
+          } else {
+            // Old API - show payment iframe
+            showPaymentIframe(data.paymentData);
+          }
+        } else {
+          const errorMessage = data.message || data.error || 'Failed to create payment session';
+          showNotification(errorMessage, 'error');
+          console.error('Payment error:', data);
+        }
+      } catch (error) {
+        console.error('Error processing payment:', error);
+        const errorMessage = error.message || 'Error processing payment. Please try again.';
+        showNotification(errorMessage, 'error');
+      } finally {
+        // Reset button state
+        processPaymentBtn.disabled = false;
+        processPaymentBtn.classList.remove('loading');
+        processPaymentBtn.querySelector('.checkout-btn-text').textContent = 'Process Payment';
+        processPaymentBtn.querySelector('.checkout-btn-loading').style.display = 'none';
+      }
+    });
+  });
+
+  // Show Paymob payment iframe
+  function showPaymentIframe(paymentData) {
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.className = 'payment-iframe-modal';
+    modal.innerHTML = `
+    <div class="payment-iframe-container">
+      <div class="payment-iframe-header">
+        <h3>
+          <i class="fas fa-credit-card"></i>
+          Complete Your Payment
+        </h3>
+        <button class="payment-iframe-close" onclick="closePaymentIframe()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="payment-iframe-body">
+        <div class="payment-info">
+          <div class="payment-info-item">
+            <span class="label">Order Number:</span>
+            <span class="value">${paymentData.orderNumber}</span>
+          </div>
+          <div class="payment-info-item">
+            <span class="label">Total Amount:</span>
+            <span class="value">EGP ${paymentData.total.toFixed(2)}</span>
+          </div>
+        </div>
+        <iframe 
+          src="${paymentData.iframeUrl}"
+          class="payment-iframe"
+          frameborder="0"
+          allowfullscreen>
+        </iframe>
+      </div>
+    </div>
+  `;
+
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+
+    // Add event listener for iframe messages (payment completion)
+    window.addEventListener('message', handlePaymentMessage);
+
+    // Show modal with animation
+    setTimeout(() => modal.classList.add('show'), 100);
+  }
+
+  // Handle payment completion messages from iframe
+  function handlePaymentMessage(event) {
+    // Check if message is from Paymob
+    if (event.origin.includes('paymob.com') || event.origin.includes('accept.paymob.com')) {
+      const data = event.data;
+
+      // Handle different message types
+      if (data.type === 'payment_completed' || data.success === true) {
+        // Payment successful
+        showNotification('Payment completed successfully! Redirecting...', 'success');
+
+        setTimeout(() => {
+          window.location.href = `/purchase/payment/success?merchantOrderId=${data.merchantOrderId || ''}`;
+        }, 2000);
+      } else if (data.type === 'payment_failed' || data.success === false) {
+        // Payment failed
+        showNotification('Payment failed. Please try again.', 'error');
+        closePaymentIframe();
+      }
+    }
+  }
+
+  // Close payment iframe
+  function closePaymentIframe() {
+    const modal = document.querySelector('.payment-iframe-modal');
+    if (modal) {
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.remove();
+        document.body.style.overflow = 'auto';
+        window.removeEventListener('message', handlePaymentMessage);
+      }, 300);
+    }
+  }
+
+  // Show notification
+  function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `checkout-notification checkout-notification-${type}`;
+    notification.innerHTML = `
+    <div class="checkout-notification-content">
+      <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+      <span>${message}</span>
+    </div>
+  `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => notification.classList.add('show'), 100);
+
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => notification.remove(), 300);
+    }, 5000);
+  }
+
+  // ============================================
+  // Terms & Conditions Modal Functionality
+  // ============================================
+  // This variable is checked in form submission - defined in separate script block
+  window.checkoutTermsRead = false;
+
+  // ============================================
+  // End Terms & Conditions Modal (code moved to separate script block)
+  // ============================================
+
+  // Show order summary directly on checkout page
+  function showOrderSummary(purchaseData) {
+    // Hide the checkout form
+    const checkoutForm = document.getElementById('checkoutForm');
+    const checkoutSummary = document.querySelector('.checkout-summary-card');
+
+    if (checkoutForm) checkoutForm.style.display = 'none';
+    if (checkoutSummary) checkoutSummary.style.display = 'none';
+
+    // Create order summary section
+    const orderSummaryHTML = `
+    <div class="checkout-order-summary-success">
+      <!-- Success Header -->
+      <div class="checkout-success-header">
+        <div class="checkout-success-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <h1 class="checkout-success-title">Payment Successful!</h1>
+        <p class="checkout-success-message">
+          Thank you for your purchase. Your order has been processed successfully and you now have access to your courses.
+        </p>
+      </div>
+
+      <!-- Order Details -->
+      <div class="checkout-order-details">
+        <div class="checkout-order-info">
+          <h2 class="checkout-order-info-title">
+            <i class="fas fa-receipt"></i>
+            Order Details
+          </h2>
+          
+          <div class="checkout-order-meta">
+            <div class="checkout-meta-item">
+              <span class="checkout-meta-label">Order Number:</span>
+              <span class="checkout-meta-value">${purchaseData.orderNumber}</span>
+            </div>
+            <div class="checkout-meta-item">
+              <span class="checkout-meta-label">Order Date:</span>
+              <span class="checkout-meta-value">${new Date().toLocaleDateString()}</span>
+            </div>
+            <div class="checkout-meta-item">
+              <span class="checkout-meta-label">Payment Status:</span>
+              <span class="checkout-meta-value checkout-status-completed">
+                <i class="fas fa-check-circle"></i>
+                Completed
+              </span>
+            </div>
+            <div class="checkout-meta-item">
+              <span class="checkout-meta-label">Payment Method:</span>
+              <span class="checkout-meta-value">
+                <i class="fas fa-${purchaseData.paymentMethod === 'mobile_wallet' ? 'mobile-alt' : 'credit-card'}"></i>
+                ${purchaseData.paymentMethod === 'mobile_wallet' ? 'Mobile Wallet' : 'Credit/Debit Card'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Purchased Items -->
+        <div class="checkout-purchased-items">
+          <h3 class="checkout-items-title">
+            <i class="fas fa-shopping-bag"></i>
+            Purchased Items
+          </h3>
+          
+          <div class="checkout-items-list">
+            ${purchaseData.items.map(item => `
+            <div class="checkout-purchased-item">
+              <div class="checkout-item-media">
+                <img src="${item.image || '/images/adad.png'}" alt="${item.title}">
+                <div class="checkout-item-badge">
+                  <i class="fas fa-${item.type === 'bundle' ? 'box' : 'book'}"></i>
+                </div>
+              </div>
+              
+              <div class="checkout-item-details">
+                <h4 class="checkout-item-title">${item.title}</h4>
+                <span class="checkout-item-type">${item.type === 'bundle' ? 'Course Bundle' : 'Individual Course'}</span>
+                <div class="checkout-item-description">
+                  ${item.type === 'bundle' ? 'Multiple courses included' : 'Premium course content'}
+                </div>
+              </div>
+              
+              <div class="checkout-item-price">
+                ${item.discountPrice && item.discountPrice > 0 ? 
+                  `<span class="checkout-original-price">EGP${item.originalPrice.toFixed(2)}</span>
+                   <span class="checkout-discount-badge">-${item.discountPrice.toFixed(0)}%</span><br>
+                   <span class="checkout-final-price">EGP${item.price.toFixed(2)}</span>` :
+                  `EGP${item.price.toFixed(2)}`
+                }
+              </div>
+            </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Order Total -->
+        <div class="checkout-order-total">
+          <h3 class="checkout-total-title">
+            <i class="fas fa-calculator"></i>
+            Order Total
+          </h3>
+          
+          <div class="checkout-total-breakdown">
+            <div class="checkout-total-row">
+              <span class="checkout-total-label">Subtotal:</span>
+              <span class="checkout-total-value">EGP${purchaseData.subtotal.toFixed(2)}</span>
+            </div>
+            <div class="checkout-total-row checkout-total-final">
+              <span class="checkout-total-label">Total Paid:</span>
+              <span class="checkout-total-value">EGP${purchaseData.total.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Next Steps -->
+      <div class="checkout-next-steps">
+        <h3 class="checkout-steps-title">
+          <i class="fas fa-arrow-right"></i>
+          What's Next?
+        </h3>
+        
+        <div class="checkout-steps-list">
+          <div class="checkout-step-item">
+            <div class="checkout-step-icon">
+              <i class="fas fa-envelope"></i>
+            </div>
+            <div class="checkout-step-content">
+              <h4 class="checkout-step-title">Check Your Email</h4>
+              <p class="checkout-step-description">
+                We've sent you a confirmation email with your order details and course access information.
+              </p>
+            </div>
+          </div>
+          
+          <div class="checkout-step-item">
+            <div class="checkout-step-icon">
+              <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="checkout-step-content">
+              <h4 class="checkout-step-title">Access Your Courses</h4>
+              <p class="checkout-step-description">
+                Your purchased courses are now available in your student dashboard. Start learning right away!
+              </p>
+            </div>
+          </div>
+          
+          <div class="checkout-step-item">
+            <div class="checkout-step-icon">
+              <i class="fas fa-headset"></i>
+            </div>
+            <div class="checkout-step-content">
+              <h4 class="checkout-step-title">Get Support</h4>
+              <p class="checkout-step-description">
+                Need help? Our support team is available 24/7 to assist you with any questions.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="checkout-action-buttons">
+        <a href="/student/dashboard" class="checkout-btn-primary">
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Go to Dashboard</span>
+        </a>
+        <a href="/student/enrolled-courses" class="checkout-btn-secondary">
+          <i class="fas fa-book"></i>
+          <span>View My Courses</span>
+        </a>
+        <a href="/purchase/purchase-history" class="checkout-btn-outline">
+          <i class="fas fa-history"></i>
+          <span>Purchase History</span>
+        </a>
+      </div>
+    </div>
+  `;
+
+    // Insert the order summary
+    const container = document.querySelector('.checkout-container');
+    if (container) {
+      container.innerHTML = orderSummaryHTML;
+    }
+  }
+</script>
+
+<!-- Terms and Conditions Modal -->
+<div class="checkout-reading-modal" id="checkoutReadingModal">
+  <div class="checkout-reading-modal-overlay" id="checkoutModalOverlay"></div>
+  <div class="checkout-reading-modal-container">
+    <div class="checkout-reading-modal-header">
+      <div class="checkout-modal-header-left">
+        <h3 id="checkoutModalTitle" data-english="Terms & Conditions" data-arabic="الشروط والأحكام">Terms & Conditions</h3>
+        <!-- Language Toggle Button in Modal -->
+        <button class="checkout-modal-lang-toggle-btn" id="checkoutModalLangToggle" data-lang="en">
+          <i class="fas fa-globe"></i>
+          <span class="checkout-modal-lang-text">AR</span>
+        </button>
+      </div>
+      <button class="checkout-modal-close-btn" id="checkoutCloseModalBtn" disabled data-english-title="Please read to the end" data-arabic-title="يرجى القراءة حتى النهاية" title="Please read to the end">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="checkout-reading-progress-bar">
+      <div class="checkout-reading-progress-track">
+        <div class="checkout-reading-progress-fill" id="checkoutReadingProgressFill">
+          <div class="checkout-progress-shine"></div>
+        </div>
+        <div class="checkout-progress-steps">
+          <div class="checkout-progress-step" data-step="25"></div>
+          <div class="checkout-progress-step" data-step="50"></div>
+          <div class="checkout-progress-step" data-step="75"></div>
+        </div>
+      </div>
+      <div class="checkout-progress-info">
+        <span class="checkout-reading-progress-text" id="checkoutReadingProgressText" data-english="Scroll to read: 0%" data-arabic="انتقل للقراءة: 0%">Scroll to read: 0%</span>
+        <span class="checkout-progress-percentage" id="checkoutProgressPercentage">0%</span>
+      </div>
+    </div>
+    
+    <div class="checkout-reading-modal-content" id="checkoutModalContent">
+      <!-- Content will be loaded here dynamically -->
+    </div>
+    
+    <div class="checkout-reading-modal-footer">
+      <button class="checkout-btn-confirm-read" id="checkoutConfirmReadBtn" disabled>
+        <i class="fas fa-check-circle"></i>
+        <span data-english="I Have Read and Agree" data-arabic="لقد قرأت ووافقت">I Have Read and Agree</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PlayerJS Library for Video Control -->
+<script src="https://assets.mediadelivery.net/playerjs/playerjs-latest.min.js"></script>
+
+<!-- Checkout Terms Modal Reading Tracking Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Track reading status
+  let checkoutTermsRead = false;
+  let checkoutHasScrolledToBottom = false;
+  let checkoutModalLang = localStorage.getItem('checkoutModalLang') || 'en';
+  
+  // Video tracking variables (for checkout terms video)
+  let checkoutTermsVideoPlayer = null;
+  let checkoutTermsVideoDuration = 0;
+  let checkoutTermsVideoWatchedTime = 0;
+  let checkoutTermsVideoMaxWatched = 0;
+  let checkoutTermsVideoIsPlaying = false;
+  let checkoutTermsVideoCompleted = false;
+  let checkoutTermsVideoLastTime = 0;
+  
+  // Initialize Terms Video Anti-Skip Tracking - Variables must be outside function to persist
+  let checkoutLastUpdateTimestamp = Date.now();
+  let checkoutIsSeeking = false;
+  
+  // Modal Elements
+  const checkoutModal = document.getElementById('checkoutReadingModal');
+  const checkoutModalOverlay = document.getElementById('checkoutModalOverlay');
+  const checkoutModalTitle = document.getElementById('checkoutModalTitle');
+  const checkoutModalContent = document.getElementById('checkoutModalContent');
+  const checkoutCloseModalBtn = document.getElementById('checkoutCloseModalBtn');
+  const checkoutConfirmReadBtn = document.getElementById('checkoutConfirmReadBtn');
+  const checkoutReadingProgressFill = document.getElementById('checkoutReadingProgressFill');
+  const checkoutReadingProgressText = document.getElementById('checkoutReadingProgressText');
+  const checkoutProgressPercentage = document.getElementById('checkoutProgressPercentage');
+  const checkoutModalLangToggle = document.getElementById('checkoutModalLangToggle');
+  
+  // Trigger Elements
+  const openCheckoutTermsModal = document.getElementById('openCheckoutTermsModal');
+  
+  // Status Elements
+  const checkoutTermsReadStatus = document.getElementById('checkoutTermsReadStatus');
+  const checkoutTermsCompletionNotice = document.getElementById('checkoutTermsCompletionNotice');
+  const processPaymentBtn = document.getElementById('processPaymentBtn');
+  
+  // Terms Content - Only Sections 4 and 5
+  const checkoutTermsContentEN = `
+    <div class="checkout-modal-document-content">
+      <div class="checkout-document-section">
+        <h3><span class="checkout-section-number">4</span> Payment Terms</h3>
+        <p>Payment terms for our services:</p>
+        <ul>
+          <li><i class="fas fa-check-circle"></i> All fees are non-refundable unless otherwise stated</li>
+          <li><i class="fas fa-check-circle"></i> Payment must be made in advance of service delivery</li>
+          <li><i class="fas fa-check-circle"></i> We accept various payment methods as displayed during checkout</li>
+          <li><i class="fas fa-check-circle"></i> Prices may change at any time with notice to existing users</li>
+        </ul>
+      </div>
+      
+      <div class="checkout-document-section">
+        <h3><span class="checkout-section-number">5</span> Course Guidelines</h3>
+        <ul>
+          <li><i class="fas fa-check-circle"></i> Attendance is A MUST for all live and on-ground sessions.</li>
+          <li><i class="fas fa-check-circle"></i> Any student who is absent 3 times will be dismissed from the course, whether attending on-ground or online.</li>
+          <li><i class="fas fa-check-circle"></i> Submitting homework is A MUST to be allowed to attend the session.</li>
+          <li><i class="fas fa-check-circle"></i> For live sessions, having the Microphone On is mandatory to ensure participation with Mr. Kably.</li>
+          <li><i class="fas fa-check-circle"></i> Camera Must be on during live sessions for better participation and communication.</li>
+        </ul>
+      </div>
+      
+      <div class="checkout-document-section">
+        <h3><span class="checkout-section-number">6</span> Important Video (Anti-Skip)</h3>
+        <p><strong>Please watch the following video completely. Skipping is not allowed.</strong></p>
+        <div class="checkout-terms-video-container" id="checkoutTermsVideoContainer">
+          <div style="position:relative;padding-top:56.25%;">
+            <iframe id="checkoutTermsVideoIframe" src="https://iframe.mediadelivery.net/embed/533780/15dc74bf-f70b-4a87-b74d-993ad32adc2c?autoplay=false&loop=false&muted=false&preload=true&responsive=true&controls=false" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe>
+          </div>
+          <div class="checkout-video-watch-status" id="checkoutVideoWatchStatus" style="margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px; display: none;">
+            <i class="fas fa-info-circle"></i> <span id="checkoutVideoWatchStatusText">Video must be watched completely to proceed.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const checkoutTermsContentAR = `
+    <div class="checkout-modal-document-content">
+      <div class="checkout-document-section">
+        <h3><span class="checkout-section-number">4</span> شروط الدفع</h3>
+        <p>شروط الدفع لخدماتنا:</p>
+        <ul>
+          <li><i class="fas fa-check-circle"></i><span> جميع الرسوم غير قابلة للاسترداد ما لم يذكر خلاف ذلك</span></li>
+          <li><i class="fas fa-check-circle"></i><span> يجب الدفع مسبقاً قبل تقديم الخدمة</span></li>
+          <li><i class="fas fa-check-circle"></i><span> نقبل طرق دفع متنوعة كما هو موضح أثناء الدفع</span></li>
+          <li><i class="fas fa-check-circle"></i><span> قد تتغير الأسعار في أي وقت مع إشعار المستخدمين الحاليين</span></li>
+        </ul>
+      </div>
+      <div class="checkout-document-section">
+        <h3><span class="checkout-section-number">5</span> إرشادات الدورة</h3>
+        <ul>
+          <li><i class="fas fa-check-circle"></i><span> <strong>الحضور إجباري</strong> لجميع الجلسات الحية والوجاهية.</span></li>
+          <li><i class="fas fa-check-circle"></i><span> سيتم فصل أي طالب يتغيب <strong>3 مرات</strong> من الدورة، سواء كان يحضر وجاهياً أو عبر الإنترنت.</span></li>
+          <li><i class="fas fa-check-circle"></i><span> <strong>تقديم الواجبات المنزلية إجباري</strong> للسماح بحضور الجلسة.</span></li>
+          <li><i class="fas fa-check-circle"></i><span> لجلسات البث المباشر، يجب تشغيل <strong>الميكروفون إجبارياً</strong> لضمان المشاركة مع الأستاذ كابلي.</span></li>
+          <li><i class="fas fa-check-circle"></i><span> <strong>يجب تشغيل الكاميرا</strong> أثناء جلسات البث المباشر لمشاركة وتواصل أفضل.</span></li>
+        </ul>
+      </div>
+      
+      <div class="checkout-document-section">
+        <h3><span class="checkout-section-number">6</span> فيديو مهم (منع التخطي)</h3>
+        <p><strong>يرجى مشاهدة الفيديو التالي بالكامل. التخطي غير مسموح.</strong></p>
+        <div class="checkout-terms-video-container" id="checkoutTermsVideoContainer">
+          <div style="position:relative;padding-top:56.25%;">
+            <iframe id="checkoutTermsVideoIframe" src="https://iframe.mediadelivery.net/embed/533780/15dc74bf-f70b-4a87-b74d-993ad32adc2c?autoplay=false&loop=false&muted=false&preload=true&responsive=true&controls=false" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe>
+          </div>
+          <div class="checkout-video-watch-status" id="checkoutVideoWatchStatus" style="margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px; display: none;">
+            <i class="fas fa-info-circle"></i> <span id="checkoutVideoWatchStatusText">يجب مشاهدة الفيديو بالكامل للمتابعة.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Open Modal Function
+  function openCheckoutModal() {
+    // Check if modal elements exist
+    if (!checkoutModal || !checkoutModalContent || !checkoutReadingProgressFill) {
+      return; // Silently return if elements don't exist
+    }
+
+    checkoutHasScrolledToBottom = false;
+    
+    // Reset video completion state
+    checkoutTermsVideoCompleted = false;
+    checkoutTermsVideoWatchedTime = 0;
+    checkoutTermsVideoMaxWatched = 0;
+    checkoutTermsVideoLastTime = 0;
+    checkoutTermsVideoIsPlaying = false;
+    checkoutLastUpdateTimestamp = Date.now();
+    checkoutIsSeeking = false;
+    
+    // Reset progress
+    checkoutReadingProgressFill.style.width = '0%';
+    if (checkoutProgressPercentage) {
+      checkoutProgressPercentage.textContent = '0%';
+    }
+    
+    // Apply language to modal
+    applyCheckoutModalLanguage(checkoutModalLang);
+    
+    // Reset buttons
+    if (checkoutCloseModalBtn) {
+      checkoutCloseModalBtn.disabled = true;
+      if (checkoutModalLang === 'ar') {
+        checkoutCloseModalBtn.title = 'يرجى القراءة حتى النهاية';
+      } else {
+        checkoutCloseModalBtn.title = 'Please read to the end';
+      }
+    }
+    if (checkoutConfirmReadBtn) {
+      checkoutConfirmReadBtn.disabled = true;
+    }
+    
+    // Show modal
+    checkoutModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Scroll to top
+    checkoutModalContent.scrollTop = 0;
+    
+    // Update scroll tracking
+    updateCheckoutScrollProgress();
+    
+    // Initialize video tracking
+    setTimeout(initCheckoutTermsVideoTracking, 500);
+  }
+  
+  // Initialize Checkout Terms Video Anti-Skip Tracking
+  function initCheckoutTermsVideoTracking() {
+    const videoIframe = document.getElementById('checkoutTermsVideoIframe');
+    const videoStatus = document.getElementById('checkoutVideoWatchStatus');
+    const videoStatusText = document.getElementById('checkoutVideoWatchStatusText');
+    
+    if (!videoIframe) return;
+    
+    // Reset video tracking
+    checkoutTermsVideoCompleted = false;
+    checkoutTermsVideoWatchedTime = 0;
+    checkoutTermsVideoMaxWatched = 0;
+    checkoutTermsVideoLastTime = 0;
+    checkoutTermsVideoIsPlaying = false;
+    checkoutLastUpdateTimestamp = Date.now();
+    checkoutIsSeeking = false;
+    
+    // Show status
+    if (videoStatus) {
+      videoStatus.style.display = 'flex';
+      videoStatus.className = 'checkout-video-watch-status';
+      if (checkoutModalLang === 'ar') {
+        videoStatusText.textContent = 'يجب مشاهدة الفيديو بالكامل للمتابعة. التخطي غير مسموح.';
+      } else {
+        videoStatusText.textContent = 'Video must be watched completely to proceed. Skipping is not allowed.';
+      }
+    }
+    
+    // Wait for playerjs to be available
+    if (typeof playerjs === 'undefined') {
+      console.error('PlayerJS library not loaded');
+      return;
+    }
+    
+    try {
+      checkoutTermsVideoPlayer = new playerjs.Player(videoIframe);
+      
+      checkoutTermsVideoPlayer.on('ready', function() {
+        checkoutTermsVideoPlayer.getDuration(function(duration) {
+          checkoutTermsVideoDuration = duration;
+          console.log('📹 Checkout terms video duration:', checkoutTermsVideoDuration);
+        });
+      });
+      
+      checkoutTermsVideoPlayer.on('play', function() {
+        checkoutTermsVideoIsPlaying = true;
+        if (videoStatus) {
+          videoStatus.className = 'checkout-video-watch-status watching';
+          if (checkoutModalLang === 'ar') {
+            videoStatusText.textContent = 'جاري المشاهدة... يرجى مشاهدة الفيديو حتى النهاية.';
+          } else {
+            videoStatusText.textContent = 'Watching... Please watch the video until the end.';
+          }
+        }
+      });
+      
+      checkoutTermsVideoPlayer.on('pause', function() {
+        checkoutTermsVideoIsPlaying = false;
+      });
+      
+      // STRICT ANTI-SKIP: Track time updates with smart tolerance
+      checkoutTermsVideoPlayer.on('timeupdate', function(data) {
+        if (checkoutTermsVideoCompleted || checkoutIsSeeking) return;
+        
+        const currentTime = data.seconds;
+        const now = Date.now();
+        const timeSinceLastUpdate = now - checkoutLastUpdateTimestamp;
+        const timeDiff = currentTime - checkoutTermsVideoLastTime;
+        const SKIP_TOLERANCE = 2; // seconds
+        
+        // Check for skips regardless of playing state (catches timeline clicks, etc.)
+        // Check for forward skip: current time jumped ahead significantly beyond what's been watched
+        if (currentTime > checkoutTermsVideoMaxWatched + SKIP_TOLERANCE) {
+          // User tried to skip ahead - seek back silently
+          checkoutIsSeeking = true;
+          checkoutTermsVideoPlayer.setCurrentTime(checkoutTermsVideoMaxWatched);
+          setTimeout(() => { checkoutIsSeeking = false; }, 100);
+          return;
+        }
+        
+        // Check for backward skip: only prevent if significantly behind max watched (more than 1 second)
+        if (currentTime < checkoutTermsVideoMaxWatched - 1) {
+          // User tried to go backward - prevent it silently
+          checkoutIsSeeking = true;
+          checkoutTermsVideoPlayer.setCurrentTime(checkoutTermsVideoMaxWatched);
+          setTimeout(() => { checkoutIsSeeking = false; }, 100);
+          return;
+        }
+        
+        // Only update max watched time if video is playing forward normally
+        if (checkoutTermsVideoIsPlaying) {
+          // Calculate expected time advancement based on elapsed time (allow 10% tolerance for buffering)
+          const expectedAdvancement = (timeSinceLastUpdate / 1000) * 1.1; // 1.1x for tolerance
+          
+          // Update max watched time if playing forward normally
+          // Allow small jumps (up to 2 seconds) for buffering/loading
+          if (currentTime > checkoutTermsVideoLastTime && timeDiff >= 0 && timeDiff <= 2.0) {
+            if (currentTime > checkoutTermsVideoMaxWatched) {
+              checkoutTermsVideoMaxWatched = currentTime;
+            }
+          }
+        }
+        
+        checkoutTermsVideoLastTime = currentTime;
+        checkoutLastUpdateTimestamp = now;
+        
+        // Check if video is completed (watched 100%)
+        if (checkoutTermsVideoDuration > 0 && checkoutTermsVideoMaxWatched >= checkoutTermsVideoDuration * 0.99) {
+          checkoutTermsVideoCompleted = true;
+          if (videoStatus) {
+            videoStatus.className = 'checkout-video-watch-status completed';
+            if (checkoutModalLang === 'ar') {
+              videoStatusText.textContent = '✓ تمت مشاهدة الفيديو بالكامل! يمكنك الآن المتابعة.';
+            } else {
+              videoStatusText.textContent = '✓ Video watched completely! You can now proceed.';
+            }
+          }
+          // Enable confirm button immediately (video completion is sufficient)
+          checkCheckoutTermsCompletion();
+        }
+      });
+      
+      // Handle video end
+      checkoutTermsVideoPlayer.on('ended', function() {
+        checkoutTermsVideoCompleted = true;
+        checkoutTermsVideoMaxWatched = checkoutTermsVideoDuration;
+        if (videoStatus) {
+          videoStatus.className = 'checkout-video-watch-status completed';
+          if (checkoutModalLang === 'ar') {
+            videoStatusText.textContent = '✓ تمت مشاهدة الفيديو بالكامل! يمكنك الآن المتابعة.';
+          } else {
+            videoStatusText.textContent = '✓ Video watched completely! You can now proceed.';
+          }
+        }
+        // Enable confirm button immediately (video completion is sufficient)
+        checkCheckoutTermsCompletion();
+      });
+      
+    } catch (error) {
+      console.error('Error initializing checkout terms video player:', error);
+    }
+  }
+  
+  // Check if checkout terms can be completed (video completed is sufficient - no scroll required)
+  function checkCheckoutTermsCompletion() {
+    // Only enable buttons if:
+    // 1. Video is completed (this is the main requirement)
+    // 2. Modal is actually active
+    // Note: Scrolling to bottom is NOT required - video completion is enough
+    if (checkoutTermsVideoCompleted && checkoutModal && checkoutModal.classList.contains('active')) {
+      if (checkoutCloseModalBtn) {
+        checkoutCloseModalBtn.disabled = false;
+        if (checkoutModalLang === 'ar') {
+          checkoutCloseModalBtn.title = 'إغلاق';
+        } else {
+          checkoutCloseModalBtn.title = 'Close';
+        }
+      }
+      if (checkoutConfirmReadBtn) {
+        checkoutConfirmReadBtn.disabled = false;
+        checkoutConfirmReadBtn.style.opacity = '1';
+        checkoutConfirmReadBtn.style.cursor = 'pointer';
+      }
+    } else if (!checkoutTermsVideoCompleted) {
+      // Ensure buttons are disabled if video not completed
+      if (checkoutCloseModalBtn) checkoutCloseModalBtn.disabled = true;
+      if (checkoutConfirmReadBtn) {
+        checkoutConfirmReadBtn.disabled = true;
+        checkoutConfirmReadBtn.style.opacity = '0.5';
+        checkoutConfirmReadBtn.style.cursor = 'not-allowed';
+      }
+    }
+  }
+  
+  // Apply Modal Language
+  function applyCheckoutModalLanguage(lang) {
+    if (!checkoutModalContent || !checkoutModalTitle) {
+      return;
+    }
+
+    // Update language toggle button
+    if (checkoutModalLangToggle) {
+      const langText = checkoutModalLangToggle.querySelector('.checkout-modal-lang-text');
+      if (langText) {
+        if (lang === 'ar') {
+          langText.textContent = 'EN';
+          checkoutModalLangToggle.setAttribute('data-lang', 'ar');
+        } else {
+          langText.textContent = 'AR';
+          checkoutModalLangToggle.setAttribute('data-lang', 'en');
+        }
+      }
+    }
+    
+    // Update modal content
+    const content = lang === 'ar' ? checkoutTermsContentAR : checkoutTermsContentEN;
+    checkoutModalContent.innerHTML = content;
+    
+    // Reinitialize video after content update
+    setTimeout(initCheckoutTermsVideoTracking, 100);
+    
+    // Update modal title
+    const titleText = lang === 'ar' ? 'الشروط والأحكام' : 'Terms & Conditions';
+    checkoutModalTitle.textContent = titleText;
+    
+    // Apply RTL
+    if (lang === 'ar') {
+      checkoutModalContent.classList.add('rtl');
+    } else {
+      checkoutModalContent.classList.remove('rtl');
+    }
+    
+    // Update text elements
+    if (checkoutModal) {
+      const textElements = checkoutModal.querySelectorAll('[data-english][data-arabic]');
+      textElements.forEach(element => {
+        const text = lang === 'ar' ? element.getAttribute('data-arabic') : element.getAttribute('data-english');
+        if (text) element.textContent = text;
+      });
+    }
+    
+    // Update buttons text
+    if (checkoutConfirmReadBtn) {
+      const span = checkoutConfirmReadBtn.querySelector('span');
+      if (span) {
+        const confirmBtnText = span.getAttribute(lang === 'ar' ? 'data-arabic' : 'data-english');
+        if (confirmBtnText) span.textContent = confirmBtnText;
+      }
+    }
+    
+    if (checkoutCloseModalBtn) {
+      const closeBtnTitle = checkoutCloseModalBtn.getAttribute(lang === 'ar' ? 'data-arabic-title' : 'data-english-title');
+      if (closeBtnTitle) checkoutCloseModalBtn.title = closeBtnTitle;
+    }
+    
+    // Update progress text
+    updateCheckoutProgressText();
+  }
+  
+  // Update Progress Text
+  function updateCheckoutProgressText() {
+    if (!checkoutModalContent || !checkoutReadingProgressText) {
+      return;
+    }
+
+    const scrollTop = checkoutModalContent.scrollTop;
+    const scrollHeight = checkoutModalContent.scrollHeight;
+    const clientHeight = checkoutModalContent.clientHeight;
+    const scrollableHeight = scrollHeight - clientHeight;
+    const scrollPercentage = scrollableHeight > 0 ? (scrollTop / scrollableHeight) * 100 : 0;
+    const percentage = Math.round(Math.min(scrollPercentage, 100));
+    
+    if (percentage >= 100) {
+      checkoutReadingProgressText.textContent = checkoutModalLang === 'ar' ? 'اكتملت القراءة! ✓' : 'Reading complete! ✓';
+    } else {
+      const text = checkoutReadingProgressText.getAttribute(checkoutModalLang === 'ar' ? 'data-arabic' : 'data-english');
+      if (text) {
+        checkoutReadingProgressText.textContent = text.replace('0%', `${percentage}%`);
+      }
+    }
+    if (checkoutProgressPercentage) {
+      checkoutProgressPercentage.textContent = `${percentage}%`;
+    }
+  }
+  
+  // Update Scroll Progress
+  function updateCheckoutScrollProgress() {
+    if (!checkoutModalContent || !checkoutReadingProgressFill || !checkoutModal) {
+      return;
+    }
+
+    const scrollTop = checkoutModalContent.scrollTop;
+    const scrollHeight = checkoutModalContent.scrollHeight;
+    const clientHeight = checkoutModalContent.clientHeight;
+    
+    const scrollableHeight = scrollHeight - clientHeight;
+    const scrollPercentage = scrollableHeight > 0 ? (scrollTop / scrollableHeight) * 100 : 0;
+    const percentage = Math.min(scrollPercentage, 100);
+    
+    // Update progress bar
+    checkoutReadingProgressFill.style.width = percentage + '%';
+    
+    // Update progress text
+    updateCheckoutProgressText();
+    
+    // Update progress steps visibility
+    const steps = checkoutModal.querySelectorAll('.checkout-progress-step');
+    steps.forEach((step, index) => {
+      const stepValue = [25, 50, 75][index];
+      if (percentage >= stepValue) {
+        step.style.opacity = '1';
+        step.style.background = '#dc2626';
+      } else {
+        step.style.opacity = '0.5';
+        step.style.background = 'rgba(255, 255, 255, 0.6)';
+      }
+    });
+    
+    // Check if user has scrolled to the bottom (with 10px threshold)
+    if (scrollTop + clientHeight >= scrollHeight - 10) {
+      checkoutHasScrolledToBottom = true;
+      updateCheckoutProgressText();
+      
+    } else {
+      checkoutHasScrolledToBottom = false;
+    }
+    
+    // Always check completion status (video completion is the main requirement, not scrolling)
+    // This allows button to be enabled as soon as video completes, regardless of scroll position
+    checkCheckoutTermsCompletion();
+  }
+  
+  // Close Modal Function
+  function closeCheckoutModal() {
+    if (!checkoutModal) return;
+    checkoutModal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  
+  // Confirm Read Function
+  function confirmCheckoutRead() {
+    // Only require video completion (scrolling is not required)
+    if (!checkoutTermsVideoCompleted) {
+      const videoStatus = document.getElementById('checkoutVideoWatchStatus');
+      const videoStatusText = document.getElementById('checkoutVideoWatchStatusText');
+      if (videoStatus) {
+        videoStatus.style.display = 'flex';
+        videoStatus.className = 'checkout-video-watch-status';
+        if (checkoutModalLang === 'ar') {
+          videoStatusText.textContent = '⚠️ يجب مشاهدة الفيديو بالكامل قبل المتابعة!';
+        } else {
+          videoStatusText.textContent = '⚠️ You must watch the video completely before proceeding!';
+        }
+      }
+      return;
+    }
+    
+    // Mark as read
+    checkoutTermsRead = true;
+    window.checkoutTermsRead = true; // Make it accessible globally
+    
+    // Update status and card appearance
+    const card = document.getElementById('openCheckoutTermsModal');
+    if (checkoutTermsReadStatus) {
+      checkoutTermsReadStatus.className = 'checkout-document-status status-completed';
+      checkoutTermsReadStatus.innerHTML = '<i class="fas fa-check-circle"></i> Completed';
+    }
+    if (card) {
+      card.classList.add('completed');
+    }
+    
+    // Show completion notice and enable payment button
+    if (checkoutTermsCompletionNotice) {
+      checkoutTermsCompletionNotice.style.display = 'flex';
+    }
+    if (processPaymentBtn) {
+      processPaymentBtn.disabled = false;
+    }
+    
+    // Close modal
+    closeCheckoutModal();
+  }
+  
+  // Event Listeners
+  if (openCheckoutTermsModal) {
+    openCheckoutTermsModal.addEventListener('click', function(e) {
+      e.preventDefault();
+      openCheckoutModal();
+    });
+  }
+  
+  if (checkoutCloseModalBtn) {
+    checkoutCloseModalBtn.addEventListener('click', closeCheckoutModal);
+  }
+  
+  if (checkoutModalOverlay) {
+    checkoutModalOverlay.addEventListener('click', function() {
+      if (checkoutCloseModalBtn && !checkoutCloseModalBtn.disabled) {
+        closeCheckoutModal();
+      }
+    });
+  }
+  
+  if (checkoutConfirmReadBtn) {
+    checkoutConfirmReadBtn.addEventListener('click', confirmCheckoutRead);
+  }
+  
+  if (checkoutModalContent) {
+    checkoutModalContent.addEventListener('scroll', updateCheckoutScrollProgress);
+  }
+  
+  // Language Toggle
+  if (checkoutModalLangToggle) {
+    // Initialize button text
+    const langText = checkoutModalLangToggle.querySelector('.checkout-modal-lang-text');
+    if (langText) {
+      if (checkoutModalLang === 'ar') {
+        langText.textContent = 'EN';
+      } else {
+        langText.textContent = 'AR';
+      }
+    }
+
+    checkoutModalLangToggle.addEventListener('click', function() {
+      checkoutModalLang = checkoutModalLang === 'en' ? 'ar' : 'en';
+      localStorage.setItem('checkoutModalLang', checkoutModalLang);
+      
+      // Save current scroll position
+      if (checkoutModalContent) {
+        const currentScrollTop = checkoutModalContent.scrollTop;
+        const wasAtBottom = checkoutHasScrolledToBottom;
+        
+        // Reload modal content with new language
+        applyCheckoutModalLanguage(checkoutModalLang);
+        
+        // Restore scroll position
+        setTimeout(() => {
+          if (checkoutModalContent) {
+            checkoutModalContent.scrollTop = currentScrollTop;
+            updateCheckoutScrollProgress();
+            // Reinitialize video after language change
+            setTimeout(initCheckoutTermsVideoTracking, 100);
+            // Check completion (video completion is the main requirement)
+            checkCheckoutTermsCompletion();
+          }
+        }, 50);
+      }
+    });
+  }
+  
+  // ESC key to close (only if reading is complete)
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && checkoutModal && checkoutModal.classList.contains('active') && checkoutCloseModalBtn && !checkoutCloseModalBtn.disabled) {
+      closeCheckoutModal();
+    }
+  });
+});
+</script>
+
+<style>
+  /* Paymob Security Notice */
+  .paymob-security-notice {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: #e8f5e8;
+    border: 1px solid #4caf50;
+    border-radius: 8px;
+    color: #2e7d32;
+    font-size: 0.9rem;
+  }
+
+  .paymob-security-notice i {
+    color: #4caf50;
+  }
+
+  /* Payment Iframe Modal */
+  .payment-iframe-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .payment-iframe-modal.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .payment-iframe-container {
+    background: var(--checkout-bg-card, white);
+    border-radius: 20px;
+    width: 95%;
+    max-width: 900px;
+    max-height: 95vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--checkout-border-color, #e5e7eb);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+  }
+
+  .dark-theme .payment-iframe-container {
+    background: var(--checkout-bg-card);
+    border-color: var(--checkout-border-color);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  }
+
+  .payment-iframe-modal.show .payment-iframe-container {
+    transform: scale(1);
+  }
+
+  .payment-iframe-header {
+    background: linear-gradient(135deg, #B80101, #dc2626);
+    color: white;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 15px 15px 0 0;
+    box-shadow: 0 4px 15px rgba(184, 1, 1, 0.2);
+  }
+
+  .dark-theme .payment-iframe-header {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+  }
+
+  .payment-iframe-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .payment-iframe-header i {
+    margin-right: 0.75rem;
+    font-size: 1.3rem;
+  }
+
+  .payment-iframe-close {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.75rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .payment-iframe-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: scale(1.1);
+  }
+
+  .payment-iframe-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .payment-info {
+    padding: 0.5rem 2rem;
+    background: var(--checkout-bg-secondary, #f8fafc);
+    border-bottom: 2px solid var(--checkout-border-color, #e9ecef);
+    display: flex;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .dark-theme .payment-info {
+    background: var(--checkout-bg-secondary);
+    border-bottom-color: var(--checkout-border-color);
+  }
+
+  .payment-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+    padding: 1rem;
+    background: var(--checkout-bg-card, white);
+    border-radius: 12px;
+    border: 1px solid var(--checkout-border-light, #f3f4f6);
+    min-width: 200px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .dark-theme .payment-info-item {
+    background: var(--checkout-bg-card);
+    border-color: var(--checkout-border-light);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .payment-info-item .label {
+    font-size: 0.85rem;
+    color: var(--checkout-text-muted, #6c757d);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .payment-info-item .value {
+    font-size: 1.1rem;
+    color: var(--checkout-primary, #B80101);
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark-theme .payment-info-item .value {
+    color: var(--checkout-primary);
+  }
+
+  .payment-iframe {
+    flex: 1;
+    width: 100%;
+    min-height: 550px;
+    border: none;
+    background: var(--checkout-bg-card, white);
+    border-radius: 0 0 20px 20px;
+  }
+
+  .dark-theme .payment-iframe {
+    background: var(--checkout-bg-card);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .payment-iframe-container {
+      width: 98%;
+      max-height: 95vh;
+    }
+
+    .payment-iframe-header {
+      padding: 1rem;
+    }
+
+    .payment-iframe-header h3 {
+      font-size: 1.25rem;
+    }
+
+    .payment-info {
+      padding: 1.25rem;
+      gap: 1.5rem;
+    }
+
+    .payment-info-item {
+      min-width: 160px;
+      padding: 0.75rem;
+    }
+
+    .payment-iframe {
+      min-height: 450px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .payment-iframe-container {
+      width: 100%;
+      margin: 0;
+      border-radius: 0;
+      max-height: 100vh;
+    }
+
+    .payment-iframe-header {
+      padding: 1rem;
+      border-radius: 0;
+    }
+
+    .payment-iframe-header h3 {
+      font-size: 1.1rem;
+    }
+
+    .payment-iframe-close {
+      width: 40px;
+      height: 40px;
+      padding: 0.5rem;
+    }
+
+    .payment-info {
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .payment-info-item {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      min-width: auto;
+      text-align: left;
+    }
+
+    .payment-info-item .label,
+    .payment-info-item .value {
+      margin: 0;
+    }
+
+    .payment-iframe {
+      border-radius: 0;
+      min-height: 400px;
+    }
+  }
+
+  /* Discount Price Styles */
+  .checkout-original-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 0.9em;
+  }
+
+  .checkout-discount-badge {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: bold;
+    margin-left: 8px;
+  }
+
+  .checkout-final-price {
+    color: #27ae60;
+    font-weight: bold;
+    font-size: 1.1em;
+  }
+
+  /* Promo Code Styles */
+  .promo-code-container {
+    margin-bottom: 1rem;
+  }
+
+  .promo-code-input-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .promo-code-input-group .checkout-form-control {
+    flex: 1;
+    text-transform: uppercase;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .promo-apply-btn {
+    background: linear-gradient(135deg, #B80101, #dc2626);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+  }
+
+  .promo-apply-btn:hover {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(184, 1, 1, 0.3);
+  }
+
+  .promo-apply-btn:disabled {
+    background: #6b7280;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .promo-code-message {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    margin-top: 0.5rem;
+  }
+
+  .promo-code-message.success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+  }
+
+  .promo-code-message.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+
+  .promo-code-message.info {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+  }
+
+  .applied-promo-code {
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    border: 2px solid #22c55e;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+
+  .applied-promo-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: #166534;
+  }
+
+  .applied-promo-info i {
+    font-size: 1.2rem;
+    color: #22c55e;
+  }
+
+  .promo-code-text {
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+  }
+
+  .promo-discount-amount {
+    font-weight: 700;
+    color: #059669;
+    margin-left: auto;
+  }
+
+  .promo-remove-btn {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid #ef4444;
+    color: #dc2626;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+
+  .promo-remove-btn:hover {
+    background: #ef4444;
+    color: white;
+    transform: scale(1.1);
+  }
+
+  .promo-discount {
+    color: #059669 !important;
+    font-weight: 700;
+  }
+
+  /* Dark theme support for promo codes */
+  .dark-theme .promo-code-message.success {
+    background: rgba(34, 197, 94, 0.1);
+    color: #4ade80;
+    border-color: rgba(34, 197, 94, 0.3);
+  }
+
+  .dark-theme .promo-code-message.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  .dark-theme .promo-code-message.info {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  .dark-theme .applied-promo-code {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+    border-color: rgba(34, 197, 94, 0.3);
+  }
+
+  .dark-theme .applied-promo-info {
+    color: #4ade80;
+  }
+
+  .dark-theme .applied-promo-info i {
+    color: #4ade80;
+  }
+
+  .dark-theme .promo-discount-amount {
+    color: #4ade80;
+  }
+
+  /* Responsive design for promo codes */
+  @media (max-width: 768px) {
+    .promo-code-input-group {
+      flex-direction: column;
+    }
+
+    .promo-apply-btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .applied-promo-info {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .promo-discount-amount {
+      margin-left: 0;
+    }
+  }
+
+  /* Kiosk Payment Styles */
+  .kiosk-icon {
+    background: linear-gradient(135deg, #B80101, #dc2626) !important;
+    color: white;
+  }
+
+  .dark-theme .kiosk-icon {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  }
+
+  .checkout-payment-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border: 1px solid #fbbf24;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #92400e;
+    white-space: nowrap;
+  }
+
+  .kiosk-badge {
+    background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+    border-color: #8b5cf6;
+    color: #5b21b6;
+  }
+
+  .dark-theme .kiosk-badge {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(124, 58, 237, 0.15));
+    border-color: #8b5cf6;
+    color: #c4b5fd;
+  }
+
+  .checkout-payment-badge i {
+    font-size: 0.7rem;
+  }
+
+  .checkout-payment-option input[type="radio"]:checked+label .kiosk-icon {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+    transform: scale(1.1);
+  }
+
+  .dark-theme .checkout-payment-option input[type="radio"]:checked+label .kiosk-icon {
+    background: linear-gradient(135deg, #a78bfa, #8b5cf6) !important;
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5);
+  }
+
+  /* Enhanced payment option styling */
+  .checkout-payment-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  @media (max-width: 768px) {
+    .checkout-payment-badge {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      gap: 0.25rem;
+    }
+  }
+
+  /* Terms Agreement Section Styles */
+  .checkout-terms-agreement-section {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.04) 0%, rgba(239, 68, 68, 0.04) 100%);
+    border: 2px solid rgba(220, 38, 38, 0.15);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    transition: all 0.3s ease;
+  }
+
+  .checkout-terms-agreement-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .checkout-terms-agreement-header i {
+    font-size: 1.3rem;
+    color: #dc2626;
+  }
+
+  .checkout-terms-agreement-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #dc2626;
+  }
+
+  .checkout-terms-agreement-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #6b7280;
+    margin-bottom: 15px;
+    font-weight: 500;
+  }
+
+  .checkout-terms-document-card {
+    margin-bottom: 15px;
+  }
+
+  .checkout-document-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .checkout-document-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.05), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .checkout-document-card:hover {
+    border-color: #dc2626;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.15);
+  }
+
+  .checkout-document-card:hover::before {
+    left: 100%;
+  }
+
+  .checkout-document-card-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(239, 68, 68, 0.1));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #dc2626;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+  }
+
+  .checkout-document-card:hover .checkout-document-card-icon {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    color: white;
+    transform: scale(1.1);
+  }
+
+  .checkout-document-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .checkout-document-card-content h5 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #dc2626;
+    transition: color 0.3s ease;
+  }
+
+  .checkout-document-card:hover .checkout-document-card-content h5 {
+    color: #dc2626;
+  }
+
+  .checkout-document-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .checkout-document-status.status-pending {
+    color: #d97706;
+  }
+
+  .checkout-document-status.status-pending i {
+    animation: checkoutClockSpin 2s linear infinite;
+  }
+
+  @keyframes checkoutClockSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .checkout-document-status.status-completed {
+    color: #15803d;
+  }
+
+  .checkout-document-card-arrow {
+    flex-shrink: 0;
+    color: #9ca3af;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .checkout-document-card:hover .checkout-document-card-arrow {
+    color: #dc2626;
+    transform: translateX(5px);
+  }
+
+  .checkout-document-card.completed {
+    border-color: rgba(34, 197, 94, 0.3);
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.05), rgba(16, 185, 129, 0.05));
+  }
+
+  .checkout-document-card.completed:hover {
+    border-color: #15803d;
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.15);
+  }
+
+  .checkout-terms-completion-notice {
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(16, 185, 129, 0.12) 100%);
+    border: 2px solid rgba(34, 197, 94, 0.3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: checkoutSlideInNotice 0.4s ease-out;
+  }
+
+  @keyframes checkoutSlideInNotice {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .checkout-terms-completion-notice i {
+    font-size: 1.2rem;
+    color: #15803d;
+    flex-shrink: 0;
+    animation: checkoutCheckPulse 0.6s ease-in-out;
+  }
+
+  @keyframes checkoutCheckPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+
+  .checkout-terms-completion-notice span {
+    font-size: 0.85rem;
+    color: #15803d;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  /* Disabled Payment Button */
+  .checkout-btn-process:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #9ca3af;
+  }
+
+  .checkout-btn-process:disabled:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Reading Modal Styles */
+  .checkout-reading-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .checkout-reading-modal.active {
+    display: flex;
+    opacity: 1;
+  }
+
+  .checkout-reading-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+  }
+
+  .checkout-reading-modal-container {
+    position: relative;
+    width: 90%;
+    max-width: 900px;
+    max-height: 85vh;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1;
+    animation: checkoutModalSlideIn 0.4s ease-out;
+  }
+
+  @keyframes checkoutModalSlideIn {
+    from {
+      transform: scale(0.9) translateY(50px);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .checkout-reading-modal-header {
+    padding: 25px 30px;
+    border-bottom: 2px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    position: relative;
+  }
+
+  .checkout-modal-header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+  }
+
+  .checkout-reading-modal-header h3 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #dc2626;
+  }
+
+  .checkout-modal-lang-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    border: 2px solid rgba(220, 38, 38, 0.2);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    direction: ltr;
+    text-align: left;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+
+  .checkout-modal-lang-toggle-btn:hover {
+    background: rgba(220, 38, 38, 0.15);
+    border-color: rgba(220, 38, 38, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .checkout-modal-lang-toggle-btn i {
+    font-size: 0.9rem;
+  }
+
+  .checkout-modal-lang-text {
+    font-weight: 700;
+    min-width: 32px;
+    text-align: center;
+    direction: ltr;
+  }
+
+  .checkout-modal-close-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: #e5e7eb;
+    color: #6b7280;
+    cursor: not-allowed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 1.2rem;
+  }
+
+  .checkout-modal-close-btn:not(:disabled) {
+    cursor: pointer;
+    background: #dc2626;
+    color: white;
+  }
+
+  .checkout-modal-close-btn:not(:disabled):hover {
+    background: #b91c1c;
+    transform: scale(1.1);
+  }
+
+  .checkout-reading-progress-bar {
+    position: relative;
+    padding: 20px 30px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .checkout-reading-progress-track {
+    position: relative;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .checkout-reading-progress-fill {
+    position: relative;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #dc2626 0%, #ef4444 50%, #f87171 100%);
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+    overflow: hidden;
+  }
+
+  .checkout-progress-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: checkoutShine 2s infinite;
+  }
+
+  @keyframes checkoutShine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  .checkout-progress-steps {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 2px;
+  }
+
+  .checkout-progress-step {
+    width: 4px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 2px;
+    opacity: 0.5;
+  }
+
+  .checkout-progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .checkout-reading-progress-text {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #6b7280;
+  }
+
+  .checkout-progress-percentage {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #dc2626;
+    min-width: 45px;
+    text-align: right;
+  }
+
+  .checkout-reading-modal-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px;
+    background: white;
+    scroll-behavior: smooth;
+  }
+
+  .checkout-reading-modal-content::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  .checkout-reading-modal-content::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+  }
+
+  .checkout-reading-modal-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    border-radius: 10px;
+    border: 2px solid #f1f5f9;
+  }
+
+  .checkout-reading-modal-content::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #b91c1c, #dc2626);
+  }
+
+  .checkout-reading-modal-footer {
+    padding: 25px 30px;
+    border-top: 2px solid #e5e7eb;
+    background: #f8f9fa;
+  }
+
+  .checkout-btn-confirm-read {
+    width: 100%;
+    padding: 18px 30px;
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: not-allowed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+    opacity: 0.5;
+  }
+
+  .checkout-btn-confirm-read:not(:disabled) {
+    cursor: pointer;
+    opacity: 1;
+  }
+
+  .checkout-btn-confirm-read:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
+  }
+
+  .checkout-btn-confirm-read i {
+    font-size: 1.3rem;
+  }
+
+  /* Modal Content Styles */
+  .checkout-modal-document-content {
+    color: #374151;
+    line-height: 1.7;
+  }
+
+  .checkout-document-section {
+    margin-bottom: 35px;
+    padding: 25px;
+    background: rgba(248, 250, 252, 0.5);
+    border-radius: 16px;
+    border-left: 4px solid #dc2626;
+  }
+
+  .checkout-document-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #1f2937;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .checkout-section-number {
+    width: 36px;
+    height: 36px;
+    background: #dc2626;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .checkout-document-section h4 {
+    color: #1f2937;
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 20px 0 12px 0;
+  }
+
+  .checkout-document-section p {
+    margin-bottom: 15px;
+    color: #4b5563;
+  }
+
+  .checkout-document-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0;
+  }
+
+  .checkout-document-section ul li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    color: #4b5563;
+  }
+
+  .checkout-document-section ul li i {
+    color: #dc2626;
+    font-size: 0.95rem;
+    width: 18px;
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+
+  /* Checkout Terms Video Container Styles */
+  .checkout-terms-video-container {
+    margin: 20px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: #000;
+  }
+
+  .checkout-terms-video-container iframe {
+    border-radius: 12px;
+  }
+
+  .checkout-video-watch-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: #4b5563;
+  }
+
+  .checkout-video-watch-status i {
+    color: #dc2626;
+    font-size: 1.1rem;
+  }
+
+  .checkout-video-watch-status.watching {
+    background: #e0f2fe;
+    color: #0369a1;
+    border-left: 3px solid #0284c7;
+  }
+
+  .checkout-video-watch-status.watching i {
+    color: #0284c7;
+  }
+
+  .checkout-video-watch-status.completed {
+    background: #d1fae5;
+    color: #065f46;
+    border-left: 3px solid #10b981;
+  }
+
+  .checkout-video-watch-status.completed i {
+    color: #10b981;
+  }
+
+  /* RTL Support for Modal Content */
+  .checkout-reading-modal-content.rtl {
+    direction: rtl;
+    text-align: right;
+  }
+
+  .checkout-reading-modal-content.rtl .checkout-modal-document-content {
+    direction: rtl;
+    text-align: right;
+  }
+
+  .checkout-reading-modal-content.rtl .checkout-document-section {
+    border-left: none;
+    border-right: 4px solid #dc2626;
+    text-align: right;
+  }
+
+  .checkout-reading-modal-content.rtl .checkout-document-section ul li {
+    flex-direction: row;
+    direction: rtl;
+  }
+
+  .checkout-reading-modal-content.rtl .checkout-document-section ul li i {
+    order: 2;
+  }
+
+  /* Dark Theme Support */
+  .dark-theme .checkout-terms-agreement-section {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.08) 0%, rgba(239, 68, 68, 0.08) 100%);
+    border-color: rgba(220, 38, 38, 0.3);
+  }
+
+  .dark-theme .checkout-document-card {
+    background: #2d2d2d;
+    border-color: #374151;
+  }
+
+  .dark-theme .checkout-reading-modal-container {
+    background: #1a1a1a;
+  }
+
+  .dark-theme .checkout-reading-modal-header {
+    background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+    border-bottom-color: #374151;
+  }
+
+  .dark-theme .checkout-reading-modal-header h3 {
+    color: #ef4444;
+  }
+
+  .dark-theme .checkout-reading-progress-bar {
+    background: #2d2d2d;
+  }
+
+  .dark-theme .checkout-reading-progress-text {
+    color: #d1d5db;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  }
+
+  .dark-theme .checkout-progress-percentage {
+    color: #ef4444;
+  }
+
+  .dark-theme .checkout-reading-modal-content {
+    background: #1a1a1a;
+    color: #d1d5db;
+  }
+
+  .dark-theme .checkout-reading-modal-content h3,
+  .dark-theme .checkout-reading-modal-content h4 {
+    color: #f3f4f6;
+  }
+
+  .dark-theme .checkout-reading-modal-content p,
+  .dark-theme .checkout-reading-modal-content li {
+    color: #d1d5db;
+  }
+
+  .dark-theme .checkout-reading-modal-footer {
+    background: #2d2d2d;
+    border-top-color: #374151;
+  }
+
+  .dark-theme .checkout-modal-close-btn {
+    background: #374151;
+    color: #9ca3af;
+  }
+
+  .dark-theme .checkout-modal-close-btn:not(:disabled) {
+    background: #ef4444;
+    color: white;
+  }
+
+  .dark-theme .checkout-document-section {
+    background: rgba(51, 65, 85, 0.3);
+  }
+
+  .dark-theme .checkout-document-section h3,
+  .dark-theme .checkout-document-section h4 {
+    color: #f3f4f6;
+  }
+
+  .dark-theme .checkout-document-section p,
+  .dark-theme .checkout-document-section ul li {
+    color: #d1d5db;
+  }
+
+  .dark-theme .checkout-modal-document-content {
+    color: #d1d5db;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .checkout-terms-agreement-section {
+      padding: 16px;
+    }
+
+    .checkout-reading-modal-container {
+      width: 95%;
+      max-height: 90vh;
+    }
+
+    .checkout-reading-modal-header {
+      padding: 20px;
+    }
+
+    .checkout-reading-modal-content {
+      padding: 25px 20px;
+    }
+  }
+
+  /* Map Picker Styles */
+  .map-picker-container {
+    margin-top: 0.5rem;
+  }
+
+  .map-instructions {
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    border: 1px solid #3b82f6;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    color: #1e40af;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+  }
+
+  .map-instructions i {
+    font-size: 1.1rem;
+  }
+
+  /* Map Search Container */
+  .map-search-container {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+
+  .map-search-input {
+    flex: 1;
+    padding: 0.875rem 1rem;
+    border: 2px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+  }
+
+  .map-search-input:focus {
+    outline: none;
+    border-color: #B80101;
+    box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  }
+
+  .map-search-btn {
+    padding: 0.875rem 1.5rem;
+    background: linear-gradient(135deg, #B80101, #dc2626);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 50px;
+  }
+
+  .map-search-btn:hover {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+  }
+
+  .map-search-btn:active {
+    transform: translateY(0);
+  }
+
+  .map-current-location-btn {
+    padding: 0.875rem;
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 50px;
+    flex-shrink: 0;
+  }
+
+  .map-current-location-btn:hover {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+  }
+
+  .map-current-location-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .map-current-location-btn:active {
+    transform: translateY(0);
+  }
+
+  /* Google Maps Autocomplete Dropdown Styling */
+  .pac-container {
+    border-radius: 10px;
+    border: 2px solid #d1d5db;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-top: 0.5rem;
+    font-family: inherit;
+  }
+
+  .pac-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .pac-item:first-child {
+    border-top: none;
+  }
+
+  .pac-item:hover {
+    background-color: #f3f4f6;
+  }
+
+  .pac-item-selected {
+    background-color: #fef2f2;
+  }
+
+  .pac-icon {
+    margin-right: 0.5rem;
+  }
+
+  .map-picker-wrapper {
+    width: 100%;
+    height: 400px;
+    border: 2px solid #d1d5db;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    background: #f9fafb;
+    transition: all 0.3s ease;
+  }
+
+  .map-picker-wrapper:hover {
+    border-color: #B80101;
+    box-shadow: 0 4px 12px rgba(184, 1, 1, 0.15);
+  }
+
+  .map-picker-wrapper.has-location {
+    border-color: #22c55e;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+  }
+
+  .map-picker-wrapper #mapPicker {
+    width: 100%;
+    height: 100%;
+  }
+
+  .map-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 2rem;
+    text-align: center;
+    color: #dc2626;
+  }
+
+  .map-error i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #ef4444;
+  }
+
+  .map-error p {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .selected-location-info {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border: 2px solid #22c55e;
+    border-radius: 10px;
+    animation: slideInLocation 0.3s ease-out;
+  }
+
+  @keyframes slideInLocation {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .location-display {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #166534;
+    margin-bottom: 0.5rem;
+  }
+
+  .location-details {
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(34, 197, 94, 0.2);
+  }
+
+  .location-coordinates {
+    font-family: 'Courier New', monospace;
+    color: #059669;
+    font-weight: 600;
+  }
+
+  .location-full-address {
+    color: #166534;
+    line-height: 1.5;
+  }
+
+  .location-map-link {
+    margin-top: 0.5rem;
+  }
+
+  .location-map-link a {
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .location-map-link a:hover {
+    text-decoration: underline;
+    transform: translateX(2px);
+  }
+
+  .dark-theme .map-instructions {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #93c5fd;
+  }
+
+  .dark-theme .map-search-input {
+    background: #1f2937;
+    border-color: #374151;
+    color: #d1d5db;
+  }
+
+  .dark-theme .map-search-input:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  }
+
+  .dark-theme .pac-container {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .dark-theme .pac-item {
+    color: #d1d5db;
+    border-top-color: #374151;
+  }
+
+  .dark-theme .pac-item:hover {
+    background-color: #2d2d2d;
+  }
+
+  .dark-theme .pac-item-selected {
+    background-color: rgba(239, 68, 68, 0.1);
+  }
+
+  .dark-theme .map-picker-wrapper {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .dark-theme .map-picker-wrapper:hover {
+    border-color: #ef4444;
+  }
+
+  .dark-theme .map-picker-wrapper.has-location {
+    border-color: #22c55e;
+  }
+
+  .dark-theme .selected-location-info {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1));
+    border-color: rgba(34, 197, 94, 0.3);
+  }
+
+  .dark-theme .location-display {
+    color: #4ade80;
+  }
+
+  .dark-theme .location-coordinates {
+    color: #4ade80;
+  }
+
+  .dark-theme .location-full-address {
+    color: #86efac;
+  }
+
+  @media (max-width: 768px) {
+    .map-picker-wrapper {
+      height: 300px;
+    }
+
+    .map-instructions {
+      font-size: 0.85rem;
+      padding: 0.6rem 0.8rem;
+    }
+
+    .map-search-container {
+      flex-direction: column;
+    }
+
+    .map-search-btn,
+    .map-current-location-btn {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .map-picker-wrapper {
+      height: 250px;
+    }
+
+    .map-search-input {
+      font-size: 0.9rem;
+      padding: 0.75rem 0.875rem;
+    }
+  }
+
+  /* Disabled governorate field styling */
+  .checkout-form-control:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .dark-theme .checkout-form-control:disabled {
+    background-color: #1f2937;
+    opacity: 0.5;
+  }
+
+  /* Country/Governorate transition effects */
+  .checkout-form-control {
+    transition: all 0.3s ease;
+  }
+
+  .checkout-form-control:not(:disabled):focus {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(184, 1, 1, 0.15);
+  }
+</style>
+
+
+<%- include('partials/footer') %>

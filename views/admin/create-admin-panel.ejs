@@ -1,0 +1,378 @@
+<%- include('./partials/admin-header', { title, user, theme, currentPage: 'create-admin', pageCSS: 'create-admin' }) %>
+
+<!-- Admin Layout -->
+<div class="admin-layout">
+
+  <!-- Sidebar -->
+  <%- include('./partials/admin-sidebar', { currentPage: 'create-admin' }) %>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+
+    <!-- Top Bar -->
+    <%- include('./partials/admin-topbar', { 
+        breadcrumb: 'Admin Management',
+        breadcrumbSubtitle: 'Create new administrator account',
+        showSearch: false
+    }) %>
+
+    <!-- Content Area -->
+    <div class="admin-content">
+      <div class="admin-container">
+
+        <!-- Header -->
+        <div class="admin-header">
+          <div class="admin-header-content">
+            <h1 class="admin-title">
+              <i class="fas fa-user-shield"></i>
+              Admin Management
+            </h1>
+            <p class="admin-subtitle">Manage all administrators in the system</p>
+          </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <div class="card shadow-sm" style="border: none; border-radius: 12px; background: var(--admin-card-light);">
+              <div class="card-body text-center">
+                <div class="mb-2">
+                  <i class="fas fa-users fa-2x" style="color: var(--admin-primary);"></i>
+                </div>
+                <h3 class="mb-0" style="color: var(--admin-text-light); font-weight: 700;"><%= admins && admins.length ? admins.length : 0 %></h3>
+                <p class="mb-0" style="color: var(--admin-text-light); opacity: 0.7; font-size: 14px;">Total Admins</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card shadow-sm" style="border: none; border-radius: 12px; background: var(--admin-card-light);">
+              <div class="card-body text-center">
+                <div class="mb-2">
+                  <i class="fas fa-user-check fa-2x" style="color: #10b981;"></i>
+                </div>
+                <h3 class="mb-0" style="color: var(--admin-text-light); font-weight: 700;">
+                  <%= admins && admins.length ? admins.filter(a => a.isActive).length : 0 %>
+                </h3>
+                <p class="mb-0" style="color: var(--admin-text-light); opacity: 0.7; font-size: 14px;">Active Admins</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card shadow-sm" style="border: none; border-radius: 12px; background: var(--admin-card-light);">
+              <div class="card-body text-center">
+                <div class="mb-2">
+                  <i class="fas fa-user-slash fa-2x" style="color: #ef4444;"></i>
+                </div>
+                <h3 class="mb-0" style="color: var(--admin-text-light); font-weight: 700;">
+                  <%= admins && admins.length ? admins.filter(a => !a.isActive).length : 0 %>
+                </h3>
+                <p class="mb-0" style="color: var(--admin-text-light); opacity: 0.7; font-size: 14px;">Inactive Admins</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Create Admin Card -->
+        <div class="card shadow-sm admin-card">
+          <div class="card-header" style="background: linear-gradient(135deg, var(--admin-primary), #dc2626); border-bottom: none;">
+            <h5 class="mb-0" style="color: #ffffff; font-weight: 700; display: flex; align-items: center; gap: 12px;">
+              <i class="fas fa-user-shield"></i> Admin Account Setup
+            </h5>
+          </div>
+          <div class="card-body" style="padding: 32px;">
+
+            <!-- Display Success Messages -->
+            <% if (typeof success !== 'undefined' && success.length > 0) { %>
+            <div class="alert alert-success" role="alert">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Success!</strong>
+              </div>
+              <hr class="my-2">
+              <%= success %>
+            </div>
+            <% } %>
+
+            <!-- Display Errors -->
+            <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+            <div class="alert alert-danger" role="alert">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Setup Failed!</strong>
+              </div>
+              <hr class="my-2">
+              <ul class="mb-0">
+                <% errors.forEach(function(error) { %>
+                <li><%= error.msg || error %></li>
+                <% }); %>
+              </ul>
+            </div>
+            <% } %>
+
+            <!-- Setup Form -->
+            <form method="POST" action="/admin/create-admin" class="needs-validation" novalidate>
+
+              <div class="row g-4">
+                <div class="col-md-6">
+                  <label for="userName" class="form-label" style="color: var(--admin-text-light); font-weight: 600; font-size: 14px;">
+                    <i class="fas fa-user me-2"></i>
+                    User Name *
+                  </label>
+                  <input type="text" id="userName" name="userName" class="form-control" placeholder="Enter admin username" value="<%= typeof userName !== 'undefined' ? userName : '' %>" required style="border: 2px solid var(--admin-border-light); border-radius: 12px; padding: 12px 16px; font-size: 14px; transition: all 0.3s ease; background: var(--admin-card-light); color: var(--admin-text-light);">
+                  <div class="invalid-feedback">Please enter a valid username.</div>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="phoneNumber" class="form-label" style="color: var(--admin-text-light); font-weight: 600; font-size: 14px;">
+                    <i class="fas fa-phone me-2"></i>
+                    Phone Number *
+                  </label>
+                  <input type="tel" id="phoneNumber" name="phoneNumber" class="form-control" placeholder="Enter phone number" value="<%= typeof phoneNumber !== 'undefined' ? phoneNumber : '' %>" required style="border: 2px solid var(--admin-border-light); border-radius: 12px; padding: 12px 16px; font-size: 14px; transition: all 0.3s ease; background: var(--admin-card-light); color: var(--admin-text-light);">
+                  <div class="invalid-feedback">Please enter a valid phone number.</div>
+                </div>
+
+                <div class="col-12">
+                  <label for="email" class="form-label" style="color: var(--admin-text-light); font-weight: 600; font-size: 14px;">
+                    <i class="fas fa-envelope me-2"></i>
+                    Email Address (Optional)
+                  </label>
+                  <input type="email" id="email" name="email" class="form-control" placeholder="Enter email address" value="<%= typeof email !== 'undefined' ? email : '' %>" style="border: 2px solid var(--admin-border-light); border-radius: 12px; padding: 12px 16px; font-size: 14px; transition: all 0.3s ease; background: var(--admin-card-light); color: var(--admin-text-light);">
+                  <div class="form-text" style="color: #64748b; font-size: 12px;">Email is optional but recommended for account recovery.</div>
+                </div>
+
+                <div class="col-12">
+                  <label for="password" class="form-label" style="color: var(--admin-text-light); font-weight: 600; font-size: 14px;">
+                    <i class="fas fa-lock me-2"></i>
+                    Password *
+                  </label>
+                  <div class="input-group">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Create a secure password" required minlength="6" style="border: 2px solid var(--admin-border-light); border-radius: 12px 0 0 12px; padding: 12px 16px; font-size: 14px; transition: all 0.3s ease; background: var(--admin-card-light); color: var(--admin-text-light);">
+                    <button class="btn btn-outline-secondary" type="button" id="togglePassword" style="border: 2px solid var(--admin-border-light); border-left: none; border-radius: 0 12px 12px 0; background: var(--admin-card-light); color: var(--admin-text-light);">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                  <div class="form-text" style="color: #64748b; font-size: 12px;">Password must be at least 6 characters long.</div>
+                  <div class="invalid-feedback">Password must be at least 6 characters.</div>
+                </div>
+              </div>
+
+              <div class="d-flex gap-3 justify-content-end mt-4">
+                <a href="/admin/dashboard" class="btn btn-outline-secondary" style="padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 14px; border: 2px solid var(--admin-border-light); color: var(--admin-text-light);">
+                  <i class="fas fa-times me-2"></i>
+                  Cancel
+                </a>
+                <button type="submit" class="btn btn-primary" style="padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 14px; background: var(--admin-primary); border-color: var(--admin-primary);">
+                  <i class="fas fa-user-plus me-2"></i>
+                  Create Admin Account
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+
+        <!-- Admins List Card -->
+        <div class="card shadow-sm admin-card mt-4">
+          <div class="card-header" style="background: linear-gradient(135deg, #3b82f6, #2563eb); border-bottom: none;">
+            <h5 class="mb-0" style="color: #ffffff; font-weight: 700; display: flex; align-items: center; gap: 12px;">
+              <i class="fas fa-list"></i> All Administrators
+            </h5>
+          </div>
+          <div class="card-body" style="padding: 24px;">
+            
+            <% if (admins && admins.length > 0) { %>
+              <div class="table-responsive">
+                <table class="table table-hover" style="margin-bottom: 0;">
+                  <thead>
+                    <tr style="background: rgba(59, 130, 246, 0.05);">
+                      <th style="color: var(--admin-text-light); font-weight: 600; padding: 16px; border-bottom: 2px solid var(--admin-border-light);">
+                        <i class="fas fa-user me-2"></i>Admin
+                      </th>
+                      <th style="color: var(--admin-text-light); font-weight: 600; padding: 16px; border-bottom: 2px solid var(--admin-border-light);">
+                        <i class="fas fa-phone me-2"></i>Phone
+                      </th>
+                      <th style="color: var(--admin-text-light); font-weight: 600; padding: 16px; border-bottom: 2px solid var(--admin-border-light);">
+                        <i class="fas fa-envelope me-2"></i>Email
+                      </th>
+                      <th style="color: var(--admin-text-light); font-weight: 600; padding: 16px; border-bottom: 2px solid var(--admin-border-light);">
+                        <i class="fas fa-calendar me-2"></i>Created At
+                      </th>
+                      <th style="color: var(--admin-text-light); font-weight: 600; padding: 16px; border-bottom: 2px solid var(--admin-border-light);">
+                        <i class="fas fa-toggle-on me-2"></i>Status
+                      </th>
+                      <th style="color: var(--admin-text-light); font-weight: 600; padding: 16px; border-bottom: 2px solid var(--admin-border-light); text-align: center;">
+                        <i class="fas fa-cog me-2"></i>Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% admins.forEach((admin, index) => { %>
+                    <tr style="border-bottom: 1px solid var(--admin-border-light); transition: all 0.2s ease;"
+                        onmouseover="this.style.background='rgba(59, 130, 246, 0.03)'"
+                        onmouseout="this.style.background='transparent'">
+                      <td style="padding: 16px;">
+                        <div class="d-flex align-items-center" style="gap: 12px;">
+                          <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--admin-primary), #dc2626); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px; flex-shrink: 0;">
+                            <%= admin.userName ? admin.userName.charAt(0).toUpperCase() : 'A' %>
+                          </div>
+                          <div>
+                            <div style="font-weight: 600; color: var(--admin-text-light); font-size: 15px;"><%= admin.userName || 'N/A' %></div>
+                            <div style="font-size: 12px; color: var(--admin-text-light); opacity: 0.6;">ID: <%= admin._id ? admin._id.toString().slice(-8) : 'N/A' %></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td style="padding: 16px; color: var(--admin-text-light);">
+                        <i class="fas fa-phone me-2" style="color: var(--admin-primary);"></i>
+                        <%= admin.phoneNumber %>
+                      </td>
+                      <td style="padding: 16px; color: var(--admin-text-light);">
+                        <% if (admin.email) { %>
+                          <i class="fas fa-envelope me-2" style="color: var(--admin-primary);"></i>
+                          <%= admin.email %>
+                        <% } else { %>
+                          <span style="opacity: 0.5; font-style: italic;">No email</span>
+                        <% } %>
+                      </td>
+                      <td style="padding: 16px; color: var(--admin-text-light); font-size: 14px;">
+                        <i class="fas fa-calendar me-2" style="color: #64748b;"></i>
+                        <%= new Date(admin.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %>
+                      </td>
+                      <td style="padding: 16px;">
+                        <% if (admin.isActive) { %>
+                          <span class="badge" style="background: #10b981; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600;">
+                            <i class="fas fa-check-circle me-1"></i> Active
+                          </span>
+                        <% } else { %>
+                          <span class="badge" style="background: #64748b; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600;">
+                            <i class="fas fa-ban me-1"></i> Inactive
+                          </span>
+                        <% } %>
+                      </td>
+                      <td style="padding: 16px; text-align: center;">
+                        <div class="btn-group" role="group">
+                          <% const isCurrentUser = user && (user.id || user._id) && admin._id && admin._id.toString() === (user.id || user._id).toString(); %>
+                          <% if (!isCurrentUser) { %>
+                            <button onclick="toggleAdminStatus('<%= admin._id %>')" 
+                                    class="btn btn-sm <%= admin.isActive ? 'btn-warning' : 'btn-success' %>"
+                                    style="border-radius: 8px; font-weight: 600; font-size: 13px; padding: 8px 16px; margin-right: 8px;"
+                                    title="<%= admin.isActive ? 'Deactivate' : 'Activate' %> Admin">
+                              <i class="fas fa-<%= admin.isActive ? 'ban' : 'check' %> me-1"></i>
+                              <%= admin.isActive ? 'Deactivate' : 'Activate' %>
+                            </button>
+                            <button onclick="confirmDeleteAdmin('<%= admin._id %>', '<%= admin.userName %>')" 
+                                    class="btn btn-sm btn-danger"
+                                    style="border-radius: 8px; font-weight: 600; font-size: 13px; padding: 8px 16px;"
+                                    title="Delete Admin">
+                              <i class="fas fa-trash me-1"></i>
+                              Delete
+                            </button>
+                          <% } else { %>
+                            <span class="badge" style="background: var(--admin-primary); color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 13px;">
+                              <i class="fas fa-user-shield me-1"></i> Current User
+                            </span>
+                          <% } %>
+                        </div>
+                      </td>
+                    </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+            <% } else { %>
+              <div class="text-center py-5" style="color: var(--admin-text-light); opacity: 0.6;">
+                <i class="fas fa-users fa-3x mb-3" style="opacity: 0.3;"></i>
+                <p style="font-size: 16px;">No administrators found. Create the first admin account above.</p>
+              </div>
+            <% } %>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Toggle password visibility
+  document.getElementById('togglePassword').addEventListener('click', function() {
+    const password = document.getElementById('password');
+    const icon = this.querySelector('i');
+
+    if (password.type === 'password') {
+      password.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      password.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  });
+
+  // Form validation
+  (function() {
+    'use strict';
+
+    const forms = document.querySelectorAll('.needs-validation');
+
+    Array.prototype.slice.call(forms).forEach(function(form) {
+      form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  })();
+
+  // Toggle admin status
+  function toggleAdminStatus(adminId) {
+    if (confirm('Are you sure you want to toggle this admin\'s status?')) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/admin/admins/${adminId}/toggle-status`;
+      
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = '_method';
+      csrfInput.value = 'POST';
+      form.appendChild(csrfInput);
+      
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+
+  // Confirm and delete admin
+  async function confirmDeleteAdmin(adminId, adminName) {
+    if (confirm(`Are you sure you want to delete admin "${adminName}"?\n\nThis action cannot be undone!`)) {
+      try {
+        const response = await fetch(`/admin/admins/${adminId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'same-origin'
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          // Show success message and reload the page
+          alert(data.message || 'Admin deleted successfully!');
+          window.location.reload();
+        } else {
+          // Show error message
+          alert(data.message || 'Error deleting admin. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error deleting admin:', error);
+        alert('An error occurred while deleting the admin. Please try again.');
+      }
+    }
+  }
+</script>
+
+<%- include('partials/admin-footer') %>

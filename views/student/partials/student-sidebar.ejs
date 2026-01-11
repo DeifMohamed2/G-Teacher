@@ -1,0 +1,242 @@
+<style>
+  /* Custom text selection color - Red background */
+  ::selection {
+    background-color: #cb0000;
+    color: #ffffff;
+  }
+  
+  ::-moz-selection {
+    background-color: #cd0000;
+    color: #ffffff;
+  }
+</style>
+
+<!-- Enhanced Student Sidebar -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<aside class="student-sidebar enhanced-sidebar">
+  <!-- Sidebar Brand with Enhanced Design -->
+  <div class="sidebar-brand enhanced-brand">
+    <div class="brand-logo">
+      <div class="logo-icon">
+        <img src="/images/K.png" alt="ELKABLY Logo" class="brand-logo-image">
+      </div>
+      <div class="brand-text">
+        <h2>ELKABLY</h2>
+      </div>
+    </div>
+    <!-- <button class="sidebar-close-btn" id="sidebarCloseBtn" title="Close Sidebar">
+      <i class="fas fa-times"></i>
+    </button> -->
+    <div class="brand-decoration"></div>
+  </div>
+
+  <!-- Quick Back to Home button (matching dashboard design) -->
+  <div class="brand-actions">
+    <a href="/" class="btn btn-primary btn-lg back-home-btn">
+      <i class="fas fa-home"></i>
+      Back to Home
+    </a>
+  </div>
+  
+  <style>
+    .brand-actions {
+      padding: 12px 16px;
+    }
+
+    .brand-actions .back-home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition-normal);
+      width: 100%;
+      justify-content: center;
+    }
+
+    .brand-actions .back-home-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .brand-actions .back-home-btn i {
+      font-size: 1.1rem;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .brand-actions .back-home-btn {
+        padding: 12px 20px;
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+
+  <!-- Enhanced Sidebar Navigation -->
+  <nav class="sidebar-nav enhanced-nav">
+    <!-- Main Navigation -->
+    <div class="nav-section">
+      <div class="nav-section-title">
+        <span class="section-icon">
+          <i class="fas fa-home"></i>
+        </span>
+        Main
+      </div>
+      <a href="/student/dashboard" class="nav-item enhanced-nav-item <%= (currentPage === 'dashboard') ? 'active' : '' %>">
+        <div class="nav-icon">
+          <i class="fas fa-tachometer-alt"></i>
+        </div>
+        <span class="nav-text">Dashboard</span>
+        <div class="nav-indicator"></div>
+      </a>
+      <a href="/student/enrolled-courses" class="nav-item enhanced-nav-item <%= (currentPage === 'courses') ? 'active' : '' %>">
+        <div class="nav-icon">
+          <i class="fas fa-book-open"></i>
+        </div>
+        <span class="nav-text">Enrolled Weeks</span>
+        <div class="nav-indicator"></div>
+      </a>
+      <a href="/student/quizzes" class="nav-item enhanced-nav-item <%= (currentPage === 'quizzes') ? 'active' : '' %>">
+        <div class="nav-icon">
+          <i class="fas fa-question-circle"></i>
+        </div>
+        <span class="nav-text">Quizzes</span>
+        <div class="nav-indicator"></div>
+      </a>
+      <a href="/student/game-rooms" class="nav-item enhanced-nav-item <%= (currentPage === 'games') ? 'active' : '' %>">
+        <div class="nav-icon">
+          <i class="fas fa-gamepad"></i>
+        </div>
+        <span class="nav-text">Games</span>
+        <div class="nav-indicator"></div>
+      </a>
+    </div>
+
+    <!-- Learning Section -->
+    <div class="nav-section">
+      <div class="nav-section-title">
+        <span class="section-icon">
+          <i class="fas fa-brain"></i>
+        </span>
+        Learning
+      </div>
+      <a href="/student/wishlist" class="nav-item enhanced-nav-item <%= (currentPage === 'wishlist') ? 'active' : '' %>">
+        <div class="nav-icon">
+          <i class="fas fa-heart"></i>
+        </div>
+        <span class="nav-text">Wishlist</span>
+        <div class="nav-indicator"></div>
+      </a>
+      <a href="/student/order-history" class="nav-item enhanced-nav-item <%= (currentPage === 'order-history') ? 'active' : '' %>">
+        <div class="nav-icon">
+          <i class="fas fa-shopping-bag"></i>
+        </div>
+        <span class="nav-text">Order History</span>
+        <div class="nav-indicator"></div>
+      </a>
+    </div>
+
+    <!-- Account Section -->
+    <div class="nav-section">
+      <div class="nav-section-title">
+        <span class="section-icon">
+          <i class="fas fa-user-circle"></i>
+        </span>
+        Account
+      </div>
+      <a href="/student/profile" class="nav-item enhanced-nav-item <%= (currentPage === 'profile') ? 'active' : '' %>">
+        <div class="nav-icon">
+          <i class="fas fa-user"></i>
+        </div>
+        <span class="nav-text">My Profile</span>
+        <div class="nav-indicator"></div>
+      </a>
+      <a href="/student/settings" class="nav-item enhanced-nav-item <%= (currentPage === 'settings') ? 'active' : '' %>">
+        <div class="nav-icon">
+          <i class="fas fa-cog"></i>
+        </div>
+        <span class="nav-text">Settings</span>
+        <div class="nav-indicator"></div>
+      </a>
+      <a href="/student/logout" class="nav-item enhanced-nav-item logout-nav-item">
+        <div class="nav-icon">
+          <i class="fas fa-sign-out-alt"></i>
+        </div>
+        <span class="nav-text">Logout</span>
+        <div class="nav-indicator"></div>
+      </a>
+    </div>
+
+  </nav>
+</aside>
+
+<style>
+  /* Ensure sidebar has flex layout and is scrollable */
+  .enhanced-sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  /* Make nav scrollable */
+  .sidebar-nav.enhanced-nav {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: var(--spacing-md);
+  }
+
+  /* Logout nav item - subtle red tint to distinguish it */
+  .logout-nav-item {
+    color: var(--text-primary);
+  }
+
+  .logout-nav-item:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+  }
+
+  .logout-nav-item .nav-icon {
+    color: #dc2626;
+  }
+
+  .logout-nav-item:hover .nav-icon {
+    color: #dc2626;
+  }
+
+  .dark-theme .logout-nav-item:hover {
+    background: rgba(220, 38, 38, 0.15);
+  }
+
+  .dark-theme .logout-nav-item .nav-icon {
+    color: #f87171;
+  }
+
+  /* Keep brand section fixed */
+  .enhanced-brand,
+  .brand-actions {
+    flex-shrink: 0;
+  }
+
+  /* Ensure proper scrollbar styling */
+  .sidebar-nav.enhanced-nav::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .sidebar-nav.enhanced-nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .sidebar-nav.enhanced-nav::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+  }
+
+  .sidebar-nav.enhanced-nav::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
+</style>

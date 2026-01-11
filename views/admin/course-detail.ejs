@@ -1,0 +1,1546 @@
+<%- include('./partials/admin-header', { pageCSS: 'courses' }) %>
+
+<!-- Admin Layout -->
+<div class="admin-layout">
+  <%- include('./partials/admin-sidebar', { currentPage: 'courses' }) %>
+  <main class="admin-main">
+    <%- include('./partials/admin-topbar', { 
+      breadcrumb: `Courses / ${course.title} / Details`,
+      breadcrumbSubtitle: 'Enrollments, Topics analytics, and quiz performance',
+      showSearch: false
+    }) %>
+
+    <div class="admin-content">
+      <div class="admin-dashboard admin-fade-in">
+        <style>
+          /* ============================================
+             PROFESSIONAL COURSE DETAIL TABLE STYLES
+             ============================================ */
+
+          /* Professional table styling */
+          .table-pro {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.95rem;
+          }
+
+          .table-pro thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
+            color: #495057;
+            padding: 18px 16px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #dee2e6;
+            white-space: nowrap;
+          }
+
+          .dark-theme .table-pro thead th {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.08) 100%);
+            color: var(--admin-text-dark);
+            border-bottom-color: var(--admin-border-dark);
+          }
+
+          .table-pro tbody td {
+            padding: 16px;
+            border-bottom: 1px solid #f1f3f5;
+            vertical-align: middle;
+            color: var(--admin-text-light, #1e293b);
+          }
+
+          .dark-theme .table-pro tbody td {
+            border-bottom-color: var(--admin-border-dark);
+            color: var(--admin-text-dark);
+          }
+
+          .table-pro tbody tr {
+            background: var(--admin-card-light, #ffffff);
+            transition: all 0.3s ease;
+          }
+
+          .table-pro tbody tr:hover {
+            background: linear-gradient(135deg, rgba(184, 1, 1, 0.02) 0%, rgba(184, 1, 1, 0.01) 100%);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+          }
+
+          .dark-theme .table-pro tbody tr {
+            background: var(--admin-card-dark);
+          }
+
+          .dark-theme .table-pro tbody tr:hover {
+            background: linear-gradient(135deg, rgba(184, 1, 1, 0.06) 0%, rgba(184, 1, 1, 0.03) 100%);
+          }
+
+          .table-pro .col-min {
+            width: 1%;
+            white-space: nowrap;
+          }
+
+          /* Student Profile Cell */
+          .student-profile {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 220px;
+          }
+
+          .student-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #b80101 0%, #8b0000 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 600;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(184, 1, 1, 0.3);
+          }
+
+          .student-info {
+            flex: 1;
+            min-width: 0;
+          }
+
+          .student-name {
+            font-weight: 600;
+            color: var(--admin-text-light, #1e293b);
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .dark-theme .student-name {
+            color: var(--admin-text-dark);
+          }
+
+          .student-email {
+            font-size: 0.8rem;
+            color: #6c757d;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          /* Progress Bar */
+          .progress-bar-container {
+            min-width: 120px;
+          }
+
+          .progress-percentage {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+
+          .dark-theme .progress-percentage {
+            color: var(--admin-text-dark);
+          }
+
+          .progress-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+          }
+
+          .dark-theme .progress-bar {
+            background: rgba(255, 255, 255, 0.1);
+          }
+
+          .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #b80101 0%, #d40000 100%);
+            border-radius: 10px;
+            transition: width 1s ease-in-out;
+            box-shadow: 0 2px 4px rgba(184, 1, 1, 0.3);
+          }
+
+          /* Status Badge */
+          .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            text-transform: capitalize;
+          }
+
+          .status-badge .status-icon {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+          }
+
+          .status-badge.status-active,
+          .status-badge.status-completed {
+            background: rgba(16, 185, 129, 0.15);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+          }
+
+          .status-badge.status-active .status-icon,
+          .status-badge.status-completed .status-icon {
+            background: #059669;
+          }
+
+          .status-badge.status-inactive,
+          .status-badge.status-in_progress {
+            background: rgba(59, 130, 246, 0.15);
+            color: #2563eb;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+          }
+
+          .status-badge.status-inactive .status-icon,
+          .status-badge.status-in_progress .status-icon {
+            background: #2563eb;
+          }
+
+          .status-badge.status-not_started {
+            background: rgba(107, 114, 128, 0.15);
+            color: #4b5563;
+            border: 1px solid rgba(107, 114, 128, 0.3);
+          }
+
+          .status-badge.status-not_started .status-icon {
+            background: #4b5563;
+          }
+
+          /* Card Styling */
+          .card-soft {
+            background: var(--admin-card-light, #ffffff);
+            border: 1px solid var(--admin-border-light, #e2e8f0);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+          }
+
+          .dark-theme .card-soft {
+            background: var(--admin-card-dark);
+            border-color: var(--admin-border-dark);
+          }
+
+          .students-table-container {
+            background: var(--admin-card-light, #ffffff);
+            border: 1px solid var(--admin-border-light, #e2e8f0);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+          }
+
+          .dark-theme .students-table-container {
+            background: var(--admin-card-dark);
+            border-color: var(--admin-border-dark);
+          }
+
+          .table-overflow {
+            overflow-x: auto;
+            background: var(--admin-card-light, #ffffff);
+          }
+
+          .dark-theme .table-overflow {
+            background: var(--admin-card-dark);
+          }
+
+          /* Search Box */
+          .search-filters {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+          }
+
+          .search-box-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 250px;
+            max-width: 400px;
+          }
+
+          .search-box-wrapper input {
+            width: 100%;
+            padding: 12px 16px 12px 45px;
+            border: 2px solid var(--admin-border-light, #e2e8f0);
+            border-radius: 10px;
+            background: var(--admin-card-light, #ffffff);
+            color: var(--admin-text-light, #1e293b);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+          }
+
+          .dark-theme .search-box-wrapper input {
+            background: var(--admin-card-dark);
+            border-color: var(--admin-border-dark);
+            color: var(--admin-text-dark);
+          }
+
+          .search-box-wrapper input:focus {
+            outline: none;
+            border-color: #b80101;
+            box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+          }
+
+          .search-box-wrapper i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 1rem;
+          }
+
+          /* Filter Select */
+          .filter-select {
+            padding: 12px 16px;
+            border: 2px solid var(--admin-border-light, #e2e8f0);
+            border-radius: 10px;
+            background: var(--admin-card-light, #ffffff);
+            color: var(--admin-text-light, #1e293b);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+          }
+
+          .dark-theme .filter-select {
+            background: var(--admin-card-dark);
+            border-color: var(--admin-border-dark);
+            color: var(--admin-text-dark);
+          }
+
+          .filter-select:focus {
+            outline: none;
+            border-color: #b80101;
+            box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+          }
+
+          .filter-select:hover {
+            border-color: #b80101;
+          }
+
+          /* Action Buttons */
+          .action-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: flex-start;
+          }
+
+          .btn-sm {
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 38px;
+            height: 38px;
+          }
+
+          .btn-outline-primary {
+            color: #b80101;
+            border-color: #b80101;
+          }
+
+          .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #b80101 0%, #8b0000 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+          }
+
+          .btn-outline-success {
+            color: #10b981;
+            border-color: #10b981;
+          }
+
+          .btn-outline-success:hover {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+          }
+
+          .btn-outline-danger {
+            color: #ef4444;
+            border-color: #ef4444;
+          }
+
+          .btn-outline-danger:hover {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+          }
+
+          /* Sort Button */
+          .sort-btn {
+            background: none;
+            border: none;
+            color: #495057;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 6px;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+          }
+
+          .sort-btn:hover {
+            color: #b80101;
+          }
+
+          /* Accordion Styling */
+          .accordion-pro .accordion-item {
+            border: none;
+            margin-bottom: 12px;
+          }
+
+          .accordion-pro .accordion-button {
+            background: linear-gradient(135deg, rgba(184, 1, 1, 0.02) 0%, rgba(184, 1, 1, 0.01) 100%);
+            font-weight: 600;
+            padding: 14px 18px;
+            border-radius: 10px !important;
+            border: 1px solid var(--admin-border-light, #e2e8f0);
+            transition: all 0.3s ease;
+          }
+
+          .dark-theme .accordion-pro .accordion-button {
+            background: linear-gradient(135deg, rgba(184, 1, 1, 0.06) 0%, rgba(184, 1, 1, 0.03) 100%);
+            border-color: var(--admin-border-dark);
+          }
+
+          .accordion-pro .accordion-button:not(.collapsed) {
+            background: linear-gradient(135deg, rgba(184, 1, 1, 0.08) 0%, rgba(184, 1, 1, 0.04) 100%);
+            color: #b80101;
+          }
+
+          .accordion-pro .accordion-button:focus {
+            box-shadow: none;
+          }
+
+          .accordion-pro .accordion-button:hover {
+            background: linear-gradient(135deg, rgba(184, 1, 1, 0.05) 0%, rgba(184, 1, 1, 0.02) 100%);
+          }
+
+          .accordion-pro .accordion-body {
+            padding: 0;
+          }
+
+          .topic-meta {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            font-size: 0.9rem;
+            opacity: 0.85;
+          }
+
+          .badge-soft {
+            background: rgba(0, 0, 0, 0.06);
+            color: inherit;
+            border-radius: 6px;
+            padding: 6px 10px;
+            transition: all 0.3s ease;
+          }
+
+          .dark-theme .badge-soft {
+            background: rgba(255, 255, 255, 0.06);
+          }
+
+          /* Content Type Badges */
+          .content-type-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: capitalize;
+          }
+
+          .content-type-video {
+            background: rgba(239, 68, 68, 0.15);
+            color: #dc2626;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+          }
+
+          .content-type-pdf {
+            background: rgba(239, 68, 68, 0.15);
+            color: #dc2626;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+          }
+
+          .content-type-quiz {
+            background: rgba(59, 130, 246, 0.15);
+            color: #2563eb;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+          }
+
+          .content-type-homework {
+            background: rgba(245, 158, 11, 0.15);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+          }
+
+          .content-type-zoom {
+            background: rgba(16, 185, 129, 0.15);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+          }
+
+          /* Empty State */
+          .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+          }
+
+          .empty-state i {
+            font-size: 4rem;
+            color: #dee2e6;
+            margin-bottom: 20px;
+          }
+
+          .empty-state h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+          }
+
+          /* Responsive Design */
+          @media (max-width: 768px) {
+            .search-filters {
+              flex-direction: column;
+              align-items: stretch;
+            }
+
+            .search-box-wrapper {
+              max-width: 100%;
+            }
+
+            .filter-select {
+              width: 100%;
+            }
+
+            .table-pro {
+              font-size: 0.85rem;
+            }
+
+            .table-pro thead th,
+            .table-pro tbody td {
+              padding: 12px 8px;
+            }
+
+            .student-profile {
+              min-width: 180px;
+            }
+
+            .student-avatar {
+              width: 36px;
+              height: 36px;
+              font-size: 0.9rem;
+            }
+
+            .action-buttons {
+              flex-direction: column;
+              gap: 6px;
+            }
+
+            .btn-sm {
+              width: 100%;
+            }
+          }
+
+          /* Utility Classes */
+          .text-muted {
+            color: #6c757d !important;
+          }
+        </style>
+        <!-- Header Card -->
+        <div class="admin-dashboard-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h1 class="admin-dashboard-title">Course Details - <%= course.title %></h1>
+              <p class="admin-dashboard-subtitle">
+                <i class="fas fa-hashtag me-1"></i><%= course.courseCode %> • <i class="fas fa-layer-group ms-2 me-1"></i><%= course.level %>
+              </p>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-success" onclick="exportCourseToExcel()">
+                <i class="fas fa-file-excel me-2"></i>Export to Excel
+              </button>
+              <a class="btn btn-outline-secondary" href="/admin/courses"><i class="fas fa-arrow-left me-2"></i>Back</a>
+              <a class="btn btn-primary" href="/admin/courses/<%= course.courseCode %>/content"><i class="fas fa-edit me-2"></i>Manage Content</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Analytics -->
+        <div class="admin-stats-grid">
+          <div class="admin-stat-card">
+            <div class="admin-stat-header">
+              <div class="admin-stat-icon"><i class="fas fa-users"></i></div>
+            </div>
+            <h3 class="admin-stat-number"><%= analytics.totalEnrolled %></h3>
+            <p class="admin-stat-label">Enrolled Students</p>
+          </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-header">
+              <div class="admin-stat-icon"><i class="fas fa-percentage"></i></div>
+            </div>
+            <h3 class="admin-stat-number"><%= analytics.averageProgress %>%</h3>
+            <p class="admin-stat-label">Average Progress</p>
+          </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-header">
+              <div class="admin-stat-icon"><i class="fas fa-check-circle"></i></div>
+            </div>
+            <h3 class="admin-stat-number"><%= analytics.completionRate %>%</h3>
+            <p class="admin-stat-label">Completion Rate</p>
+          </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-header">
+              <div class="admin-stat-icon"><i class="fas fa-tasks"></i></div>
+            </div>
+            <h3 class="admin-stat-number"><%= analytics.contentCompletionRate %>%</h3>
+            <p class="admin-stat-label">Content Completion</p>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="admin-content-card">
+          <ul class="nav nav-tabs" id="courseTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="students-tab" data-bs-toggle="tab" data-bs-target="#students" type="button" role="tab">Enrolled Students</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="topics-tab" data-bs-toggle="tab" data-bs-target="#topics" type="button" role="tab">Topics & Analytics</button>
+            </li>
+          </ul>
+          <div class="tab-content p-3" id="courseTabsContent">
+            <!-- Students Tab -->
+            <div class="tab-pane fade show active" id="students" role="tabpanel">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0"><i class="fas fa-users me-2"></i>Enrolled Students (<span id="studentCount"><%= students ? students.length : 0 %></span>)</h5>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-success btn-sm" onclick="showManualEnrollModal()">
+                    <i class="fas fa-user-plus me-1"></i> Enroll Students
+                  </button>
+                  <button class="btn btn-primary btn-sm" onclick="showBulkEnrollModal()">
+                    <i class="fas fa-file-excel me-1"></i> Bulk Enroll
+                  </button>
+                </div>
+                <div class="search-filters">
+                  <div class="search-box-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="studentSearch" class="form-control" placeholder="Search by name, email, or code..." autocomplete="off">
+                  </div>
+                  <select id="statusFilter" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="completed">✓ Completed</option>
+                    <option value="in_progress">⏳ In Progress</option>
+                    <option value="not_started">○ Not Started</option>
+                  </select>
+                  <select id="progressFilter" class="filter-select">
+                    <option value="">All Progress</option>
+                    <option value="90-100">90-100%</option>
+                    <option value="70-89">70-89%</option>
+                    <option value="50-69">50-69%</option>
+                    <option value="0-49">Below 50%</option>
+                  </select>
+                </div>
+              </div>
+              <div class="students-table-container">
+                <% if (students && students.length) { %>
+                <div class="table-overflow">
+                  <table class="table-pro" id="studentsTable">
+                    <thead>
+                      <tr>
+                        <th class="col-min">#</th>
+                        <th>
+                          Student
+                          <button class="sort-btn" onclick="sortStudents('name')">
+                            <i class="fas fa-sort"></i>
+                          </button>
+                        </th>
+                        <th>Student Code</th>
+                        <th>Grade</th>
+                        <th>School</th>
+                        <th>
+                          Progress
+                          <button class="sort-btn" onclick="sortStudents('progress')">
+                            <i class="fas fa-sort"></i>
+                          </button>
+                        </th>
+                        <th>Status</th>
+                        <th>
+                          Enrolled
+                          <button class="sort-btn" onclick="sortStudents('enrolled')">
+                            <i class="fas fa-sort"></i>
+                          </button>
+                        </th>
+                        <th>Last Accessed</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% students.forEach((s, idx) => { %>
+                      <tr data-status="<%= s.status %>" data-progress="<%= s.progress %>" data-name="<%= s.name %>" data-email="<%= s.email %>" data-code="<%= s.studentCode %>">
+                        <td class="col-min" style="opacity: .7; font-weight: 600;"><%= idx+1 %></td>
+                        <td>
+                          <div class="student-profile">
+                            <div class="student-avatar">
+                              <%= (s.name?.split(' ')[0]?.[0] || '').toUpperCase() %><%= (s.name?.split(' ')[1]?.[0] || '').toUpperCase() %>
+                            </div>
+                            <div class="student-info">
+                              <div class="student-name"><%= s.name %></div>
+                              <div class="student-email"><%= s.email %></div>
+                            </div>
+                          </div>
+                        </td>
+                        <td><span style="font-family: 'Courier New', monospace; background: #f8f9fa; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;"><%= s.studentCode %></span></td>
+                        <td><%= s.grade || '-' %></td>
+                        <td><%= s.schoolName || '-' %></td>
+                        <td>
+                          <div class="progress-bar-container">
+                            <div class="progress-percentage"><%= s.progress %>%</div>
+                            <div class="progress-bar">
+                              <div class="progress-fill" style="width: <%= s.progress %>%" data-progress="<%= s.progress %>"></div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span class="status-badge status-<%= s.status %>">
+                            <span class="status-icon"></span>
+                            <%= s.status.replace('_', ' ') %>
+                          </span>
+                        </td>
+                        <td><%= s.enrolledAt ? new Date(s.enrolledAt).toLocaleDateString() : '-' %></td>
+                        <td><%= s.lastAccessed ? new Date(s.lastAccessed).toLocaleDateString() : 'Never' %></td>
+                        <td>
+                          <div class="action-buttons">
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewStudentDetails('<%= s.email %>')" title="View Student Details">
+                              <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" onclick="contactStudent('<%= s.email %>', '<%= s.name %>')" title="Contact Student">
+                              <i class="fas fa-envelope"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="removeStudentFromCourse('<%= s._id %>', '<%= s.name %>')" title="Remove Student">
+                              <i class="fas fa-user-minus"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+                <% } else { %>
+                <div class="empty-state">
+                  <i class="fas fa-users"></i>
+                  <h3>No enrolled students</h3>
+                  <p>Students will appear here once they enroll in this course.</p>
+                </div>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- Topics Tab -->
+            <div class="tab-pane fade" id="topics" role="tabpanel">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0"><i class="fas fa-list-ol me-2"></i>Topics & Content Analytics</h5>
+              </div>
+              <% if (topicsAnalytics && topicsAnalytics.length) { %>
+              <div class="accordion accordion-pro" id="topicsAccordion">
+                <% topicsAnalytics.forEach((topic, tIdx) => { %>
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="heading-<%= topic._id %>">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-<%= topic._id %>" aria-expanded="false" aria-controls="collapse-<%= topic._id %>">
+                      <span class="badge bg-secondary me-2" style="min-width: 32px;">#<%= topic.order %></span>
+                      <strong class="me-2"><%= topic.title %></strong>
+                      <span class="topic-meta">
+                        <span class="badge-soft"><i class="fas fa-file-alt me-1"></i><%= topic.contentCount %> items</span>
+                        <span class="badge-soft"><i class="fas fa-eye me-1"></i><%= topic.totals.viewers %> views</span>
+                        <span class="badge-soft"><i class="fas fa-check me-1"></i><%= topic.totals.completions %> done</span>
+                      </span>
+                    </button>
+                  </h2>
+                  <div id="collapse-<%= topic._id %>" class="accordion-collapse collapse" aria-labelledby="heading-<%= topic._id %>" data-bs-parent="#topicsAccordion">
+                    <div class="accordion-body">
+                      <div class="table-overflow">
+                        <table class="table-pro">
+                          <thead>
+                            <tr>
+                              <th class="col-min">#</th>
+                              <th>Content Title</th>
+                              <th>Type</th>
+                              <th>
+                                <i class="fas fa-eye me-1"></i>Views
+                              </th>
+                              <th>
+                                <i class="fas fa-check-circle me-1"></i>Completions
+                              </th>
+                              <th>
+                                <i class="fas fa-clock me-1"></i>Avg Time
+                              </th>
+                              <th>
+                                <i class="fas fa-redo me-1"></i>Attempts
+                              </th>
+                              <th>
+                                <i class="fas fa-chart-line me-1"></i>Avg Score
+                              </th>
+                              <th>
+                                <i class="fas fa-percentage me-1"></i>Pass Rate
+                              </th>
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <% topic.contents.sort((a,b)=>a.order-b.order).forEach((ci, cIdx) => { %>
+                            <tr>
+                              <td class="col-min" style="opacity:.7;font-weight:600"><%= cIdx+1 %></td>
+                              <td style="font-weight: 500;"><%= ci.title %></td>
+                              <td><span class="content-type-badge content-type-<%= ci.type %>"><i class="fas fa-<%= ci.type === 'video' ? 'play-circle' : ci.type === 'pdf' ? 'file-pdf' : ci.type === 'quiz' ? 'question-circle' : ci.type === 'homework' ? 'tasks' : ci.type === 'zoom' ? 'video' : 'file' %> me-1"></i><%= ci.type %></span></td>
+                              <td><span class="badge-soft"><%= ci.viewers %></span></td>
+                              <td>
+                                <span class="badge-soft" style="<%= ci.completions > 0 ? 'background: rgba(16, 185, 129, 0.1); color: #059669;' : '' %>">
+                                  <%= ci.completions %>
+                                </span>
+                              </td>
+                              <td><%= ci.averageTimeSpent %> min</td>
+                              <td>
+                                <% if (ci.attempts > 0) { %>
+                                <span class="badge-soft"><%= ci.attempts %></span>
+                                <% } else { %>
+                                <span class="text-muted">-</span>
+                                <% } %>
+                              </td>
+                              <td>
+                                <% if (ci.averageScore !== null) { %>
+                                <span style="font-weight: 600; color: <%= ci.averageScore >= 70 ? '#059669' : ci.averageScore >= 60 ? '#d97706' : '#dc2626' %>">
+                                  <%= ci.averageScore %>%
+                                </span>
+                                <% } else { %>
+                                <span class="text-muted">-</span>
+                                <% } %>
+                              </td>
+                              <td>
+                                <% if (ci.passRate !== null) { %>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                  <div style="width: 60px; height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden;">
+                                    <div style="width: <%= ci.passRate %>%; height: 100%; background: <%= ci.passRate >= 70 ? '#059669' : ci.passRate >= 50 ? '#d97706' : '#dc2626' %>; transition: width 0.5s ease;"></div>
+                                  </div>
+                                  <span style="font-weight: 600; font-size: 0.85rem; color: <%= ci.passRate >= 70 ? '#059669' : ci.passRate >= 50 ? '#d97706' : '#dc2626' %>">
+                                    <%= ci.passRate %>%
+                                  </span>
+                                </div>
+                                <% } else { %>
+                                <span class="text-muted">-</span>
+                                <% } %>
+                              </td>
+                              <td>
+                                <a href="/admin/courses/<%= course.courseCode %>/topics/<%= topic._id %>/content/<%= ci._id %>" class="btn btn-sm btn-outline-primary" title="View Content Details">
+                                  <i class="fas fa-chart-bar"></i>
+                                </a>
+                              </td>
+                            </tr>
+                            <% }) %>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <% }) %>
+              </div>
+              <% } else { %>
+              <div class="empty-state">
+                <i class="fas fa-list"></i>
+                <h3>No topics yet</h3>
+                <p>Add topics and content to this course to see analytics here.</p>
+              </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<%- include('./partials/admin-footer') %>
+
+<script>
+  // Enhanced search and filtering functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    initializeTableFeatures();
+    animateProgressBars();
+  });
+
+  let allStudents = [];
+  let filteredStudents = [];
+  let currentSort = {
+    column: null,
+    direction: 'asc'
+  };
+
+  function initializeTableFeatures() {
+    // Store all student rows
+    const rows = document.querySelectorAll('#studentsTable tbody tr');
+    allStudents = Array.from(rows);
+    filteredStudents = [...allStudents];
+
+    // Setup search
+    const searchInput = document.getElementById('studentSearch');
+    if (searchInput) {
+      searchInput.addEventListener('input', applyFilters);
+    }
+
+    // Setup filters
+    const statusFilter = document.getElementById('statusFilter');
+    const progressFilter = document.getElementById('progressFilter');
+
+    if (statusFilter) {
+      statusFilter.addEventListener('change', applyFilters);
+    }
+
+    if (progressFilter) {
+      progressFilter.addEventListener('change', applyFilters);
+    }
+  }
+
+  function applyFilters() {
+    const searchTerm = document.getElementById('studentSearch')?.value.toLowerCase() || '';
+    const selectedStatus = document.getElementById('statusFilter')?.value || '';
+    const selectedProgress = document.getElementById('progressFilter')?.value || '';
+
+    filteredStudents = allStudents.filter(row => {
+      const name = row.getAttribute('data-name')?.toLowerCase() || '';
+      const email = row.getAttribute('data-email')?.toLowerCase() || '';
+      const code = row.getAttribute('data-code')?.toLowerCase() || '';
+      const status = row.getAttribute('data-status') || '';
+      const progress = parseInt(row.getAttribute('data-progress')) || 0;
+
+      // Search filter
+      const matchesSearch = !searchTerm ||
+        name.includes(searchTerm) ||
+        email.includes(searchTerm) ||
+        code.includes(searchTerm);
+
+      // Status filter
+      const matchesStatus = !selectedStatus || status === selectedStatus;
+
+      // Progress filter
+      let matchesProgress = true;
+      if (selectedProgress) {
+        const [min, max] = selectedProgress.split('-').map(Number);
+        matchesProgress = progress >= min && progress <= max;
+      }
+
+      return matchesSearch && matchesStatus && matchesProgress;
+    });
+
+    renderFilteredStudents();
+  }
+
+  function renderFilteredStudents() {
+    const tbody = document.querySelector('#studentsTable tbody');
+    if (!tbody) return;
+
+    // Hide all rows first
+    allStudents.forEach(row => row.style.display = 'none');
+
+    // Show filtered rows and update numbering
+    filteredStudents.forEach((row, index) => {
+      row.style.display = '';
+      const numberCell = row.querySelector('td:first-child');
+      if (numberCell) {
+        numberCell.textContent = index + 1;
+      }
+    });
+
+    // Update count
+    updateStudentCount();
+
+    // Animate progress bars for visible rows
+    setTimeout(() => {
+      animateProgressBars();
+    }, 50);
+  }
+
+  function updateStudentCount() {
+    const countElement = document.getElementById('studentCount');
+    if (countElement) {
+      countElement.textContent = filteredStudents.length;
+    }
+  }
+
+  function animateProgressBars() {
+    const visibleFills = document.querySelectorAll('#studentsTable tbody tr:not([style*="display: none"]) .progress-fill');
+    visibleFills.forEach(fill => {
+      const progress = fill.getAttribute('data-progress');
+      fill.style.width = '0%';
+      setTimeout(() => {
+        fill.style.width = progress + '%';
+      }, 100);
+    });
+  }
+
+  function sortStudents(column) {
+    // Toggle sort direction
+    if (currentSort.column === column) {
+      currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+      currentSort.column = column;
+      currentSort.direction = 'asc';
+    }
+
+    // Sort filtered students
+    filteredStudents.sort((a, b) => {
+      let aVal, bVal;
+
+      if (column === 'name') {
+        aVal = a.getAttribute('data-name')?.toLowerCase() || '';
+        bVal = b.getAttribute('data-name')?.toLowerCase() || '';
+      } else if (column === 'progress') {
+        aVal = parseInt(a.getAttribute('data-progress')) || 0;
+        bVal = parseInt(b.getAttribute('data-progress')) || 0;
+      } else if (column === 'enrolled') {
+        const aDate = a.querySelector('td:nth-child(8)')?.textContent || '';
+        const bDate = b.querySelector('td:nth-child(8)')?.textContent || '';
+        aVal = aDate === '-' ? 0 : new Date(aDate).getTime();
+        bVal = bDate === '-' ? 0 : new Date(bDate).getTime();
+      }
+
+      if (currentSort.direction === 'asc') {
+        return aVal > bVal ? 1 : -1;
+      } else {
+        return aVal < bVal ? 1 : -1;
+      }
+    });
+
+    renderFilteredStudents();
+    updateSortIndicators();
+  }
+
+  function updateSortIndicators() {
+    // Reset all sort icons
+    document.querySelectorAll('.sort-btn i').forEach(icon => {
+      icon.className = 'fas fa-sort';
+    });
+
+    // Update active sort icon
+    if (currentSort.column) {
+      const sortBtn = document.querySelector(`[onclick="sortStudents('${currentSort.column}')"] i`);
+      if (sortBtn) {
+        sortBtn.className = `fas fa-sort-${currentSort.direction === 'asc' ? 'up' : 'down'}`;
+      }
+    }
+  }
+
+  // View student details
+  function viewStudentDetails(email) {
+    window.location.href = `/admin/students?search=${encodeURIComponent(email)}`;
+  }
+
+  // Contact student
+  function contactStudent(email, name) {
+    const subject = `Regarding <%= course.title %> Course`;
+    window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}`);
+  }
+
+  // Export course details to Excel
+  async function exportCourseToExcel() {
+    try {
+      // Show loading state
+      const button = event.target.closest('button');
+      const originalText = button.innerHTML;
+      button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Exporting...';
+      button.disabled = true;
+
+      // Make request to export endpoint
+      const response = await fetch(`/admin/courses/<%= course._id %>/export`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+
+      // Get the blob and create download link
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `course-<%= course.courseCode %>-details-${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      // Show success message
+      showNotification('Course details exported successfully!', 'success');
+    } catch (error) {
+      console.error('Export error:', error);
+      showNotification('Failed to export course details. Please try again.', 'error');
+    } finally {
+      // Restore button state
+      const button = event.target.closest('button');
+      button.innerHTML = originalText;
+      button.disabled = false;
+    }
+  }
+
+  // Simple notification function
+  function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(notification);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 5000);
+  }
+
+  // Remove student from course
+  async function removeStudentFromCourse(studentId, studentName) {
+    if (!confirm(`Are you sure you want to remove ${studentName} from this course?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/admin/courses/<%= course._id %>/students/${studentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showNotification(data.message, 'success');
+        // Reload page to show updated student list
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        showNotification(data.message || 'Failed to remove student', 'error');
+      }
+    } catch (error) {
+      console.error('Error removing student:', error);
+      showNotification('Failed to remove student', 'error');
+    }
+  }
+
+  // ============= STUDENT ENROLLMENT FUNCTIONS =============
+
+  // Show manual enrollment modal
+  function showManualEnrollModal() {
+    const modal = new bootstrap.Modal(document.getElementById('manualEnrollModal'));
+    modal.show();
+    loadStudentsForEnrollment();
+  }
+
+  // Load students for enrollment
+  async function loadStudentsForEnrollment(search = '') {
+    try {
+      const response = await fetch(`/admin/api/students-for-enrollment?search=${encodeURIComponent(search)}&courseId=<%= course._id %>&page=1&limit=50`);
+      const data = await response.json();
+      
+      if (data.success) {
+        renderStudentList(data.students);
+      }
+    } catch (error) {
+      console.error('Error loading students:', error);
+      showNotification('Failed to load students', 'error');
+    }
+  }
+
+  // Render student list in modal
+  function renderStudentList(students) {
+    const container = document.getElementById('studentListContainer');
+    if (students.length === 0) {
+      container.innerHTML = '<p class="text-muted text-center">No students found</p>';
+      return;
+    }
+
+    container.innerHTML = students.map(student => {
+      const isSelected = selectedStudents.has(student._id);
+      return `
+      <div class="student-item ${isSelected ? 'selected' : ''} d-flex align-items-center justify-content-between p-3 border rounded mb-2" 
+           data-student-id="${student._id}"
+           onclick="toggleStudentCardSelection('${student._id}')"
+           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.15)'; if(!this.classList.contains('selected')) this.style.borderColor='rgba(184, 1, 1, 0.3)';"
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow=''; if(!this.classList.contains('selected')) this.style.borderColor='transparent';"
+           style="cursor: pointer; transition: all 0.3s ease; user-select: none; border: 2px solid ${isSelected ? 'rgba(184, 1, 1, 0.5)' : 'transparent'}; background: ${isSelected ? 'rgba(184, 1, 1, 0.05)' : 'transparent'};">
+        <div class="d-flex align-items-center">
+          <input type="checkbox" class="form-check-input me-3" value="${student._id}" ${isSelected ? 'checked' : ''} style="pointer-events: none;">
+          <div class="student-avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+            ${student.firstName.charAt(0)}${student.lastName.charAt(0)}
+          </div>
+          <div class="ms-3">
+            <div class="fw-bold">${student.firstName} ${student.lastName}</div>
+            <div class="text-muted small">${student.studentEmail} | ${student.studentCode}</div>
+          </div>
+        </div>
+        <div class="text-muted small">
+          ${student.grade || 'N/A'}
+        </div>
+      </div>
+      `;
+    }).join('');
+  }
+
+  // Toggle student selection
+  const selectedStudents = new Set();
+  
+  // Toggle student card selection (when clicking the whole card)
+  function toggleStudentCardSelection(studentId) {
+    const checkbox = document.querySelector(`input[value="${studentId}"]`);
+    const studentItem = document.querySelector(`[data-student-id="${studentId}"]`);
+    
+    if (!checkbox || !studentItem) return;
+    
+    // Toggle selection
+    if (selectedStudents.has(studentId)) {
+      selectedStudents.delete(studentId);
+      checkbox.checked = false;
+      studentItem.classList.remove('selected');
+      studentItem.style.background = 'transparent';
+      studentItem.style.borderColor = 'transparent';
+    } else {
+      selectedStudents.add(studentId);
+      checkbox.checked = true;
+      studentItem.classList.add('selected');
+      studentItem.style.background = 'rgba(184, 1, 1, 0.05)';
+      studentItem.style.borderColor = 'rgba(184, 1, 1, 0.5)';
+    }
+    
+    updateEnrollButton();
+  }
+  
+  function toggleStudentSelection(studentId) {
+    toggleStudentCardSelection(studentId);
+  }
+
+  // Update enroll button state
+  function updateEnrollButton() {
+    const btn = document.getElementById('confirmEnrollBtn');
+    btn.disabled = selectedStudents.size === 0;
+    btn.textContent = selectedStudents.size > 0 
+      ? `Enroll ${selectedStudents.size} Student(s)` 
+      : 'Select Students to Enroll';
+  }
+
+  // Confirm manual enrollment
+  async function confirmManualEnrollment() {
+    if (selectedStudents.size === 0) {
+      showNotification('Please select at least one student', 'error');
+      return;
+    }
+
+    try {
+      const btn = document.getElementById('confirmEnrollBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enrolling...';
+
+      // Get starting order from select
+      const startingOrderSelect = document.getElementById('startingOrderSelect');
+      const startingOrder = startingOrderSelect.value === '' ? null : parseInt(startingOrderSelect.value);
+
+      const response = await fetch(`/admin/courses/<%= course._id %>/enroll`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          studentIds: Array.from(selectedStudents),
+          startingOrder: startingOrder,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showNotification(data.message, 'success');
+        bootstrap.Modal.getInstance(document.getElementById('manualEnrollModal')).hide();
+        selectedStudents.clear();
+        
+        // Reload page to show updated student list
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        showNotification(data.message || 'Failed to enroll students', 'error');
+      }
+    } catch (error) {
+      console.error('Error enrolling students:', error);
+      showNotification('Failed to enroll students', 'error');
+    } finally {
+      const btn = document.getElementById('confirmEnrollBtn');
+      btn.disabled = false;
+      btn.innerHTML = `Enroll ${selectedStudents.size} Student(s)`;
+    }
+  }
+
+  // Show bulk enrollment modal
+  function showBulkEnrollModal() {
+    const modal = new bootstrap.Modal(document.getElementById('bulkEnrollModal'));
+    modal.show();
+  }
+
+  // Handle bulk enrollment form submission
+  async function submitBulkEnrollment(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    try {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+
+      const response = await fetch(`/admin/courses/<%= course._id %>/bulk-enroll`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showBulkEnrollResults(data.results);
+      } else {
+        showNotification(data.message || 'Failed to bulk enroll students', 'error');
+      }
+    } catch (error) {
+      console.error('Error bulk enrolling students:', error);
+      showNotification('Failed to bulk enroll students', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload & Enroll';
+    }
+  }
+
+  // Show bulk enrollment results
+  function showBulkEnrollResults(results) {
+    const modal = new bootstrap.Modal(document.getElementById('bulkEnrollResultsModal'));
+    document.getElementById('bulkEnrollResultsContent').innerHTML = `
+      <div class="alert alert-success">
+        <i class="fas fa-check-circle me-2"></i>
+        ${results.message}
+      </div>
+      
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body">
+              <h3 class="text-success">${results.success.length}</h3>
+              <p class="mb-0">Successful</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body">
+              <h3 class="text-danger">${results.failed.length}</h3>
+              <p class="mb-0">Failed</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body">
+              <h3 class="text-warning">${results.alreadyEnrolled.length}</h3>
+              <p class="mb-0">Already Enrolled</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      ${results.failed.length > 0 ? `
+        <div class="mb-3">
+          <h6 class="text-danger">Failed Imports:</h6>
+          <ul class="list-group">
+            ${results.failed.map(f => `
+              <li class="list-group-item">
+                <strong>Row ${f.row}:</strong> ${f.identifier || 'N/A'} - ${f.reason}
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+      ` : ''}
+
+      ${results.alreadyEnrolled.length > 0 ? `
+        <div class="mb-3">
+          <h6 class="text-warning">Already Enrolled:</h6>
+          <ul class="list-group">
+            ${results.alreadyEnrolled.map(e => `
+              <li class="list-group-item">
+                <strong>Row ${e.row}:</strong> ${e.studentName} (${e.identifier})
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+      ` : ''}
+    `;
+    modal.show();
+    
+    // Close bulk enroll modal
+    bootstrap.Modal.getInstance(document.getElementById('bulkEnrollModal')).hide();
+  }
+
+  // Search students in manual enrollment modal
+  let searchTimeout;
+  function searchStudentsForEnrollment() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      const search = document.getElementById('studentSearchInput').value;
+      loadStudentsForEnrollment(search);
+    }, 500);
+  }
+</script>
+
+<!-- Manual Enrollment Modal -->
+<div class="modal fade" id="manualEnrollModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-user-plus me-2"></i>Enroll Students to <%= course.title %>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="startingOrderSelect" class="form-label">
+            <i class="fas fa-calendar-week me-1"></i>Enroll From Week/Order
+          </label>
+          <select id="startingOrderSelect" class="form-select">
+            <option value="">From Beginning (Week 1)</option>
+            <% if (course.order !== undefined && course.order !== null) { %>
+            <option value="<%= course.order %>" selected>From This Course's Week (<%= course.order + 1 %>)</option>
+            <% } %>
+          </select>
+          <small class="form-text text-muted">
+            Select the week/order from which students should have access. They will be able to access this week and all subsequent weeks. The default is this course's week.
+          </small>
+        </div>
+        <div class="mb-3">
+          <input type="text" id="studentSearchInput" class="form-control" placeholder="Search by name, email, or code..." oninput="searchStudentsForEnrollment()">
+        </div>
+        <div id="studentListContainer" style="max-height: 400px; overflow-y: auto;">
+          <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p class="text-muted mt-2">Loading students...</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" id="confirmEnrollBtn" onclick="confirmManualEnrollment()" disabled>
+          Select Students to Enroll
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Enrollment Modal -->
+<div class="modal fade" id="bulkEnrollModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-file-excel me-2"></i>Bulk Enroll Students
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="bulkEnrollForm" onsubmit="submitBulkEnrollment(event)">
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Instructions:</strong> Upload an Excel file with student identifiers (Email, Phone, or Student Code).
+            <br><small>Download template: <a href="/admin/enrollment-template.xlsx" download>enrollment-template.xlsx</a></small>
+          </div>
+          
+          <div class="mb-3">
+            <label for="excelFile" class="form-label">Select Excel File</label>
+            <input type="file" class="form-control" id="excelFile" name="excelFile" accept=".xlsx,.xls" required>
+            <div class="form-text">Supported formats: .xlsx, .xls (Max 10MB)</div>
+          </div>
+
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Note:</strong> The Excel file should contain one of the following columns:
+            <ul class="mb-0 mt-2">
+              <li>Email / Student Email</li>
+              <li>Phone / Student Phone / Student Number</li>
+              <li>Code / Student Code</li>
+            </ul>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-upload me-2"></i>Upload & Enroll
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Enrollment Results Modal -->
+<div class="modal fade" id="bulkEnrollResultsModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-chart-bar me-2"></i>Bulk Enrollment Results
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="bulkEnrollResultsContent">
+        <!-- Results will be inserted here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="window.location.reload()">
+          Close & Refresh
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

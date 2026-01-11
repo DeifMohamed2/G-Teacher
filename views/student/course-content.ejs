@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= course.title %> - Week Content | ELKABLY</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/images/KImage.png">
+  <link rel="shortcut icon" type="image/png" href="/images/KImage.png">
+  <link rel="apple-touch-icon" href="/images/KImage.png">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/css/studentCSS/student-main.css">
+  <link rel="stylesheet" href="/css/studentCSS/courses.css">
+  <link rel="stylesheet" href="/css/theme-toggle.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Enhanced Styles -->
+  <style>
+    /* Content Item Enhancements */
+    .content-actions-completed {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .content-completed {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #10b981;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    /* Prerequisites Styling */
+    .prerequisites-info {
+      margin-top: 12px;
+      padding: 14px 18px;
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      border: 1px solid #f59e0b;
+      border-radius: 10px;
+      border-left: 4px solid #f59e0b;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+    }
+
+    .prerequisites-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #92400e;
+      font-size: 14px;
+    }
+
+    .prerequisites-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .prerequisite-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #92400e;
+    }
+
+    .prerequisite-item i {
+      font-size: 10px;
+      color: #f59e0b;
+    }
+
+    /* Clickable Prerequisite Links */
+    .prerequisite-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 6px;
+      text-decoration: none;
+      color: #92400e;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .prerequisite-link:hover {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: #f59e0b;
+      transform: translateX(4px);
+      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.2);
+      color: #78350f;
+    }
+
+    .prerequisite-link-icon {
+      margin-left: auto;
+      font-size: 11px;
+      opacity: 0.7;
+      transition: opacity 0.2s ease;
+    }
+
+    .prerequisite-link:hover .prerequisite-link-icon {
+      opacity: 1;
+    }
+
+    /* Content Item States */
+    .content-item.completed {
+      border-left: 4px solid #10b981;
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    }
+
+    .content-item.locked {
+      border-left: 4px solid #ef4444;
+      background: linear-gradient(135deg, #fef2f2, #fee2e2);
+      opacity: 0.8;
+    }
+
+    /* Highlighted locked content (when redirected from locked content click) */
+    .content-item.locked-highlight {
+      border-left: 6px solid #dc2626;
+      background: linear-gradient(135deg, #fee2e2, #fecaca);
+      box-shadow: 0 0 0 4px rgba(162, 47, 47, 0.664), 0 8px 24px rgba(234, 95, 67, 0.548);
+      animation: pulse-locked 2s ease-in-out infinite;
+      transform: scale(1.02);
+      z-index: 10;
+      position: relative;
+    }
+
+    @keyframes pulse-locked {
+      0%, 100% {
+        box-shadow: 0 0 0 4px rgba(162, 47, 47, 0.664), 0 8px 24px rgba(234, 192, 67, 0.848);
+      }
+      50% {
+        box-shadow: 0 0 0 8px rgba(162, 47, 47, 0.664), 0 12px 32px rgba(238, 58, 22, 0.848);
+      }
+    }
+
+    .content-item.completed .content-type-icon {
+      background: #10b981;
+      color: white;
+    }
+
+    .content-item.locked .content-type-icon {
+      background: #ef4444;
+      color: white;
+    }
+
+    /* Enhanced Content Item Design */
+    .content-item {
+      transition: all 0.3s ease;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .content-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Clickable Content Item */
+    .clickable-content-item {
+      cursor: pointer;
+      position: relative;
+    }
+
+    .clickable-content-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      border-color: var(--primary-color);
+    }
+
+    .clickable-content-item:active {
+      transform: translateY(0px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Visual indicator for clickable cards */
+    .clickable-content-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      opacity: 0;
+    }
+
+    .clickable-content-item:hover::before {
+      box-shadow: inset 0 0 0 2px var(--primary-color);
+      opacity: 0.2;
+    }
+
+    /* Prevent prerequisites area from triggering navigation */
+    .prerequisites-info {
+      cursor: default;
+      pointer-events: auto;
+    }
+
+    .prerequisites-info * {
+      pointer-events: auto;
+    }
+
+    /* Ensure buttons and links inside content items work normally */
+    .clickable-content-item button,
+    .clickable-content-item a {
+      position: relative;
+      z-index: 10;
+      pointer-events: auto;
+    }
+
+    /* Topic Header - Clickable for expand/collapse */
+    .clickable-topic-header {
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .clickable-topic-header:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .dark-theme .clickable-topic-header:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .topic-header-left {
+      transition: all 0.2s ease;
+      flex: 1;
+    }
+
+    /* Topic Card Enhancements */
+    .topic-card {
+      transition: all 0.3s ease;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .topic-card:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      transform: translateY(-2px);
+    }
+
+    /* Topic Card */
+    .topic-card {
+      cursor: default;
+    }
+
+    /* Topic Toggle Button - Make it clear it's clickable */
+    .topic-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .topic-toggle:hover {
+      background: rgba(0, 0, 0, 0.05);
+      transform: scale(1.1);
+    }
+
+    .dark-theme .topic-toggle:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .topic-chevron {
+      transition: transform 0.3s ease;
+      color: var(--text-muted);
+    }
+
+    .topic-toggle:hover .topic-chevron {
+      color: var(--primary-color);
+    }
+
+    .content-item-header {
+      padding: 16px 20px;
+    }
+
+    .content-type-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      background: var(--primary-color);
+      color: white;
+      transition: all 0.3s ease;
+    }
+
+    .content-item-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-color);
+    }
+
+    .content-item-description {
+      font-size: 14px;
+      color: var(--muted-text);
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .content-item-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .content-item-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--muted-text);
+      background: var(--muted-bg);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    /* Dark theme adjustments */
+    .dark-theme .prerequisites-info {
+      background: linear-gradient(135deg, #451a03, #78350f);
+      border-color: #f59e0b;
+    }
+
+    .dark-theme .prerequisites-header,
+    .dark-theme .prerequisite-item {
+      color: #fbbf24;
+    }
+
+    .dark-theme .prerequisite-link {
+      background: rgba(0, 0, 0, 0.3);
+      color: #fbbf24;
+    }
+
+    .dark-theme .prerequisite-link:hover {
+      background: rgba(0, 0, 0, 0.5);
+      border-color: #f59e0b;
+      color: #fcd34d;
+    }
+
+    .dark-theme .content-item.completed {
+      background: linear-gradient(135deg, #064e3b, #065f46);
+    }
+
+    .dark-theme .content-item.locked {
+      background: linear-gradient(135deg, #7f1d1d, #991b1b);
+    }
+
+    .dark-theme .content-item.locked-highlight {
+      border-left: 6px solid #dc2626;
+      background: linear-gradient(135deg, #991b1b, #7f1d1d);
+      box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.3), 0 8px 24px rgba(220, 38, 38, 0.4);
+      animation: pulse-locked 2s ease-in-out infinite;
+    }
+
+    /* Progress Stats Enhancement */
+    .progress-stats {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .progress-stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--muted-text);
+    }
+
+    .progress-stat-item i {
+      color: var(--primary-color);
+      font-size: 16px;
+    }
+
+    .progress-stat-item strong {
+      color: var(--text-color);
+      font-weight: 600;
+    }
+
+    /* Course Progress Overview Enhancement */
+    .course-progress-overview {
+      background: var(--card-bg);
+      padding: 20px 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      margin-bottom: 32px;
+    }
+
+    .progress-bar-container {
+      height: 10px;
+      background: var(--muted-bg);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-color), #f87171);
+      border-radius: 10px;
+      transition: width 0.6s ease;
+    }
+
+    /* Section Header Enhancement */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-color);
+      margin: 0;
+    }
+
+    .section-title i {
+      color: var(--primary-color);
+      font-size: 22px;
+    }
+
+    .section-subtitle {
+      font-size: 14px;
+      color: var(--muted-text);
+      font-weight: 500;
+      padding: 6px 12px;
+      background: var(--muted-bg);
+      border-radius: 20px;
+    }
+
+    /* Topics Section Enhancement */
+    .topics-section {
+      margin-top: 32px;
+    }
+
+    .topics-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Content Items Container Enhancement */
+    .content-items {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      background: var(--muted-bg);
+      border-radius: 8px;
+    }
+
+    /* Empty Content States */
+    .empty-content {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted-text);
+    }
+
+    .empty-content i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-topics {
+      text-align: center;
+      padding: 60px 20px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 2px dashed var(--muted-bg);
+    }
+
+    .empty-topics .empty-icon {
+      font-size: 64px;
+      color: var(--muted-text);
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    .empty-topics h3 {
+      color: var(--text-color);
+      margin-bottom: 12px;
+    }
+
+    .empty-topics p {
+      color: var(--muted-text);
+    }
+
+    /* Smooth Transitions */
+    .topic-content {
+      transition: all 0.3s ease;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Focus States for Accessibility */
+    .clickable-topic-header:focus {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+      border-radius: 8px;
+    }
+
+    .prerequisite-link:focus {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
+  </style>
+
+  <!-- Meta Tags -->
+  <meta name="description" content="<%= course.title %> - Continue your learning journey">
+  <meta name="theme-color" content="#dc2626">
+</head>
+
+<body class="<%= theme %>-theme">
+  <!-- Student Layout -->
+  <div class="student-layout">
+    <!-- Include Sidebar -->
+    <%- include('partials/student-sidebar', { currentPage: 'courses', student: student }) %>
+
+    <!-- Main Content -->
+    <main class="student-main">
+      <!-- Include Header -->
+      <%- include('partials/student-header', { title: 'Week Content', student: student, theme: theme, currentPage: 'course-content' }) %>
+
+      <!-- Course Content -->
+      <div class="student-content">
+        <!-- Back Button -->
+        <div class="back-button-container">
+          <a href="/student/enrolled-courses" class="btn btn-outline btn-sm">
+            <i class="fas fa-arrow-left"></i>
+            Back to Weeks
+          </a>
+        </div>
+
+        <!-- Course Header -->
+        <div class="course-header-section">
+          <div class="course-header-content">
+            <div class="course-header-info">
+              <h1 class="course-title-main"><%= course.title %></h1>
+              <p class="course-description-main"><%= course.description %></p>
+
+              <div class="course-meta-info">
+                
+                <div class="meta-item">
+                  <i class="fas fa-book"></i>
+                  <span><%= topicsWithProgress ? topicsWithProgress.length : 0 %> Topics</span>
+                </div>
+                <div class="meta-item">
+                  <i class="fas fa-graduation-cap"></i>
+
+                </div>
+              </div>
+            </div>
+
+            <div class="course-progress-section">
+              <div class="progress-circle-large">
+                <svg viewBox="0 0 120 120" class="progress-ring-large">
+                  <circle class="circle-bg-large" cx="60" cy="60" r="50"></circle>
+                  <circle class="circle-large" cx="60" cy="60" r="50" stroke-dasharray="<%= enrollment.progress * 3.14 %>, 314"></circle>
+                </svg>
+                <div class="progress-text">
+                  <span class="progress-percentage"><%= enrollment.progress %>%</span>
+                  <span class="progress-label">Complete</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buy Book Section -->
+        <% if (bookPurchaseInfo) { %>
+        <div class="book-purchase-card mb-4">
+          <div class="book-purchase-content">
+            <div class="book-purchase-info">
+              <div class="book-purchase-icon">
+                <i class="fas fa-book"></i>
+              </div>
+              <div class="book-purchase-details">
+                <h5 class="book-purchase-title"><%= bookPurchaseInfo.bookName %></h5>
+                <p class="book-purchase-description">Purchase the physical book for this bundle</p>
+              </div>
+            </div>
+            <a href="/purchase/checkout/book?bundle=<%= bookPurchaseInfo.bundleId %>" class="btn-buy-book">
+              <div class="btn-buy-book-icon">
+                <i class="fas fa-shopping-cart"></i>
+              </div>
+              <div class="btn-buy-book-content">
+                <span class="btn-buy-book-label">Buy Book</span>
+                <span class="btn-buy-book-price">EGP <%= bookPurchaseInfo.bookPrice.toFixed(2) %></span>
+              </div>
+              <i class="fas fa-arrow-right btn-buy-book-arrow"></i>
+            </a>
+          </div>
+        </div>
+        <% } %>
+
+        <!-- Course Progress Bar -->
+        <div class="course-progress-overview">
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" style="width: <%= enrollment.progress %>%"></div>
+          </div>
+          <div class="progress-stats">
+            <div class="progress-stat-item">
+              <span class="last-accessed"><strong><%= enrollment.progress %>%</strong> Complete</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Topics Section -->
+        <div class="topics-section">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="fas fa-book-open"></i>
+              Week Topics
+            </h2>
+            <span class="section-subtitle"><%= topicsWithProgress ? topicsWithProgress.length : 0 %> Topics available</span>
+          </div>
+
+          <% if (topicsWithProgress && topicsWithProgress.length > 0) { %>
+          <div class="topics-container">
+            <% topicsWithProgress.forEach((topic, topicIndex) => { %>
+            <div class="topic-card" data-topic-id="<%= topic._id %>">
+              <div class="topic-header clickable-topic-header" data-topic-id="<%= topic._id %>">
+                <div class="topic-header-left">
+                  <div class="topic-number"><%= topicIndex + 1 %></div>
+                  <div class="topic-info">
+                    <h3 class="topic-title"><%= topic.title %></h3>
+                    <p class="topic-description"><%= topic.description %></p>
+                    <div class="topic-meta">
+                      
+                      <span class="topic-content-count">
+                        <i class="fas fa-list"></i>
+                        <%= topic.content ? topic.content.length : 0 %> items
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="topic-header-right">
+                  <div class="topic-progress">
+                    <div class="topic-progress-circle">
+                      <svg viewBox="0 0 36 36" class="progress-ring-small">
+                        <path class="circle-bg-small" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                        <path class="circle-small" stroke-dasharray="<%= topic.progress %>, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                      </svg>
+                      <span class="topic-progress-text"><%= topic.progress %>%</span>
+                    </div>
+                  </div>
+
+                  <div class="topic-toggle" role="button" tabindex="0" aria-expanded="false" style="cursor: pointer;">
+                    <i class="fas fa-chevron-down topic-chevron" id="chevron-<%= topic._id %>"></i>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Topic Content (Initially Hidden) -->
+              <div class="topic-content" id="content-<%= topic._id %>" style="display: none;">
+                <% if (topic.content && topic.content.length > 0) { %>
+                <div class="content-items">
+                  <% topic.content.forEach((contentItem, contentIndex) => { 
+                    // Determine content URL - only if accessible
+                    const contentUrl = contentItem.canAccess ? `/student/content/${contentItem._id}` : null;
+                  %>
+                  <div class="content-item clickable-content-item <%= !contentItem.canAccess ? 'locked' : '' %> <%= contentItem.isCompleted ? 'completed' : '' %>" 
+                       data-content-id="<%= contentItem._id %>" 
+                       <% if (contentUrl) { %>data-content-url="<%= contentUrl %>"<% } %>>
+
+                    <div class="content-item-header">
+                      <div class="content-item-left">
+                        <div class="content-type-icon <%= contentItem.type %>">
+                          <i class="fas fa-<%= getContentIcon(contentItem.type) %>"></i>
+                        </div>
+
+                        <div class="content-item-info">
+                          <h4 class="content-item-title"><%= contentItem.title %></h4>
+                          <% if (contentItem.description) { %>
+                          <p class="content-item-description"><%= contentItem.description %></p>
+                          <% } %>
+
+                          <div class="content-item-meta">
+                            <% if (contentItem.type === 'zoom') { %>
+                            <!-- Zoom Meeting Status -->
+                            <span class="content-zoom-status">
+                              <i class="fas fa-video"></i>
+                              <% if (contentItem.zoomMeeting) { %>
+                              <% if (contentItem.zoomMeeting.status === 'active') { %>
+                              <span class="badge bg-success">Live Now</span>
+                              <% } else if (contentItem.zoomMeeting.status === 'ended') { %>
+                              <span class="badge bg-secondary">Ended</span>
+                              <% } else { %>
+                              <span class="badge bg-warning">Scheduled</span>
+                              <% } %>
+                              <% } else { %>
+                              <span class="badge bg-info">Zoom Meeting</span>
+                              <% } %>
+                            </span>
+                            <% } %>
+                            
+                            <span class="content-criteria">
+                              <i class="fas fa-target"></i>
+                              <%= contentItem.completionCriteria.replace('_', ' ') %>
+                            </span>
+                            <% if (contentItem.type === 'video' && contentItem.maxWatchCount !== null && contentItem.maxWatchCount !== undefined && contentItem.maxWatchCount !== -1) { %>
+                            <span class="content-watch-limit" style="<%= contentItem.watchCount >= contentItem.maxWatchCount ? 'color: #ef4444;' : '' %>">
+                              <i class="fas fa-eye"></i>
+                              <%= contentItem.watchCount || 0 %>/<%= contentItem.maxWatchCount %> watches
+                            </span>
+                            <% } %>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="content-item-right">
+                        <% if (!contentItem.canAccess) { %>
+                        <div class="content-locked">
+                          <i class="fas fa-lock"></i>
+                          <% if (contentItem.type === 'zoom' && contentItem.zoomMeeting && contentItem.zoomMeeting.status === 'scheduled') { %>
+                          <span>Meeting Locked</span>
+                          <% } else { %>
+                          <span>Locked</span>
+                          <% } %>
+                        </div>
+
+                        <!-- Admin controls for Zoom meetings -->
+                        <% if (contentItem.type === 'zoom' && contentItem.zoomMeeting && user && user.role === 'admin') { %>
+                        <div class="zoom-admin-controls">
+                          <% if (contentItem.zoomMeeting.status === 'scheduled') { %>
+                          <button class="btn btn-success btn-sm" onclick="startZoomMeeting('<%= contentItem.zoomMeeting._id %>')">
+                            <i class="fas fa-play"></i>
+                            Start Now
+                          </button>
+                          <% } else if (contentItem.zoomMeeting.status === 'active') { %>
+                          <button class="btn btn-danger btn-sm" onclick="endZoomMeeting('<%= contentItem.zoomMeeting._id %>')">
+                            <i class="fas fa-stop"></i>
+                            End Meeting
+                          </button>
+                          <% } %>
+                        </div>
+                        <% } %>
+                        <% } else if (contentItem.actualProgress > 0) { %>
+                        <!-- Content with Progress (Same for ALL content types including zoom) -->
+                        <div class="content-actions-in-progress">
+                          <div class="content-progress-info">
+                            <div class="content-progress-circle">
+                              <svg viewBox="0 0 36 36" class="progress-ring-tiny">
+                                <path class="circle-bg-tiny" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                <path class="circle-tiny" stroke-dasharray="<%= contentItem.actualProgress %>, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                              </svg>
+                              <span class="progress-text-tiny"><%= contentItem.actualProgress %>%</span>
+                            </div>
+                            <span class="progress-label">
+                              <% if (contentItem.actualProgress === 100) { %>
+                              Completed
+                              <% } else { %>
+                              In Progress
+                              <% } %>
+                            </span>
+                          </div>
+                          <a href="/student/content/<%= contentItem._id %>" class="btn btn-primary btn-sm">
+                            <i class="fas fa-<%= contentItem.actualProgress === 100 ? 'redo' : (contentItem.type === 'zoom' ? 'video' : 'play') %>"></i>
+                            <%= contentItem.actualProgress === 100 ? 'View Details' : (contentItem.type === 'zoom' ? 'Join' : 'Continue') %>
+                          </a>
+                        </div>
+                        <% } else { %>
+                        <!-- Content Start Button (Same for ALL content types including zoom) -->
+                        <% if (contentItem.type === 'zoom' && contentItem.zoomMeeting && contentItem.zoomMeeting.status === 'scheduled') { %>
+                        <button class="btn btn-secondary btn-sm" disabled>
+                          <i class="fas fa-clock"></i>
+                          Scheduled
+                        </button>
+                        <% } else { %>
+                        <a href="/student/content/<%= contentItem._id %>" class="btn btn-primary btn-sm">
+                          <i class="fas fa-<%= contentItem.type === 'zoom' ? 'video' : 'play' %>"></i>
+                          <%= contentItem.type === 'zoom' ? 'Join' : 'Start' %>
+                        </a>
+                        <% } %>
+                        <% } %>
+                      </div>
+                    </div>
+
+                    <!-- Prerequisites Info -->
+                    <% if (!contentItem.canAccess && contentItem.prerequisiteData && contentItem.prerequisiteData.length > 0) { %>
+                    <div class="prerequisites-info">
+                      <div class="prerequisites-header">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Complete these prerequisites first:</span>
+                      </div>
+                      <div class="prerequisites-list">
+                        <% contentItem.prerequisiteData.forEach((prereq, index) => { %>
+                        <a href="/student/content/<%= prereq.id %>" class="prerequisite-item prerequisite-link">
+                          <i class="fas fa-arrow-right"></i>
+                          <span><%= prereq.title %></span>
+                          <i class="fas fa-external-link-alt prerequisite-link-icon"></i>
+                        </a>
+                        <% }); %>
+                      </div>
+                    </div>
+                    <% } else if (!contentItem.canAccess && contentItem.unlockReason) { %>
+                    <div class="prerequisites-info">
+                      <i class="fas fa-info-circle"></i>
+                      <span><%= contentItem.unlockReason %></span>
+                    </div>
+                    <% } %>
+                  </div>
+                  <% }); %>
+                </div>
+                <% } else { %>
+                <div class="empty-content">
+                  <i class="fas fa-folder-open"></i>
+                  <p>No content available for this topic yet.</p>
+                </div>
+                <% } %>
+              </div>
+            </div>
+            <% }); %>
+          </div>
+          <% } else { %>
+          <div class="empty-topics">
+            <div class="empty-icon">
+              <i class="fas fa-book-open"></i>
+            </div>
+            <h3>No Topics Available</h3>
+            <p>This course doesn't have any topics yet. Check back later!</p>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // Toggle topic content visibility
+    function toggleTopic(topicId) {
+      const content = document.getElementById('content-' + topicId);
+      const chevron = document.getElementById('chevron-' + topicId);
+      const toggle = document.querySelector(`[data-topic-id="${topicId}"] .topic-toggle`);
+
+      if (content.style.display === 'none' || !content.style.display) {
+        content.style.display = 'block';
+        chevron.style.transform = 'rotate(180deg)';
+        if (toggle) toggle.setAttribute('aria-expanded', 'true');
+        // Smooth scroll to content if it's being expanded
+        setTimeout(() => {
+          content.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+      } else {
+        content.style.display = 'none';
+        chevron.style.transform = 'rotate(0deg)';
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    // Prevent event bubbling for buttons and links inside content items
+    document.addEventListener('DOMContentLoaded', function() {
+      // Stop propagation for all buttons and links inside content items
+      const contentItems = document.querySelectorAll('.content-item');
+      contentItems.forEach(item => {
+        const buttons = item.querySelectorAll('button, a.btn, .zoom-admin-controls');
+        buttons.forEach(btn => {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+          });
+        });
+      });
+
+      // Add click handler for prerequisite links to track navigation
+      const prerequisiteLinks = document.querySelectorAll('.prerequisite-link');
+      prerequisiteLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          // Stop propagation so card click doesn't trigger
+          e.stopPropagation();
+          // Add visual feedback
+          this.style.transform = 'scale(0.98)';
+          setTimeout(() => {
+            this.style.transform = '';
+          }, 150);
+        });
+      });
+
+      // Make entire topic header clickable for expand/collapse
+      const topicHeaders = document.querySelectorAll('.clickable-topic-header');
+      topicHeaders.forEach(header => {
+        const topicId = header.getAttribute('data-topic-id');
+        
+        // Click handler for the entire header
+        header.addEventListener('click', function(e) {
+          // Don't toggle if clicking on content items or their buttons/links
+          const clickedContent = e.target.closest('.topic-content');
+          const clickedContentItem = e.target.closest('.content-item');
+          const clickedLink = e.target.closest('a');
+          const clickedButton = e.target.closest('button');
+          
+          // If clicking inside content area or on interactive elements, don't toggle
+          if (clickedContent || clickedContentItem || clickedLink || clickedButton) {
+            e.stopPropagation();
+            return;
+          }
+          
+          // Toggle the topic
+          e.preventDefault();
+          e.stopPropagation();
+          toggleTopic(topicId);
+        });
+        
+        // Keyboard support
+        header.setAttribute('role', 'button');
+        header.setAttribute('tabindex', '0');
+        header.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleTopic(topicId);
+          }
+        });
+      });
+    });
+
+    // Auto-expand first topic
+    document.addEventListener('DOMContentLoaded', function() {
+      const firstTopic = document.querySelector('.topic-card');
+      if (firstTopic) {
+        const topicId = firstTopic.getAttribute('data-topic-id');
+        toggleTopic(topicId);
+      }
+
+    });
+
+    // Add smooth animations
+    document.addEventListener('DOMContentLoaded', function() {
+      const topicCards = document.querySelectorAll('.topic-card');
+
+      topicCards.forEach((card, index) => {
+        card.style.animationDelay = (index * 0.1) + 's';
+        card.classList.add('fade-in');
+      });
+    });
+
+    // Progress bar animation
+    function animateProgressBars() {
+      const progressBars = document.querySelectorAll('.progress-bar-fill, .circle-large');
+
+      progressBars.forEach(bar => {
+        const width = bar.style.width || bar.getAttribute('stroke-dasharray');
+        if (bar.classList.contains('progress-bar-fill')) {
+          bar.style.width = '0%';
+          setTimeout(() => {
+            bar.style.width = width;
+          }, 100);
+        } else {
+          bar.setAttribute('stroke-dasharray', '0, 314');
+          setTimeout(() => {
+            bar.setAttribute('stroke-dasharray', width);
+          }, 100);
+        }
+      });
+    }
+
+    // Animate progress bars when page loads
+    window.addEventListener('load', animateProgressBars);
+
+    // ==================== ZOOM MEETING CONTROLS ====================
+
+    // Start Zoom meeting (Admin only)
+    async function startZoomMeeting(meetingId) {
+      try {
+        const response = await fetch(`/zoom/admin/zoom/${meetingId}/start`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Show success notification
+          showNotification('Zoom meeting started successfully! Students can now join.', 'success');
+
+          // Reload the page to update the UI
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else {
+          showNotification(result.message || 'Failed to start meeting', 'error');
+        }
+      } catch (error) {
+        console.error('Error starting Zoom meeting:', error);
+        showNotification('Failed to start meeting. Please try again.', 'error');
+      }
+    }
+
+    // End Zoom meeting (Admin only)
+    async function endZoomMeeting(meetingId) {
+      if (!confirm('Are you sure you want to end this meeting? Students will no longer be able to join.')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/zoom/admin/zoom/${meetingId}/end`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Show success notification
+          showNotification('Zoom meeting ended successfully.', 'success');
+
+          // Reload the page to update the UI
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else {
+          showNotification(result.message || 'Failed to end meeting', 'error');
+        }
+      } catch (error) {
+        console.error('Error ending Zoom meeting:', error);
+        showNotification('Failed to end meeting. Please try again.', 'error');
+      }
+    }
+
+    // Show notification
+    function showNotification(message, type = 'info') {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `notification notification-${type}`;
+      notification.innerHTML = `
+        <div class="notification-content">
+          <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+          <span>${message}</span>
+        </div>
+      `;
+
+      // Add to body
+      document.body.appendChild(notification);
+
+      // Show notification
+      setTimeout(() => {
+        notification.classList.add('show');
+      }, 100);
+
+      // Hide and remove notification
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 4000);
+    }
+
+    // Make content item cards clickable
+    document.addEventListener('DOMContentLoaded', function() {
+      const contentItems = document.querySelectorAll('.clickable-content-item');
+      contentItems.forEach(item => {
+        const contentUrl = item.getAttribute('data-content-url');
+        if (contentUrl) {
+          item.addEventListener('click', function(e) {
+            // Don't navigate if clicking on:
+            // - Buttons (Start, View Details, etc.)
+            // - Links (prerequisite links)
+            // - Admin controls
+            // - Locked content indicators
+            const clickedButton = e.target.closest('button');
+            const clickedLink = e.target.closest('a');
+            const clickedAdminControls = e.target.closest('.zoom-admin-controls');
+            const clickedPrerequisites = e.target.closest('.prerequisites-info');
+            const clickedLocked = e.target.closest('.content-locked');
+            
+            // Allow buttons and links to work normally
+            if (clickedButton || clickedLink || clickedAdminControls || clickedPrerequisites || clickedLocked) {
+              e.stopPropagation(); // Stop propagation to prevent topic toggle
+              return;
+            }
+            
+            // Navigate to content
+            e.preventDefault();
+            e.stopPropagation(); // Stop propagation to prevent topic toggle
+            window.location.href = contentUrl;
+          });
+        }
+      });
+
+      // Prevent topic toggle when clicking inside content area
+      const topicContents = document.querySelectorAll('.topic-content');
+      topicContents.forEach(content => {
+        content.addEventListener('click', function(e) {
+          // Stop propagation to prevent topic header toggle
+          e.stopPropagation();
+        });
+      });
+
+      // Highlight and scroll to locked content if redirected from locked content click
+      <% if (lockedContentId) { %>
+      const lockedContentId = '<%= lockedContentId %>';
+      const lockedContentItem = document.querySelector(`[data-content-id="${lockedContentId}"]`);
+      
+      if (lockedContentItem) {
+        // Add highlight class
+        lockedContentItem.classList.add('locked-highlight');
+        
+        // Find the parent topic and expand it if collapsed
+        const topicContent = lockedContentItem.closest('.topic-content');
+        if (topicContent && topicContent.style.display === 'none') {
+          const topicCard = lockedContentItem.closest('.topic-card');
+          const topicHeader = topicCard?.querySelector('.clickable-topic-header');
+          if (topicHeader) {
+            topicHeader.click(); // Trigger topic expansion
+          }
+        }
+        
+        // Scroll to the locked content with smooth animation
+        setTimeout(() => {
+          lockedContentItem.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+          
+          // Remove highlight after 5 seconds
+          setTimeout(() => {
+            lockedContentItem.classList.remove('locked-highlight');
+          }, 5000);
+        }, 300); // Small delay to ensure topic is expanded
+      }
+      <% } %>
+    });
+  </script>
+
+  <style>
+    /* Content Progress Styles */
+    .content-actions-in-progress {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .content-progress-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .content-progress-circle {
+      position: relative;
+      width: 24px;
+      height: 24px;
+    }
+
+    .progress-ring-tiny {
+      width: 24px;
+      height: 24px;
+      transform: rotate(-90deg);
+    }
+
+    .circle-bg-tiny {
+      fill: none;
+      stroke: #e5e7eb;
+      stroke-width: 2;
+    }
+
+    .circle-tiny {
+      fill: none;
+      stroke: #10b981;
+      stroke-width: 2;
+      stroke-linecap: round;
+      transition: stroke-dasharray 0.3s ease;
+    }
+
+    .progress-text-tiny {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 8px;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .progress-label {
+      font-size: 12px;
+      color: #ffffff;
+      font-weight: 500;
+    }
+
+    /* Topic Progress Styles */
+    .topic-progress-circle {
+      position: relative;
+      width: 36px;
+      height: 36px;
+    }
+
+    .progress-ring-small {
+      width: 36px;
+      height: 36px;
+      transform: rotate(-90deg);
+    }
+
+    .circle-bg-small {
+      fill: none;
+      stroke: #e5e7eb;
+      stroke-width: 3;
+    }
+
+    .circle-small {
+      fill: none;
+      stroke: #3b82f6;
+      stroke-width: 3;
+      stroke-linecap: round;
+      transition: stroke-dasharray 0.3s ease;
+    }
+
+    .topic-progress-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 10px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    /* Course Progress Styles */
+    .progress-ring-large {
+      width: 120px;
+      height: 120px;
+      transform: rotate(-90deg);
+    }
+
+    .circle-bg-large {
+      fill: none;
+      stroke: #e5e7eb;
+      stroke-width: 8;
+    }
+
+    .circle-large {
+      fill: none;
+      stroke: #dc2626;
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dasharray 0.3s ease;
+    }
+
+    /* Zoom Meeting Styles */
+    .content-zoom-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .content-zoom-status .badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      font-weight: 600;
+      border-radius: 12px;
+    }
+
+    .content-zoom-status .badge.bg-success {
+      background-color: #10b981 !important;
+      color: white;
+      animation: pulse-badge 2s infinite;
+    }
+
+    .content-zoom-status .badge.bg-warning {
+      background-color: #f59e0b !important;
+      color: white;
+    }
+
+    .content-zoom-status .badge.bg-secondary {
+      background-color: #6b7280 !important;
+      color: white;
+    }
+
+    .content-zoom-status .badge.bg-info {
+      background-color: #3b82f6 !important;
+      color: white;
+    }
+
+
+    @keyframes pulse-badge {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.7;
+      }
+    }
+
+    /* Zoom content type icon color */
+    .content-type-icon.zoom {
+      background: #8b5cf6;
+      color: white;
+    }
+
+    /* Zoom Admin Controls */
+    .zoom-admin-controls {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .zoom-admin-controls .btn {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    /* Notification Styles */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      border-left: 4px solid #3b82f6;
+      padding: 16px 20px;
+      z-index: 10000;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+      max-width: 350px;
+    }
+
+    .notification.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .notification-success {
+      border-left-color: #10b981;
+    }
+
+    .notification-error {
+      border-left-color: #ef4444;
+    }
+
+    .notification-info {
+      border-left-color: #3b82f6;
+    }
+
+    .notification-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .notification-content i {
+      font-size: 16px;
+    }
+
+    .notification-success .notification-content i {
+      color: #10b981;
+    }
+
+    .notification-error .notification-content i {
+      color: #ef4444;
+    }
+
+    .notification-info .notification-content i {
+      color: #3b82f6;
+    }
+
+    .notification-content span {
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+    }
+
+    /* Dark theme notifications */
+    .dark-theme .notification {
+      background: #1f2937;
+      color: white;
+    }
+
+    .dark-theme .notification-content span {
+      color: #f9fafb;
+    }
+
+    /* Enhanced Buy Book Button Styles */
+    .book-purchase-card {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 2px solid #f59e0b;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    .book-purchase-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .book-purchase-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .book-purchase-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+      flex-shrink: 0;
+    }
+
+    .book-purchase-details {
+      flex: 1;
+    }
+
+    .book-purchase-title {
+      margin: 0 0 6px 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #92400e;
+    }
+
+    .book-purchase-description {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #78350f;
+      opacity: 0.9;
+    }
+
+    .btn-buy-book {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 24px;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .btn-buy-book:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+      background: linear-gradient(135deg, #d97706, #b45309);
+      color: white;
+      text-decoration: none;
+    }
+
+    .btn-buy-book-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .btn-buy-book-content {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+
+    .btn-buy-book-label {
+      font-size: 0.85rem;
+      opacity: 0.9;
+      font-weight: 500;
+    }
+
+    .btn-buy-book-price {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .btn-buy-book-arrow {
+      font-size: 14px;
+      opacity: 0.8;
+      transition: transform 0.3s ease;
+    }
+
+    .btn-buy-book:hover .btn-buy-book-arrow {
+      transform: translateX(4px);
+    }
+
+    /* Dark theme support */
+    .dark-theme .book-purchase-card {
+      background: linear-gradient(135deg, #451a03 0%, #78350f 100%);
+      border-color: #f59e0b;
+    }
+
+    .dark-theme .book-purchase-title {
+      color: #fbbf24;
+    }
+
+    .dark-theme .book-purchase-description {
+      color: #fcd34d;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .book-purchase-content {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .book-purchase-info {
+        min-width: auto;
+      }
+      
+      .btn-buy-book {
+        width: 100%;
+        justify-content: center;
+      }
+
+      /* Mobile Content Cards - Centered and Beautiful Design */
+      .content-item {
+        padding: 20px;
+        border-radius: 16px;
+        margin-bottom: 16px;
+        text-align: center;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      }
+
+      .content-item-header {
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        text-align: center;
+      }
+
+      .content-item-left {
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .content-type-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 24px;
+        border-radius: 14px;
+        margin: 0 auto;
+      }
+
+      .content-item-info {
+        width: 100%;
+        text-align: center;
+      }
+
+      .content-item-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        text-align: center;
+        line-height: 1.3;
+      }
+
+      .content-item-description {
+        text-align: center;
+        font-size: 14px;
+        margin-bottom: 12px;
+        opacity: 0.8;
+      }
+
+      .content-item-meta {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .content-item-meta span {
+        font-size: 11px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        background: rgba(0, 0, 0, 0.05);
+      }
+
+      .dark-theme .content-item-meta span {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .content-item-right {
+        width: 100%;
+        justify-content: center;
+        margin-top: 8px;
+      }
+
+      .content-locked {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .dark-theme .content-item.locked .content-locked {
+        background: rgba(220, 38, 38, 0.2);
+        color: #fca5a5;
+      }
+
+      .content-actions-in-progress {
+        width: 100%;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .content-progress-info {
+        width: 100%;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .content-progress-circle {
+        width: 32px;
+        height: 32px;
+      }
+
+      .progress-ring-tiny {
+        width: 32px;
+        height: 32px;
+      }
+
+      .progress-text-tiny {
+        font-size: 9px;
+      }
+
+      .progress-label {
+        font-size: 13px;
+        color: var(--text-color);
+      }
+
+      .content-item-right .btn {
+        width: 100%;
+        max-width: 280px;
+        padding: 14px 24px;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 12px;
+        justify-content: center;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .content-item-right .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), #b91c1c);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+      }
+
+      .content-item-right .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+      }
+
+      .content-item-right .btn-secondary {
+        width: 100%;
+        max-width: 280px;
+      }
+
+      /* Prerequisites info - centered on mobile */
+      .prerequisites-info {
+        margin-top: 16px;
+        text-align: center;
+        padding: 16px;
+        border-radius: 12px;
+      }
+
+      .prerequisites-header {
+        justify-content: center;
+        margin-bottom: 12px;
+      }
+
+      .prerequisites-list {
+        align-items: center;
+      }
+
+      .prerequisite-link {
+        justify-content: center;
+        text-align: center;
+      }
+
+      /* Content items container - better spacing */
+      .content-items {
+        padding: 12px;
+        gap: 16px;
+      }
+
+      /* Topic content - better mobile spacing */
+      .topic-content {
+        padding: 0;
+      }
+    }
+
+    /* Extra small mobile devices */
+    @media (max-width: 480px) {
+      .content-item {
+        padding: 16px;
+        border-radius: 14px;
+      }
+
+      .content-type-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+      }
+
+      .content-item-title {
+        font-size: 16px;
+      }
+
+      .content-item-description {
+        font-size: 13px;
+      }
+
+      .content-item-right .btn {
+        padding: 12px 20px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</body>
+
+</html>

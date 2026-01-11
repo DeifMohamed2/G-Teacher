@@ -1,0 +1,580 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/images/KImage.png">
+    <link rel="shortcut icon" type="image/png" href="/images/KImage.png">
+    <link rel="apple-touch-icon" href="/images/KImage.png">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/studentCSS/student-main.css">
+    <link rel="stylesheet" href="/css/studentCSS/dashboard.css">
+    <link rel="stylesheet" href="/css/theme-toggle.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Dashboard-specific styles with dark mode support -->
+    <style>
+        /* Dashboard-specific overrides with proper dark mode support */
+        .stats-grid.enhanced {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-xl);
+            margin-bottom: var(--spacing-2xl);
+        }
+        
+        .welcome-section.simple {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-2xl);
+            margin-bottom: var(--spacing-2xl);
+            transition: var(--transition-normal);
+        }
+        
+        .welcome-section.simple:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        .welcome-title-simple {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .student-name-simple {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .welcome-content-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-lg);
+        }
+
+        .back-home-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition-normal);
+        }
+
+        .back-home-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .back-home-btn i {
+            font-size: 1.1rem;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .student-sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .student-sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .student-main {
+                margin-left: 0;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .welcome-title-simple {
+                font-size: 1.5rem;
+            }
+            
+            .stats-grid.enhanced {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .welcome-title-simple {
+                font-size: 1.25rem;
+            }
+
+            .welcome-content-row {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .back-home-btn {
+                justify-content: center;
+                width: 100%;
+            }
+        }
+        
+        /* Active Learning Paths - Scrollable Container */
+        .courses-list {
+            max-height: 600px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 8px;
+        }
+        
+        /* Custom Scrollbar */
+        .courses-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .courses-list::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+        }
+        
+        .courses-list::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: var(--radius-sm);
+            transition: var(--transition-normal);
+        }
+        
+        .courses-list::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+        
+        /* Firefox scrollbar */
+        .courses-list {
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) var(--bg-secondary);
+        }
+        
+        @media (max-width: 768px) {
+            .courses-list {
+                max-height: 500px;
+            }
+        }
+        
+        /* Active Learning Paths - Card style rows (closer to ELKABLY UI) */
+        .learning-path-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            padding: var(--spacing-lg) var(--spacing-xl);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: var(--transition-normal);
+        }
+
+        .learning-path-card + .learning-path-card {
+            margin-top: var(--spacing-md);
+        }
+
+        .learning-path-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+            border-color: rgba(220, 38, 38, 0.25);
+        }
+
+        .learning-path-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .learning-path-card-header i {
+            color: #dc2626;
+            font-size: 0.9rem;
+        }
+
+        .learning-path-card-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .learning-path-course-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .learning-path-card-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 4px;
+        }
+
+        .learning-path-card-footer .btn-primary {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: #fff;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 999px;
+        }
+
+        .learning-path-card-footer .btn-primary:hover {
+            background: #b91c1c;
+            border-color: #b91c1c;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .learning-path-card {
+                padding: var(--spacing-md) var(--spacing-lg);
+            }
+
+            .learning-path-card-footer .btn-primary {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+    </style>
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="Student Dashboard - Track your learning progress and access your courses">
+    <meta name="theme-color" content="#dc2626">
+</head>
+<body class="<%= theme %>-theme">
+    <!-- Student Layout -->
+    <div class="student-layout">
+        <!-- Include Sidebar -->
+        <%- include('partials/student-sidebar', { currentPage: 'dashboard', student: student }) %>
+        
+        <!-- Main Content -->
+        <main class="student-main">
+            <!-- Include Header -->
+            <%- include('partials/student-header', { title: title, student: student, theme: theme, currentPage: 'dashboard' }) %>
+            
+            <!-- Dashboard Content -->
+            <div class="student-content">
+                <!-- Simple Welcome Section -->
+                <div class="welcome-section simple">
+                    <div class="welcome-content-row">
+                        <h1 class="welcome-title-simple">
+                            Welcome back, <span class="student-name-simple"><%= student.name %>!</span>
+                        </h1>
+                        <a href="/" class="btn btn-primary btn-lg back-home-btn">
+                            <i class="fas fa-home"></i>
+                            Back to Home
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Enhanced Stats Grid -->
+                <div class="stats-grid enhanced">
+                    <div class="stat-card primary enhanced">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-book-open"></i>
+                            </div>
+                        
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value"><%= stats.totalCourses %></div>
+                            <div class="stat-label">Enrolled Weeks</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card success enhanced">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                         
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value"><%= stats.completedCourses %></div>
+                            <div class="stat-label">Completed Weeks</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card warning enhanced">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-question-circle"></i>
+                            </div>
+                      
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value"><%= stats.totalQuizAttempts %></div>
+                            <div class="stat-label">Quiz Attempts</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card info enhanced">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value"><%= stats.averageScore %>%</div>
+                            <div class="stat-label">Overall Score</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enhanced Main Content Grid -->
+                <div class="main-content-grid">
+                    <!-- Left Column - Active Courses -->
+                    <div class="content-column">
+                        <!-- Simple Active Weeks -->
+                        <div class="card simple-card">
+                            <div class="card-header simple">
+                                <h3 class="card-title">
+                                    <i class="fas fa-play-circle"></i>
+                                    Active learning paths
+                                </h3>
+                                <a href="/student/enrolled-courses" class="btn btn-outline btn-sm">
+                                    View All
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                <% if (activeCourses && activeCourses.length > 0) { %>
+                                    <div class="courses-list">
+                                        <% 
+                                        // Render each active course as a separate clean card (similar to provided design)
+                                        activeCourses.forEach(course => { 
+                                            const courseTitle = course.title || 'Week';
+                                            const bundleTitle = course.bundle ? course.bundle.title : null;
+                                        %>
+                                            <div class="learning-path-card">
+                                                <div class="learning-path-card-header">
+                                                    <i class="fas fa-book"></i>
+                                                    <span><%= bundleTitle ? bundleTitle : courseTitle %></span>
+                                                </div>
+                                                <div class="learning-path-card-subtitle">
+                                                    <% if (bundleTitle) { %>
+                                                        <span><%= courseTitle %></span>
+                                                    <% } else { %>
+                                                        <span>Session Notes</span>
+                                                    <% } %>
+                                                </div>
+                                                <div class="learning-path-course-meta">
+                                                    <% if (course.lastAccessed) { %>
+                                                        Last accessed: <%= new Date(course.lastAccessed).toLocaleDateString() %>
+                                                    <% } else { %>
+                                                        Status: <%= course.status || 'active' %>
+                                                    <% } %>
+                                                </div>
+                                                <div class="learning-path-card-footer">
+                                                    <a href="/student/course/<%= course._id %>/content" class="btn btn-primary btn-sm">
+                                                        <i class="fas fa-play"></i>
+                                                        Continue Learning
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                <% } else { %>
+                                    <div class="empty-state">
+                                        <div class="empty-icon">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <h4>No Active Weeks</h4>
+                                        <p>Start your learning journey by enrolling in a course</p>
+                                        <a href="/" class="btn btn-primary enhanced">
+                                            <i class="fas fa-search"></i>
+                                            Browse Weeks
+                                        </a>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column - Quizzes and Activity -->
+                    <div class="sidebar-column">
+                        <!-- Enhanced Available Quizzes -->
+                        <div class="card simple-card">
+                            <div class="card-header simple">
+                                <h3 class="card-title">
+                                    <i class="fas fa-question-circle"></i>
+                                    Available Quizzes
+                                </h3>
+                                <a href="/student/quizzes" class="btn btn-outline btn-sm">
+                                    View All
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                <% if (upcomingQuizzes && upcomingQuizzes.length > 0) { %>
+                                    <div class="quizzes-list">
+                                        <% upcomingQuizzes.slice(0, 3).forEach(quiz => { %>
+                                            <div class="quiz-card enhanced">
+                                                <div class="quiz-header">
+                                                    <h4 class="quiz-title"><%= quiz.title %></h4>
+                                                    <span class="quiz-difficulty <%= quiz.difficulty %>">
+                                                        <%= quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1) %>
+                                                    </span>
+                                                </div>
+                                                
+                                                <div class="quiz-stats">
+                                                    <div class="quiz-stat">
+                                                        <div class="stat-icon">
+                                                            <i class="fas fa-question"></i>
+                                                        </div>
+                                                        <div class="stat-info">
+                                                            <span class="stat-value"><%= quiz.totalQuestions %></span>
+                                                            <span class="stat-label">Questions</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="quiz-stat">
+                                                        <div class="stat-icon">
+                                                            <i class="fas fa-clock"></i>
+                                                        </div>
+                                                        <div class="stat-info">
+                                                            <span class="stat-value">
+                                                                <% if (quiz.duration && quiz.duration > 0) { %>
+                                                                    <%= quiz.duration %>m
+                                                                <% } else { %>
+                                                                    No limit
+                                                                <% } %>
+                                                            </span>
+                                                            <span class="stat-label">Duration</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <a href="/student/quiz/<%= quiz._id %>/take" class="btn btn-primary btn-sm enhanced full-width">
+                                                    <i class="fas fa-play"></i>
+                                                    Start Quiz
+                                                </a>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                <% } else { %>
+                                    <div class="empty-state">
+                                        <div class="empty-icon">
+                                            <i class="fas fa-question-circle"></i>
+                                        </div>
+                                        <h4>No Quizzes Available</h4>
+                                        <p>Check back later for new quizzes</p>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <!-- Enhanced Recent Activity -->
+                        <div class="card simple-card">
+                            <div class="card-header simple">
+                                <h3 class="card-title">
+                                    <i class="fas fa-history"></i>
+                                    Activity History
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <% if (recentProgress && recentProgress.length > 0) { %>
+                                    <div class="activity-timeline">
+                                        <% recentProgress.forEach((activity, index) => { %>
+                                            <div class="activity-item <%= index === 0 ? 'latest' : '' %>">
+                                                <div class="activity-indicator">
+                                                    <div class="activity-icon">
+                                                        <i class="fas fa-<%= getActivityIcon(activity.activity) %>"></i>
+                                                    </div>
+                                                    <% if (index < recentProgress.length - 1) { %>
+                                                        <div class="activity-line"></div>
+                                                    <% } %>
+                                                </div>
+                                                <div class="activity-content">
+                                                    <div class="activity-main">
+                                                        <h4 class="activity-title"><%= getActivityText(activity.activity) %></h4>
+                                                        <p class="activity-description">
+                                                            <%= activity.course ? activity.course.title : 'General activity' %>
+                                                        </p>
+                                                    </div>
+                                                    <div class="activity-meta">
+                                                        <span class="activity-time">
+                                                            <%= new Date(activity.timestamp).toLocaleDateString() %>
+                                                        </span>
+                                                        <% if (activity.points > 0) { %>
+                                                            <span class="activity-points">
+                                                                <i class="fas fa-star"></i>
+                                                                +<%= activity.points %> pts
+                                                            </span>
+                                                        <% } %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                <% } else { %>
+                                    <div class="empty-state">
+                                        <div class="empty-icon">
+                                            <i class="fas fa-clock"></i>
+                                        </div>
+                                        <h4>No Recent Activity</h4>
+                                        <p>Start learning to see your activity here</p>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Helper functions for activity display
+        function getActivityIcon(activity) {
+            const icons = {
+                'course_started': 'play',
+                'course_completed': 'check-circle',
+                'topic_started': 'play-circle',
+                'topic_completed': 'check',
+                'quiz_attempted': 'question-circle',
+                'quiz_completed': 'flag-checkered',
+                'quiz_passed': 'trophy',
+                'quiz_failed': 'times-circle',
+                'homework_submitted': 'paper-plane',
+                'homework_graded': 'clipboard-check',
+                'certificate_earned': 'certificate',
+                'badge_earned': 'medal',
+                'streak_achieved': 'fire',
+                'milestone_reached': 'star'
+            };
+            return icons[activity] || 'clock';
+        }
+
+        function getActivityText(activity) {
+            const texts = {
+                'course_started': 'Started a new course',
+                'course_completed': 'Completed a course',
+                'topic_started': 'Started a new topic',
+                'topic_completed': 'Completed a topic',
+                'quiz_attempted': 'Attempted a quiz',
+                'quiz_completed': 'Completed a quiz',
+                'quiz_passed': 'Passed a quiz',
+                'quiz_failed': 'Failed a quiz',
+                'homework_submitted': 'Submitted homework',
+                'homework_graded': 'Homework graded',
+                'certificate_earned': 'Earned a certificate',
+                'badge_earned': 'Earned a badge',
+                'streak_achieved': 'Achieved a streak',
+                'milestone_reached': 'Reached a milestone'
+            };
+            return texts[activity] || 'Activity recorded';
+        }
+
+        // Make functions available globally
+        window.getActivityIcon = getActivityIcon;
+        window.getActivityText = getActivityText;
+    </script>
+</body>
+</html>
