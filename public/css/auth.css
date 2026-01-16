@@ -875,9 +875,9 @@
 
 /* Use Elkably reds for primary effects */
 :root {
-  --elkably-primary: #B80101;
-  --elkably-primary-transparent: #B80101D4;
-  --elkably-primary-fade: #B8010100;
+  --elkably-primary: #3a92bd;
+  --elkably-primary-transparent: #3a92bdD4;
+  --elkably-primary-fade: #3a92bd00;
   --elkably-secondary: #ff6b6b;
   --elkably-accent: #ff8a80;
 }
@@ -1078,7 +1078,7 @@
 
 .step-item.active .step-number {
   background: var(--elkably-primary);
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .step-label {
@@ -1168,7 +1168,7 @@
 
 .form-control-modern:focus {
   border-color: var(--elkably-primary);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
   transform: translateY(-2px);
 }
 
@@ -1221,7 +1221,7 @@
 
 .btn-toggle-password:hover {
   color: var(--elkably-primary);
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 /* Form Options */
@@ -1339,7 +1339,7 @@
 
 .btn-auth-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 8px 25px rgba(58, 146, 189, 0.3);
 }
 
 .btn-text {
@@ -1593,7 +1593,7 @@
   inset: 0;
   border-radius: 25px;
   padding: 1px;
-  background: linear-gradient(135deg, var(--elkably-primary), rgba(184, 1, 1, 0.2));
+  background: linear-gradient(135deg, var(--elkably-primary), rgba(58, 146, 189, 0.2));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -1608,25 +1608,25 @@
 
 /* Inputs – glowing focus ring using Elkably red */
 .auth-form .input-group:focus-within {
-  box-shadow: 0 0 0 4px rgba(184, 1, 1, 0.15), 0 10px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 0 4px rgba(58, 146, 189, 0.15), 0 10px 24px rgba(0, 0, 0, 0.15);
   transform: translateY(-1px);
 }
 
 .input-focused .input-group-text {
-  background: rgba(184, 1, 1, 0.12);
-  border-color: rgba(184, 1, 1, 0.35);
+  background: rgba(58, 146, 189, 0.12);
+  border-color: rgba(58, 146, 189, 0.35);
   color: var(--elkably-primary);
 }
 
 /* Form control focus states (override earlier blue scheme) */
 .light-theme .form-control:focus {
-  border-color: rgba(184, 1, 1, 0.5);
-  box-shadow: 0 0 0 0.25rem rgba(184, 1, 1, 0.18);
+  border-color: rgba(58, 146, 189, 0.5);
+  box-shadow: 0 0 0 0.25rem rgba(58, 146, 189, 0.18);
 }
 
 .dark-theme .form-control:focus {
-  border-color: rgba(184, 1, 1, 0.6);
-  box-shadow: 0 0 0 0.25rem rgba(184, 1, 1, 0.25);
+  border-color: rgba(58, 146, 189, 0.6);
+  box-shadow: 0 0 0 0.25rem rgba(58, 146, 189, 0.25);
 }
 
 /* Animated label accent when field focused */
@@ -1690,11 +1690,11 @@
 /* Buttons – switch to Elkably gradient */
 .auth-card .btn-primary {
   background: linear-gradient(135deg, var(--elkably-primary) 0%, #ff6b6b 100%);
-  box-shadow: 0 8px 18px rgba(184, 1, 1, 0.35);
+  box-shadow: 0 8px 18px rgba(58, 146, 189, 0.35);
 }
 
 .auth-card .btn-primary:hover {
-  box-shadow: 0 12px 28px rgba(184, 1, 1, 0.45);
+  box-shadow: 0 12px 28px rgba(58, 146, 189, 0.45);
 }
 
 .auth-card .btn-primary:before {
@@ -1712,7 +1712,7 @@
   inset: 0;
   pointer-events: none;
   border-radius: 25px;
-  background: radial-gradient(120px 120px at var(--mx, 50%) var(--my, 50%), rgba(184, 1, 1, 0.18), transparent 60%);
+  background: radial-gradient(120px 120px at var(--mx, 50%) var(--my, 50%), rgba(58, 146, 189, 0.18), transparent 60%);
   opacity: 0;
   transition: opacity 120ms ease;
 }
@@ -1724,7 +1724,7 @@
 /* Auth header icon tint to Elkably gradient */
 .auth-icon-container {
   background: linear-gradient(135deg, var(--elkably-primary), #ff6b6b);
-  box-shadow: 0 10px 20px rgba(184, 1, 1, 0.25);
+  box-shadow: 0 10px 20px rgba(58, 146, 189, 0.25);
 }
 
 /* Animated link pulse (reused by auth-animations.js) */

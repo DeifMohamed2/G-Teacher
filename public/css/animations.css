@@ -380,7 +380,7 @@
     var(--red-primary) 100%);
   width: 0%;
   transition: width 0.1s ease;
-  box-shadow: 0 0 10px rgba(184, 1, 1, 0.5);
+  box-shadow: 0 0 10px rgba(58, 146, 189, 0.5);
 }
 
 /* Enhanced AOS animations */

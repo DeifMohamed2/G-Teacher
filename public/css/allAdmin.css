@@ -37,9 +37,9 @@
 :root {
   --admin-sidebar-width: 280px;
   --admin-topbar-height: 70px;
-  --admin-primary: #B80101;
-  --admin-secondary: #B80101D4;
-  --admin-accent: #B8010100;
+  --admin-primary: #3a92bd;
+  --admin-secondary: #3a92bdD4;
+  --admin-accent: #3a92bd00;
   --admin-bg-light: #f8f9fa;
   --admin-bg-dark: #0f1419;
   --admin-card-light: #ffffff;
@@ -193,13 +193,13 @@
 }
 
 .admin-nav-item:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   border-left-color: var(--admin-primary);
   color: var(--admin-primary);
 }
 
 .admin-nav-item.active {
-  background: rgba(184, 1, 1, 0.15);
+  background: rgba(58, 146, 189, 0.15);
   border-left-color: var(--admin-primary);
   color: var(--admin-primary);
   font-weight: 600;
@@ -302,7 +302,7 @@
 }
 
 .admin-theme-toggle:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   color: var(--admin-primary);
 }
 
@@ -398,7 +398,7 @@
 .admin-stat-icon {
   width: 48px;
   height: 48px;
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -411,7 +411,7 @@
 .admin-stat-icon.onground,
 .admin-stat-icon.recorded,
 .admin-stat-icon.recovery {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   color: var(--admin-primary);
 }
 
@@ -504,7 +504,7 @@
 
 .admin-chart-placeholder {
   height: 300px;
-  background: linear-gradient(135deg, rgba(184, 1, 1, 0.05), rgba(184, 1, 1, 0.1));
+  background: linear-gradient(135deg, rgba(58, 146, 189, 0.05), rgba(58, 146, 189, 0.1));
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -516,7 +516,7 @@
 
 .dark-theme .admin-chart-placeholder {
   color: var(--admin-text-dark);
-  background: linear-gradient(135deg, rgba(184, 1, 1, 0.1), rgba(184, 1, 1, 0.15));
+  background: linear-gradient(135deg, rgba(58, 146, 189, 0.1), rgba(58, 146, 189, 0.15));
 }
 
 /* Recent Activity */
@@ -552,7 +552,7 @@
 .admin-activity-icon {
   width: 36px;
   height: 36px;
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -996,17 +996,17 @@
 .upload-section {
   margin: 1rem 0;
   padding: 2rem;
-  border: 2px dashed rgba(184, 1, 1, 0.3);
+  border: 2px dashed rgba(58, 146, 189, 0.3);
   border-radius: 16px;
   background: rgba(248, 249, 250, 0.9);
   position: relative;
-  box-shadow: 0 2px 12px rgba(184, 1, 1, 0.06);
+  box-shadow: 0 2px 12px rgba(58, 146, 189, 0.06);
 }
 
 .dark-theme .upload-section {
   background: rgba(26, 31, 46, 0.9);
-  border-color: rgba(184, 1, 1, 0.4);
-  box-shadow: 0 2px 12px rgba(184, 1, 1, 0.12);
+  border-color: rgba(58, 146, 189, 0.4);
+  box-shadow: 0 2px 12px rgba(58, 146, 189, 0.12);
 }
 
 .upload-preview {
@@ -1019,13 +1019,13 @@
   border-radius: 12px;
   overflow: hidden;
   background: rgba(248, 249, 250, 0.7);
-  border: 2px dashed rgba(184, 1, 1, 0.2);
+  border: 2px dashed rgba(58, 146, 189, 0.2);
   margin-top: 1.5rem;
 }
 
 .dark-theme .upload-preview {
   background: rgba(26, 31, 46, 0.7);
-  border-color: rgba(184, 1, 1, 0.3);
+  border-color: rgba(58, 146, 189, 0.3);
 }
 
 .preview-image {
@@ -1041,7 +1041,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(184, 1, 1, 0.8);
+  background: rgba(58, 146, 189, 0.8);
   color: white;
   display: flex;
   flex-direction: column;
@@ -1702,7 +1702,7 @@
   font-size: 0.95rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.25);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.25);
   border: none;
   position: relative;
 }
@@ -1738,7 +1738,7 @@
 }
 
 .admin-mobile-toggle:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   color: var(--admin-primary);
 }
 
@@ -1804,7 +1804,7 @@
 .admin-search-input:focus {
   outline: none;
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
 }
 
 /* Notifications */
@@ -1826,7 +1826,7 @@
 }
 
 .admin-notification-btn:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   color: var(--admin-primary);
 }
 
@@ -1908,7 +1908,7 @@
 }
 
 .admin-notification-item:hover {
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
 }
 
 .admin-notification-item:last-child {
@@ -1918,7 +1918,7 @@
 .admin-notification-icon {
   width: 32px;
   height: 32px;
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -2140,7 +2140,7 @@
 }
 
 .admin-filter-tab:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   border-color: var(--admin-primary);
   color: var(--admin-primary);
 }
@@ -2179,7 +2179,7 @@
 .admin-course-thumbnail {
   position: relative;
   height: 200px;
-  background: linear-gradient(135deg, rgba(184, 1, 1, 0.1), rgba(184, 1, 1, 0.05));
+  background: linear-gradient(135deg, rgba(58, 146, 189, 0.1), rgba(58, 146, 189, 0.05));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2242,7 +2242,7 @@
 }
 
 .admin-course-code {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   color: var(--admin-primary);
   padding: 4px 8px;
   border-radius: 4px;
@@ -2329,7 +2329,7 @@
 }
 
 .admin-course-code {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   color: var(--admin-primary);
   padding: 4px 12px;
   border-radius: 20px;
@@ -2598,7 +2598,7 @@
 }
 
 .topic-count {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   color: var(--admin-primary);
   padding: 4px 12px;
   border-radius: 20px;
@@ -2661,7 +2661,7 @@
   font-weight: 700;
   font-size: 18px;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -2722,15 +2722,15 @@
   font-size: 13px;
   font-weight: 500;
   padding: 4px 8px;
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
   border-radius: 8px;
-  border: 1px solid rgba(184, 1, 1, 0.1);
+  border: 1px solid rgba(58, 146, 189, 0.1);
 }
 
 .dark-theme .meta-item {
   color: var(--admin-text-dark);
-  background: rgba(184, 1, 1, 0.1);
-  border-color: rgba(184, 1, 1, 0.2);
+  background: rgba(58, 146, 189, 0.1);
+  border-color: rgba(58, 146, 189, 0.2);
 }
 
 .meta-item i {
@@ -2794,7 +2794,7 @@
   color: white;
   border-color: var(--admin-primary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .action-btn.danger:hover {
@@ -2804,13 +2804,13 @@
 
 .topic-content-section {
   border-top: 1px solid var(--admin-border-light);
-  background: rgba(184, 1, 1, 0.02);
+  background: rgba(58, 146, 189, 0.02);
   padding: 20px 24px;
 }
 
 .dark-theme .topic-content-section {
   border-top-color: var(--admin-border-dark);
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
 }
 
 .content-items {
@@ -2920,7 +2920,7 @@
 }
 
 .content-type {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   color: var(--admin-primary);
   padding: 2px 8px;
   border-radius: 12px;
@@ -3020,12 +3020,12 @@
 .reorder-mode .topic-card {
   cursor: move;
   border: 2px dashed var(--admin-primary);
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
 }
 
 .reorder-mode .topic-card:hover {
   border-color: var(--admin-primary);
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 .reorder-mode .topic-actions {
@@ -3050,7 +3050,7 @@
 
 .upload-section:hover {
   border-color: var(--admin-primary);
-  background: rgba(184, 1, 1, 0.02);
+  background: rgba(58, 146, 189, 0.02);
 }
 
 .upload-input {
@@ -3080,7 +3080,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
 }
 
 .preview-overlay {
@@ -3251,7 +3251,7 @@
 .admin-form-control:focus {
   outline: none;
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
 }
 
 .admin-form-control::placeholder {
@@ -3325,7 +3325,7 @@
 .admin-btn-primary:hover {
   background: linear-gradient(135deg, #dc2626, #b91c1c);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 /* Responsive Design for Course Content */
@@ -3739,12 +3739,12 @@
 .admin-topic-content-list {
   border-top: 1px solid var(--admin-border-light);
   padding: 16px 20px;
-  background: rgba(184, 1, 1, 0.02);
+  background: rgba(58, 146, 189, 0.02);
 }
 
 .dark-theme .admin-topic-content-list {
   border-top-color: var(--admin-border-dark);
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
 }
 
 .admin-content-item {
@@ -3840,7 +3840,7 @@
   border-radius: 24px;
   box-shadow:
     0 25px 80px rgba(0, 0, 0, 0.15),
-    0 10px 40px rgba(184, 1, 1, 0.1),
+    0 10px 40px rgba(58, 146, 189, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
   position: relative;
@@ -3851,7 +3851,7 @@
   background: var(--admin-card-dark);
   box-shadow:
     0 25px 80px rgba(0, 0, 0, 0.4),
-    0 10px 40px rgba(184, 1, 1, 0.15),
+    0 10px 40px rgba(58, 146, 189, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
@@ -3871,8 +3871,8 @@
 
 .admin-modal-header {
   background: linear-gradient(135deg,
-      rgba(184, 1, 1, 0.95) 0%,
-      rgba(184, 1, 1, 0.9) 100%);
+      rgba(58, 146, 189, 0.95) 0%,
+      rgba(58, 146, 189, 0.9) 100%);
   color: white;
   border-bottom: none;
   padding: 2rem 2.5rem 1.5rem;
@@ -3934,7 +3934,7 @@
   background: linear-gradient(135deg,
       rgba(248, 249, 250, 0.8) 0%,
       rgba(241, 243, 244, 0.9) 100%);
-  border-top: 1px solid rgba(184, 1, 1, 0.1);
+  border-top: 1px solid rgba(58, 146, 189, 0.1);
   padding: 1.5rem 2.5rem 2rem;
   border-radius: 0 0 24px 24px;
   backdrop-filter: blur(10px);
@@ -3944,7 +3944,7 @@
   background: linear-gradient(135deg,
       rgba(26, 31, 46, 0.8) 0%,
       rgba(45, 55, 72, 0.9) 100%);
-  border-top-color: rgba(184, 1, 1, 0.2);
+  border-top-color: rgba(58, 146, 189, 0.2);
 }
 
 /* Extra Large Modals for Course/Bundle Creation */
@@ -4012,9 +4012,9 @@
   border-radius: 16px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  border: 1px solid rgba(184, 1, 1, 0.1);
+  border: 1px solid rgba(58, 146, 189, 0.1);
   box-shadow:
-    0 4px 20px rgba(184, 1, 1, 0.05),
+    0 4px 20px rgba(58, 146, 189, 0.05),
     0 2px 8px rgba(0, 0, 0, 0.04);
   backdrop-filter: blur(10px);
   position: relative;
@@ -4039,9 +4039,9 @@
   background: linear-gradient(135deg,
       rgba(26, 31, 46, 0.9) 0%,
       rgba(45, 55, 72, 0.95) 100%);
-  border-color: rgba(184, 1, 1, 0.2);
+  border-color: rgba(58, 146, 189, 0.2);
   box-shadow:
-    0 4px 20px rgba(184, 1, 1, 0.1),
+    0 4px 20px rgba(58, 146, 189, 0.1),
     0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -4051,7 +4051,7 @@
   font-size: 1.1rem;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid rgba(184, 1, 1, 0.1);
+  border-bottom: 2px solid rgba(58, 146, 189, 0.1);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -4071,7 +4071,7 @@
 
 .dark-theme .admin-form-section-title {
   color: var(--admin-text-dark);
-  border-bottom-color: rgba(184, 1, 1, 0.2);
+  border-bottom-color: rgba(58, 146, 189, 0.2);
 }
 
 .admin-form-group {
@@ -4111,7 +4111,7 @@
 .admin-form-control:focus {
   outline: none;
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
 }
 
 .admin-form-text {
@@ -4602,7 +4602,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #B80101, #dc2626);
+  background: linear-gradient(90deg, #3a92bd, #dc2626);
 }
 
 .content-header-top {
@@ -4962,14 +4962,14 @@
 }
 
 .student-code {
-  background: rgba(184, 1, 1, 0.15);
+  background: rgba(58, 146, 189, 0.15);
   color: #b80001;
   padding: 3px 8px;
   border-radius: 12px;
   font-size: 11px;
   font-weight: 700;
   font-family: 'Courier New', monospace;
-  border: 1px solid rgba(184, 1, 1, 0.2);
+  border: 1px solid rgba(58, 146, 189, 0.2);
 }
 
 .progress-container {
@@ -5598,7 +5598,7 @@
 
 .option-item:focus-within {
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 2px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 2px rgba(58, 146, 189, 0.1);
 }
 
 /* Question Bank Animations */
@@ -5846,11 +5846,11 @@
 
 .question-item.drag-over {
   border-color: var(--admin-primary);
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
 }
 
 .dark-theme .question-item.drag-over {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 /* Question Bank Search Highlight */
@@ -7033,19 +7033,19 @@
 .progress-container {
   margin-top: 1rem;
   padding: 1rem;
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
   border-radius: 8px;
-  border: 1px solid rgba(184, 1, 1, 0.1);
+  border: 1px solid rgba(58, 146, 189, 0.1);
 }
 
 .dark-theme .progress-container {
   background: rgba(26, 31, 46, 0.5);
-  border-color: rgba(184, 1, 1, 0.2);
+  border-color: rgba(58, 146, 189, 0.2);
 }
 
 .progress {
   height: 8px;
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 0.5rem;
@@ -7081,12 +7081,12 @@
 /* Drag and Drop States */
 .upload-preview.drag-over {
   border-color: var(--admin-primary);
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
   transform: scale(1.02);
 }
 
 .dark-theme .upload-preview.drag-over {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 /* Notification Styles */
@@ -7162,14 +7162,14 @@
   gap: 0.5rem;
   margin-top: 0.5rem;
   padding: 0.75rem;
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
   border-radius: 8px;
-  border: 1px solid rgba(184, 1, 1, 0.1);
+  border: 1px solid rgba(58, 146, 189, 0.1);
 }
 
 .dark-theme .previous-tags-container {
   background: rgba(26, 31, 46, 0.5);
-  border-color: rgba(184, 1, 1, 0.2);
+  border-color: rgba(58, 146, 189, 0.2);
 }
 
 .previous-tag {
@@ -7220,7 +7220,7 @@
 
 .dark-theme .admin-form-control[readonly] {
   background-color: rgba(26, 31, 46, 0.5);
-  border-color: rgba(184, 1, 1, 0.2);
+  border-color: rgba(58, 146, 189, 0.2);
   color: #9ca3af;
 }
 
@@ -7556,7 +7556,7 @@
 .quiz-form-control:focus {
   outline: none;
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
 }
 
 .quiz-form-control::placeholder {
@@ -8106,7 +8106,7 @@
 
 [data-theme="dark"] .quiz-form-control:focus {
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
 }
 
 [data-theme="dark"] .quiz-form-control::placeholder {
@@ -9241,7 +9241,7 @@
 }
 
 .dark-theme .modal-footer .btn:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   border-color: var(--admin-primary);
   color: var(--admin-primary);
 }
@@ -9271,7 +9271,7 @@
   background-color: var(--admin-card-dark);
   border-color: var(--admin-primary);
   color: var(--admin-text-dark);
-  box-shadow: 0 0 0 0.2rem rgba(184, 1, 1, 0.25);
+  box-shadow: 0 0 0 0.2rem rgba(58, 146, 189, 0.25);
 }
 
 .dark-theme .modal-body .form-label,
@@ -9331,11 +9331,11 @@
 }
 
 .dark-theme .modal-body .table-striped tbody tr:nth-of-type(odd) {
-  background-color: rgba(184, 1, 1, 0.05);
+  background-color: rgba(58, 146, 189, 0.05);
 }
 
 .dark-theme .modal-body .table-hover tbody tr:hover {
-  background-color: rgba(184, 1, 1, 0.1);
+  background-color: rgba(58, 146, 189, 0.1);
 }
 
 /* List Group Styles in Modals */
@@ -9346,7 +9346,7 @@
 }
 
 .dark-theme .modal-body .list-group-item:hover {
-  background-color: rgba(184, 1, 1, 0.1);
+  background-color: rgba(58, 146, 189, 0.1);
 }
 
 .dark-theme .modal-body .list-group-item.active {
@@ -9397,7 +9397,7 @@
 }
 
 .dark-theme .modal-body .dropdown-item:hover {
-  background-color: rgba(184, 1, 1, 0.1);
+  background-color: rgba(58, 146, 189, 0.1);
   color: var(--admin-text-dark);
 }
 
@@ -9430,7 +9430,7 @@
 }
 
 .dark-theme .modal-body .accordion-button:not(.collapsed) {
-  background-color: rgba(184, 1, 1, 0.1);
+  background-color: rgba(58, 146, 189, 0.1);
   color: var(--admin-primary);
 }
 

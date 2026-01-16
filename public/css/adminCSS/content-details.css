@@ -514,7 +514,7 @@ html, body {
 .search-box input:focus {
   outline: none;
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
 }
 
 .dark-theme .search-box input {
@@ -536,7 +536,7 @@ html, body {
 .filter-select:focus {
   outline: none;
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
 }
 
 .dark-theme .filter-select {
@@ -686,11 +686,11 @@ html, body {
 }
 
 .students-table tr:hover {
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
 }
 
 .dark-theme .students-table tr:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 .sort-btn {

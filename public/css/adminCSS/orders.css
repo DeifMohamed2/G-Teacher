@@ -24,7 +24,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #B80101, #dc2626, #ef4444);
+  background: linear-gradient(90deg, #3a92bd, #dc2626, #ef4444);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -36,8 +36,8 @@
 
 .orders-kpi .card:hover {
   transform: translateY(-8px);
-  border-color: #B80101;
-  box-shadow: 0 20px 40px rgba(184, 1, 1, 0.2);
+  border-color: #3a92bd;
+  box-shadow: 0 20px 40px rgba(58, 146, 189, 0.2);
 }
 
 .orders-kpi .card:hover::before {
@@ -49,18 +49,18 @@
 }
 
 .orders-kpi .card-body i {
-  color: #B80101;
-  filter: drop-shadow(0 4px 8px rgba(184, 1, 1, 0.3));
+  color: #3a92bd;
+  filter: drop-shadow(0 4px 8px rgba(58, 146, 189, 0.3));
   font-size: 2.5rem;
 }
 
 .orders-kpi .card-body .text-muted {
-  color: #B80101;
+  color: #3a92bd;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-size: 12px;
-  text-shadow: 0 1px 2px rgba(184, 1, 1, 0.1);
+  text-shadow: 0 1px 2px rgba(58, 146, 189, 0.1);
 }
 
 .dark-theme .orders-kpi .card-body .text-muted {
@@ -98,10 +98,10 @@
 }
 
 .orders-table .card-header {
-  background: linear-gradient(135deg, #B80101, #dc2626, #ef4444, #f97316);
+  background: linear-gradient(135deg, #3a92bd, #dc2626, #ef4444, #f97316);
   border-bottom: none;
   padding: 24px 28px;
-  box-shadow: 0 8px 24px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 8px 24px rgba(58, 146, 189, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -150,7 +150,7 @@
 }
 
 .orders-table .table thead th {
-  background: linear-gradient(135deg, #B80101, #dc2626, #ef4444);
+  background: linear-gradient(135deg, #3a92bd, #dc2626, #ef4444);
   color: #ffffff;
   padding: 20px 24px;
   text-align: left;
@@ -184,13 +184,13 @@
 }
 
 .orders-table .table tbody tr:hover {
-  background: linear-gradient(135deg, rgba(184, 1, 1, 0.05), rgba(220, 38, 38, 0.03));
+  background: linear-gradient(135deg, rgba(58, 146, 189, 0.05), rgba(220, 38, 38, 0.03));
   transform: scale(1.01);
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.1);
 }
 
 .dark-theme .orders-table .table tbody tr:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 .orders-table .table tbody tr:last-child td {
@@ -199,19 +199,19 @@
 
 /* Order Number Link */
 .order-number-link {
-  color: #B80101;
+  color: #3a92bd;
   text-decoration: none;
   font-weight: 800;
   font-size: 16px;
   transition: all 0.3s ease;
-  text-shadow: 0 1px 2px rgba(184, 1, 1, 0.2);
+  text-shadow: 0 1px 2px rgba(58, 146, 189, 0.2);
 }
 
 .order-number-link:hover {
   color: #dc2626;
   text-decoration: none;
   transform: translateY(-1px);
-  text-shadow: 0 2px 4px rgba(184, 1, 1, 0.3);
+  text-shadow: 0 2px 4px rgba(58, 146, 189, 0.3);
 }
 
 /* Order Customer Info */
@@ -242,10 +242,10 @@
   font-size: 13px;
   font-weight: 600;
   margin-top: 4px;
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
   padding: 4px 8px;
   border-radius: 6px;
-  border-left: 3px solid #B80101;
+  border-left: 3px solid #3a92bd;
 }
 
 .dark-theme .order-item-preview {
@@ -273,11 +273,11 @@
 }
 
 .order-action-button:hover {
-  border-color: #B80101;
-  color: #B80101;
+  border-color: #3a92bd;
+  color: #3a92bd;
   transform: translateY(-2px);
   text-decoration: none;
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.2);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.2);
 }
 
 .order-action-button.btn-outline-danger:hover {
@@ -293,7 +293,7 @@
 }
 
 .dark-theme .order-action-button:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 /* ========================================
@@ -396,10 +396,10 @@
 }
 
 .orders-filter-card .card-header {
-  background: linear-gradient(135deg, #B80101, #dc2626, #ef4444);
+  background: linear-gradient(135deg, #3a92bd, #dc2626, #ef4444);
   border-bottom: none;
   padding: 20px 24px;
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.2);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.2);
 }
 
 .orders-filter-card .card-header h5 {
@@ -441,8 +441,8 @@
 
 .orders-filter-card .form-control:focus,
 .orders-filter-card .form-select:focus {
-  border-color: #B80101;
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.15);
+  border-color: #3a92bd;
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.15);
   outline: none;
   transform: translateY(-1px);
 }
@@ -455,11 +455,11 @@
 }
 
 .orders-filter-card .input-group-text {
-  background: linear-gradient(135deg, #B80101, #dc2626);
-  border: 2px solid #B80101;
+  background: linear-gradient(135deg, #3a92bd, #dc2626);
+  border: 2px solid #3a92bd;
   color: #ffffff;
   border-radius: 12px 0 0 12px;
-  box-shadow: 0 2px 8px rgba(184, 1, 1, 0.2);
+  box-shadow: 0 2px 8px rgba(58, 146, 189, 0.2);
 }
 
 .orders-filter-card .btn {
@@ -471,16 +471,16 @@
 }
 
 .orders-filter-card .btn-primary {
-  background: linear-gradient(135deg, #B80101, #dc2626);
-  border-color: #B80101;
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+  background: linear-gradient(135deg, #3a92bd, #dc2626);
+  border-color: #3a92bd;
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .orders-filter-card .btn-primary:hover {
   background: linear-gradient(135deg, #dc2626, #ef4444);
   border-color: #dc2626;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(184, 1, 1, 0.4);
+  box-shadow: 0 6px 20px rgba(58, 146, 189, 0.4);
 }
 
 .orders-filter-card .btn-outline-secondary {
@@ -512,14 +512,14 @@
 
 /* Order Header */
 .order-details-header {
-  background: linear-gradient(135deg, #B80101, #dc2626, #ef4444, #f97316);
+  background: linear-gradient(135deg, #3a92bd, #dc2626, #ef4444, #f97316);
   color: #ffffff;
   padding: 40px;
   border-radius: 24px;
   margin-bottom: 32px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(184, 1, 1, 0.4);
+  box-shadow: 0 20px 60px rgba(58, 146, 189, 0.4);
   border: 3px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -631,7 +631,7 @@
 }
 
 .order-items-table thead th {
-  background: linear-gradient(135deg, #B80101, #dc2626, #ef4444);
+  background: linear-gradient(135deg, #3a92bd, #dc2626, #ef4444);
   color: #ffffff;
   padding: 16px 20px;
   text-align: left;
@@ -641,7 +641,7 @@
   font-size: 12px;
   border-bottom: 2px solid rgba(255, 255, 255, 0.2);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  box-shadow: 0 2px 8px rgba(184, 1, 1, 0.2);
+  box-shadow: 0 2px 8px rgba(58, 146, 189, 0.2);
 }
 
 .order-items-table tbody td {
@@ -664,8 +664,8 @@
 
 .product-thumbnail:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(184, 1, 1, 0.2);
-  border-color: #B80101;
+  box-shadow: 0 6px 20px rgba(58, 146, 189, 0.2);
+  border-color: #3a92bd;
 }
 
 .product-details h6 {
@@ -733,7 +733,7 @@
 }
 
 .summary-label {
-  color: #B80101;
+  color: #3a92bd;
   font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
@@ -774,13 +774,13 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #B80101, #dc2626, #ef4444);
+  background: linear-gradient(135deg, #3a92bd, #dc2626, #ef4444);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
   font-size: 24px;
-  box-shadow: 0 6px 20px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 6px 20px rgba(58, 146, 189, 0.3);
   border: 3px solid #ffffff;
 }
 
@@ -816,9 +816,9 @@
 }
 
 .contact-item i {
-  color: #B80101;
+  color: #3a92bd;
   width: 16px;
-  filter: drop-shadow(0 1px 2px rgba(184, 1, 1, 0.2));
+  filter: drop-shadow(0 1px 2px rgba(58, 146, 189, 0.2));
 }
 
 .billing-address h6 {
@@ -829,14 +829,14 @@
 }
 
 .address-text {
-  color: #B80101;
+  color: #3a92bd;
   font-size: 14px;
   line-height: 1.6;
   font-weight: 600;
-  background: rgba(184, 1, 1, 0.08);
+  background: rgba(58, 146, 189, 0.08);
   padding: 12px;
   border-radius: 12px;
-  border-left: 4px solid #B80101;
+  border-left: 4px solid #3a92bd;
 }
 
 /* Payment Information */
@@ -897,7 +897,7 @@
 }
 
 .detail-label {
-  color: #B80101;
+  color: #3a92bd;
   font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
@@ -922,14 +922,14 @@
 
 /* Order Notes */
 .order-notes {
-  color: #B80101;
+  color: #3a92bd;
   font-size: 14px;
   line-height: 1.6;
   font-weight: 600;
-  background: rgba(184, 1, 1, 0.08);
+  background: rgba(58, 146, 189, 0.08);
   padding: 16px;
   border-radius: 12px;
-  border-left: 4px solid #B80101;
+  border-left: 4px solid #3a92bd;
 }
 
 .order-notes strong {
@@ -1082,13 +1082,13 @@
 }
 
 .order-summary-card .text-muted {
-  color: #B80101;
+  color: #3a92bd;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-size: 12px;
   margin-bottom: 8px;
-  text-shadow: 0 1px 2px rgba(184, 1, 1, 0.1);
+  text-shadow: 0 1px 2px rgba(58, 146, 189, 0.1);
 }
 
 .dark-theme .order-summary-card .text-muted {
@@ -1151,11 +1151,11 @@
 }
 
 .order-items-table tr:hover {
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
 }
 
 .dark-theme .order-items-table tr:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 .order-items-table tr:last-child td {
@@ -1249,7 +1249,7 @@
 }
 
 .payment-detail-row .text-muted {
-  color: #B80101;
+  color: #3a92bd;
   font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
@@ -1407,7 +1407,7 @@
 }
 
 .order-pagination .text-muted {
-  color: #B80101;
+  color: #3a92bd;
   font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
@@ -1443,25 +1443,25 @@
 }
 
 .order-pagination .btn:hover {
-  border-color: #B80101;
-  color: #B80101;
+  border-color: #3a92bd;
+  color: #3a92bd;
   transform: translateY(-2px);
   text-decoration: none;
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.2);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.2);
 }
 
 .order-pagination .btn.btn-primary {
-  background: linear-gradient(135deg, #B80101, #dc2626);
-  border-color: #B80101;
+  background: linear-gradient(135deg, #3a92bd, #dc2626);
+  border-color: #3a92bd;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .order-pagination .btn.btn-primary:hover {
   background: linear-gradient(135deg, #dc2626, #ef4444);
   border-color: #dc2626;
   color: #ffffff;
-  box-shadow: 0 6px 20px rgba(184, 1, 1, 0.4);
+  box-shadow: 0 6px 20px rgba(58, 146, 189, 0.4);
 }
 
 .order-pagination .btn.disabled {
@@ -1477,7 +1477,7 @@
 }
 
 .dark-theme .order-pagination .btn:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 /* ========================================
@@ -1499,10 +1499,10 @@
 }
 
 .export-options .card-header {
-  background: linear-gradient(135deg, #B80101, #dc2626, #ef4444);
+  background: linear-gradient(135deg, #3a92bd, #dc2626, #ef4444);
   border-bottom: none;
   padding: 20px 24px;
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.2);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.2);
 }
 
 .export-options .card-header h5 {
@@ -1520,7 +1520,7 @@
 }
 
 .export-options .text-muted {
-  color: #B80101;
+  color: #3a92bd;
   font-size: 14px;
   font-weight: 700;
   margin-bottom: 16px;
@@ -1552,11 +1552,11 @@
 }
 
 .export-options .btn:hover {
-  border-color: #B80101;
-  color: #B80101;
+  border-color: #3a92bd;
+  color: #3a92bd;
   transform: translateY(-2px);
   text-decoration: none;
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.2);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.2);
 }
 
 .export-options .btn:disabled {
@@ -1572,7 +1572,7 @@
 }
 
 .dark-theme .export-options .btn:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 /* ========================================
@@ -1932,7 +1932,7 @@
 }
 
 .orders-empty-description {
-  color: #B80101;
+  color: #3a92bd;
   font-size: 16px;
   line-height: 1.6;
   max-width: 500px;
@@ -1974,7 +1974,7 @@
 .customer-info-label {
   font-size: 12px;
   font-weight: 600;
-  color: #B80101;
+  color: #3a92bd;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 8px 0;
@@ -2078,7 +2078,7 @@
 }
 
 .order-item-details small {
-  color: #B80101;
+  color: #3a92bd;
   font-size: 13px;
 }
 
@@ -2136,7 +2136,7 @@
 }
 
 .order-total-label {
-  color: #B80101;
+  color: #3a92bd;
   font-size: 14px;
   font-weight: 500;
 }
@@ -2211,7 +2211,7 @@
 .payment-info-label {
   font-size: 12px;
   font-weight: 600;
-  color: #B80101;
+  color: #3a92bd;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 8px 0;
@@ -2356,7 +2356,7 @@
 }
 
 .timeline-description {
-  color: #B80101;
+  color: #3a92bd;
   font-size: 14px;
   margin: 0 0 8px 0;
 }
@@ -2366,7 +2366,7 @@
 }
 
 .timeline-date {
-  color: #B80101;
+  color: #3a92bd;
   font-size: 12px;
   font-weight: 500;
 }
@@ -2570,7 +2570,7 @@
 }
 
 .orders-empty-description {
-  color: #B80101;
+  color: #3a92bd;
   font-size: 16px;
   line-height: 1.6;
   max-width: 500px;

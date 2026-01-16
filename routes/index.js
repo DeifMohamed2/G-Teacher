@@ -10,7 +10,8 @@ const {
   getBundleContent,
   getESTTests,
   getSATTests,
-  getACTTests
+  getACTTests,
+  getIGTeacherCourses
 } = require('../controllers/landingController');
 
 // Landing page route
@@ -38,6 +39,9 @@ router.get('/bundle/:id/content', getBundleContent);
 router.get('/tests/est', getESTTests);
 router.get('/tests/sat', getSATTests);
 router.get('/tests/act', getACTTests);
+
+// IG Teacher Courses route
+router.get('/ig/teacher/:teacherId', getIGTeacherCourses);
 
 // Terms of Service route
 router.get('/terms-of-service', (req, res) => {

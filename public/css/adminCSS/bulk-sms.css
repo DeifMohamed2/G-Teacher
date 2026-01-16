@@ -140,7 +140,7 @@
 .form-control:focus {
     outline: none;
     border-color: var(--admin-primary);
-    box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+    box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
 }
 
 .form-help {
@@ -176,15 +176,15 @@
 }
 
 .count-preview-card {
-    background: linear-gradient(135deg, rgba(184, 1, 1, 0.05), rgba(184, 1, 1, 0.02));
+    background: linear-gradient(135deg, rgba(58, 146, 189, 0.05), rgba(58, 146, 189, 0.02));
     border: 2px solid var(--admin-primary);
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 4px 12px rgba(184, 1, 1, 0.1);
+    box-shadow: 0 4px 12px rgba(58, 146, 189, 0.1);
 }
 
 .dark-theme .count-preview-card {
-    background: linear-gradient(135deg, rgba(184, 1, 1, 0.1), rgba(184, 1, 1, 0.05));
+    background: linear-gradient(135deg, rgba(58, 146, 189, 0.1), rgba(58, 146, 189, 0.05));
 }
 
 .count-preview-header {
@@ -249,7 +249,7 @@
 
 .count-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(184, 1, 1, 0.1);
+    box-shadow: 0 4px 8px rgba(58, 146, 189, 0.1);
 }
 
 .count-item.total {
@@ -351,13 +351,13 @@
 .recipient-option:hover .recipient-option-content {
     border-color: var(--admin-primary);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(184, 1, 1, 0.2);
+    box-shadow: 0 4px 12px rgba(58, 146, 189, 0.2);
 }
 
 .recipient-option input[type="radio"]:checked+.recipient-option-content {
     border-color: var(--admin-primary);
-    background: linear-gradient(135deg, rgba(184, 1, 1, 0.1), rgba(184, 1, 1, 0.05));
-    box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+    background: linear-gradient(135deg, rgba(58, 146, 189, 0.1), rgba(58, 146, 189, 0.05));
+    box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .recipient-option input[type="radio"]:checked+.recipient-option-content i {
@@ -407,7 +407,7 @@
 .student-search-input:focus {
     outline: none;
     border-color: var(--admin-primary);
-    box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+    box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
 }
 
 .btn-clear-search {
@@ -427,7 +427,7 @@
 
 .btn-clear-search:hover {
     opacity: 1;
-    background: rgba(184, 1, 1, 0.1);
+    background: rgba(58, 146, 189, 0.1);
 }
 
 .student-list-container {
@@ -474,7 +474,7 @@
 .student-item:hover {
     border-color: var(--admin-primary);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(184, 1, 1, 0.15);
+    box-shadow: 0 4px 12px rgba(58, 146, 189, 0.15);
     background: var(--admin-bg-light);
 }
 
@@ -485,22 +485,22 @@
 .student-item.selected {
     border-color: var(--admin-primary);
     border-width: 2px;
-    background: rgba(184, 1, 1, 0.12);
-    box-shadow: 0 4px 16px rgba(184, 1, 1, 0.2);
+    background: rgba(58, 146, 189, 0.12);
+    box-shadow: 0 4px 16px rgba(58, 146, 189, 0.2);
 }
 
 .dark-theme .student-item.selected {
-    background: rgba(184, 1, 1, 0.2);
+    background: rgba(58, 146, 189, 0.2);
 }
 
 .student-item.selected:hover {
-    background: rgba(184, 1, 1, 0.18);
+    background: rgba(58, 146, 189, 0.18);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(184, 1, 1, 0.25);
+    box-shadow: 0 6px 20px rgba(58, 146, 189, 0.25);
 }
 
 .dark-theme .student-item.selected:hover {
-    background: rgba(184, 1, 1, 0.25);
+    background: rgba(58, 146, 189, 0.25);
 }
 
 .student-checkbox {
@@ -566,7 +566,7 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: rgba(184, 1, 1, 0.1);
+    background: rgba(58, 146, 189, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -654,22 +654,22 @@
     opacity: 0.75;
     padding: 4px 8px;
     border-radius: 6px;
-    background: rgba(184, 1, 1, 0.05);
+    background: rgba(58, 146, 189, 0.05);
     transition: all 0.3s ease;
 }
 
 .dark-theme .phone-info {
     color: var(--admin-text-dark);
-    background: rgba(184, 1, 1, 0.1);
+    background: rgba(58, 146, 189, 0.1);
 }
 
 .student-item.selected .phone-info {
-    background: rgba(184, 1, 1, 0.15);
+    background: rgba(58, 146, 189, 0.15);
     opacity: 1;
 }
 
 .dark-theme .student-item.selected .phone-info {
-    background: rgba(184, 1, 1, 0.2);
+    background: rgba(58, 146, 189, 0.2);
 }
 
 .phone-info i {
@@ -724,7 +724,7 @@
     background: var(--admin-primary);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+    box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .student-pagination {
@@ -771,7 +771,7 @@
     background: var(--admin-primary);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+    box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .pagination-info {
@@ -988,7 +988,7 @@
 
 .result-stat.total {
     border-color: var(--admin-primary);
-    background: rgba(184, 1, 1, 0.1);
+    background: rgba(58, 146, 189, 0.1);
 }
 
 .result-stat.rate {

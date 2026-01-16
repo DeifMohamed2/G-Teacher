@@ -869,6 +869,285 @@ const getACTTests = async (req, res) => {
   }
 };
 
+// Get IG Teacher Courses page (with temporary mock data)
+const getIGTeacherCourses = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    const { subject, examDate } = req.query;
+    
+    // Get user if logged in
+    const User = require('../models/User');
+    const user = req.session.user ? await User.findById(req.session.user.id) : null;
+    
+    // Temporary mock data for teachers
+    const teachersData = {
+      'dr-marwa-diab': {
+        id: 'dr-marwa-diab',
+        name: 'Dr. Marwa Diab',
+        image: '/images/place.png',
+        specialty: 'Mathematics IGCSE & A-Level Expert',
+        bio: 'Dr. Marwa Diab has over 15 years of experience teaching Mathematics at the IGCSE and A-Level. She has helped thousands of students achieve top grades and is known for her clear explanations and engaging teaching style.',
+        rating: 4.9,
+        totalCourses: 8,
+        totalStudents: 450,
+        yearsExperience: 15,
+        credentials: 'Cambridge Certified',
+        qualification: 'PhD in Mathematics Education',
+        language: 'English & Arabic',
+        teachingStyle: 'Interactive & Visual'
+      },
+      'dr-ahmed-hassan': {
+        id: 'dr-ahmed-hassan',
+        name: 'Dr. Ahmed Hassan',
+        image: '/images/place.png',
+        specialty: 'Mathematics Unit 4 Specialist',
+        bio: 'Dr. Ahmed Hassan specializes in advanced mathematics topics and has extensive experience preparing students for challenging examinations.',
+        rating: 4.8,
+        totalCourses: 6,
+        totalStudents: 380,
+        yearsExperience: 12,
+        credentials: 'Edexcel Examiner',
+        qualification: 'MSc in Applied Mathematics',
+        language: 'English & Arabic',
+        teachingStyle: 'Problem-Solving Focus'
+      },
+      'dr-yassmin-rakha': {
+        id: 'dr-yassmin-rakha',
+        name: 'Dr. Yassmin Rakha',
+        image: '/images/place.png',
+        specialty: 'Physics OL Edexcel Specialist',
+        bio: 'Dr. Yassmin Rakha brings physics to life with practical examples and experiments. Her students consistently achieve outstanding results.',
+        rating: 4.9,
+        totalCourses: 5,
+        totalStudents: 320,
+        yearsExperience: 10,
+        credentials: 'Edexcel Approved',
+        qualification: 'PhD in Physics',
+        language: 'English & Arabic',
+        teachingStyle: 'Practical & Experimental'
+      },
+      'dr-samia-elnawagy': {
+        id: 'dr-samia-elnawagy',
+        name: 'Dr. Samia El Nawagy',
+        image: '/images/place.png',
+        specialty: 'Chemistry A2 Edexcel Expert',
+        bio: 'Dr. Samia El Nawagy is a chemistry expert with a passion for making complex concepts simple and understandable.',
+        rating: 4.7,
+        totalCourses: 7,
+        totalStudents: 290,
+        yearsExperience: 14,
+        credentials: 'Cambridge Examiner',
+        qualification: 'PhD in Chemistry',
+        language: 'English & Arabic',
+        teachingStyle: 'Concept-Based Learning'
+      }
+    };
+    
+    // Get teacher data or use default
+    const teacher = teachersData[teacherId] || {
+      id: teacherId,
+      name: 'Expert Teacher',
+      image: '/images/place.png',
+      specialty: 'IGCSE Specialist',
+      bio: 'An experienced teacher dedicated to helping students achieve their academic goals.',
+      rating: 4.5,
+      totalCourses: 5,
+      totalStudents: 200,
+      yearsExperience: 8,
+      credentials: 'Certified Teacher',
+      qualification: 'Master\'s Degree',
+      language: 'English & Arabic',
+      teachingStyle: 'Interactive Learning'
+    };
+    
+    // Mock courses data
+    const courses = [
+      {
+        id: 'course-1',
+        title: 'Complete Unit 1 Course',
+        shortDescription: 'Master all topics in Unit 1 with comprehensive lessons, practice problems, and exam preparation.',
+        thumbnail: '/images/courses/course-1.jpg',
+        type: 'online',
+        unit: 'Unit 1',
+        duration: '12 weeks',
+        lessonsCount: 24,
+        studentsEnrolled: 156,
+        rating: 4.9,
+        originalPrice: 800,
+        finalPrice: 675,
+        discountPercentage: 15,
+        features: ['Live Sessions', 'Recorded Videos', 'Practice Tests', 'WhatsApp Support'],
+        isBestseller: true,
+        isNew: false,
+        isFullyBooked: false
+      },
+      {
+        id: 'course-2',
+        title: 'Unit 2 Intensive Course',
+        shortDescription: 'Intensive preparation for Unit 2 covering all key concepts and exam techniques.',
+        thumbnail: '/images/courses/course-2.jpg',
+        type: 'recorded',
+        unit: 'Unit 2',
+        duration: '8 weeks',
+        lessonsCount: 16,
+        studentsEnrolled: 98,
+        rating: 4.8,
+        originalPrice: 600,
+        finalPrice: 540,
+        discountPercentage: 10,
+        features: ['HD Videos', 'PDF Notes', 'Quizzes', 'Certificate'],
+        isBestseller: false,
+        isNew: true,
+        isFullyBooked: false
+      },
+      {
+        id: 'course-3',
+        title: 'Exam Revision Bootcamp',
+        shortDescription: 'Intensive exam preparation with past paper analysis and exam strategies.',
+        thumbnail: '/images/courses/course-3.jpg',
+        type: 'online',
+        unit: 'All Units',
+        duration: '4 weeks',
+        lessonsCount: 12,
+        studentsEnrolled: 234,
+        rating: 4.9,
+        originalPrice: 450,
+        finalPrice: 450,
+        discountPercentage: 0,
+        features: ['Past Papers', 'Model Answers', 'Tips & Tricks', 'Mock Exams'],
+        isBestseller: true,
+        isNew: false,
+        isFullyBooked: false
+      },
+      {
+        id: 'course-4',
+        title: 'One-on-One Tutoring Package',
+        shortDescription: 'Personalized tutoring sessions tailored to your specific needs and learning pace.',
+        thumbnail: '/images/courses/course-4.jpg',
+        type: 'onground',
+        unit: 'Custom',
+        duration: '10 sessions',
+        lessonsCount: 10,
+        studentsEnrolled: 45,
+        rating: 5.0,
+        originalPrice: 1500,
+        finalPrice: 1350,
+        discountPercentage: 10,
+        features: ['1-on-1 Sessions', 'Flexible Timing', 'Personalized Plan', 'Progress Reports'],
+        isBestseller: false,
+        isNew: false,
+        isFullyBooked: true
+      },
+      {
+        id: 'course-5',
+        title: 'Topic-by-Topic Mastery',
+        shortDescription: 'Deep dive into each topic with detailed explanations and extensive practice.',
+        thumbnail: '/images/courses/course-5.jpg',
+        type: 'recorded',
+        unit: 'All Topics',
+        duration: '16 weeks',
+        lessonsCount: 48,
+        studentsEnrolled: 189,
+        rating: 4.7,
+        originalPrice: 950,
+        finalPrice: 760,
+        discountPercentage: 20,
+        features: ['Lifetime Access', 'Downloadable', 'Mobile App', 'Community Access'],
+        isBestseller: false,
+        isNew: false,
+        isFullyBooked: false
+      },
+      {
+        id: 'course-6',
+        title: 'Weekend Intensive Workshop',
+        shortDescription: 'Full-day weekend workshops covering critical exam topics and techniques.',
+        thumbnail: '/images/courses/course-6.jpg',
+        type: 'onground',
+        unit: 'Key Topics',
+        duration: '4 weekends',
+        lessonsCount: 8,
+        studentsEnrolled: 60,
+        rating: 4.8,
+        originalPrice: 400,
+        finalPrice: 350,
+        discountPercentage: 12,
+        features: ['In-Person', 'Small Groups', 'Printed Materials', 'Refreshments'],
+        isBestseller: false,
+        isNew: true,
+        isFullyBooked: false
+      }
+    ];
+    
+    // Special offers
+    const specialOffers = [
+      {
+        courseId: 'course-1',
+        title: 'Early Bird Special - Unit 1',
+        description: 'Register before the end of the month and save 20%!',
+        originalPrice: 800,
+        discountedPrice: 640,
+        discountPercentage: 20
+      },
+      {
+        courseId: 'course-5',
+        title: 'Flash Sale - Topic Mastery',
+        description: 'Limited time offer - 48 hours only!',
+        originalPrice: 950,
+        discountedPrice: 665,
+        discountPercentage: 30
+      }
+    ];
+    
+    // Bundle packages
+    const bundles = [
+      {
+        id: 'bundle-1',
+        title: 'Complete Course Bundle',
+        description: 'Get access to all courses and save big!',
+        includedCourses: ['Complete Unit 1 Course', 'Unit 2 Intensive Course', 'Exam Revision Bootcamp'],
+        originalPrice: 1850,
+        finalPrice: 1295,
+        savingsPercentage: 30
+      },
+      {
+        id: 'bundle-2',
+        title: 'Recorded Courses Pack',
+        description: 'All recorded courses with lifetime access.',
+        includedCourses: ['Unit 2 Intensive Course', 'Topic-by-Topic Mastery'],
+        originalPrice: 1550,
+        finalPrice: 1085,
+        savingsPercentage: 30
+      }
+    ];
+    
+    // Format exam date for display
+    const examDateDisplay = examDate ? examDate.replace(/-/g, ' ').replace(/(\w)(\w*)/g, (_, first, rest) => first.toUpperCase() + rest) : 'January 2026';
+    
+    // Format subject for display
+    const subjectDisplay = subject ? subject.replace(/-/g, ' ').replace(/(\w)(\w*)/g, (_, first, rest) => first.toUpperCase() + rest) : 'Mathematics';
+    
+    res.render('teacher-courses', {
+      title: `${teacher.name} - ${subjectDisplay} Courses | G-Teacher`,
+      theme: req.cookies.theme || 'light',
+      teacher,
+      subject: subjectDisplay,
+      examDate: examDateDisplay,
+      courses,
+      specialOffers,
+      bundles,
+      user,
+      cart: req.session.cart || []
+    });
+  } catch (error) {
+    console.error('Error fetching teacher courses:', error);
+    res.status(500).render('404', {
+      title: 'Page Not Found',
+      theme: req.cookies.theme || 'light',
+      user: req.session.user || null
+    });
+  }
+};
+
 module.exports = {
   getLandingPage,
   getOnlineCourses,
@@ -879,4 +1158,5 @@ module.exports = {
   getESTTests,
   getSATTests,
   getACTTests,
+  getIGTeacherCourses,
 };

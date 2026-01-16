@@ -6,7 +6,7 @@
 /* CSS Variables for Theme Support */
 :root {
   /* Light Theme Colors */
-  --checkout-primary: #b80101;
+  --checkout-primary: #3a92bd;
   --checkout-primary-hover: #e74c3c;
   --checkout-primary-light: #fef2f2;
   --checkout-secondary: #1f2937;
@@ -34,7 +34,7 @@
   /* Border Colors */
   --checkout-border-color: #e5e7eb;
   --checkout-border-light: #f3f4f6;
-  --checkout-border-focus: #b80101;
+  --checkout-border-focus: #3a92bd;
 
   /* Shadow Colors */
   --checkout-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -47,7 +47,7 @@
 
   /* Gradients */
   --checkout-gradient-primary: linear-gradient(135deg,
-      #b80101 0%,
+      #3a92bd 0%,
       #e74c3c 100%);
   --checkout-gradient-secondary: linear-gradient(135deg,
       #1f2937 0%,
@@ -133,13 +133,13 @@
   right: 0;
   bottom: 0;
   background: radial-gradient(circle at 20% 80%,
-      rgba(184, 1, 1, 0.05) 0%,
+      rgba(58, 146, 189, 0.05) 0%,
       transparent 50%),
     radial-gradient(circle at 80% 20%,
-      rgba(184, 1, 1, 0.05) 0%,
+      rgba(58, 146, 189, 0.05) 0%,
       transparent 50%),
     radial-gradient(circle at 40% 40%,
-      rgba(184, 1, 1, 0.03) 0%,
+      rgba(58, 146, 189, 0.03) 0%,
       transparent 50%);
   pointer-events: none;
   z-index: 1;
@@ -147,13 +147,13 @@
 
 .dark-theme .checkout-page::before {
   background: radial-gradient(circle at 20% 80%,
-      rgba(184, 1, 1, 0.08) 0%,
+      rgba(58, 146, 189, 0.08) 0%,
       transparent 50%),
     radial-gradient(circle at 80% 20%,
-      rgba(184, 1, 1, 0.08) 0%,
+      rgba(58, 146, 189, 0.08) 0%,
       transparent 50%),
     radial-gradient(circle at 40% 40%,
-      rgba(184, 1, 1, 0.05) 0%,
+      rgba(58, 146, 189, 0.05) 0%,
       transparent 50%);
 }
 
@@ -306,7 +306,7 @@
 .checkout-form-control:focus {
   outline: none;
   border-color: var(--checkout-border-focus);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
 }
 
 .checkout-form-control::placeholder {
@@ -347,7 +347,7 @@
 .checkout-payment-option input[type='radio']:checked+.checkout-payment-label {
   border-color: var(--checkout-primary);
   background: var(--checkout-primary-light);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
 }
 
 .checkout-payment-icon {
@@ -1418,7 +1418,7 @@
 }
 
 .checkout-book-item-wrapper:hover .checkout-book-item {
-  border-color: var(--checkout-primary, #b80101);
+  border-color: var(--checkout-primary, #3a92bd);
   box-shadow: var(--checkout-shadow-md);
   transform: translateY(-2px);
 }
@@ -1458,9 +1458,9 @@
 }
 
 .checkout-book-item-wrapper input[type="checkbox"]:checked+.checkout-book-label .checkout-book-checkbox-indicator {
-  background: var(--checkout-primary, #b80101);
-  border-color: var(--checkout-primary, #b80101);
-  box-shadow: 0 2px 8px rgba(184, 1, 1, 0.3);
+  background: var(--checkout-primary, #3a92bd);
+  border-color: var(--checkout-primary, #3a92bd);
+  box-shadow: 0 2px 8px rgba(58, 146, 189, 0.3);
   transform: translateY(-50%) scale(1.05);
 }
 
@@ -1469,9 +1469,9 @@
 }
 
 .checkout-book-item-wrapper input[type="checkbox"]:checked+.checkout-book-label .checkout-book-item {
-  border-color: var(--checkout-primary, #b80101);
-  background: linear-gradient(135deg, rgba(184, 1, 1, 0.05), rgba(184, 1, 1, 0.02));
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.15);
+  border-color: var(--checkout-primary, #3a92bd);
+  background: linear-gradient(135deg, rgba(58, 146, 189, 0.05), rgba(58, 146, 189, 0.02));
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.15);
   transform: translateY(-2px);
 }
 
@@ -1486,24 +1486,24 @@
   width: 64px;
   height: 64px;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--checkout-primary, #b80101), #dc2626);
+  background: linear-gradient(135deg, var(--checkout-primary, #3a92bd), #dc2626);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 1.75rem;
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.2);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.2);
   transition: all 0.3s ease;
 }
 
 .checkout-book-item-wrapper:hover .checkout-book-icon {
   transform: scale(1.1) rotate(5deg);
-  box-shadow: 0 6px 16px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 6px 16px rgba(58, 146, 189, 0.3);
 }
 
 .checkout-book-item-wrapper input[type="checkbox"]:checked+.checkout-book-label .checkout-book-icon {
   background: linear-gradient(135deg, #dc2626, #ef4444);
-  box-shadow: 0 6px 16px rgba(184, 1, 1, 0.4);
+  box-shadow: 0 6px 16px rgba(58, 146, 189, 0.4);
 }
 
 .checkout-book-details {
@@ -1544,13 +1544,13 @@
 .checkout-book-bundle-badge i,
 .checkout-book-code-badge i {
   font-size: 0.75rem;
-  color: var(--checkout-primary, #b80101);
+  color: var(--checkout-primary, #3a92bd);
 }
 
 .checkout-book-item-wrapper:hover .checkout-book-bundle-badge,
 .checkout-book-item-wrapper:hover .checkout-book-code-badge {
   background: var(--checkout-primary-light, #fef2f2);
-  border-color: var(--checkout-primary, #b80101);
+  border-color: var(--checkout-primary, #3a92bd);
   color: var(--checkout-text-primary, #1f2937);
 }
 
@@ -1562,7 +1562,7 @@
 .checkout-book-price-value {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--checkout-primary, #b80101);
+  color: var(--checkout-primary, #3a92bd);
   display: block;
   white-space: nowrap;
 }
@@ -1608,7 +1608,7 @@
 
 .checkout-book-summary-price {
   font-weight: 600;
-  color: var(--checkout-primary, #b80101);
+  color: var(--checkout-primary, #3a92bd);
 }
 
 /* Order Breakdown */
@@ -1650,7 +1650,7 @@
 
 .checkout-breakdown-total .checkout-breakdown-value {
   font-weight: 700;
-  color: var(--checkout-primary, #b80101);
+  color: var(--checkout-primary, #3a92bd);
   font-size: 1.2rem;
 }
 
@@ -1684,7 +1684,7 @@
 }
 
 .dark-theme .checkout-book-item-wrapper input[type="checkbox"]:checked+.checkout-book-label .checkout-book-item {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   border-color: var(--checkout-primary);
 }
 

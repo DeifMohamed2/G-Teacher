@@ -131,17 +131,17 @@
 
 .theme-toggle-btn:hover {
   transform: scale(1.05) translateY(-2px);
-  box-shadow: 0 12px 35px rgba(184, 1, 1, 0.2);
-  background: rgba(184, 1, 1, 0.1);
-  border-color: rgba(184, 1, 1, 0.3);
+  box-shadow: 0 12px 35px rgba(58, 146, 189, 0.2);
+  background: rgba(58, 146, 189, 0.1);
+  border-color: rgba(58, 146, 189, 0.3);
 }
 
 .light-theme .theme-toggle-btn:hover {
-  box-shadow: 0 12px 35px rgba(184, 1, 1, 0.15);
+  box-shadow: 0 12px 35px rgba(58, 146, 189, 0.15);
 }
 
 .dark-theme .theme-toggle-btn:hover {
-  box-shadow: 0 12px 35px rgba(184, 1, 1, 0.25);
+  box-shadow: 0 12px 35px rgba(58, 146, 189, 0.25);
 }
 
 /* Pulse animation for hover */

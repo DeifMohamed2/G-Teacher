@@ -21,11 +21,11 @@
 
 .brilliant-students-container .upload-section:hover {
   border-color: var(--admin-primary);
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
 }
 
 .dark-theme .brilliant-students-container .upload-section:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 .brilliant-students-container .upload-input {
@@ -71,7 +71,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -108,7 +108,7 @@
 
 .brilliant-students-container .drag-over {
   border-color: var(--admin-primary) !important;
-  background: rgba(184, 1, 1, 0.1) !important;
+  background: rgba(58, 146, 189, 0.1) !important;
 }
 
 /* Upload Progress Bar Styles */
@@ -117,7 +117,7 @@
 }
 
 .brilliant-students-container .progress-container {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   border-radius: 8px;
   padding: 8px;
   position: relative;
@@ -126,7 +126,7 @@
 .brilliant-students-container .progress-bar {
   width: 100%;
   height: 8px;
-  background: rgba(184, 1, 1, 0.2);
+  background: rgba(58, 146, 189, 0.2);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -218,7 +218,7 @@
   justify-content: center;
   color: #ffffff;
   font-size: 20px;
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .brilliant-students-container .brilliant-students-title h1 {
@@ -263,12 +263,12 @@
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .brilliant-students-container .btn-add-student:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(184, 1, 1, 0.4);
+  box-shadow: 0 6px 20px rgba(58, 146, 189, 0.4);
   color: #ffffff;
   text-decoration: none;
 }
@@ -303,7 +303,7 @@
 }
 
 .dark-theme .brilliant-students-container .btn-export:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 /* Statistics Cards */
@@ -362,7 +362,7 @@
   margin: 0 auto 12px;
   color: #ffffff;
   font-size: 20px;
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .brilliant-students-container .stat-card-number {
@@ -439,7 +439,7 @@
 
 .brilliant-students-container .filter-control:focus {
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
   outline: none;
 }
 
@@ -525,7 +525,7 @@
   margin: 0 auto 20px;
   color: #ffffff;
   font-size: 32px;
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .brilliant-students-container .no-students-message h3 {
@@ -656,13 +656,13 @@
   justify-content: space-between;
   margin-bottom: 16px;
   padding: 12px;
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
   border-radius: 8px;
   border-left: 4px solid var(--admin-primary);
 }
 
 .dark-theme .brilliant-students-container .student-card-score {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 .brilliant-students-container .student-score-value {
@@ -715,7 +715,7 @@
 
 .brilliant-students-container .student-card-footer {
   padding: 16px 20px;
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
   border-top: 1px solid var(--admin-border-light);
   display: flex;
   justify-content: space-between;
@@ -723,7 +723,7 @@
 }
 
 .dark-theme .brilliant-students-container .student-card-footer {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   border-top-color: var(--admin-border-dark);
 }
 
@@ -1030,7 +1030,7 @@
 .brilliant-students-container .form-select:focus,
 .brilliant-students-container .form-textarea:focus {
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
   outline: none;
 }
 
@@ -1047,7 +1047,7 @@
 
 /* Style readonly maxScore field */
 .brilliant-students-container .form-input[name="maxScore"] {
-  background: rgba(184, 1, 1, 0.05) !important;
+  background: rgba(58, 146, 189, 0.05) !important;
   cursor: not-allowed !important;
   pointer-events: none !important;
   color: var(--admin-text-light) !important;
@@ -1059,7 +1059,7 @@
 }
 
 .dark-theme .brilliant-students-container .form-input[name="maxScore"] {
-  background: rgba(184, 1, 1, 0.1) !important;
+  background: rgba(58, 146, 189, 0.1) !important;
   color: var(--admin-text-dark) !important;
 }
 
@@ -1326,17 +1326,17 @@
 
 .brilliant-students-container .drag-over {
   border: 2px dashed var(--admin-primary) !important;
-  background: rgba(184, 1, 1, 0.1) !important;
+  background: rgba(58, 146, 189, 0.1) !important;
   transform: scale(1.02);
 }
 
 .dark-theme .brilliant-students-container .drag-over {
-  background: rgba(184, 1, 1, 0.15) !important;
+  background: rgba(58, 146, 189, 0.15) !important;
 }
 
 .brilliant-students-container .drop-zone {
   border: 2px dashed var(--admin-primary);
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
   border-radius: 8px;
   padding: 20px;
   text-align: center;
@@ -1346,7 +1346,7 @@
 }
 
 .dark-theme .brilliant-students-container .drop-zone {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 /* Drag Handle Indicator */
@@ -1357,7 +1357,7 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 18px;
-  color: rgba(184, 1, 1, 0.3);
+  color: rgba(58, 146, 189, 0.3);
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;

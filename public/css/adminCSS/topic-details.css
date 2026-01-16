@@ -368,7 +368,7 @@ html, body {
 .search-input:focus {
   outline: none;
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
 }
 
 .filter-select {
@@ -390,7 +390,7 @@ html, body {
 .filter-select:focus {
   outline: none;
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
 }
 
 /* Content Analytics Grid */
@@ -672,14 +672,14 @@ html, body {
 }
 
 .student-code {
-  background: rgba(184, 1, 1, 0.15);
+  background: rgba(58, 146, 189, 0.15);
   color: var(--admin-primary);
   padding: 3px 8px;
   border-radius: 12px;
   font-size: 11px;
   font-weight: 700;
   font-family: 'Courier New', monospace;
-  border: 1px solid rgba(184, 1, 1, 0.2);
+  border: 1px solid rgba(58, 146, 189, 0.2);
 }
 
 .action-buttons {

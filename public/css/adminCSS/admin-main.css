@@ -151,7 +151,7 @@
 
 .admin-filter-control:focus {
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
   outline: none;
 }
 
@@ -207,11 +207,11 @@
 }
 
 .admin-table tbody tr:hover {
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
 }
 
 .dark-theme .admin-table tbody tr:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 .admin-table tbody tr:last-child td {
@@ -231,9 +231,9 @@
 }
 
 .admin-badge-primary {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
   color: var(--admin-primary);
-  border-color: rgba(184, 1, 1, 0.2);
+  border-color: rgba(58, 146, 189, 0.2);
 }
 
 .admin-badge-success {
@@ -341,7 +341,7 @@
 
 .admin-search-input:focus {
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
   outline: none;
 }
 
@@ -397,7 +397,7 @@
 }
 
 .dark-theme .admin-pagination-btn:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 .dark-theme .admin-pagination-btn.active {
@@ -454,7 +454,7 @@
 }
 
 .dark-theme .admin-action-btn:hover {
-  background: rgba(184, 1, 1, 0.1);
+  background: rgba(58, 146, 189, 0.1);
 }
 
 .dark-theme .admin-action-btn.primary {
@@ -519,7 +519,7 @@
   margin: 0 auto 12px;
   color: #ffffff;
   font-size: 20px;
-  box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .admin-stat-number {
@@ -669,5 +669,5 @@
 }
 
 .admin-hover-glow:hover {
-  box-shadow: 0 0 20px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 0 20px rgba(58, 146, 189, 0.3);
 }

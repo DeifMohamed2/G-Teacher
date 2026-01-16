@@ -80,7 +80,7 @@
 .math-element-professor {
   position: absolute;
   font-size: 2rem;
-  color: rgba(184, 1, 1, 0.1);
+  color: rgba(58, 146, 189, 0.1);
   animation: mathFloat 20s infinite linear;
   transition: var(--payment-transition);
 }
@@ -553,7 +553,7 @@
 }
 
 .step-item:hover {
-  background: rgba(184, 1, 1, 0.05);
+  background: rgba(58, 146, 189, 0.05);
   transform: translateX(5px);
 }
 
@@ -659,7 +659,7 @@
 .btn-primary:hover {
   background: var(--secondary-color);
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 10px 20px rgba(58, 146, 189, 0.3);
   color: white;
 }
 
@@ -685,7 +685,7 @@
   background: var(--payment-primary);
   color: white;
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(184, 1, 1, 0.3);
+  box-shadow: 0 10px 20px rgba(58, 146, 189, 0.3);
 }
 
 .text-primary {

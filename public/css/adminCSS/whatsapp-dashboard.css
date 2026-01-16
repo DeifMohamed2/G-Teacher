@@ -76,7 +76,7 @@
     margin-bottom: 16px;
     color: #ffffff;
     font-size: 24px;
-    box-shadow: 0 8px 20px rgba(184, 1, 1, 0.3);
+    box-shadow: 0 8px 20px rgba(58, 146, 189, 0.3);
 }
 
 .whatsapp-stat-number {
@@ -350,7 +350,7 @@
 }
 
 .dark-theme .session-action-btn:hover {
-    background: rgba(184, 1, 1, 0.1);
+    background: rgba(58, 146, 189, 0.1);
 }
 
 /* ========================================
@@ -425,7 +425,7 @@
 .template-category {
     display: inline-block;
     padding: 4px 8px;
-    background: rgba(184, 1, 1, 0.1);
+    background: rgba(58, 146, 189, 0.1);
     color: var(--admin-primary);
     border-radius: 6px;
     font-size: 11px;
@@ -554,7 +554,7 @@
 
 .bulk-form-control:focus {
     border-color: var(--admin-primary);
-    box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+    box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
     outline: none;
 }
 
@@ -582,7 +582,7 @@
 .bulk-form-submit:hover {
     background: linear-gradient(135deg, #dc2626, #b91c1c);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+    box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 /* ========================================
@@ -779,7 +779,7 @@
 }
 
 .whatsapp-hover-glow:hover {
-    box-shadow: 0 0 20px rgba(184, 1, 1, 0.3);
+    box-shadow: 0 0 20px rgba(58, 146, 189, 0.3);
 }
 
 /* ========================================
@@ -922,7 +922,7 @@
     margin: 0 auto 12px;
     color: #ffffff;
     font-size: 20px;
-    box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+    box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .admin-stat-item .admin-stat-number {
@@ -1244,7 +1244,7 @@
 .edit-form-control:focus {
     outline: none;
     border-color: var(--admin-primary);
-    box-shadow: 0 0 0 3px rgba(184, 1, 1, 0.1);
+    box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
 }
 
 .form-help {
