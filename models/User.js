@@ -19,12 +19,15 @@ const UserSchema = new mongoose.Schema(
     },
     studentNumber: {
       type: String,
-      required: true,
+      required: false, // Made optional for simplified registration
       unique: true,
+      sparse: true, // Allow multiple null values
       trim: true,
       validate: {
         validator: function (value) {
-          if (!value || !this.studentCountryCode) return false;
+          // Allow empty/null values for simplified registration
+          if (!value) return true;
+          if (!this.studentCountryCode) return true;
           const phoneLengthStandards = {
             '+966': 9, // Saudi Arabia
             '+20': 11, // Egypt
@@ -43,11 +46,13 @@ const UserSchema = new mongoose.Schema(
     },
     parentNumber: {
       type: String,
-      required: true,
+      required: false, // Made optional for simplified registration
       trim: true,
       validate: {
         validator: function (value) {
-          if (!value || !this.parentCountryCode) return false;
+          // Allow empty/null values for simplified registration
+          if (!value) return true;
+          if (!this.parentCountryCode) return true;
           const phoneLengthStandards = {
             '+966': 9, // Saudi Arabia
             '+20': 11, // Egypt
@@ -72,13 +77,13 @@ const UserSchema = new mongoose.Schema(
     },
     parentCountryCode: {
       type: String,
-      required: true,
+      required: false, // Made optional for simplified registration
       enum: ['+966', '+20', '+971', '+965'], // Saudi, Egypt, UAE, Kuwait
       default: '+966',
     },
     studentCountryCode: {
       type: String,
-      required: true,
+      required: false, // Made optional for simplified registration
       enum: ['+966', '+20', '+971', '+965'], // Saudi, Egypt, UAE, Kuwait
       default: '+966',
     },
@@ -99,15 +104,16 @@ const UserSchema = new mongoose.Schema(
     },
     schoolName: {
       type: String,
-      required: true,
+      required: false, // Made optional for simplified registration
       trim: true,
       minlength: 2,
       maxlength: 100,
     },
     grade: {
       type: String,
-      required: true,
+      required: false, // Made optional for simplified registration
       enum: [
+        'Year 6',
         'Year 7',
         'Year 8',
         'Year 9',
@@ -117,9 +123,15 @@ const UserSchema = new mongoose.Schema(
         'Year 13',
       ],
     },
+    curriculum: {
+      type: String,
+      required: false,
+      enum: ['IGCSE', 'American'],
+      trim: true,
+    },
     englishTeacher: {
       type: String,
-      required: true,
+      required: false, // Made optional for simplified registration
       trim: true,
       minlength: 2,
       maxlength: 100,
@@ -131,7 +143,7 @@ const UserSchema = new mongoose.Schema(
     },
     howDidYouKnow: {
       type: String,
-      required: true,
+      required: false, // Made optional for simplified registration
       trim: true,
       maxlength: 500,
     },

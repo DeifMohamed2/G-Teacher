@@ -16,25 +16,12 @@ const getLoginPage = (req, res) => {
 
 // Get register page
 const getRegisterPage = (req, res) => {
-  // Clear OTP verification status and OTP data on page load/refresh
-  // This ensures users start fresh if they refresh or navigate back
-  // BUT keep rate limiting data (attempts, blocked_until) to prevent abuse
-  delete req.session.student_phone_verified;
-  delete req.session.student_phone_number;
-  delete req.session.student_otp;
-  delete req.session.student_otp_expiry;
-  delete req.session.parent_phone_verified;
-  delete req.session.parent_phone_number;
-  delete req.session.parent_otp;
-  delete req.session.parent_otp_expiry;
+  // Clear any session data on page load/refresh
   delete req.session.lastSubmissionId;
-  // NOTE: We keep student_otp_attempts, student_otp_blocked_until,
-  // parent_otp_attempts, parent_otp_blocked_until to prevent abuse
 
   res.render('auth/register', {
     title: 'Register | ELKABLY',
     theme: req.cookies.theme || 'light',
-    studentPhoneVerified: false, // Always start fresh
   });
 };
 
@@ -382,157 +369,42 @@ const verifyOTP = async (req, res) => {
   }
 };
 
-// Register user
+// Register user (Simplified version - only firstName, lastName, username, email, password, password2)
 const registerUser = async (req, res) => {
   const {
     firstName,
     lastName,
-    studentNumber,
-    studentCountryCode,
-    parentNumber,
-    parentCountryCode,
-    studentEmail,
     username,
-    schoolName,
     grade,
-    englishTeacher,
+    curriculum,
+    howDidYouKnow,
+    howDidYouKnowOther,
+    email,
     password,
     password2,
-    howDidYouKnow,
-    submissionId, // Track submission attempts
+    termsAccepted,
   } = req.body;
-
-  // Check if this is a duplicate submission (browser refresh or back button)
-  // Only check if submissionId is provided
-  if (submissionId && req.session.lastSubmissionId === submissionId) {
-    console.log('Duplicate form submission detected:', submissionId);
-    req.flash(
-      'error_msg',
-      'Your registration is already being processed. Please do not refresh or resubmit the form.'
-    );
-    return res.redirect('/auth/register');
-  }
-
-  // Store current submission ID in session only if provided
-  if (submissionId) {
-    req.session.lastSubmissionId = submissionId;
-  }
 
   let errors = [];
 
-  // Verify OTP for student phone number
-  if (!req.session.student_phone_verified) {
-    errors.push({
-      msg: 'Student phone number must be verified with OTP before registration',
-      field: 'studentNumber',
-    });
-  }
-
-  // SECURITY: Verify student phone number matches the verified one (prevent tampering)
-  if (req.session.student_phone_verified) {
-    // Check if studentNumber and studentCountryCode are provided
-    if (!studentNumber || !studentCountryCode) {
-      errors.push({
-        msg: 'Student phone number and country code are required',
-        field: 'studentNumber',
-      });
-      // Clear verification to force re-verification
-      delete req.session.student_phone_verified;
-      delete req.session.student_phone_number;
-    } else {
-      const cleanStudentNumber = studentNumber.replace(/[^\d]/g, '');
-      const verifiedStudentPhone = req.session.student_phone_number || '';
-      const expectedStudentPhone = studentCountryCode + cleanStudentNumber;
-
-      if (
-        !verifiedStudentPhone ||
-        verifiedStudentPhone !== expectedStudentPhone
-      ) {
-        console.error('Security violation: Student phone number mismatch', {
-          verified: verifiedStudentPhone,
-          submitted: expectedStudentPhone,
-        });
-        errors.push({
-          msg: 'Student phone number does not match the verified number. Phone number cannot be changed after verification.',
-          field: 'studentNumber',
-        });
-        // Clear verification to force re-verification
-        delete req.session.student_phone_verified;
-        delete req.session.student_phone_number;
-      }
-    }
-  }
-
-  // If OTP verification failed, return early with errors
-  if (errors.length > 0) {
-    console.log('OTP verification errors:', errors);
-    return res.render('auth/register', {
-      title: 'Register | ELKABLY',
-      theme: req.cookies.theme || 'light',
-      errors,
-      firstName,
-      lastName,
-      studentNumber,
-      studentCountryCode,
-      parentNumber,
-      parentCountryCode,
-      studentEmail,
-      username,
-      schoolName,
-      grade,
-      englishTeacher,
-      howDidYouKnow,
-      studentPhoneVerified: req.session.student_phone_verified || false,
-    });
-  }
-
   // Check required fields
-  if (
-    !firstName ||
-    !lastName ||
-    !studentNumber ||
-    !studentCountryCode ||
-    !parentNumber ||
-    !parentCountryCode ||
-    !studentEmail ||
-    !username ||
-    !schoolName ||
-    !grade ||
-    !englishTeacher ||
-    !password ||
-    !password2 ||
-    !howDidYouKnow
-  ) {
+  if (!firstName || !lastName || !username || !grade || !curriculum || !email || !password || !password2) {
     errors.push({ msg: 'Please fill in all required fields' });
   }
 
   // Validate first name
   if (firstName && (firstName.length < 2 || firstName.length > 50)) {
-    errors.push({ msg: 'First name must be between 2 and 50 characters' });
+    errors.push({ msg: 'First name must be between 2 and 50 characters', field: 'firstName' });
   }
 
   // Validate last name
   if (lastName && (lastName.length < 2 || lastName.length > 50)) {
-    errors.push({ msg: 'Last name must be between 2 and 50 characters' });
-  }
-
-  // Validate student number
-  if (
-    studentNumber &&
-    (studentNumber.length < 1 || studentNumber.length > 20)
-  ) {
-    errors.push({ msg: 'Student number must be between 1 and 20 characters' });
-  }
-
-  // Validate student email format
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (studentEmail && !emailRegex.test(studentEmail)) {
-    errors.push({ msg: 'Please enter a valid email address' });
+    errors.push({ msg: 'Last name must be between 2 and 50 characters', field: 'lastName' });
   }
 
   // Validate username
   if (username && (username.length < 3 || username.length > 30)) {
-    errors.push({ msg: 'Username must be between 3 and 30 characters' });
+    errors.push({ msg: 'Username must be between 3 and 30 characters', field: 'username' });
   }
 
   // Validate username format (alphanumeric and underscores only)
@@ -540,121 +412,29 @@ const registerUser = async (req, res) => {
   if (username && !usernameRegex.test(username)) {
     errors.push({
       msg: 'Username can only contain letters, numbers, and underscores',
+      field: 'username',
     });
+  }
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (email && !emailRegex.test(email)) {
+    errors.push({ msg: 'Please enter a valid email address', field: 'email' });
   }
 
   // Check passwords match
   if (password !== password2) {
-    errors.push({ msg: 'Passwords do not match' });
+    errors.push({ msg: 'Passwords do not match', field: 'password2' });
   }
 
   // Check password strength
   if (password && password.length < 6) {
-    errors.push({ msg: 'Password must be at least 6 characters long' });
+    errors.push({ msg: 'Password must be at least 6 characters long', field: 'password' });
   }
 
-  // Validate country codes
-  const validCountryCodes = ['+966', '+20', '+971', '+965'];
-  if (studentCountryCode && !validCountryCodes.includes(studentCountryCode)) {
-    errors.push({
-      msg: 'Please select a valid country code for student number',
-    });
-  }
-  if (parentCountryCode && !validCountryCodes.includes(parentCountryCode)) {
-    errors.push({
-      msg: 'Please select a valid country code for parent number',
-    });
-  }
-
-  // Phone number length standards by country code
-  const phoneLengthStandards = {
-    '+966': 9, // Saudi Arabia: 9 digits
-    '+20': 11, // Egypt: 11 digits (including leading 0)
-    '+971': 9, // UAE: 9 digits
-    '+965': 8, // Kuwait: 8 digits
-  };
-
-  // Check if student and parent numbers are the same
-  if (
-    studentNumber &&
-    parentNumber &&
-    studentNumber.trim() === parentNumber.trim() &&
-    studentCountryCode === parentCountryCode
-  ) {
-    errors.push({ msg: 'Student and parent phone numbers cannot be the same' });
-  }
-
-  // Validate phone number lengths based on country
-  if (studentNumber && studentCountryCode) {
-    const cleanStudentNumber = studentNumber.replace(/[^\d]/g, '');
-    const expectedLength = phoneLengthStandards[studentCountryCode];
-    if (expectedLength && cleanStudentNumber.length !== expectedLength) {
-      errors.push({
-        msg: `Student number must be ${expectedLength} digits for the selected country`,
-      });
-    }
-  }
-
-  if (parentNumber && parentCountryCode) {
-    const cleanParentNumber = parentNumber.replace(/[^\d]/g, '');
-    const expectedLength = phoneLengthStandards[parentCountryCode];
-    if (expectedLength && cleanParentNumber.length !== expectedLength) {
-      errors.push({
-        msg: `Parent number must be ${expectedLength} digits for the selected country`,
-      });
-    }
-  }
-
-  // Basic phone number format validation (digits, spaces, hyphens, parentheses only)
-  const phoneRegex = /^[\d\s\-\(\)]+$/;
-  if (parentNumber && !phoneRegex.test(parentNumber)) {
-    errors.push({
-      msg: 'Parent phone number can only contain digits, spaces, hyphens, and parentheses',
-    });
-  }
-  if (studentNumber && !phoneRegex.test(studentNumber)) {
-    errors.push({
-      msg: 'Student phone number can only contain digits, spaces, hyphens, and parentheses',
-    });
-  }
-
-  // Validate school name
-  if (schoolName && (schoolName.length < 2 || schoolName.length > 100)) {
-    errors.push({ msg: 'School name must be between 2 and 100 characters' });
-  }
-
-  // Validate grade
-  const validGrades = [
-    'Year 7',
-    'Year 8',
-    'Year 9',
-    'Year 10',
-    'Year 11',
-    'Year 12',
-    'Year 13',
-  ];
-  if (grade && !validGrades.includes(grade)) {
-    errors.push({ msg: 'Please select a valid grade' });
-  }
-
-  // Validate English teacher name
-  if (
-    englishTeacher &&
-    (englishTeacher.length < 2 || englishTeacher.length > 100)
-  ) {
-    errors.push({
-      msg: 'English teacher name must be between 2 and 100 characters',
-    });
-  }
-
-  // Validate how did you know response
-  if (howDidYouKnow && howDidYouKnow.length > 500) {
-    errors.push({ msg: 'Response must be less than 500 characters' });
-  }
-  if (howDidYouKnow && howDidYouKnow.trim().length < 5) {
-    errors.push({
-      msg: 'Please tell us how you heard about Mr Kably (at least 5 characters)',
-    });
+  // Check terms acceptance
+  if (!termsAccepted) {
+    errors.push({ msg: 'You must accept the terms of service', field: 'termsCheck' });
   }
 
   if (errors.length > 0) {
@@ -664,34 +444,27 @@ const registerUser = async (req, res) => {
       errors,
       firstName,
       lastName,
-      studentNumber,
-      studentCountryCode,
-      parentNumber,
-      parentCountryCode,
-      studentEmail,
       username,
-      schoolName,
       grade,
-      englishTeacher,
+      curriculum,
       howDidYouKnow,
-      studentPhoneVerified: req.session.student_phone_verified || false,
+      howDidYouKnowOther,
+      email,
     });
   }
 
   try {
     // Check for existing user data in parallel for better performance
-    const [existingEmail, existingUsername, existingStudentNumber] =
-      await Promise.all([
-        User.findOne({ studentEmail: studentEmail.toLowerCase() }),
-        User.findOne({ username: username.trim() }),
-        User.findOne({ studentNumber: studentNumber.trim() }),
-      ]);
+    const [existingEmail, existingUsername] = await Promise.all([
+      User.findOne({ studentEmail: email.toLowerCase() }),
+      User.findOne({ username: username.trim() }),
+    ]);
 
     // Collect all validation errors at once
     if (existingEmail) {
       errors.push({
-        msg: 'Student email is already registered',
-        field: 'studentEmail',
+        msg: 'Email is already registered',
+        field: 'email',
       });
     }
 
@@ -699,13 +472,6 @@ const registerUser = async (req, res) => {
       errors.push({
         msg: 'Username is already taken',
         field: 'username',
-      });
-    }
-
-    if (existingStudentNumber) {
-      errors.push({
-        msg: 'Student number is already registered',
-        field: 'studentNumber',
       });
     }
 
@@ -718,77 +484,33 @@ const registerUser = async (req, res) => {
         errors,
         firstName,
         lastName,
-        studentNumber,
-        studentCountryCode,
-        parentNumber,
-        parentCountryCode,
-        studentEmail,
         username,
-        schoolName,
-        grade,
-        englishTeacher,
-        howDidYouKnow,
+        email,
       });
     }
 
-    // Create new user
+    // Create new user with registration data
     const newUser = new User({
       firstName: firstName.trim(),
       lastName: lastName.trim(),
-      studentNumber: studentNumber.trim(),
-      studentCountryCode: studentCountryCode,
-      parentNumber: parentNumber.trim(),
-      parentCountryCode: parentCountryCode,
-      studentEmail: studentEmail.toLowerCase().trim(),
+      studentEmail: email.toLowerCase().trim(),
       username: username.trim(),
-      schoolName: schoolName.trim(),
-      grade,
-      englishTeacher: englishTeacher.trim(),
       password,
-      howDidYouKnow: howDidYouKnow.trim(),
+      grade: grade,
+      curriculum: curriculum,
+      howDidYouKnow: howDidYouKnow === 'Other' ? howDidYouKnowOther?.trim() : howDidYouKnow,
       isActive: true, // Students are automatically active upon registration
-      isCompleteData: true, // Normal registration provides all required data
+      isCompleteData: true, // Profile data is now complete with new fields
     });
 
     const savedUser = await newUser.save();
 
-    // Clear OTP verification flags after successful registration
-    delete req.session.student_phone_verified;
-    delete req.session.student_phone_number;
-    delete req.session.student_otp;
-    delete req.session.student_otp_expiry;
-    // Clear rate limiting counters after successful registration
-    delete req.session.student_otp_attempts;
-    delete req.session.student_otp_blocked_until;
+    // Flash success message and redirect to login
+    req.flash('success_msg', 'Registration successful! You can now log in with your credentials.');
+    return res.redirect('/auth/login');
 
-    // Send student data to online system API
-    try {
-      await sendStudentToOnlineSystem(savedUser);
-    } catch (apiError) {
-      console.error('Failed to sync with online system:', apiError);
-      // Continue with registration process even if API call fails
-    }
-
-    // Send WhatsApp welcome message to parent
-    try {
-      await whatsappSMSNotificationService.sendWelcomeMessage(savedUser._id);
-    } catch (whatsappError) {
-      console.error('WhatsApp welcome message error:', whatsappError);
-      // Don't fail the registration if WhatsApp fails
-    }
-
-    // Show success page with student code
-    res.render('auth/registration-success', {
-      title: 'Registration Successful | ELKABLY',
-      theme: req.cookies.theme || 'light',
-      studentName: savedUser.name,
-      studentCode: savedUser.studentCode,
-    });
   } catch (err) {
     console.error('Registration error:', err);
-
-    // Reset submission ID to allow retrying
-    req.session.lastSubmissionId = null;
 
     // Handle mongoose validation errors
     if (err.name === 'ValidationError') {
@@ -806,16 +528,8 @@ const registerUser = async (req, res) => {
         errors,
         firstName,
         lastName,
-        studentNumber,
-        studentCountryCode,
-        parentNumber,
-        parentCountryCode,
-        studentEmail,
         username,
-        schoolName,
-        grade,
-        englishTeacher,
-        howDidYouKnow,
+        email,
       });
     }
 
@@ -837,31 +551,10 @@ const registerUser = async (req, res) => {
         errors,
         firstName,
         lastName,
-        studentNumber,
-        studentCountryCode,
-        parentNumber,
-        parentCountryCode,
-        studentEmail,
         username,
-        schoolName,
-        grade,
-        englishTeacher,
-        howDidYouKnow,
+        email,
       });
     }
-
-    // Handle network errors with API
-    if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND') {
-      console.error('Network error during registration:', err);
-      req.flash(
-        'error_msg',
-        'Network connection issue. Your registration is saved but some services may be unavailable. Please try logging in.'
-      );
-      return res.redirect('/auth/login');
-    }
-
-    // Log the full error for debugging
-    console.error('Unhandled registration error:', err);
 
     // Generic error for other cases
     req.flash(

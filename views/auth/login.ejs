@@ -1,13 +1,81 @@
 <%- include('../partials/header') %>
 
-<!-- Flash messages are now handled in the header partial -->
-
-<!-- Critical CSS to prevent FOUC for logo -->
+<!-- Modern Auth Page Styles -->
 <style>
-  /* Prevent FOUC for auth logo - Critical styles loaded immediately */
-  .auth-logo-icon {
-    width: 120px;
-    height: 120px;
+  /* Auth Container */
+  .auth-page {
+    min-height: 100vh;
+    display: flex;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  }
+  
+  .dark-theme .auth-page {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  }
+  
+  /* Left Panel - Branding */
+  .auth-brand-panel {
+    flex: 0 0 45%;
+    max-width: 45%;
+    background: linear-gradient(145deg, #3a92bd 0%, #0c5374 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Floating shapes */
+  .auth-shape {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.1;
+    background: white;
+  }
+  
+  .auth-shape-1 {
+    width: 300px;
+    height: 300px;
+    top: -100px;
+    left: -100px;
+  }
+  
+  .auth-shape-2 {
+    width: 200px;
+    height: 200px;
+    bottom: -50px;
+    right: -50px;
+  }
+  
+  .auth-shape-3 {
+    width: 150px;
+    height: 150px;
+    top: 50%;
+    right: 10%;
+    opacity: 0.05;
+  }
+  
+  .auth-shape-4 {
+    width: 100px;
+    height: 100px;
+    bottom: 30%;
+    left: 5%;
+    opacity: 0.08;
+  }
+  
+  /* Brand Content */
+  .auth-brand-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: white;
+  }
+  
+  .auth-logo-wrapper {
+    width: 140px;
+    height: 140px;
     background: rgba(255, 255, 255, 0.15);
     border-radius: 50%;
     display: flex;
@@ -15,175 +83,605 @@
     justify-content: center;
     margin: 0 auto 30px;
     backdrop-filter: blur(10px);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: 3px solid rgba(255, 255, 255, 0.25);
+    animation: logoFloat 6s ease-in-out infinite;
   }
   
-  .auth-main-logo {
-    width: 80px !important;
-    height: 80px !important;
-    object-fit: contain !important;
-    border-radius: 50% !important;
-    background: white !important;
-    padding: 10px !important;
-    display: block !important;
-    max-width: 100%;
-    height: auto;
+  @keyframes logoFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  .auth-logo-img {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    border-radius: 50%;
+    background: white;
+    padding: 12px;
+  }
+  
+  .auth-brand-name {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    letter-spacing: -0.5px;
+  }
+  
+  .auth-brand-tagline {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    font-weight: 300;
+    line-height: 1.6;
+  }
+  
+  /* Feature highlights */
+  .auth-highlights {
+    margin-top: 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .auth-highlight-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease;
+  }
+  
+  .auth-highlight-item:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateX(8px);
+  }
+  
+  .auth-highlight-item i {
+    font-size: 1.3rem;
+    width: 24px;
+    text-align: center;
+    opacity: 0.9;
+  }
+  
+  .auth-highlight-item span {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  
+  /* Right Panel - Form */
+  .auth-form-panel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    background: white;
+  }
+  
+  .dark-theme .auth-form-panel {
+    background: #1e293b;
+  }
+  
+  .auth-form-wrapper {
+    width: 100%;
+    max-width: 440px;
+  }
+  
+  /* Back to home link */
+  .auth-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+  }
+  
+  .auth-back-link:hover {
+    color: #3a92bd;
+  }
+  
+  .dark-theme .auth-back-link {
+    color: #94a3b8;
+  }
+  
+  .dark-theme .auth-back-link:hover {
+    color: #5fb3d9;
+  }
+  
+  /* Form Header */
+  .auth-form-header {
+    margin-bottom: 35px;
+    text-align: center;
+  }
+  
+  .auth-form-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  
+  .auth-form-title i {
+    color: #3a92bd;
+    font-size: 1.8rem;
+  }
+  
+  .dark-theme .auth-form-title {
+    color: #f1f5f9;
+  }
+  
+  .auth-form-subtitle {
+    font-size: 1rem;
+    color: #64748b;
+  }
+  
+  .dark-theme .auth-form-subtitle {
+    color: #94a3b8;
+  }
+  
+  /* Alert styles */
+  .auth-alert {
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border: none;
+    background: #fef2f2;
+    border-left: 4px solid #ef4444;
+  }
+  
+  .auth-alert strong {
+    color: #dc2626;
+  }
+  
+  .auth-alert ul {
+    margin-bottom: 0;
+    padding-left: 18px;
+    color: #7f1d1d;
+  }
+  
+  .dark-theme .auth-alert {
+    background: rgba(239, 68, 68, 0.1);
+  }
+  
+  .dark-theme .auth-alert ul {
+    color: #fca5a5;
+  }
+  
+  /* Form Groups */
+  .form-group {
+    margin-bottom: 22px;
+  }
+  
+  .form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+  }
+  
+  .form-label i {
+    color: #3a92bd;
+    font-size: 0.95rem;
+    width: 16px;
+    text-align: center;
+  }
+  
+  .dark-theme .form-label {
+    color: #e2e8f0;
+  }
+  
+  .input-wrapper {
+    position: relative;
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 1rem;
+    background: #f8fafc;
+    color: #1e293b;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+  
+  .form-input:focus {
+    border-color: #3a92bd;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
+  }
+  
+  .form-input::placeholder {
+    color: #94a3b8;
+  }
+  
+  .dark-theme .form-input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+  
+  .dark-theme .form-input:focus {
+    border-color: #3a92bd;
+    background: #1e293b;
+    box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.15);
+  }
+  
+  .dark-theme .form-input::placeholder {
+    color: #64748b;
+  }
+  
+  .form-hint {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 6px;
+  }
+  
+  .dark-theme .form-hint {
+    color: #94a3b8;
+  }
+  
+  /* Password toggle */
+  .btn-password-toggle {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-password-toggle:hover {
+    color: #3a92bd;
+    background: rgba(58, 146, 189, 0.1);
+  }
+  
+  /* Form options row */
+  .form-options-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 25px 0;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  /* Checkbox styling */
+  .checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .checkbox-input {
+    width: 18px;
+    height: 18px;
+    accent-color: #3a92bd;
+    cursor: pointer;
+  }
+  
+  .checkbox-label {
+    font-size: 0.9rem;
+    color: #475569;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  
+  .dark-theme .checkbox-label {
+    color: #cbd5e1;
+  }
+  
+  /* Forgot password link */
+  .forgot-link {
+    color: #3a92bd;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+  
+  .forgot-link:hover {
+    color: #0c5374;
+    text-decoration: underline;
+  }
+  
+  .dark-theme .forgot-link {
+    color: #5fb3d9;
+  }
+  
+  .dark-theme .forgot-link:hover {
+    color: #8fd4f0;
+  }
+  
+  /* Submit Button */
+  .btn-submit {
+    width: 100%;
+    padding: 16px 28px;
+    background: linear-gradient(135deg, #3a92bd 0%, #0c5374 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-submit::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+  }
+  
+  .btn-submit:hover::before {
+    left: 100%;
+  }
+  
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(58, 146, 189, 0.35);
+  }
+  
+  .btn-submit:active {
+    transform: translateY(0);
+  }
+  
+  .btn-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  /* Form footer */
+  .auth-form-footer {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 1px solid #e2e8f0;
+  }
+  
+  .dark-theme .auth-form-footer {
+    border-top-color: #334155;
+  }
+  
+  .auth-form-footer p {
+    color: #64748b;
+    font-size: 0.95rem;
+  }
+  
+  .dark-theme .auth-form-footer p {
+    color: #94a3b8;
+  }
+  
+  .auth-switch-link {
+    color: #3a92bd;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+  }
+  
+  .auth-switch-link:hover {
+    color: #0c5374;
+  }
+  
+  .dark-theme .auth-switch-link {
+    color: #5fb3d9;
+  }
+  
+  .dark-theme .auth-switch-link:hover {
+    color: #8fd4f0;
+  }
+  
+  /* Error field highlighting */
+  .field-error {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+  }
+  
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .auth-brand-panel {
+      flex: 0 0 40%;
+      max-width: 40%;
+    }
+    
+    .auth-brand-name {
+      font-size: 2.5rem;
+    }
+    
+    .auth-highlights {
+      display: none;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .auth-page {
+      flex-direction: column;
+    }
+    
+    .auth-brand-panel {
+      flex: none;
+      max-width: 100%;
+      padding: 40px 30px;
+    }
+    
+    .auth-logo-wrapper {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 20px;
+    }
+    
+    .auth-logo-img {
+      width: 60px;
+      height: 60px;
+      padding: 8px;
+    }
+    
+    .auth-brand-name {
+      font-size: 2rem;
+    }
+    
+    .auth-brand-tagline {
+      font-size: 1rem;
+    }
+    
+    .auth-form-panel {
+      padding: 30px 20px;
+    }
+    
+    .auth-form-title {
+      font-size: 1.6rem;
+    }
   }
 </style>
 
-<!-- Modern Split-Screen Auth Layout -->
-<div class="auth-container-modern">
-  <!-- Left Side - Branding & Visual -->
-  <div class="auth-visual-section">
-    <div class="auth-visual-overlay"></div>
-    <div class="auth-particles" id="auth-particles"></div>
+<!-- Auth Page -->
+<div class="auth-page">
+  <!-- Left Brand Panel -->
+  <div class="auth-brand-panel">
+    <!-- Floating shapes -->
+    <div class="auth-shape auth-shape-1"></div>
+    <div class="auth-shape auth-shape-2"></div>
+    <div class="auth-shape auth-shape-3"></div>
+    <div class="auth-shape auth-shape-4"></div>
     
-    <!-- Floating Math Elements -->
-    <div class="math-shape-auth auth-shape1 floating-element"></div>
-    <div class="math-shape-auth auth-shape2 floating-element"></div>
-    <div class="math-shape-auth auth-shape3 floating-element"></div>
-    <div class="math-shape-auth auth-shape4 floating-element"></div>
-    
-    <!-- Brand Content -->
+    <!-- Brand content -->
     <div class="auth-brand-content">
-      <div class="auth-logo-container">
-        <div class="auth-logo-icon">
-          <img src="/images/K.png" alt="Elkably Logo" class="auth-main-logo" 
-               style="width: 80px; height: 80px; object-fit: contain; border-radius: 50%; background: white; padding: 10px; display: block; max-width: 100%;">
-        </div>
-        <h1 class="auth-brand-title">Elkably</h1>
-        <p class="auth-brand-subtitle">Math Is <br> Root of Knowledge</p>
+      <div class="auth-logo-wrapper">
+        <img src="/images/G-TeacherLogo.png" alt="G-Teacher Logo" class="auth-logo-img">
       </div>
+      <h1 class="auth-brand-name"><span style="color: rgba(255,255,255,0.9)">G</span>-Teacher</h1>
+      <p class="auth-brand-tagline">IGCSE Academy<br>Premium Learning Platform</p>
       
-      <div class="auth-features">
-        <div class="auth-feature-item" data-aos="fade-right" data-aos-delay="100">
-          <img src="/images/ESTLOGO.jpg" alt="EST" class="auth-feature-logo">
-          <span>EST</span>
+      <!-- Highlights -->
+      <div class="auth-highlights">
+        <div class="auth-highlight-item">
+          <i class="fas fa-graduation-cap"></i>
+          <span>Expert IGCSE Tutoring</span>
         </div>
-        <div class="auth-feature-item" data-aos="fade-right" data-aos-delay="200">
-          <img src="/images/SATLOGO.jpg" alt="SAT" class="auth-feature-logo">
-          <span>D-SAT</span>
+        <div class="auth-highlight-item">
+          <i class="fas fa-video"></i>
+          <span>Live & Recorded Courses</span>
         </div>
-        <div class="auth-feature-item" data-aos="fade-right" data-aos-delay="300">
-          <img src="/images/ACTLOGO.jpg" alt="ACT" class="auth-feature-logo">
-          <span>ACT</span>
+        <div class="auth-highlight-item">
+          <i class="fas fa-chart-line"></i>
+          <span>Track Your Progress</span>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- Right Side - Login Form -->
-  <div class="auth-form-section">
-    <div class="auth-form-container">
+  
+  <!-- Right Form Panel -->
+  <div class="auth-form-panel">
+    <div class="auth-form-wrapper">
       <!-- Header -->
       <div class="auth-form-header">
         <h2 class="auth-form-title">
-          <i class="fas fa-sign-in-alt me-2"></i>
+          <i class="fas fa-sign-in-alt"></i>
           Welcome Back
         </h2>
-        <p class="auth-form-subtitle">Sign in to continue your math journey</p>
+        <p class="auth-form-subtitle">Sign in to continue your learning journey</p>
       </div>
-
-      <!-- Display Errors -->
+      
+      <!-- Error Alert -->
       <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
-      <div class="alert alert-danger auth-alert" role="alert" id="errorAlert">
-        <div class="d-flex align-items-center">
-          <i class="fas fa-exclamation-triangle me-2"></i>
-          <strong>Login Failed!</strong>
-        </div>
+      <div class="auth-alert" role="alert">
+        <strong><i class="fas fa-exclamation-triangle me-2"></i>Login Failed!</strong>
         <hr class="my-2">
-        <ul class="mb-0">
+        <ul>
           <% errors.forEach(function(error) { %>
-          <li data-field="<%= error.field || '' %>"><%= error.msg %></li>
+          <li><%= error.msg %></li>
           <% }); %>
         </ul>
       </div>
-      <script>
-        // Highlight fields with errors when the page loads
-        document.addEventListener('DOMContentLoaded', function() {
-          const errorItems = document.querySelectorAll('#errorAlert li[data-field]');
-          errorItems.forEach(item => {
-            const fieldName = item.getAttribute('data-field');
-            if (fieldName) {
-              const field = document.getElementById(fieldName);
-              if (field) {
-                field.classList.add('is-invalid');
-                field.classList.add('field-with-error');
-                
-                // Focus on first field with error
-                if (field === document.querySelector('.field-with-error')) {
-                  setTimeout(() => {
-                    field.focus();
-                  }, 500);
-                }
-              }
-            }
-          });
-          
-          // Add animation to error alert
-          const errorAlert = document.getElementById('errorAlert');
-          if (errorAlert) {
-            errorAlert.style.animation = 'shake 0.5s ease-in-out';
-          }
-        });
-      </script>
       <% } %>
-
+      
       <!-- Login Form -->
-      <form action="/auth/login" method="POST" class="auth-form">
-        <div class="form-group-modern">
-          <label for="email" class="form-label-modern">
-            <i class="fas fa-user form-label-icon"></i>
-            Email, Phone Number, or Username
+      <form action="/auth/login" method="POST" id="loginForm">
+        <div class="form-group">
+          <label for="email" class="form-label">
+            <i class="fas fa-user"></i>
+            Email, Phone, or Username
           </label>
-          <div class="input-group-modern">
-            <input type="text" id="email" name="email" class="form-control-modern" 
-                   placeholder="Enter your email, phone number, or username" 
+          <div class="input-wrapper">
+            <input type="text" id="email" name="email" class="form-input" 
+                   placeholder="Enter your email, phone, or username" 
                    value="<%= typeof email != 'undefined' ? email : '' %>" 
                    autocomplete="username" required>
-            <div class="input-focus-line"></div>
           </div>
-          <div class="form-text-modern">You can login with your email address, phone number, or username.</div>
+          <p class="form-hint">You can login with email, phone number, or username</p>
         </div>
-
-        <div class="form-group-modern">
-          <label for="password" class="form-label-modern">
-            <i class="fas fa-lock form-label-icon"></i>
+        
+        <div class="form-group">
+          <label for="password" class="form-label">
+            <i class="fas fa-lock"></i>
             Password
           </label>
-          <div class="input-group-modern">
-            <input type="password" id="password" name="password" class="form-control-modern" 
+          <div class="input-wrapper">
+            <input type="password" id="password" name="password" class="form-input" 
                    placeholder="Enter your password" 
                    autocomplete="current-password" required>
-            <button class="btn-toggle-password" type="button" id="togglePassword">
+            <button type="button" class="btn-password-toggle" onclick="togglePassword('password')">
               <i class="fas fa-eye"></i>
             </button>
-            <div class="input-focus-line"></div>
           </div>
         </div>
-
-        <div class="form-options">
-          <div class="form-check-modern">
-            <input type="checkbox" class="form-check-input-modern" id="rememberMe" name="rememberMe" value="true">
-            <label class="form-check-label-modern" for="rememberMe">
-              Remember me for 30 days
-            </label>
+        
+        <div class="form-options-row">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="rememberMe" name="rememberMe" class="checkbox-input" value="true">
+            <label for="rememberMe" class="checkbox-label">Remember me for 30 days</label>
           </div>
-          <a href="/auth/forgot-password" class="forgot-password-link">Forgot Password?</a>
+          <a href="/auth/forgot-password" class="forgot-link">Forgot Password?</a>
         </div>
-
-        <button type="submit" class="btn-auth-primary">
-          <span class="btn-text">Sign In</span>
-          <i class="fas fa-arrow-right btn-icon"></i>
-          <div class="btn-ripple"></div>
+        
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <span>Sign In</span>
+          <i class="fas fa-arrow-right"></i>
         </button>
       </form>
-
+      
       <!-- Footer -->
       <div class="auth-form-footer">
         <p>Don't have an account? 
-          <a href="/auth/register" class="auth-link-modern">
-            <span>Create Account</span>
+          <a href="/auth/register" class="auth-switch-link">
+            Create Account
             <i class="fas fa-arrow-right"></i>
           </a>
         </p>
@@ -192,282 +690,49 @@
   </div>
 </div>
 
-<!-- Theme Manager -->
-<script src="/js/theme-manager.js"></script>
-
-<!-- Auth Common JavaScript -->
-<script src="/js/auth-common.js"></script>
-
-<!-- Auth Animations -->
-<script src="/js/auth-animations.js"></script>
-
-<!-- Login Checkbox Styling -->
-<style>
-/* Auth Logo Image Styling */
-.auth-main-logo {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
-  border-radius: 50%;
-  background: white;
-  padding: 10px;
-}
-
-/* Auth Feature Logo Styling */
-.auth-feature-logo {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  border-radius: 8px;
-  background: white;
-  padding: 5px;
-}
-
-/* Error animation */
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
-
-/* Field error highlighting */
-.field-with-error {
-  border-color: #dc3545 !important;
-  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
-  animation: shake 0.5s ease-in-out;
-}
-
-.field-with-error + .input-focus-line {
-  background-color: #dc3545 !important;
-}
-
-/* Error alert enhancements */
-#errorAlert {
-  border-left: 4px solid #dc3545;
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.15);
-}
-
-/* Remember Me Checkbox Styling */
-.form-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 20px 0;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.form-check-modern {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  background: none;
-  border: none;
-}
-
-.form-check-input-modern {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  cursor: pointer;
-  accent-color: #dc2626;
-  border-radius: 4px;
-  border: 2px solid #d1d5db;
-  background-color: #fff;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-}
-
-.form-check-input-modern:checked {
-  background-color: #dc2626;
-  border-color: #dc2626;
-}
-
-.form-check-input-modern:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-}
-
-.form-check-label-modern {
-  font-size: 14px;
-  line-height: 1.4;
-  color: #374151;
-  cursor: pointer;
-  margin: 0;
-  font-weight: 500;
-}
-
-.forgot-password-link {
-  color: #dc2626;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-
-.forgot-password-link:hover {
-  color: #b91c1c;
-  text-decoration: underline;
-}
-
-/* Dark theme support for checkbox */
-.dark-theme .form-check-input-modern {
-  background-color: #1f2937;
-  border-color: #6b7280;
-}
-
-.dark-theme .form-check-input-modern:checked {
-  background-color: #ef4444;
-  border-color: #ef4444;
-}
-
-.dark-theme .form-check-input-modern:focus {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-.dark-theme .form-check-label-modern {
-  color: #d1d5db;
-}
-
-.dark-theme .forgot-password-link {
-  color: #ef4444;
-}
-
-.dark-theme .forgot-password-link:hover {
-  color: #fca5a5;
-}
-
-/* Responsive design for checkbox */
-@media (max-width: 768px) {
-  .form-options {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
-  
-  .form-check-modern {
-    gap: 8px;
-  }
-  
-  .form-check-input-modern {
-    width: 16px;
-    height: 16px;
-  }
-  
-  .form-check-label-modern {
-    font-size: 13px;
-  }
-  
-  .forgot-password-link {
-    font-size: 13px;
-  }
-}
-</style>
-
-<!-- Login Form JavaScript -->
+<!-- JavaScript -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const loginForm = document.querySelector('.auth-form');
-  const submitBtn = document.querySelector('.btn-auth-primary');
-  const rememberMeCheckbox = document.getElementById('rememberMe');
-
-  // Handle form submission with loading state
-  if (loginForm) {
-    loginForm.addEventListener('submit', function(e) {
-      // Get form data for validation
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-
-      // Basic validation
-      if (!email || !password) {
-        e.preventDefault();
-        showError('Please fill in all required fields');
-        return false;
-      }
-
-      // Show loading state
-      setLoadingState(true);
-      
-      // Add a hidden field to track submission attempts
-      const submissionIdField = document.createElement('input');
-      submissionIdField.type = 'hidden';
-      submissionIdField.name = 'submissionId';
-      submissionIdField.value = Date.now().toString();
-      loginForm.appendChild(submissionIdField);
-      
-      // Allow form to submit naturally
-      return true;
-    });
+  // Toggle password visibility
+  function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const icon = field.parentElement.querySelector('.btn-password-toggle i');
+    
+    if (field.type === 'password') {
+      field.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      field.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
   }
   
-  // Reset loading state when page loads (in case of errors)
+  // Form submission handling
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const submitBtn = document.getElementById('submitBtn');
+    
+    if (!email || !password) {
+      e.preventDefault();
+      return;
+    }
+    
+    // Loading state
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span>Signing In...</span><i class="fas fa-spinner fa-spin"></i>';
+  });
+  
+  // Reset button on page load (for back button scenarios)
   window.addEventListener('load', function() {
-    if (submitBtn && submitBtn.disabled) {
-      setLoadingState(false);
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn.disabled) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<span>Sign In</span><i class="fas fa-arrow-right"></i>';
     }
   });
-
-  // Handle remember me checkbox change
-  if (rememberMeCheckbox) {
-    rememberMeCheckbox.addEventListener('change', function() {
-      console.log('Remember me:', this.checked);
-    });
-  }
-
-  function showError(message) {
-    // Create error message element
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'alert alert-danger auth-alert';
-    errorDiv.innerHTML = `
-      <div class="d-flex align-items-center">
-        <i class="fas fa-exclamation-triangle me-2"></i>
-        <strong>Login Failed!</strong>
-      </div>
-      <hr class="my-2">
-      <p class="mb-0">${message}</p>
-    `;
-
-    // Insert before form
-    const formContainer = document.querySelector('.auth-form-container');
-    if (formContainer) {
-      const existingAlert = formContainer.querySelector('.alert');
-      if (existingAlert) {
-        existingAlert.remove();
-      }
-      formContainer.insertBefore(errorDiv, formContainer.firstChild);
-      
-      // Scroll to error
-      errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }
-
-  function setLoadingState(loading) {
-    if (submitBtn) {
-      if (loading) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = `
-          <span class="btn-text">Signing In...</span>
-          <i class="fas fa-spinner fa-spin btn-icon"></i>
-          <div class="btn-ripple"></div>
-        `;
-      } else {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = `
-          <span class="btn-text">Sign In</span>
-          <i class="fas fa-arrow-right btn-icon"></i>
-          <div class="btn-ripple"></div>
-        `;
-      }
-    }
-  }
-
-  // Auto-focus on email field
-  const emailInput = document.getElementById('email');
-  if (emailInput) {
-    emailInput.focus();
-  }
-});
 </script>
+
+<%- include('../partials/footer') %>
 
