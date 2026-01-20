@@ -1,7 +1,7 @@
 const wasender = require('../utils/wasender');
 const User = require('../models/User');
 const Course = require('../models/Course');
-const BundleCourse = require('../models/BundleCourse');
+const Teacher = require('../models/Teacher');
 const whatsappSMSNotificationService = require('../utils/whatsappSMSNotificationService');
 const QRCode = require('qrcode');
 
@@ -22,7 +22,7 @@ const getWhatsAppDashboard = async (req, res) => {
     const stats = {
       totalStudents: await User.countDocuments({ role: 'student', isActive: true }),
       totalCourses: await Course.countDocuments(),
-      totalBundles: await BundleCourse.countDocuments()
+      totalTeachers: await Teacher.countDocuments({ isActive: true })
     };
 
     res.render('admin/whatsapp-dashboard', {
@@ -282,8 +282,6 @@ const sendBulkMessage = async (req, res) => {
       result = await whatsappSMSNotificationService.sendMessageToAllStudents(customMessage);
     } else if (targetType === 'course' && targetId) {
       result = await whatsappSMSNotificationService.sendMessageToCourseStudents(targetId, customMessage);
-    } else if (targetType === 'bundle' && targetId) {
-      result = await whatsappSMSNotificationService.sendMessageToBundleStudents(targetId, customMessage);
     } else {
       return res.status(400).json({
         success: false,
@@ -371,7 +369,8 @@ const getStudentsForMessaging = async (req, res) => {
 const getCoursesForMessaging = async (req, res) => {
   try {
     const courses = await Course.find({ isActive: true })
-      .select('title _id')
+      .populate('teacher', 'firstName lastName')
+      .select('title _id teacher')
       .sort({ title: 1 });
     
     res.json({
@@ -383,26 +382,6 @@ const getCoursesForMessaging = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to get courses'
-    });
-  }
-};
-
-// Get bundles for messaging
-const getBundlesForMessaging = async (req, res) => {
-  try {
-    const bundles = await BundleCourse.find({ isActive: true })
-      .select('title _id')
-      .sort({ title: 1 });
-    
-    res.json({
-      success: true,
-      bundles
-    });
-  } catch (error) {
-    console.error('Error getting bundles:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get bundles'
     });
   }
 };
@@ -628,7 +607,6 @@ module.exports = {
   sendTestMessage,
   getStudentsForMessaging,
   getCoursesForMessaging,
-  getBundlesForMessaging,
   getSessionStatus,
   getSessionDetails,
   

@@ -728,9 +728,9 @@
       <div class="auth-alert" role="alert">
         <strong><i class="fas fa-exclamation-triangle me-2"></i>Registration Failed!</strong>
         <hr class="my-2">
-        <ul>
+        <ul class="mb-0">
           <% errors.forEach(function(error) { %>
-          <li><%= error.msg %></li>
+          <li data-error-field="<%= error.field || '' %>"><%= error.msg %></li>
           <% }); %>
         </ul>
       </div>
@@ -1487,6 +1487,18 @@ document.addEventListener('DOMContentLoaded', function() {
           parentPhoneGroup.classList.add('has-success');
         }
       }
+      
+      // Check if parent phone is same as student phone
+      if (studentNumber.value.trim() && parentNumber.value.trim()) {
+        const cleanStudentPhone = studentNumber.value.replace(/\D/g, '');
+        const cleanParentPhone = parentNumber.value.replace(/\D/g, '');
+        
+        if (studentCountryCode.value === parentCountryCode.value && cleanStudentPhone === cleanParentPhone) {
+          parentPhoneGroup.classList.add('has-error');
+          showPhoneError('parentPhoneHint', 'Parent phone must be different from student phone');
+          isValid = false;
+        }
+      }
     }
     
     if (step === 3) {
@@ -1576,6 +1588,51 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Initialize
   updateSteps();
+  
+  // Handle server-side errors - navigate to step with errors and highlight fields
+  <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+  (function handleServerErrors() {
+    const errorFields = <%= JSON.stringify(errors.map(e => e.field).filter(f => f)) %>;
+    
+    // Field to step mapping
+    const fieldStepMap = {
+      'firstName': 1, 'lastName': 1, 'username': 1, 'grade': 1, 'curriculum': 1,
+      'studentEmail': 2, 'studentNumber': 2, 'parentNumber': 2,
+      'password': 3, 'password2': 3, 'termsCheck': 3
+    };
+    
+    // Find first step with errors
+    let firstErrorStep = 1;
+    for (const field of errorFields) {
+      if (fieldStepMap[field]) {
+        firstErrorStep = fieldStepMap[field];
+        break;
+      }
+    }
+    
+    // Navigate to that step
+    currentStep = firstErrorStep;
+    updateSteps();
+    
+    // Highlight error fields
+    errorFields.forEach(field => {
+      const element = document.getElementById(field);
+      if (element) {
+        element.classList.add('field-error');
+        
+        // For phone inputs, add error to group
+        if (field === 'studentNumber') {
+          document.getElementById('studentPhoneGroup')?.classList.add('has-error');
+        } else if (field === 'parentNumber') {
+          document.getElementById('parentPhoneGroup')?.classList.add('has-error');
+        }
+      }
+    });
+    
+    // Scroll to top to see error message
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  })();
+  <% } %>
 });
 
 // Toggle password visibility

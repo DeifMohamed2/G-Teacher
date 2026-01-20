@@ -15,14 +15,14 @@
 </div>
 
 <!-- Bundle Content Section -->
-<section class="bundle-content-section" style="margin-top: 60px;">
+<section class="course-content-section" style="margin-top: 60px;">
   <div class="container">
     <!-- Breadcrumb -->
     <nav class="breadcrumb-nav">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item"><a href="/courses/<%= bundle.courseType %>"><%= bundle.courseType === 'online' ? 'Online' : bundle.courseType === 'recorded' ? 'Recorded' : bundle.courseType === 'recovery' ? 'Recovery' : 'On-Ground' %> Courses</a></li>
-        <li class="breadcrumb-item active"><%= bundle.title %></li>
+        <li class="breadcrumb-item"><a href="/courses/<%= course.courseType %>"><%= course.courseType === 'online' ? 'Online' : course.courseType === 'recorded' ? 'Recorded' : course.courseType === 'recovery' ? 'Recovery' : 'On-Ground' %> Courses</a></li>
+        <li class="breadcrumb-item active"><%= course.title %></li>
       </ol>
     </nav>
 
@@ -50,25 +50,25 @@
     <div class="results-count-enhanced mb-2">
       <div class="results-info">
         <div class="results-stats">
-          <span class="results-number" id="filteredCount"><%= bundle.courses.length %></span>
-          <span class="results-label">/ <%= bundle.courses.length %> weeks</span>
+          <span class="results-number" id="filteredCount"><%= course.topics ? course.topics.length : 0 %></span>
+          <span class="results-label">/ <%= course.topics ? course.topics.length : 0 %> topics</span>
         </div>
         <div class="results-type">
-          <i class="fas fa-<%= bundle.courseType === 'online' ? 'laptop-code' : bundle.courseType === 'recorded' ? 'video' : bundle.courseType === 'recovery' ? 'redo' : 'chalkboard-teacher' %>"></i>
-          <span><%= bundle.courseType === 'online' ? 'Online' : bundle.courseType === 'recorded' ? 'Recorded' : bundle.courseType === 'recovery' ? 'Recovery' : 'On-Ground' %> Course</span>
+          <i class="fas fa-<%= course.courseType === 'online' ? 'laptop-code' : course.courseType === 'recorded' ? 'video' : course.courseType === 'recovery' ? 'redo' : 'chalkboard-teacher' %>"></i>
+          <span><%= course.courseType === 'online' ? 'Online' : course.courseType === 'recorded' ? 'Recorded' : course.courseType === 'recovery' ? 'Recovery' : 'On-Ground' %> Course</span>
         </div>
       </div>
     </div>
 
-    <!-- Bundle Header -->
-    <div class="bundle-content-header mb-3">
+    <!-- Course Header -->
+    <div class="course-content-header mb-3">
       <div class="row equal-height">
         <div class="col-lg-8">
-          <div class="bundle-header-info">
-            <div class="bundle-badge">
+          <div class="course-header-info">
+            <div class="course-badge">
               <span class="badge-type">
-                <i class="fas fa-<%= bundle.courseType === 'online' ? 'laptop' : bundle.courseType === 'recorded' ? 'video' : bundle.courseType === 'recovery' ? 'redo' : 'chalkboard-teacher' %>"></i>
-                <%= bundle.courseType === 'online' ? 'Online' : bundle.courseType === 'recorded' ? 'Recorded' : bundle.courseType === 'recovery' ? 'Recovery' : 'On-Ground' %>
+                <i class="fas fa-<%= course.courseType === 'online' ? 'laptop' : course.courseType === 'recorded' ? 'video' : course.courseType === 'recovery' ? 'redo' : 'chalkboard-teacher' %>"></i>
+                <%= course.courseType === 'online' ? 'Online' : course.courseType === 'recorded' ? 'Recorded' : course.courseType === 'recovery' ? 'Recovery' : 'On-Ground' %>
               </span>
               <span class="badge-year">
                 <i class="fas fa-calendar"></i>
@@ -76,25 +76,25 @@
               </span>
               <span class="badge-subject">
                 <i class="fas fa-book"></i>
-                <%= bundle.subject %>
+                <%= course.subject %>
               </span>
             </div>
-            <div class="bundle-title-container">
-              <h1 class="bundle-title"><%= bundle.title %></h1>
-              <div class="bundle-wishlist-btn" onclick="toggleWishlist('<%= bundle._id %>', 'bundle')" title="Add to Wishlist">
-                <% if (user && user.isBundleInWishlist(bundle._id.toString())) { %>
+            <div class="course-title-container">
+              <h1 class="course-title"><%= course.title %></h1>
+              <div class="course-wishlist-btn" onclick="toggleWishlist('<%= course._id %>', 'course')" title="Add to Wishlist">
+                <% if (user && user.isCourseInWishlist(course._id.toString())) { %>
                 <i class="fas fa-heart" style="color: #ff6b6b;"></i>
                 <% } else { %>
                 <i class="far fa-heart"></i>
                 <% } %>
               </div>
             </div>
-            <p class="bundle-description"><%= bundle.description %></p>
+            <p class="course-description"><%= course.description %></p>
 
-            <div class="bundle-stats">
+            <div class="course-stats">
               <div class="stat-item">
                 <i class="fas fa-book"></i>
-                <span><%= bundle.courses.length %> Week<%= bundle.courses.length !== 1 ? 's' : '' %></span>
+                <span><%= course.topics ? course.topics.length : 0 %> Topic<%= (course.topics && course.topics.length !== 1) ? 's' : '' %></span>
               </div>
 
               <div class="stat-item">
@@ -105,21 +105,21 @@
           </div>
         </div>
         <div class="col-lg-4">
-          <div class="bundle-purchase-card h-100 d-flex flex-column">
+          <div class="course-purchase-card h-100 d-flex flex-column">
             <div class="purchase-header">
               <div class="price-container">
-                <% if (bundle.discountPrice) { %>
-                <span class="price-original"><%= bundle.price %> EGP</span>
-                <span class="price-current"><%= bundle.finalPrice.toFixed(2) %> EGP</span>
-                <span class="price-savings">Save <%= bundle.savings.toFixed(2) %> EGP (<%= bundle.savingsPercentage %>% off)</span>
+                <% if (course.discountPrice) { %>
+                <span class="price-original"><%= course.price %> EGP</span>
+                <span class="price-current"><%= course.finalPrice.toFixed(2) %> EGP</span>
+                <span class="price-savings">Save <%= course.savings.toFixed(2) %> EGP (<%= course.savingsPercentage %>% off)</span>
                 <% } else { %>
-                <span class="price-current"><%= bundle.price %> EGP</span>
+                <span class="price-current"><%= course.price %> EGP</span>
                 <% } %>
               </div>
             </div>
 
             <div class="purchase-actions">
-              <% if (user && user.hasPurchasedBundle(bundle._id.toString())) { %>
+              <% if (user && user.hasPurchasedCourse(course._id.toString())) { %>
               <button class="btn-purchased" disabled>
                 <i class="fas fa-check-circle"></i>
                 <span>Already Purchased</span>
@@ -128,17 +128,17 @@
                 <i class="fas fa-graduation-cap"></i>
                 <span>Access Courses</span>
               </a>
-              <% } else if (bundle.isFullyBooked) { %>
+              <% } else if (course.isFullyBooked) { %>
               <button class="btn-fully-booked-enhanced" disabled>
                 <i class="fas fa-ban"></i>
-                <span class="fully-booked-text"><%= bundle.fullyBookedMessage || 'FULLY BOOKED' %></span>
+                <span class="fully-booked-text"><%= course.fullyBookedMessage || 'FULLY BOOKED' %></span>
               </button>
               <% } else { %>
-              <button class="btn-add-to-cart" onclick="addBundleToCart('<%= bundle._id %>')">
+              <button class="btn-add-to-cart" onclick="addCourseToCart('<%= course._id %>')">
                 <i class="fas fa-shopping-cart"></i>
-                <span>Add Bundle to Cart</span>
+                <span>Add to Cart</span>
               </button>
-              <a href="/purchase/checkout?bundle=<%= bundle._id %>" class="btn-buy-now">
+              <a href="/purchase/checkout?course=<%= course._id %>" class="btn-buy-now">
                 <i class="fas fa-credit-card"></i>
                 <span>Buy Now</span>
               </a>
@@ -146,7 +146,7 @@
             </div>
 
 
-            <div class="bundle-info mt-auto">
+            <div class="course-info mt-auto">
               <div class="info-item">
                 <i class="fas fa-headset"></i>
                 <span>24/7 Support</span>
@@ -157,31 +157,31 @@
       </div>
     </div>
 
-    <!-- Courses Grid -->
+    <!-- Topics Grid -->
     <div class="courses-content-grid">
-      <h2 class="section-title">Weeks in this Course</h2>
+      <h2 class="section-title">Topics in this Course</h2>
       <div class="courses-grid" id="coursesGrid">
         <% 
-          // Use coursesWithUnlockStatus if available, otherwise use bundle.courses
-          const coursesToDisplay = coursesWithUnlockStatus && coursesWithUnlockStatus.length > 0 
+          // Use coursesWithUnlockStatus if available, otherwise use course.topics
+          const topicsToDisplay = coursesWithUnlockStatus && coursesWithUnlockStatus.length > 0 
             ? coursesWithUnlockStatus 
-            : bundle.courses;
+            : (course.topics || []);
           
-          // Sort courses by order before displaying
-          const sortedCourses = [...coursesToDisplay].sort((a, b) => {
+          // Sort topics by order before displaying
+          const sortedTopics = [...topicsToDisplay].sort((a, b) => {
             const orderA = a.order || 0;
             const orderB = b.order || 0;
             return orderA - orderB;
           });
         %>
-        <% sortedCourses.forEach((course, index) => { %>
+        <% sortedTopics.forEach((topic, index) => { %>
         <% 
-          const isEnrolled = user && (user.hasAccessToCourse(course._id.toString()) || user.hasAccessToCourseThroughBundle(course._id.toString(), bundle._id.toString()));
-          // Check if course is unlocked (for enrolled students with startingOrder)
-          const isUnlocked = course.isUnlocked !== undefined ? course.isUnlocked : true;
+          const isEnrolled = user && user.hasAccessToCourse(course._id.toString());
+          // Check if topic is unlocked (for enrolled students with startingOrder)
+          const isUnlocked = topic.isUnlocked !== undefined ? topic.isUnlocked : true;
           const canAccess = isEnrolled && isUnlocked;
         %>
-        <article class="course-card-enhanced <%= canAccess ? 'course-enrolled' : (isEnrolled && !isUnlocked ? 'course-locked' : '') %>" data-title="<%= course.title.toLowerCase() %>" data-course-id="<%= course._id %>" data-course-order="<%= course.order || 0 %>" data-requires-sequential="<%= course.requiresSequential !== false %>">
+        <article class="course-card-enhanced <%= canAccess ? 'course-enrolled' : (isEnrolled && !isUnlocked ? 'course-locked' : '') %>" data-title="<%= topic.title.toLowerCase() %>" data-course-id="<%= topic._id %>" data-course-order="<%= topic.order || 0 %>" data-requires-sequential="<%= topic.requiresSequential !== false %>">
           <div class="course-card-header">
             <div class="course-favorite-btn-enhanced" onclick="toggleWishlist('<%= course._id %>', 'course')" title="Add to Wishlist">
               <% if (user && user.isCourseInWishlist(course._id.toString())) { %>
@@ -222,8 +222,8 @@
                 <button class="quick-action-btn locked" title="<%= course.unlockReason || 'Course Locked' %>" disabled>
                   <i class="fas fa-lock"></i>
                 </button>
-                <% } else if (course.isFullyBooked || (bundle.isFullyBooked && !course.isFullyBooked)) { %>
-                <button class="quick-action-btn fully-booked" title="<%= course.isFullyBooked ? (course.fullyBookedMessage || 'FULLY BOOKED') : (bundle.fullyBookedMessage || 'FULLY BOOKED') %>" disabled style="background-color: #dc3545; cursor: not-allowed;">
+                <% } else if (course.isFullyBooked || (course.isFullyBooked && !course.isFullyBooked)) { %>
+                <button class="quick-action-btn fully-booked" title="<%= course.isFullyBooked ? (course.fullyBookedMessage || 'FULLY BOOKED') : (course.fullyBookedMessage || 'FULLY BOOKED') %>" disabled style="background-color: #dc3545; cursor: not-allowed;">
                   <i class="fas fa-ban"></i>
                 </button>
                 <% } else { %>
@@ -296,10 +296,10 @@
                 <i class="fas fa-lock"></i>
                 <span>Locked</span>
               </button>
-              <% } else if (course.isFullyBooked || (bundle.isFullyBooked && !course.isFullyBooked)) { %>
+              <% } else if (course.isFullyBooked || (course.isFullyBooked && !course.isFullyBooked)) { %>
               <button class="btn-fully-booked-enhanced" disabled>
                 <i class="fas fa-ban"></i>
-                <span class="fully-booked-text"><%= course.isFullyBooked ? (course.fullyBookedMessage || 'FULLY BOOKED') : (bundle.fullyBookedMessage || 'FULLY BOOKED') %></span>
+                <span class="fully-booked-text"><%= course.isFullyBooked ? (course.fullyBookedMessage || 'FULLY BOOKED') : (course.fullyBookedMessage || 'FULLY BOOKED') %></span>
               </button>
               <% } else { %>
               <button class="btn-add-to-cart-enhanced" onclick="addCourseToCart('<%= course._id %>')">
@@ -429,7 +429,7 @@
   }
 
   // Add bundle to cart functionality
-  function addBundleToCart(bundleId) {
+  function addCourseToCart(bundleId) {
     // Check if user is logged in
     <% if (!user) { %>
     showCartNotification('Please login to add items to cart', 'error');
@@ -440,7 +440,7 @@
     <% } %>
 
     // Get bundle data from the page
-    const bundleTitle = document.querySelector('.bundle-title').textContent;
+    const bundleTitle = document.querySelector('.course-title').textContent;
     const priceElement = document.querySelector('.price-current');
     const price = parseFloat(priceElement.textContent.replace('$', ''));
     const image = '/images/adad.png'; // Default bundle image
@@ -1333,7 +1333,7 @@
     <% } %>
 
     // Find the heart icon - use event target for more reliable selection
-    const heartIcon = event.target.closest('.course-favorite-btn-enhanced, .bundle-wishlist-btn').querySelector('i');
+    const heartIcon = event.target.closest('.course-favorite-btn-enhanced, .course-wishlist-btn').querySelector('i');
     const isCurrentlyInWishlist = heartIcon.classList.contains('fas');
 
     console.log('Toggling wishlist for:', itemId, itemType, 'Currently in wishlist:', isCurrentlyInWishlist);
@@ -1614,14 +1614,14 @@
   }
 
   /* Bundle wishlist button styles */
-  .bundle-title-container {
+  .course-title-container {
     display: flex;
     align-items: center;
     gap: 1rem;
     margin-bottom: 1rem;
   }
 
-  .bundle-wishlist-btn {
+  .course-wishlist-btn {
     cursor: pointer;
     padding: 0.5rem;
     border-radius: 50%;
@@ -1635,18 +1635,18 @@
     border: 2px solid rgba(255, 255, 255, 0.2);
   }
 
-  .bundle-wishlist-btn:hover {
+  .course-wishlist-btn:hover {
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.4);
     transform: scale(1.1);
   }
 
-  .bundle-wishlist-btn i {
+  .course-wishlist-btn i {
     font-size: 1.2rem;
     transition: all 0.3s ease;
   }
 
-  .bundle-wishlist-btn:hover i {
+  .course-wishlist-btn:hover i {
     transform: scale(1.1);
   }
 
@@ -1677,8 +1677,8 @@
   }
 
   /* Bundle header image if any */
-  .bundle-header-info img,
-  .bundle-purchase-card img {
+  .course-header-info img,
+  .course-purchase-card img {
     max-width: 100%;
     height: auto;
     object-fit: contain;

@@ -187,7 +187,6 @@ const indexRoutes = require('./routes/index');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const studentRoutes = require('./routes/student');
-const quizRoutes = require('./routes/quiz');
 const purchaseRoutes = require('./routes/purchase');
 const zoomRoutes = require('./routes/zoom');
 const uploadRoutes = require('./routes/upload');
@@ -204,7 +203,6 @@ app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
 app.use('/admin', adminRoutes);
 app.use('/student', studentRoutes);
-app.use('/admin/quizzes', quizRoutes);
 app.use('/purchase', purchaseRoutes);
 app.use('/zoom', zoomRoutes);
 app.use('/api/upload', uploadRoutes);
@@ -252,10 +250,6 @@ const io = socketIo(server, {
     methods: ['GET', 'POST'],
   },
 });
-
-// Initialize Game Socket Handler
-const GameSocketHandler = require('./utils/gameSocket');
-new GameSocketHandler(io);
 
 // Make io accessible in routes
 app.set('io', io);

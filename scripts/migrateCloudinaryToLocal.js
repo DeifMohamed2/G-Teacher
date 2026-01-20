@@ -10,10 +10,7 @@ require('dotenv').config();
 // Import models
 const User = require('../models/User');
 const Course = require('../models/Course');
-const BundleCourse = require('../models/BundleCourse');
-const Quiz = require('../models/Quiz');
-const Question = require('../models/Question');
-const GameRoom = require('../models/GameRoom');
+const Teacher = require('../models/Teacher');
 const BrilliantStudent = require('../models/BrilliantStudent');
 const TeamMember = require('../models/TeamMember');
 
@@ -253,144 +250,6 @@ async function migrateBundleCourseThumbnails() {
 /**
  * Migrate Quiz thumbnails
  */
-async function migrateQuizThumbnails() {
-  console.log('\n📸 Migrating Quiz Thumbnails...');
-  const quizzes = await Quiz.find({ 'thumbnail.url': { $exists: true, $ne: '' } });
-  stats.totalImages += quizzes.length;
-
-  for (const quiz of quizzes) {
-    if (!quiz.thumbnail?.url || !quiz.thumbnail.url.includes('cloudinary')) {
-      stats.skipped++;
-      continue;
-    }
-
-    try {
-      const localPath = await processImage(quiz.thumbnail.url, 'quiz-thumbnails');
-      if (localPath) {
-        quiz.thumbnail.url = localPath;
-        // Save without validation to avoid sourceBank requirement issues
-        await quiz.save({ validateBeforeSave: false });
-        stats.downloaded++;
-        stats.updated++;
-        console.log(`  ✓ Updated thumbnail for quiz: ${quiz.title}`);
-      }
-    } catch (error) {
-      console.error(`  ✗ Error updating quiz ${quiz._id}:`, error.message);
-      stats.failed++;
-    }
-  }
-}
-
-/**
- * Migrate Question images
- */
-async function migrateQuestionImages() {
-  console.log('\n📸 Migrating Question Images...');
-  const questions = await Question.find({
-    $or: [
-      { questionImage: { $exists: true, $ne: '' } },
-      { 'options.image': { $exists: true, $ne: '' } },
-      { explanationImage: { $exists: true, $ne: '' } },
-    ],
-  });
-  stats.totalImages += questions.length;
-
-  for (const question of questions) {
-    let updated = false;
-
-    // Migrate question image
-    if (question.questionImage && question.questionImage.includes('cloudinary')) {
-      try {
-        const localPath = await processImage(question.questionImage, 'question-images');
-        if (localPath) {
-          question.questionImage = localPath;
-          updated = true;
-          stats.downloaded++;
-        }
-      } catch (error) {
-        console.error(`  ✗ Error updating question image for ${question._id}:`, error.message);
-        stats.failed++;
-      }
-    }
-
-    // Migrate option images
-    if (question.options && question.options.length > 0) {
-      for (let i = 0; i < question.options.length; i++) {
-        const option = question.options[i];
-        if (option.image && option.image.includes('cloudinary')) {
-          try {
-            const localPath = await processImage(option.image, 'option-images');
-            if (localPath) {
-              option.image = localPath;
-              updated = true;
-              stats.downloaded++;
-            }
-          } catch (error) {
-            console.error(`  ✗ Error updating option image for question ${question._id}:`, error.message);
-            stats.failed++;
-          }
-        }
-      }
-    }
-
-    // Migrate explanation image
-    if (question.explanationImage && question.explanationImage.includes('cloudinary')) {
-      try {
-        const localPath = await processImage(question.explanationImage, 'explanation-images');
-        if (localPath) {
-          question.explanationImage = localPath;
-          updated = true;
-          stats.downloaded++;
-        }
-      } catch (error) {
-        console.error(`  ✗ Error updating explanation image for ${question._id}:`, error.message);
-        stats.failed++;
-      }
-    }
-
-    if (updated) {
-      await question.save();
-      stats.updated++;
-      console.log(`  ✓ Updated images for question: ${question._id}`);
-    } else {
-      stats.skipped++;
-    }
-  }
-}
-
-/**
- * Migrate GameRoom thumbnails
- */
-async function migrateGameRoomThumbnails() {
-  console.log('\n📸 Migrating GameRoom Thumbnails...');
-  const gameRooms = await GameRoom.find({ 'thumbnail.url': { $exists: true, $ne: '' } });
-  stats.totalImages += gameRooms.length;
-
-  for (const room of gameRooms) {
-    if (!room.thumbnail?.url || !room.thumbnail.url.includes('cloudinary')) {
-      stats.skipped++;
-      continue;
-    }
-
-    try {
-      const localPath = await processImage(room.thumbnail.url, 'game-room-thumbnails');
-      if (localPath) {
-        room.thumbnail.url = localPath;
-        await room.save();
-        stats.downloaded++;
-        stats.updated++;
-        console.log(`  ✓ Updated thumbnail for game room: ${room.title}`);
-      }
-    } catch (error) {
-      console.error(`  ✗ Error updating game room ${room._id}:`, error.message);
-      stats.failed++;
-    }
-  }
-}
-
-/**
- * Migrate BrilliantStudent images
- */
 async function migrateBrilliantStudentImages() {
   console.log('\n📸 Migrating BrilliantStudent Images...');
   const students = await BrilliantStudent.find({ image: { $exists: true, $ne: null, $ne: '' } });
@@ -475,9 +334,6 @@ async function migrateAllImages() {
     await migrateUserProfilePictures();
     await migrateCourseThumbnails();
     await migrateBundleCourseThumbnails();
-    await migrateQuizThumbnails();
-    await migrateQuestionImages();
-    await migrateGameRoomThumbnails();
     await migrateBrilliantStudentImages();
     await migrateTeamMemberImages();
 

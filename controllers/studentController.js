@@ -1,11 +1,8 @@
- const User = require('../models/User');
+const User = require('../models/User');
 const Course = require('../models/Course');
-const Quiz = require('../models/Quiz');
 const Progress = require('../models/Progress');
-const BundleCourse = require('../models/BundleCourse');
+const Teacher = require('../models/Teacher');
 const Topic = require('../models/Topic');
-const Question = require('../models/Question');
-const QuestionBank = require('../models/QuestionBank');
 const ZoomMeeting = require('../models/ZoomMeeting');
 const mongoose = require('mongoose');
 const zoomService = require('../utils/zoomService');
@@ -26,9 +23,9 @@ const dashboard = async (req, res) => {
             model: 'Topic',
           },
           {
-            path: 'bundle',
-            select: 'title bundleCode thumbnail',
-            model: 'BundleCourse',
+            path: 'teacher',
+            select: 'firstName lastName teacherCode profilePicture',
+            model: 'Teacher',
           },
         ],
       })
@@ -82,29 +79,12 @@ const dashboard = async (req, res) => {
         status: enrollment.status,
       }));
 
-    // Get upcoming quizzes (if any)
-    const courseIds = student.enrolledCourses
-      .filter((e) => e.course)
-      .map((e) => e.course._id);
-
-    const upcomingQuizzes =
-      courseIds.length > 0
-        ? await Quiz.find({
-            status: 'active',
-            _id: { $in: courseIds },
-          })
-            .populate('questionBank')
-            .sort({ createdAt: -1 })
-            .limit(5)
-        : [];
-
     res.render('student/dashboard', {
       title: 'Student Dashboard | ELKABLY',
       student,
       stats,
       recentProgress,
       activeCourses,
-      upcomingQuizzes,
       theme: req.cookies.theme || student.preferences?.theme || 'light',
     });
   } catch (error) {
@@ -245,43 +225,42 @@ const enrolledCourses = async (req, res) => {
     const totalCourses = coursesWithUnlockStatus.length;
     const enrolledCourses = coursesWithUnlockStatus;
 
-    // Get available bundles for filter dropdown
-    const BundleCourse = require('../models/BundleCourse');
+    // Get available teachers for filter dropdown (replaces bundles)
     const BookOrder = require('../models/BookOrder');
-    const bundleIds = validEnrollments
-      .map((e) => e.course.bundle?._id)
+    const teacherIds = validEnrollments
+      .map((e) => e.course.teacher?._id)
       .filter(Boolean)
-      .filter((id, index, arr) => arr.indexOf(id) === index); // Remove duplicates
+      .filter((id, index, arr) => arr.findIndex(i => i?.toString() === id?.toString()) === index);
 
-    const availableBundles = await BundleCourse.find({
-      _id: { $in: bundleIds },
-    }).select('_id title');
+    const availableTeachers = await Teacher.find({
+      _id: { $in: teacherIds },
+    }).select('_id firstName lastName teacherCode');
 
-    // Get book purchase info for each bundle
-    const bundleBookInfo = {};
-    for (const bundleId of bundleIds) {
-      const bundle = await BundleCourse.findById(bundleId)
-        .select('_id title bundleCode hasBook bookName bookPrice thumbnail');
-      
-      if (bundle && bundle.hasBook && bundle.bookPrice > 0) {
-        // Check if student has purchased the bundle
-        const hasPurchasedBundle = student.hasPurchasedBundle(bundleId.toString());
+    // Get book purchase info for each course (adapted from bundles)
+    const courseBookInfo = {};
+    for (const enrollment of validEnrollments) {
+      const course = enrollment.course;
+      if (course && course.hasBook && course.bookPrice > 0) {
+        // Check if student has purchased the course
+        const hasPurchasedCourse = student.purchasedCourses?.some(
+          p => p.course?.toString() === course._id.toString()
+        );
         
-        if (hasPurchasedBundle) {
+        if (hasPurchasedCourse) {
           // Check if student has already ordered the book
           const hasOrderedBook = await BookOrder.hasUserOrderedBook(
             studentId,
-            bundleId
+            course._id
           );
           
           if (!hasOrderedBook) {
-            bundleBookInfo[bundleId.toString()] = {
-              bundleId: bundle._id.toString(),
-              bundleTitle: bundle.title,
-              bundleCode: bundle.bundleCode,
-              bookName: bundle.bookName,
-              bookPrice: bundle.bookPrice,
-              thumbnail: bundle.thumbnail || '/images/bundle-placeholder.jpg',
+            courseBookInfo[course._id.toString()] = {
+              courseId: course._id.toString(),
+              courseTitle: course.title,
+              courseCode: course.courseCode,
+              bookName: course.bookName,
+              bookPrice: course.bookPrice,
+              thumbnail: course.thumbnail || '/images/course-placeholder.jpg',
             };
           }
         }
@@ -293,8 +272,10 @@ const enrolledCourses = async (req, res) => {
       student,
       enrolledCourses,
       totalCourses: totalCourses,
-      availableBundles,
-      bundleBookInfo, // Pass book purchase info for bundles
+      availableBundles: availableTeachers, // For backward compatibility
+      availableTeachers,
+      bundleBookInfo: courseBookInfo, // For backward compatibility
+      courseBookInfo,
       filters: {
         search: searchQuery,
         progress: progressFilter,
@@ -366,36 +347,32 @@ const courseDetails = async (req, res) => {
       })
     );
 
-    // Check if course has a bundle and if student can purchase the book
+    // Check if course has book info (now directly on course instead of bundle)
     let bookPurchaseInfo = null;
-    if (course.bundle) {
-      const BundleCourse = require('../models/BundleCourse');
+    if (course.hasBook && course.bookPrice > 0) {
       const BookOrder = require('../models/BookOrder');
       
-      const bundle = await BundleCourse.findById(course.bundle._id || course.bundle)
-        .select('_id title bundleCode hasBook bookName bookPrice thumbnail');
+      // Check if student has purchased the course
+      const hasPurchasedCourse = student.purchasedCourses?.some(
+        p => p.course?.toString() === course._id.toString()
+      );
       
-      if (bundle && bundle.hasBook && bundle.bookPrice > 0) {
-        // Check if student has purchased the bundle
-        const hasPurchasedBundle = student.hasPurchasedBundle(bundle._id.toString());
+      if (hasPurchasedCourse) {
+        // Check if student has already ordered the book
+        const hasOrderedBook = await BookOrder.hasUserOrderedBook(
+          studentId,
+          course._id
+        );
         
-        if (hasPurchasedBundle) {
-          // Check if student has already ordered the book
-          const hasOrderedBook = await BookOrder.hasUserOrderedBook(
-            studentId,
-            bundle._id
-          );
-          
-          if (!hasOrderedBook) {
-            bookPurchaseInfo = {
-              bundleId: bundle._id.toString(),
-              bundleTitle: bundle.title,
-              bundleCode: bundle.bundleCode,
-              bookName: bundle.bookName,
-              bookPrice: bundle.bookPrice,
-              thumbnail: bundle.thumbnail || '/images/bundle-placeholder.jpg',
-            };
-          }
+        if (!hasOrderedBook) {
+          bookPurchaseInfo = {
+            courseId: course._id.toString(),
+            courseTitle: course.title,
+            courseCode: course.courseCode,
+            bookName: course.bookName,
+            bookPrice: course.bookPrice,
+            thumbnail: course.thumbnail || '/images/course-placeholder.jpg',
+          };
         }
       }
     }
@@ -570,36 +547,32 @@ const courseContent = async (req, res) => {
       })
     );
 
-    // Check if course has a bundle and if student can purchase the book
+    // Check if course has book info (now directly on course instead of bundle)
     let bookPurchaseInfo = null;
-    if (course.bundle) {
-      const BundleCourse = require('../models/BundleCourse');
+    if (course.hasBook && course.bookPrice > 0) {
       const BookOrder = require('../models/BookOrder');
       
-      const bundle = await BundleCourse.findById(course.bundle._id || course.bundle)
-        .select('_id title bundleCode hasBook bookName bookPrice thumbnail');
+      // Check if student has purchased the course
+      const hasPurchasedCourse = student.purchasedCourses?.some(
+        p => p.course?.toString() === course._id.toString()
+      );
       
-      if (bundle && bundle.hasBook && bundle.bookPrice > 0) {
-        // Check if student has purchased the bundle
-        const hasPurchasedBundle = student.hasPurchasedBundle(bundle._id.toString());
+      if (hasPurchasedCourse) {
+        // Check if student has already ordered the book
+        const hasOrderedBook = await BookOrder.hasUserOrderedBook(
+          studentId,
+          course._id
+        );
         
-        if (hasPurchasedBundle) {
-          // Check if student has already ordered the book
-          const hasOrderedBook = await BookOrder.hasUserOrderedBook(
-            studentId,
-            bundle._id
-          );
-          
-          if (!hasOrderedBook) {
-            bookPurchaseInfo = {
-              bundleId: bundle._id.toString(),
-              bundleTitle: bundle.title,
-              bundleCode: bundle.bundleCode,
-              bookName: bundle.bookName,
-              bookPrice: bundle.bookPrice,
-              thumbnail: bundle.thumbnail || '/images/bundle-placeholder.jpg',
-            };
-          }
+        if (!hasOrderedBook) {
+          bookPurchaseInfo = {
+            courseId: course._id.toString(),
+            courseTitle: course.title,
+            courseCode: course.courseCode,
+            bookName: course.bookName,
+            bookPrice: course.bookPrice,
+            thumbnail: course.thumbnail || '/images/course-placeholder.jpg',
+          };
         }
       }
     }
@@ -1497,40 +1470,23 @@ const wishlist = async (req, res) => {
       return res.redirect('/auth/login');
     }
 
-    // Get wishlist courses
-    const Course = require('../models/Course');
-    const BundleCourse = require('../models/BundleCourse');
-
-    const wishlistCourseIds = student.wishlist.courses || [];
-    const wishlistBundleIds = student.wishlist.bundles || [];
+    // Get wishlist courses (simplified - no more bundles)
+    const wishlistCourseIds = student.wishlist || [];
 
     // Fetch courses
     const wishlistCourses = await Course.find({
       _id: { $in: wishlistCourseIds },
-    }).select(
-      'title description shortDescription thumbnail level duration tags topics price'
-    );
-
-    // Fetch bundles
-    const wishlistBundles = await BundleCourse.find({
-      _id: { $in: wishlistBundleIds },
     })
-      .populate('courses', 'title duration')
+      .populate('teacher', 'firstName lastName teacherCode')
       .select(
-        'title description shortDescription thumbnail year subject courseType price discountPrice duration tags courses'
+        'title description shortDescription thumbnail level duration tags topics price teacher'
       );
 
-    // Combine and paginate
-    const allItems = [
-      ...wishlistCourses.map((course) => ({
-        ...course.toObject(),
-        type: 'course',
-      })),
-      ...wishlistBundles.map((bundle) => ({
-        ...bundle.toObject(),
-        type: 'bundle',
-      })),
-    ];
+    // All items are courses now (no bundles)
+    const allItems = wishlistCourses.map((course) => ({
+      ...course.toObject(),
+      type: 'course',
+    }));
 
     const totalItems = allItems.length;
     const totalPages = Math.ceil(totalItems / limit);
@@ -1540,7 +1496,7 @@ const wishlist = async (req, res) => {
       title: 'My Wishlist | ELKABLY',
       student,
       wishlistCourses: paginatedItems.filter((item) => item.type === 'course'),
-      wishlistBundles: paginatedItems.filter((item) => item.type === 'bundle'),
+      wishlistBundles: [], // Empty for backward compatibility
       pagination: {
         currentPage: page,
         totalPages,
@@ -1624,29 +1580,18 @@ const orderHistory = async (req, res) => {
     }
 
     // Get purchase history
-    const purchaseHistory = student.getPurchaseHistory();
+    const purchaseHistory = student.purchasedCourses || [];
     const totalOrders = purchaseHistory.length;
     const totalPages = Math.ceil(totalOrders / limit);
     const paginatedOrders = purchaseHistory.slice(skip, skip + limit);
 
-    // Populate course/bundle details for each order
-    const Course = require('../models/Course');
-    const BundleCourse = require('../models/BundleCourse');
-
+    // Populate course details for each order (no more bundles)
     const populatedOrders = await Promise.all(
       paginatedOrders.map(async (order) => {
-        if (order.type === 'course') {
-          const course = await Course.findById(order.course).select(
-            'title thumbnail level duration'
-          );
-          return { ...order, item: course };
-        } else if (order.type === 'bundle') {
-          const bundle = await BundleCourse.findById(order.bundle)
-            .populate('courses', 'title duration')
-            .select('title thumbnail year subject duration courses');
-          return { ...order, item: bundle };
-        }
-        return order;
+        const course = await Course.findById(order.course)
+          .populate('teacher', 'firstName lastName teacherCode')
+          .select('title thumbnail level duration teacher');
+        return { ...order.toObject ? order.toObject() : order, item: course, type: 'course' };
       })
     );
 
@@ -1711,60 +1656,36 @@ const orderDetails = async (req, res) => {
       }
     }
 
-    // Populate item details based on system and type
-    const Course = require('../models/Course');
-    const BundleCourse = require('../models/BundleCourse');
-
+    // Populate item details - now only courses (no bundles)
     let item = null;
-    let itemType = 'unknown';
+    let itemType = 'course';
     let courseId = null;
-    let bundleId = null;
 
     if (isNewSystem) {
       // New system - use items array
       const firstItem =
         order.items && order.items.length > 0 ? order.items[0] : null;
 
-      if (firstItem && firstItem.itemType === 'course') {
+      if (firstItem) {
         itemType = 'course';
         courseId = firstItem.item;
         item = await Course.findById(firstItem.item)
           .populate('topics', 'title description')
+          .populate('teacher', 'firstName lastName teacherCode')
           .select(
-            'title description shortDescription thumbnail level duration tags topics price'
-          );
-      } else if (firstItem && firstItem.itemType === 'bundle') {
-        itemType = 'bundle';
-        bundleId = firstItem.item;
-        item = await BundleCourse.findById(firstItem.item)
-          .populate(
-            'courses',
-            'title description shortDescription thumbnail level duration'
-          )
-          .select(
-            'title description shortDescription thumbnail year subject courseType price discountPrice duration tags courses'
+            'title description shortDescription thumbnail level duration tags topics price teacher'
           );
       }
     } else {
-      // Legacy system - use direct course/bundle fields
-      if (order.type === 'course' && order.course) {
+      // Legacy system - use direct course field
+      if (order.course) {
         itemType = 'course';
         courseId = order.course;
         item = await Course.findById(order.course)
           .populate('topics', 'title description')
+          .populate('teacher', 'firstName lastName teacherCode')
           .select(
-            'title description shortDescription thumbnail level duration tags topics price'
-          );
-      } else if (order.type === 'bundle' && order.bundle) {
-        itemType = 'bundle';
-        bundleId = order.bundle;
-        item = await BundleCourse.findById(order.bundle)
-          .populate(
-            'courses',
-            'title description shortDescription thumbnail level duration'
-          )
-          .select(
-            'title description shortDescription thumbnail year subject courseType price discountPrice duration tags courses'
+            'title description shortDescription thumbnail level duration tags topics price teacher'
           );
       }
     }
@@ -1775,7 +1696,7 @@ const orderDetails = async (req, res) => {
       item: item,
       type: itemType,
       course: courseId,
-      bundle: bundleId,
+      bundle: null, // No more bundles
       price:
         order.price ||
         (order.items && order.items[0] ? order.items[0].price : 0),
@@ -4682,19 +4603,12 @@ module.exports = {
   courseContent,
   contentDetails,
   updateContentProgress,
-  takeContentQuiz,
-  submitContentQuiz,
-  quizResults,
   debugProgress,
-  quizzes,
-  takeQuiz,
-  submitQuiz,
   wishlist,
   addToWishlist,
   removeFromWishlist,
   orderHistory,
   orderDetails,
-  homeworkAttempts,
   profile,
   updateProfile,
   sendProfileOTP,
@@ -4706,20 +4620,8 @@ module.exports = {
   changePassword,
   exportData,
   deleteAccount,
-  // New standalone quiz functions
-  getQuizDetails,
-  startQuizAttempt,
-  takeQuizPage,
-  submitStandaloneQuiz,
-  getStandaloneQuizResults,
-  // Secure Quiz functions
-  getSecureQuestion,
-  getSecureAllQuestions,
-  checkQuestionAnswered,
   // Zoom Meeting functions
   joinZoomMeeting,
   leaveZoomMeeting,
   getZoomMeetingHistory,
-  // Secure standalone quiz functions
-  getSecureStandaloneQuizQuestions,
 };

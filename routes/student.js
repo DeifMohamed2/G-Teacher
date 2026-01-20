@@ -2,17 +2,6 @@ const express = require('express');
 const router = express.Router();
 const studentController = require('../controllers/studentController');
 const { ensureAuthenticated, ensureStudent, ensureDataComplete } = require('../middlewares/auth');
-
-// Import Game Room Controller
-const {
-  getAvailableGameRooms,
-  joinGameRoom,
-  getGameRoomPlay,
-  leaveGameRoom,
-  getMyGameHistory,
-  getGameRoomData,
-  getLeaderboard
-} = require('../controllers/gameRoomController');
 const multer = require('multer');
 
 // Configure multer for profile picture uploads
@@ -58,36 +47,6 @@ router.get('/content/:id', studentController.contentDetails);
 router.post('/content/progress/update', studentController.updateContentProgress);
 router.get('/debug/progress/:courseId', studentController.debugProgress);
 
-// Content Quiz/Homework
-router.get('/content/:id/take', studentController.takeContentQuiz);
-router.post('/content/quiz/submit', studentController.submitContentQuiz);
-router.get('/content/:id/results', studentController.quizResults);
-
-// Secure Quiz Endpoints
-router.post('/content/quiz/question', studentController.getSecureQuestion);
-router.post('/content/quiz/all-questions', studentController.getSecureAllQuestions);
-router.post('/content/quiz/check-answer', studentController.checkQuestionAnswered);
-
-// Secure Standalone Quiz endpoints
-router.post('/quiz/secure-questions', studentController.getSecureStandaloneQuizQuestions);
-
-// Quizzes
-router.get('/quizzes', studentController.quizzes);
-router.get('/quiz/:id/details', studentController.getQuizDetails);
-router.get('/quiz/:id/start', studentController.startQuizAttempt);
-router.get('/quiz/:id/take', studentController.takeQuizPage);
-router.post('/quiz/:id/submit', studentController.submitStandaloneQuiz);
-router.get('/quiz/:id/results', studentController.getStandaloneQuizResults);
-
-// Game Rooms
-router.get('/game-rooms', getAvailableGameRooms);
-router.get('/game-room/:roomCode/join', joinGameRoom);
-router.get('/game-room/:roomCode/play', getGameRoomPlay);
-router.get('/game-room/:roomCode/leave', leaveGameRoom);
-router.get('/game-history', getMyGameHistory);
-router.get('/api/game-room/:roomCode/data', getGameRoomData);
-router.get('/api/game-room/:roomId/leaderboard', getLeaderboard);
-
 // Wishlist
 router.get('/wishlist', studentController.wishlist);
 router.post('/wishlist/add/:id', studentController.addToWishlist);
@@ -96,9 +55,6 @@ router.delete('/wishlist/remove/:id', studentController.removeFromWishlist);
 // Order History
 router.get('/order-history', studentController.orderHistory);
 router.get('/order/:orderNumber', studentController.orderDetails);
-
-// Homework Attempts
-router.get('/homework-attempts', studentController.homeworkAttempts);
 
 // Profile
 router.get('/profile', studentController.profile);

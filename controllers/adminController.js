@@ -1,13 +1,10 @@
 const Course = require('../models/Course');
-const BundleCourse = require('../models/BundleCourse');
+const Teacher = require('../models/Teacher');
 const Topic = require('../models/Topic');
 const User = require('../models/User');
 const Admin = require('../models/Admin');
-const QuestionBank = require('../models/QuestionBank');
-const Question = require('../models/Question');
 const Progress = require('../models/Progress');
 const Purchase = require('../models/Purchase');
-const Quiz = require('../models/Quiz');
 const BrilliantStudent = require('../models/BrilliantStudent');
 const ZoomMeeting = require('../models/ZoomMeeting');
 const PromoCode = require('../models/PromoCode');
@@ -107,10 +104,10 @@ const getAdminDashboard = async (req, res) => {
 
       // Top performing courses (including featured) - Get courses with enrollment data
       Course.find({ status: { $in: ['published', 'draft'] } })
-        .populate('bundle', 'title')
+        .populate('teacher', 'firstName lastName teacherCode')
         .sort({ createdAt: -1 })
         .limit(6)
-        .select('title level category status price featured bundle'),
+        .select('title level category status price featured teacher'),
 
       // Student growth data (last 7 days)
       User.aggregate([
@@ -469,7 +466,7 @@ const getCourses = async (req, res) => {
     const {
       status,
       level,
-      bundle,
+      teacher,
       search,
       sortBy = 'createdAt',
       sortOrder = 'desc',
@@ -488,8 +485,8 @@ const getCourses = async (req, res) => {
       filter.level = level;
     }
 
-    if (bundle) {
-      filter.bundle = bundle;
+    if (teacher) {
+      filter.teacher = teacher;
     }
 
     if (search) {
@@ -502,7 +499,7 @@ const getCourses = async (req, res) => {
 
     // Check if any filters are applied
     const hasFilters =
-      (status && status !== 'all') || level || bundle || search;
+      (status && status !== 'all') || level || teacher || search;
 
     // Build sort object
     const sort = {};
@@ -521,7 +518,7 @@ const getCourses = async (req, res) => {
       // No filters: show all courses
       courses = await Course.find(filter)
         .populate('topics')
-        .populate('bundle', 'title bundleCode thumbnail')
+        .populate('teacher', 'firstName lastName teacherCode')
         .sort(sort);
     } else {
       // Filters applied: use pagination
@@ -531,7 +528,7 @@ const getCourses = async (req, res) => {
 
       courses = await Course.find(filter)
         .populate('topics')
-        .populate('bundle', 'title bundleCode thumbnail')
+        .populate('teacher', 'firstName lastName teacherCode')
         .sort(sort)
         .skip(skip)
         .limit(parseInt(limit));
@@ -550,7 +547,7 @@ const getCourses = async (req, res) => {
       courses,
       stats,
       filterOptions,
-      currentFilters: { status, level, bundle, search, sortBy, sortOrder },
+      currentFilters: { status, level, teacher, search, sortBy, sortOrder },
       pagination: {
         currentPage,
         totalPages,
@@ -578,7 +575,7 @@ const createCourse = async (req, res) => {
       duration,
       price = 0,
       status = 'draft',
-      bundleId,
+      teacherId,
       category,
       thumbnail,
       order,
@@ -588,17 +585,20 @@ const createCourse = async (req, res) => {
     console.log('Creating course with data:', {
       title,
       thumbnail,
-      bundleId,
+      teacherId,
       category,
       order,
       requiresSequential,
     });
 
-    // Validate bundle exists
-    const bundle = await BundleCourse.findById(bundleId);
-    if (!bundle) {
-      req.flash('error_msg', 'Please select a valid bundle');
-      return res.redirect('/admin/courses');
+    // Validate teacher exists if provided
+    let teacher = null;
+    if (teacherId) {
+      teacher = await Teacher.findById(teacherId);
+      if (!teacher) {
+        req.flash('error_msg', 'Please select a valid teacher');
+        return res.redirect('/admin/courses');
+      }
     }
 
     // Determine order - use provided order or auto-assign
@@ -606,8 +606,8 @@ const createCourse = async (req, res) => {
     if (order && !isNaN(parseInt(order)) && parseInt(order) > 0) {
       courseOrder = parseInt(order);
     } else {
-      // Auto-assign next available order in bundle
-      const existingCourses = await Course.find({ bundle: bundleId })
+      // Auto-assign next available order
+      const existingCourses = await Course.find()
         .sort({ order: -1 })
         .limit(1);
       courseOrder =
@@ -632,7 +632,7 @@ const createCourse = async (req, res) => {
       price: parseFloat(price),
       status,
       createdBy: req.session.user.id,
-      bundle: bundleId,
+      teacher: teacherId || null,
       thumbnail: thumbnail || '',
       order: courseOrder,
       requiresSequential: requiresSequentialFlag,
@@ -641,29 +641,25 @@ const createCourse = async (req, res) => {
     console.log('Course object before save:', {
       title: course.title,
       thumbnail: course.thumbnail,
-      bundle: course.bundle,
+      teacher: course.teacher,
     });
 
     await course.save();
 
     console.log('Course saved successfully with ID:', course._id);
 
-    // Add course to bundle
-    bundle.courses.push(course._id);
-    await bundle.save();
-
     // Log admin action
     await createLog(req, {
       action: 'CREATE_COURSE',
       actionCategory: 'COURSE_MANAGEMENT',
-      description: `Created course "${course.title}" (${course.courseCode}) in bundle "${bundle.title}"`,
+      description: `Created course "${course.title}" (${course.courseCode})${teacher ? ` for teacher "${teacher.firstName} ${teacher.lastName}"` : ''}`,
       targetModel: 'Course',
       targetId: course._id.toString(),
       targetName: course.title,
       metadata: {
         courseCode: course.courseCode,
-        bundleId: bundle._id.toString(),
-        bundleName: bundle.title,
+        teacherId: teacher ? teacher._id.toString() : null,
+        teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : null,
         level: course.level,
         year: course.year,
         price: course.price,
@@ -673,7 +669,7 @@ const createCourse = async (req, res) => {
 
     req.flash(
       'success_msg',
-      'Course created and added to bundle successfully!'
+      'Course created successfully!'
     );
     res.redirect('/admin/courses');
   } catch (error) {
@@ -730,7 +726,7 @@ const getCourseDetails = async (req, res) => {
 
     const course = await Course.findOne({ courseCode })
       .populate({ path: 'topics', options: { sort: { order: 1 } } })
-      .populate('bundle', 'title bundleCode year')
+      .populate('teacher', 'firstName lastName teacherCode')
       .lean();
 
     if (!course) {
@@ -967,7 +963,7 @@ const getCourseData = async (req, res) => {
     const { courseCode } = req.params;
 
     const course = await Course.findOne({ courseCode })
-      .populate('bundle', 'title bundleCode year _id')
+      .populate('teacher', 'firstName lastName teacherCode _id')
       .lean();
 
     if (!course) {
@@ -999,11 +995,12 @@ const getCourseData = async (req, res) => {
         order: course.order || 0,
         tags: course.tags || [],
         thumbnail: course.thumbnail || '',
-        bundle: course.bundle
+        teacher: course.teacher
           ? {
-              _id: course.bundle._id,
-              title: course.bundle.title,
-              bundleCode: course.bundle.bundleCode,
+              _id: course.teacher._id,
+              firstName: course.teacher.firstName,
+              lastName: course.teacher.lastName,
+              teacherCode: course.teacher.teacherCode,
             }
           : null,
       },
@@ -1055,7 +1052,7 @@ const updateCourse = async (req, res) => {
       }
     });
 
-    // Find the current course to get the old bundle
+    // Find the current course
     const currentCourse = await Course.findOne({ courseCode });
     if (!currentCourse) {
       if (
@@ -1072,62 +1069,29 @@ const updateCourse = async (req, res) => {
       return res.redirect('/admin/courses');
     }
 
-    const oldBundleId = currentCourse.bundle;
-    const newBundleId = updateData.bundleId;
-
-    console.log('Bundle update debug:', {
-      courseCode,
-      oldBundleId: oldBundleId ? oldBundleId.toString() : 'null',
-      newBundleId: newBundleId || 'null',
-      isChanging:
-        newBundleId && (!oldBundleId || newBundleId !== oldBundleId.toString()),
-    });
-
-    // If bundle is being changed, handle bundle relationships
-    const isBundleChanging =
-      newBundleId && (!oldBundleId || newBundleId !== oldBundleId.toString());
-
-    if (isBundleChanging) {
-      // Validate new bundle exists
-      const newBundle = await BundleCourse.findById(newBundleId);
-      if (!newBundle) {
-        if (
-          req.xhr ||
-          req.headers.accept?.indexOf('json') > -1 ||
-          req.headers['content-type']?.includes('application/json')
-        ) {
-          return res.status(400).json({
-            success: false,
-            message: 'Invalid bundle selected',
-          });
+    // Handle teacher change if teacherId is provided
+    if (updateData.teacherId !== undefined) {
+      if (updateData.teacherId) {
+        const teacher = await Teacher.findById(updateData.teacherId);
+        if (!teacher) {
+          if (
+            req.xhr ||
+            req.headers.accept?.indexOf('json') > -1 ||
+            req.headers['content-type']?.includes('application/json')
+          ) {
+            return res.status(400).json({
+              success: false,
+              message: 'Invalid teacher selected',
+            });
+          }
+          req.flash('error_msg', 'Invalid teacher selected');
+          return res.redirect(`/admin/courses/${courseCode}`);
         }
-        req.flash('error_msg', 'Invalid bundle selected');
-        return res.redirect(`/admin/courses/${courseCode}`);
+        updateData.teacher = updateData.teacherId;
+      } else {
+        updateData.teacher = null;
       }
-
-      // Remove course from old bundle (if it exists)
-      if (oldBundleId) {
-        await BundleCourse.findByIdAndUpdate(oldBundleId, {
-          $pull: { courses: currentCourse._id },
-        });
-      }
-
-      // Add course to new bundle
-      await BundleCourse.findByIdAndUpdate(newBundleId, {
-        $addToSet: { courses: currentCourse._id },
-      });
-
-      // Update course with new bundle and related fields
-      updateData.bundle = newBundleId;
-      updateData.subject = newBundle.subject;
-      updateData.year = newBundle.year;
-
-      console.log('Bundle relationships updated:', {
-        removedFromOldBundle: oldBundleId || 'none',
-        addedToNewBundle: newBundleId,
-        newSubject: newBundle.subject,
-        newYear: newBundle.year,
-      });
+      delete updateData.teacherId;
     }
 
     // Update the course
@@ -1148,7 +1112,6 @@ const updateCourse = async (req, res) => {
       changes: updateData,
       metadata: {
         courseCode: course.courseCode,
-        bundleChanged: isBundleChanging,
       },
     });
 
@@ -1381,7 +1344,7 @@ const duplicateCourse = async (req, res) => {
         path: 'topics',
         options: { sort: { order: 1 } },
       })
-      .populate('bundle');
+      .populate('teacher');
 
     if (!originalCourse) {
       return res.status(404).json({
@@ -1396,9 +1359,7 @@ const duplicateCourse = async (req, res) => {
 
     try {
       // Determine the new order (count existing courses and assign next sequential order)
-      const existingCoursesCount = await Course.countDocuments({
-        bundle: originalCourse.bundle._id,
-      }).session(session);
+      const existingCoursesCount = await Course.countDocuments().session(session);
       const newOrder = existingCoursesCount + 1;
 
       // Create new course with copied data
@@ -1415,7 +1376,7 @@ const duplicateCourse = async (req, res) => {
         status: 'draft', // Always set to draft for duplicates
         isActive: true,
         createdBy: req.session.user.id,
-        bundle: originalCourse.bundle._id,
+        teacher: originalCourse.teacher ? originalCourse.teacher._id : null,
         order: newOrder,
         requiresSequential: originalCourse.requiresSequential !== false,
         tags: originalCourse.tags ? [...originalCourse.tags] : [],
@@ -1426,13 +1387,6 @@ const duplicateCourse = async (req, res) => {
 
       const newCourse = new Course(newCourseData);
       await newCourse.save({ session });
-
-      // Add course to bundle
-      await BundleCourse.findByIdAndUpdate(
-        originalCourse.bundle._id,
-        { $push: { courses: newCourse._id } },
-        { session }
-      );
 
       // Map to track old content IDs to new content IDs for prerequisites/dependencies
       const contentIdMap = new Map(); // oldContentId -> newContentId
@@ -1734,7 +1688,7 @@ const getCourseContent = async (req, res) => {
           model: 'ZoomMeeting',
         },
       })
-      .populate('bundle', 'title bundleCode year');
+      .populate('teacher', 'firstName lastName teacherCode');
 
     if (!course) {
       req.flash('error_msg', 'Course not found');
@@ -2574,7 +2528,7 @@ const getContentDetailsPage = async (req, res) => {
     const { courseCode, topicId, contentId } = req.params;
 
     const course = await Course.findOne({ courseCode })
-      .populate('bundle', 'title bundleCode year')
+      .populate('teacher', 'firstName lastName teacherCode')
       .populate({
         path: 'topics',
         populate: {
@@ -4569,7 +4523,7 @@ const getOrderDetails = async (req, res) => {
     const BookOrder = require('../models/BookOrder');
     const bookOrders = await BookOrder.find({ purchase: order._id })
       .populate('user', 'firstName lastName studentEmail studentCode')
-      .populate('bundle', 'title bundleCode thumbnail')
+      .populate('teacher', 'firstName lastName teacherCode')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -4907,7 +4861,7 @@ const getBookOrders = async (req, res) => {
     const [bookOrders, totalOrders] = await Promise.all([
       BookOrder.find(filter)
         .populate('user', 'firstName lastName studentEmail studentCode')
-        .populate('bundle', 'title bundleCode thumbnail')
+        .populate('teacher', 'firstName lastName teacherCode')
         .populate('purchase', 'orderNumber paymentStatus status')
         .sort(sort)
         .skip(skip)
@@ -5103,7 +5057,7 @@ const exportBookOrders = async (req, res) => {
 
     const bookOrders = await BookOrder.find(filter)
       .populate('user', 'firstName lastName studentEmail studentCode')
-      .populate('bundle', 'bundleCode')
+      .populate('teacher', 'teacherCode')
       .populate('purchase', 'orderNumber paymentStatus')
       .sort({ createdAt: -1 })
       .lean();
@@ -6980,34 +6934,7 @@ const getBundleInfo = async (req, res) => {
       weeklyActiveUsers: 0,
       averageSessionDuration: 0,
       contentCompletionRate: 0,
-      quizAttempts: 0,
-      averageQuizScore: 0,
     };
-
-    // Get quiz performance data
-    const Quiz = require('../models/Quiz');
-    const quizzes = await Quiz.find({
-      bundleId: bundle._id,
-    }).populate('attempts.student', 'firstName lastName');
-
-    let totalQuizAttempts = 0;
-    let totalQuizScore = 0;
-
-    quizzes.forEach((quiz) => {
-      if (quiz.attempts) {
-        totalQuizAttempts += quiz.attempts.length;
-        totalQuizScore += quiz.attempts.reduce(
-          (sum, attempt) => sum + (attempt.score || 0),
-          0
-        );
-      }
-    });
-
-    engagementMetrics.quizAttempts = totalQuizAttempts;
-    engagementMetrics.averageQuizScore =
-      totalQuizAttempts > 0
-        ? Math.round(totalQuizScore / totalQuizAttempts)
-        : 0;
 
     // Calculate content completion rate
     let totalContent = 0;
@@ -16217,18 +16144,6 @@ module.exports = {
   addTopicContent,
   updateTopicContent,
   deleteTopicContent,
-  getBundles,
-  createBundle,
-  updateBundle,
-  deleteBundle,
-  getBundleManage,
-  getBundleInfo,
-  getBundleStudents,
-  addCourseToBundle,
-  removeCourseFromBundle,
-  createCourseForBundle,
-  updateCourseOrder,
-  getBundlesAPI,
   // Student Management Controllers
   getStudents,
   getStudentDetails,
@@ -16239,16 +16154,6 @@ module.exports = {
   exportStudentData,
   updateStudent,
   deleteStudent,
-  // Quiz/Homework Content Controllers
-  getQuestionBanksForContent,
-  getQuestionsFromBankForContent,
-  getQuestionsFromMultipleBanksForContent,
-  getQuestionPreviewForContent,
-  addQuizContent,
-  addHomeworkContent,
-  // Content analytics APIs
-  getTopicContentStudentStats,
-  resetContentAttempts,
   // Orders management
   getOrders,
   getOrderDetails,
@@ -16277,12 +16182,9 @@ module.exports = {
   // Export functions
   exportCourses,
   exportOrders,
-  exportQuizzes,
   exportComprehensiveReport,
   exportCourseDetails,
   exportTopicDetails,
-  exportQuestionBankDetails,
-  exportQuizDetails,
   // Zoom Meeting Management
   createZoomMeeting,
   startZoomMeeting,
@@ -16295,12 +16197,9 @@ module.exports = {
   downloadEnrollmentTemplate,
   // Student Enrollment
   enrollStudentsToCourse,
-  enrollStudentsToBundle,
   bulkEnrollStudentsToCourse,
-  bulkEnrollStudentsToBundle,
   getStudentsForEnrollment,
   removeStudentFromCourse,
-  removeStudentFromBundle,
   // Duplicate Cleanup
   cleanupUserDuplicates,
   // Promo Codes Management
@@ -16329,9 +16228,7 @@ module.exports = {
   getBulkSMSPage,
   getStudentsForSMS,
   getCoursesForSMS,
-  getBundlesForSMS,
   getCourseStudentsCount,
-  getBundleStudentsCount,
   sendBulkSMS,
   // Simple PDF Upload
   uploadPDF,

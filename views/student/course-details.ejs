@@ -63,10 +63,10 @@
                                     <i class="fas fa-clock me-1"></i>
                                     <%= course.duration || 'Self-paced' %>
                                 </span>
-                                <% if (course.bundle) { %>
+                                <% if (course.teacher) { %>
                                 <span class="badge bg-info">
-                                    <i class="fas fa-box me-1"></i>
-                                    <%= course.bundle.name %>
+                                    <i class="fas fa-chalkboard-teacher me-1"></i>
+                                    <%= course.teacher.firstName %> <%= course.teacher.lastName %>
                                 </span>
                                 <% } %>
                             </div>
@@ -94,10 +94,10 @@
                             </div>
                             <div class="book-purchase-details">
                                 <h5 class="book-purchase-title"><%= bookPurchaseInfo.bookName %></h5>
-                                <p class="book-purchase-description">Purchase the physical book for this bundle</p>
+                                <p class="book-purchase-description">Purchase the physical book for this course</p>
                             </div>
                         </div>
-                        <a href="/purchase/checkout/book?bundle=<%= bookPurchaseInfo.bundleId %>" class="btn-buy-book">
+                        <a href="/purchase/checkout/book?course=<%= bookPurchaseInfo.courseId %>" class="btn-buy-book">
                             <div class="btn-buy-book-icon">
                                 <i class="fas fa-shopping-cart"></i>
                             </div>

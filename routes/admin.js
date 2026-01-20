@@ -92,18 +92,6 @@ const {
   deleteTopicContent,
   getContentDetailsPage,
   getContentDetailsForEdit,
-  getBundles,
-  createBundle,
-  updateBundle,
-  deleteBundle,
-  getBundleManage,
-  getBundleInfo,
-  getBundleStudents,
-  addCourseToBundle,
-  removeCourseFromBundle,
-  createCourseForBundle,
-  updateCourseOrder,
-  getBundlesAPI,
   // Student Management Controllers
   getStudents,
   getStudentDetails,
@@ -114,15 +102,6 @@ const {
   exportStudentData,
   updateStudent,
   deleteStudent,
-  // Quiz/Homework Content Controllers
-  getQuestionBanksForContent,
-  getQuestionsFromBankForContent,
-  getQuestionsFromMultipleBanksForContent,
-  getQuestionPreviewForContent,
-  addQuizContent,
-  addHomeworkContent,
-  getTopicContentStudentStats,
-  resetContentAttempts,
   // Orders
   getOrders,
   getOrderDetails,
@@ -151,11 +130,9 @@ const {
   // Export functions
   exportCourses,
   exportOrders,
-  exportQuizzes,
   exportComprehensiveReport,
   exportCourseDetails,
   exportTopicDetails,
-  exportQuizDetails,
   // Zoom Meeting Management
   createZoomMeeting,
   startZoomMeeting,
@@ -167,13 +144,10 @@ const {
   downloadBulkImportSample,
   // Student Enrollment
   enrollStudentsToCourse,
-  enrollStudentsToBundle,
   bulkEnrollStudentsToCourse,
-  bulkEnrollStudentsToBundle,
   downloadEnrollmentTemplate,
   getStudentsForEnrollment,
   removeStudentFromCourse,
-  removeStudentFromBundle,
   // Duplicate Cleanup
   cleanupUserDuplicates,
   // Promo Codes Management
@@ -202,9 +176,7 @@ const {
   getBulkSMSPage,
   getStudentsForSMS,
   getCoursesForSMS,
-  getBundlesForSMS,
   getCourseStudentsCount,
-  getBundleStudentsCount,
   sendBulkSMS,
   uploadPDF,
   // OTP Master Generator
@@ -214,22 +186,6 @@ const {
   getActiveMasterOTPs,
   revokeMasterOTP,
 } = require('../controllers/adminController');
-
-// Import Question Bank routes
-const questionBankRoutes = require('./questionBank');
-
-// Import Game Room Controller
-const {
-  getAdminGameRooms,
-  getCreateGameRoom,
-  createGameRoom,
-  getEditGameRoom,
-  updateGameRoom,
-  deleteGameRoom,
-  permanentDeleteGameRoom,
-  getGameRoomStats,
-  getQuestionsByBank,
-} = require('../controllers/gameRoomController');
 
 // Team Management is now imported from adminController (moved from authController)
 
@@ -246,7 +202,6 @@ const {
   sendTestMessage,
   getStudentsForMessaging,
   getCoursesForMessaging,
-  getBundlesForMessaging,
   getSessionStatus,
   getSessionDetails,
   testInvoiceGeneration,
@@ -313,16 +268,6 @@ router.get(
   isAdmin,
   getContentDetailsForEdit
 );
-router.get(
-  '/courses/:courseCode/topics/:topicId/content/:contentId/students',
-  isAdmin,
-  getTopicContentStudentStats
-);
-router.post(
-  '/courses/:courseCode/topics/:topicId/content/:contentId/students/:studentId/reset',
-  isAdmin,
-  resetContentAttempts
-);
 router.put(
   '/courses/:courseCode/topics/:topicId/content/:contentId',
   isAdmin,
@@ -333,70 +278,6 @@ router.delete(
   isAdmin,
   deleteTopicContent
 );
-
-// Quiz/Homework Content Routes
-router.get(
-  '/courses/:courseCode/topics/:topicId/question-banks',
-  isAdmin,
-  getQuestionBanksForContent
-);
-router.get(
-  '/courses/:courseCode/topics/:topicId/question-banks/:bankId/questions',
-  isAdmin,
-  getQuestionsFromBankForContent
-);
-router.post(
-  '/courses/:courseCode/topics/:topicId/question-banks/multiple/questions',
-  isAdmin,
-  getQuestionsFromMultipleBanksForContent
-);
-router.get(
-  '/courses/:courseCode/topics/:topicId/questions/:questionId/preview',
-  isAdmin,
-  getQuestionPreviewForContent
-);
-router.post(
-  '/courses/:courseCode/topics/:topicId/content/quiz',
-  isAdmin,
-  addQuizContent
-);
-router.post(
-  '/courses/:courseCode/topics/:topicId/content/homework',
-  isAdmin,
-  addHomeworkContent
-);
-
-// Bundle Course Routes
-router.get('/bundles', isAdmin, getBundles);
-router.post('/bundles/create', isAdmin, createBundle);
-router.get('/bundles/:bundleCode/info', isAdmin, getBundleInfo);
-router.put('/bundles/:bundleCode', isAdmin, updateBundle);
-router.delete('/bundles/:bundleCode', isAdmin, deleteBundle);
-router.get('/bundles/:bundleCode/manage', isAdmin, getBundleManage);
-router.get('/bundles/:bundleCode/students', isAdmin, getBundleStudents);
-router.post(
-  '/bundles/:bundleCode/courses/:courseId/add',
-  isAdmin,
-  addCourseToBundle
-);
-router.delete(
-  '/bundles/:bundleCode/courses/:courseId/remove',
-  isAdmin,
-  removeCourseFromBundle
-);
-router.post(
-  '/bundles/:bundleCode/courses/create',
-  isAdmin,
-  createCourseForBundle
-);
-router.put(
-  '/bundles/:bundleCode/courses/reorder',
-  isAdmin,
-  updateCourseOrder
-);
-
-// API Routes
-router.get('/api/bundles', isAdmin, getBundlesAPI);
 
 // Student Management Routes
 router.get('/students', isAdmin, getStudents);
@@ -442,21 +323,6 @@ router.delete(
   isAdmin,
   removeStudentFromCourse
 );
-router.post('/bundles/:bundleId/enroll', isAdmin, enrollStudentsToBundle);
-router.post(
-  '/bundles/:bundleId/bulk-enroll',
-  isAdmin,
-  uploadFile.single('excelFile'),
-  bulkEnrollStudentsToBundle
-);
-router.delete(
-  '/bundles/:bundleId/students/:studentId',
-  isAdmin,
-  removeStudentFromBundle
-);
-
-// Question Bank Routes
-router.use('/question-banks', questionBankRoutes);
 
 // Orders Management
 router.get('/orders', isAdmin, getOrders);
@@ -474,7 +340,7 @@ router.get('/book-orders/:bookOrderId', isAdmin, async (req, res) => {
     const BookOrder = require('../models/BookOrder');
     const bookOrder = await BookOrder.findById(req.params.bookOrderId)
       .populate('user', 'firstName lastName studentEmail')
-      .populate('bundle', 'title bundleCode _id')
+      .populate('course', 'title courseCode _id')
       .lean();
 
     if (!bookOrder) {
@@ -498,27 +364,6 @@ router.get('/book-orders/:bookOrderId', isAdmin, async (req, res) => {
 });
 router.put('/book-orders/:bookOrderId/update', isAdmin, updateBookOrderStatus);
 router.put('/book-orders/bulk-update', isAdmin, bulkUpdateBookOrdersStatus);
-
-// Game Rooms Management Routes
-router.get('/game-rooms', isAdmin, getAdminGameRooms);
-router.get('/game-rooms/create', isAdmin, getCreateGameRoom);
-router.post('/game-rooms/create', isAdmin, createGameRoom);
-router.get('/game-rooms/:id/edit', isAdmin, getEditGameRoom);
-router.put('/game-rooms/:id', isAdmin, updateGameRoom);
-router.delete('/game-rooms/:id/delete', isAdmin, deleteGameRoom);
-router.get('/game-rooms/:id/delete', isAdmin, deleteGameRoom); // GET route for simple navigation
-router.post(
-  '/game-rooms/:id/permanent-delete',
-  isAdmin,
-  permanentDeleteGameRoom
-); // Permanent delete route
-router.get('/game-rooms/:id/stats', isAdmin, getGameRoomStats);
-// API - fetch questions by bank
-router.get(
-  '/api/question-banks/:bankId/questions',
-  isAdmin,
-  getQuestionsByBank
-);
 
 // Admin Management Routes
 router.get('/create-admin', isAdmin, getCreateAdminForm);
@@ -546,7 +391,6 @@ router.get(
   exportTopicDetails
 );
 router.get('/export/orders', isAdmin, exportOrders);
-router.get('/export/quizzes', isAdmin, exportQuizzes);
 router.get('/export/comprehensive', isAdmin, exportComprehensiveReport);
 
 // Team Management Routes
@@ -606,7 +450,6 @@ router.post('/whatsapp/bulk-message', isAdmin, sendBulkMessage);
 router.post('/whatsapp/test-message', isAdmin, sendTestMessage);
 router.get('/whatsapp/students', isAdmin, getStudentsForMessaging);
 router.get('/whatsapp/courses', isAdmin, getCoursesForMessaging);
-router.get('/whatsapp/bundles', isAdmin, getBundlesForMessaging);
 router.get('/whatsapp/session-status', isAdmin, getSessionStatus);
 router.get('/whatsapp/session-details', isAdmin, getSessionDetails);
 
@@ -614,16 +457,10 @@ router.get('/whatsapp/session-details', isAdmin, getSessionDetails);
 router.get('/bulk-sms', isAdmin, getBulkSMSPage);
 router.get('/bulk-sms/students', isAdmin, getStudentsForSMS);
 router.get('/bulk-sms/courses', isAdmin, getCoursesForSMS);
-router.get('/bulk-sms/bundles', isAdmin, getBundlesForSMS);
 router.get(
   '/bulk-sms/course-students-count/:courseId',
   isAdmin,
   getCourseStudentsCount
-);
-router.get(
-  '/bulk-sms/bundle-students-count/:bundleId',
-  isAdmin,
-  getBundleStudentsCount
 );
 router.post('/bulk-sms/send', isAdmin, sendBulkSMS);
 

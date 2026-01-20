@@ -1,9 +1,7 @@
-const BundleCourse = require('../models/BundleCourse');
 const Course = require('../models/Course');
-const Quiz = require('../models/Quiz');
+const Teacher = require('../models/Teacher');
 const User = require('../models/User');
 const BrilliantStudent = require('../models/BrilliantStudent');
-const GameRoom = require('../models/GameRoom');
 const TeamMember = require('../models/TeamMember');
 
 // Get landing page data
@@ -11,125 +9,92 @@ const getLandingPage = async (req, res) => {
   try {
     // Execute all database queries in parallel for better performance
     const [
-      onlineBundles,
-      ongroundBundles,
-      recordedBundles,
-      recoveryBundles,
-      featuredQuizzes,
-      testCounts,
-      featuredGameRooms,
+      onlineCourses,
+      ongroundCourses,
+      recordedCourses,
+      recoveryCourses,
       stats,
       brilliantStudents,
       teamMembers,
       user
     ] = await Promise.all([
-      // Get featured bundles with minimal data
-      BundleCourse.find({
+      // Get featured courses with minimal data
+      Course.find({
         courseType: 'online',
         status: 'published',
         isActive: true,
       })
-        .select('title shortDescription price image courseType createdAt')
+        .populate('teacher', 'firstName lastName teacherCode profilePicture')
+        .select('title shortDescription price thumbnail courseType createdAt teacher')
         .sort({ createdAt: -1 })
         .limit(6)
         .lean(),
 
-      BundleCourse.find({
+      Course.find({
         courseType: 'onground',
         status: 'published',
         isActive: true,
       })
-        .select('title shortDescription price image courseType createdAt')
+        .populate('teacher', 'firstName lastName teacherCode profilePicture')
+        .select('title shortDescription price thumbnail courseType createdAt teacher')
         .sort({ createdAt: -1 })
         .limit(6)
         .lean(),
 
-      BundleCourse.find({
+      Course.find({
         courseType: 'recorded',
         status: 'published',
         isActive: true,
       })
-        .select('title shortDescription price image courseType createdAt')
+        .populate('teacher', 'firstName lastName teacherCode profilePicture')
+        .select('title shortDescription price thumbnail courseType createdAt teacher')
         .sort({ createdAt: -1 })
         .limit(6)
         .lean(),
 
-      BundleCourse.find({
+      Course.find({
         courseType: 'recovery',
         status: 'published',
         isActive: true,
       })
-        .select('title shortDescription price image courseType createdAt')
-        .sort({ createdAt: -1 })
-        .limit(6)
-        .lean(),
-
-      // Get featured quizzes with minimal data
-      Quiz.find({
-        status: 'active',
-      })
-        .select('title description testType difficulty timeLimit totalQuestions createdAt')
-        .sort({ createdAt: -1 })
-        .limit(4)
-        .lean(),
-
-      // Get test counts in parallel
-      Promise.all([
-        Quiz.countDocuments({ testType: 'EST', status: 'active' }),
-        Quiz.countDocuments({ testType: 'SAT', status: 'active' }),
-        Quiz.countDocuments({ testType: 'ACT', status: 'active' }),
-      ]).then(([EST, SAT, ACT]) => ({ EST, SAT, ACT })),
-
-      // Get featured game rooms with minimal data
-      GameRoom.find({
-        isActive: true,
-        isPublic: true,
-        gameState: { $in: ['waiting', 'starting'] },
-      })
-        .select('title gameState currentPlayers maxPlayers totalTime questions category difficulty createdAt')
+        .populate('teacher', 'firstName lastName teacherCode profilePicture')
+        .select('title shortDescription price thumbnail courseType createdAt teacher')
         .sort({ createdAt: -1 })
         .limit(6)
         .lean(),
 
       // Get stats in parallel
       Promise.all([
-        BundleCourse.countDocuments({
+        Course.countDocuments({
           courseType: 'online',
           status: 'published',
           isActive: true,
         }),
-        BundleCourse.countDocuments({
+        Course.countDocuments({
           courseType: 'onground',
           status: 'published',
           isActive: true,
         }),
-        BundleCourse.countDocuments({
+        Course.countDocuments({
           courseType: 'recorded',
           status: 'published',
           isActive: true,
         }),
-        BundleCourse.countDocuments({
+        Course.countDocuments({
           courseType: 'recovery',
           status: 'published',
           isActive: true,
         }),
-        Quiz.countDocuments({ status: 'active' }),
-        GameRoom.countDocuments({
-          isActive: true,
-          isPublic: true,
-        }),
-        BundleCourse.aggregate([
+        Course.aggregate([
           { $match: { status: 'published', isActive: true } },
           { $project: { enrolledCount: { $size: '$enrolledStudents' } } },
           { $group: { _id: null, total: { $sum: '$enrolledCount' } } },
         ])
-      ]).then(([onlineBundles, ongroundBundles, recordedBundles, recoveryBundles, totalQuizzes, totalGameRooms, totalStudents]) => ({
-        onlineBundles,
-        ongroundBundles,
-        recordedBundles,
-        recoveryBundles,
-        totalQuizzes,
-        totalGameRooms,
+      ]).then(([onlineCourses, ongroundCourses, recordedCourses, recoveryCourses, totalStudents]) => ({
+        onlineCourses,
+        ongroundCourses,
+        recordedCourses,
+        recoveryCourses,
         totalStudents: totalStudents[0]?.total || 0,
       })),
 
@@ -144,37 +109,50 @@ const getLandingPage = async (req, res) => {
       TeamMember.getActiveMembers(),
 
       // Get user data if logged in (minimal data)
-      req.session.user ? User.findById(req.session.user.id): null
+      req.session.user ? User.findById(req.session.user.id) : null
     ]);
-
-
 
     res.render('index', {
       title: 'Home | ELKABLY',
       theme: req.cookies.theme || 'light',
-      onlineBundles,
-      ongroundBundles,
-      recordedBundles,
-      recoveryBundles,
-      featuredQuizzes,
-      featuredGameRooms,
+      // Pass as courses (with bundles aliases for backwards compatibility)
+      onlineCourses,
+      ongroundCourses,
+      recordedCourses,
+      recoveryCourses,
+      onlineBundles: onlineCourses,
+      ongroundBundles: ongroundCourses,
+      recordedBundles: recordedCourses,
+      recoveryBundles: recoveryCourses,
       user,
       cart: req.session.cart || [],
-      testCounts,
       brilliantStudents,
       teamMembers,
-      stats,
+      stats: {
+        onlineCourses: stats.onlineCourses,
+        ongroundCourses: stats.ongroundCourses,
+        recordedCourses: stats.recordedCourses,
+        recoveryCourses: stats.recoveryCourses,
+        onlineBundles: stats.onlineCourses,
+        ongroundBundles: stats.ongroundCourses,
+        recordedBundles: stats.recordedCourses,
+        recoveryBundles: stats.recoveryCourses,
+        totalStudents: stats.totalStudents,
+      },
     });
   } catch (error) {
     console.error('Error fetching landing page data:', error);
     res.render('index', {
       title: 'Home | ELKABLY',
       theme: req.cookies.theme || 'light',
+      onlineCourses: [],
+      ongroundCourses: [],
+      recordedCourses: [],
+      recoveryCourses: [],
       onlineBundles: [],
       ongroundBundles: [],
       recordedBundles: [],
       recoveryBundles: [],
-      featuredQuizzes: [],
       featuredGameRooms: [],
       cart: req.session.cart || [],
       testCounts: { EST: 0, SAT: 0, ACT: 0 },
@@ -185,6 +163,10 @@ const getLandingPage = async (req, res) => {
       },
       teamMembers: [],
       stats: {
+        onlineCourses: 0,
+        ongroundCourses: 0,
+        recordedCourses: 0,
+        recoveryCourses: 0,
         onlineBundles: 0,
         ongroundBundles: 0,
         recordedBundles: 0,
@@ -197,13 +179,13 @@ const getLandingPage = async (req, res) => {
   }
 };
 
-// Get online courses page
-const getOnlineCourses = async (req, res) => {
+// Helper function to get courses by type
+const getCoursesByType = async (req, res, courseType, viewName, pageTitle) => {
   try {
-    const { page = 1, limit = 12, search, subject, testType } = req.query;
+    const { page = 1, limit = 12, search, subject, testType, teacher } = req.query;
 
     const filter = {
-      courseType: 'online',
+      courseType,
       status: 'published',
       isActive: true,
     };
@@ -217,924 +199,362 @@ const getOnlineCourses = async (req, res) => {
     }
     if (subject) filter.subject = subject;
     if (testType) filter.testType = testType;
-
-    console.log('Online courses filter:', filter);
+    if (teacher) filter.teacher = teacher;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const bundles = await BundleCourse.find(filter)
-      .populate('courses')
-      .populate('createdBy', 'userName')
+    const courses = await Course.find(filter)
+      .populate('teacher', 'firstName lastName teacherCode profilePicture')
+      .populate('topics')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
 
-    console.log('Found online bundles:', bundles.length);
-
-    const totalBundles = await BundleCourse.countDocuments(filter);
-    const totalPages = Math.ceil(totalBundles / parseInt(limit));
+    const totalCourses = await Course.countDocuments(filter);
+    const totalPages = Math.ceil(totalCourses / parseInt(limit));
 
     // Get filter options
-    const subjects = await BundleCourse.distinct('subject', {
-      courseType: 'online',
+    const subjects = await Course.distinct('subject', {
+      courseType,
       status: 'published',
       isActive: true,
     });
-    const testTypes = await BundleCourse.distinct('testType', {
-      courseType: 'online',
+    const testTypes = await Course.distinct('testType', {
+      courseType,
       status: 'published',
       isActive: true,
     });
+    const teachers = await Teacher.find({ isActive: true })
+      .select('firstName lastName teacherCode')
+      .lean();
 
-    // Get user with purchase information if logged in
+    // Get user if logged in
     let user = null;
     if (req.session.user) {
       user = await User.findById(req.session.user.id);
-      // .populate('wishlist.courses')
-      // .populate('wishlist.bundles');
-      // .populate('purchasedBundles.bundle')
-      // .populate('purchasedCourses.course')
-      // .populate('enrolledCourses.course');
     }
 
-    res.render('online-courses', {
-      title: 'Online Courses | ELKABLY',
+    res.render(viewName, {
+      title: `${pageTitle} | ELKABLY`,
       theme: req.cookies.theme || 'light',
-      bundles,
+      // For backwards compatibility
+      bundles: courses,
+      courses,
       user,
       cart: req.session.cart || [],
-      filterOptions: { subjects, testTypes },
-      currentFilters: { search, subject, testType },
+      filterOptions: { subjects, testTypes, teachers },
+      currentFilters: { search, subject, testType, teacher },
       pagination: {
         currentPage: parseInt(page),
         totalPages,
-        totalBundles,
+        totalBundles: totalCourses,
+        totalCourses,
         hasNext: parseInt(page) < totalPages,
         hasPrev: parseInt(page) > 1,
       },
     });
   } catch (error) {
-    console.error('Error fetching online courses:', error);
-    req.flash('error_msg', 'Error loading online courses');
-    res.render('online-courses', {
-      title: 'Online Courses | ELKABLY',
+    console.error(`Error fetching ${courseType} courses:`, error);
+    req.flash('error_msg', `Error loading ${courseType} courses`);
+    res.render(viewName, {
+      title: `${pageTitle} | ELKABLY`,
       theme: req.cookies.theme || 'light',
       bundles: [],
+      courses: [],
       cart: req.session.cart || [],
-      filterOptions: { subjects: [], testTypes: [] },
+      filterOptions: { subjects: [], testTypes: [], teachers: [] },
       currentFilters: {},
       pagination: {
         currentPage: 1,
         totalPages: 0,
         totalBundles: 0,
+        totalCourses: 0,
         hasNext: false,
         hasPrev: false,
       },
     });
   }
+};
+
+// Get online courses page
+const getOnlineCourses = async (req, res) => {
+  return getCoursesByType(req, res, 'online', 'online-courses', 'Online Courses');
 };
 
 // Get onground courses page
 const getOngroundCourses = async (req, res) => {
-  try {
-    const { page = 1, limit = 12, search, subject, testType } = req.query;
-
-    const filter = {
-      courseType: 'onground',
-      status: 'published',
-      isActive: true,
-    };
-
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { shortDescription: { $regex: search, $options: 'i' } },
-      ];
-    }
-    if (subject) filter.subject = subject;
-    if (testType) filter.testType = testType;
-
-    console.log('Onground courses filter:', filter);
-
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    const bundles = await BundleCourse.find(filter)
-      .populate('courses')
-      .populate('createdBy', 'userName')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
-
-    console.log('Found onground bundles:', bundles.length);
-
-    const totalBundles = await BundleCourse.countDocuments(filter);
-    const totalPages = Math.ceil(totalBundles / parseInt(limit));
-
-    // Get filter options
-    const subjects = await BundleCourse.distinct('subject', {
-      courseType: 'onground',
-      status: 'published',
-      isActive: true,
-    });
-    const testTypes = await BundleCourse.distinct('testType', {
-      courseType: 'onground',
-      status: 'published',
-      isActive: true,
-    });
-
-    // Get user with purchase information if logged in
-    let user = null;
-    if (req.session.user) {
-      user = await User.findById(req.session.user.id);
-      // .populate('wishlist.courses')
-      // .populate('wishlist.bundles');
-      // .populate('purchasedBundles.bundle')
-      // .populate('purchasedCourses.course')
-      // .populate('enrolledCourses.course');
-    }
-
-    res.render('onground-courses', {
-      title: 'On-Ground Courses | ELKABLY',
-      theme: req.cookies.theme || 'light',
-      bundles,
-      user,
-      cart: req.session.cart || [],
-      filterOptions: { subjects, testTypes },
-      currentFilters: { search, subject, testType },
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages,
-        totalBundles,
-        hasNext: parseInt(page) < totalPages,
-        hasPrev: parseInt(page) > 1,
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching onground courses:', error);
-    req.flash('error_msg', 'Error loading onground courses');
-    res.render('onground-courses', {
-      title: 'On-Ground Courses | ELKABLY',
-      theme: req.cookies.theme || 'light',
-      bundles: [],
-      cart: req.session.cart || [],
-      filterOptions: { subjects: [], testTypes: [] },
-      currentFilters: {},
-      pagination: {
-        currentPage: 1,
-        totalPages: 0,
-        totalBundles: 0,
-        hasNext: false,
-        hasPrev: false,
-      },
-    });
-  }
+  return getCoursesByType(req, res, 'onground', 'onground-courses', 'On-Ground Courses');
 };
 
 // Get recorded courses page
 const getRecordedCourses = async (req, res) => {
-  try {
-    const { page = 1, limit = 12, search, subject, testType } = req.query;
-
-    const filter = {
-      courseType: 'recorded',
-      status: 'published',
-      isActive: true,
-    };
-
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { shortDescription: { $regex: search, $options: 'i' } },
-      ];
-    }
-    if (subject) filter.subject = subject;
-    if (testType) filter.testType = testType;
-
-    console.log('Recorded courses filter:', filter);
-
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    const bundles = await BundleCourse.find(filter)
-      .populate('courses')
-      .populate('createdBy', 'userName')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
-
-    console.log('Found recorded bundles:', bundles.length);
-
-    const totalBundles = await BundleCourse.countDocuments(filter);
-    const totalPages = Math.ceil(totalBundles / parseInt(limit));
-
-    // Get filter options
-    const subjects = await BundleCourse.distinct('subject', {
-      courseType: 'recorded',
-      status: 'published',
-      isActive: true,
-    });
-    const testTypes = await BundleCourse.distinct('testType', {
-      courseType: 'recorded',
-      status: 'published',
-      isActive: true,
-    });
-
-    // Get user with purchase information if logged in
-    let user = null;
-    if (req.session.user) {
-      user = await User.findById(req.session.user.id);
-    }
-
-    res.render('recorded-courses', {
-      title: 'Recorded Courses | ELKABLY',
-      theme: req.cookies.theme || 'light',
-      bundles,
-      user,
-      cart: req.session.cart || [],
-      filterOptions: { subjects, testTypes },
-      currentFilters: { search, subject, testType },
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages,
-        totalBundles,
-        hasNext: parseInt(page) < totalPages,
-        hasPrev: parseInt(page) > 1,
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching recorded courses:', error);
-    req.flash('error_msg', 'Error loading recorded courses');
-    res.render('recorded-courses', {
-      title: 'Recorded Courses | ELKABLY',
-      theme: req.cookies.theme || 'light',
-      bundles: [],
-      cart: req.session.cart || [],
-      filterOptions: { subjects: [], testTypes: [] },
-      currentFilters: {},
-      pagination: {
-        currentPage: 1,
-        totalPages: 0,
-        totalBundles: 0,
-        hasNext: false,
-        hasPrev: false,
-      },
-    });
-  }
+  return getCoursesByType(req, res, 'recorded', 'recorded-courses', 'Recorded Courses');
 };
 
 // Get recovery courses page
 const getRecoveryCourses = async (req, res) => {
-  try {
-    const { page = 1, limit = 12, search, subject, testType } = req.query;
-
-    const filter = {
-      courseType: 'recovery',
-      status: 'published',
-      isActive: true,
-    };
-
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { shortDescription: { $regex: search, $options: 'i' } },
-      ];
-    }
-    if (subject) filter.subject = subject;
-    if (testType) filter.testType = testType;
-
-    console.log('Recovery courses filter:', filter);
-
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    const bundles = await BundleCourse.find(filter)
-      .populate('courses')
-      .populate('createdBy', 'userName')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
-
-    console.log('Found recovery bundles:', bundles.length);
-
-    const totalBundles = await BundleCourse.countDocuments(filter);
-    const totalPages = Math.ceil(totalBundles / parseInt(limit));
-
-    // Get filter options
-    const subjects = await BundleCourse.distinct('subject', {
-      courseType: 'recovery',
-      status: 'published',
-      isActive: true,
-    });
-    const testTypes = await BundleCourse.distinct('testType', {
-      courseType: 'recovery',
-      status: 'published',
-      isActive: true,
-    });
-
-    // Get user with purchase information if logged in
-    let user = null;
-    if (req.session.user) {
-      user = await User.findById(req.session.user.id);
-    }
-
-    res.render('recovery-courses', {
-      title: 'Recovery Courses | ELKABLY',
-      theme: req.cookies.theme || 'light',
-      bundles,
-      user,
-      cart: req.session.cart || [],
-      filterOptions: { subjects, testTypes },
-      currentFilters: { search, subject, testType },
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages,
-        totalBundles,
-        hasNext: parseInt(page) < totalPages,
-        hasPrev: parseInt(page) > 1,
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching recovery courses:', error);
-    req.flash('error_msg', 'Error loading recovery courses');
-    res.render('recovery-courses', {
-      title: 'Recovery Courses | ELKABLY',
-      theme: req.cookies.theme || 'light',
-      bundles: [],
-      cart: req.session.cart || [],
-      filterOptions: { subjects: [], testTypes: [] },
-      currentFilters: {},
-      pagination: {
-        currentPage: 1,
-        totalPages: 0,
-        totalBundles: 0,
-        hasNext: false,
-        hasPrev: false,
-      },
-    });
-  }
+  return getCoursesByType(req, res, 'recovery', 'recovery-courses', 'Recovery Courses');
 };
 
-// Get bundle course content (all courses in the bundle)
-const getBundleContent = async (req, res) => {
+// Get course content (replaces getBundleContent)
+const getCourseContent = async (req, res) => {
   try {
     const { id } = req.params;
 
     // Validate ID format
     if (!id || !require('mongoose').Types.ObjectId.isValid(id)) {
-      req.flash('error_msg', 'Invalid bundle ID');
+      req.flash('error_msg', 'Invalid course ID');
       return res.redirect('/courses');
     }
 
-    const bundle = await BundleCourse.findById(id)
-      .populate('courses')
-      .populate('createdBy', 'userName')
-      .populate('enrolledStudents', 'userName email');
+    const course = await Course.findById(id)
+      .populate('teacher', 'firstName lastName teacherCode profilePicture bio')
+      .populate('topics')
+      .populate('enrolledStudents', 'username studentEmail');
 
-    if (!bundle) {
-      req.flash('error_msg', 'Bundle course not found');
+    if (!course) {
+      req.flash('error_msg', 'Course not found');
       return res.redirect('/courses');
     }
 
-    if (bundle.status !== 'published' || !bundle.isActive) {
-      req.flash('error_msg', 'This bundle course is not available');
+    if (course.status !== 'published' || !course.isActive) {
+      req.flash('error_msg', 'This course is not available');
       return res.redirect('/courses');
     }
 
-    // Get related bundles
-    const relatedBundles = await BundleCourse.find({
-      _id: { $ne: bundle._id },
-      courseType: bundle.courseType,
+    // Get related courses from the same teacher
+    const relatedCourses = await Course.find({
+      _id: { $ne: course._id },
+      teacher: course.teacher._id,
       status: 'published',
       isActive: true,
     })
-      .populate('courses')
+      .populate('teacher', 'firstName lastName teacherCode')
       .limit(4);
 
     // Get user with purchase information if logged in
     let user = null;
-    let coursesWithUnlockStatus = [];
+    let isEnrolled = false;
     if (req.session.user) {
       user = await User.findById(req.session.user.id);
-      // .populate('wishlist.courses')
-      // .populate('wishlist.bundles');
-      // .populate('purchasedBundles.bundle')
-      // .populate('purchasedCourses.course')
-      // .populate('enrolledCourses.course');
       
-      // Check unlock status for each course in the bundle
-      if (bundle.courses && bundle.courses.length > 0) {
-        const Course = require('../models/Course');
-        coursesWithUnlockStatus = await Promise.all(
-          bundle.courses.map(async (course) => {
-            const unlockStatus = await Course.isCourseUnlocked(user._id, course._id);
-            return {
-              ...course.toObject(),
-              isUnlocked: unlockStatus.unlocked,
-              unlockReason: unlockStatus.reason,
-            };
-          })
+      // Check if user is enrolled in this course
+      if (user) {
+        isEnrolled = user.enrolledCourses.some(
+          (e) => e.course && e.course.toString() === course._id.toString()
         );
       }
-    } else {
-      // If not logged in, just use courses as-is
-      coursesWithUnlockStatus = bundle.courses || [];
     }
 
-    res.render('bundle-content', {
-      title: `${bundle.title} | ELKABLY`,
+    res.render('course-content', {
+      title: `${course.title} | ELKABLY`,
       theme: req.cookies.theme || 'light',
-      bundle,
-      relatedBundles,
+      course,
+      relatedCourses,
       user,
       cart: req.session.cart || [],
-      coursesWithUnlockStatus: coursesWithUnlockStatus.length > 0 ? coursesWithUnlockStatus : bundle.courses,
+      isEnrolled,
+      coursesWithUnlockStatus: course.topics || [],
     });
   } catch (error) {
-    console.error('Error fetching bundle content:', error);
-    // If it's a CastError (invalid ObjectId), show specific message
+    console.error('Error fetching course content:', error);
     if (error.name === 'CastError' || error.message.includes('Cast to ObjectId')) {
-      req.flash('error_msg', 'Invalid bundle ID format');
+      req.flash('error_msg', 'Invalid course ID format');
       return res.redirect('/courses');
     }
-    req.flash('error_msg', 'Error loading bundle content');
+    req.flash('error_msg', 'Error loading course content');
     res.redirect('/courses');
   }
 };
 
+// Keep for backwards compatibility
+const getBundleContent = getCourseContent;
+
 // Get EST test type page
-const getESTTests = async (req, res) => {
-  try {
-    const { page = 1, limit = 12, search, difficulty } = req.query;
-    const skip = (page - 1) * limit;
-
-    const filter = {
-      testType: 'EST',
-      status: 'active',
-      isDeleted: { $ne: true },
-    };
-
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-      ];
-    }
-    if (difficulty) filter.difficulty = difficulty;
-
-    const quizzes = await Quiz.find(filter)
-      .populate('questionBank', 'name bankCode description totalQuestions')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit))
-      .lean({ virtuals: true });
-
-    const total = await Quiz.countDocuments(filter);
-    const totalPages = Math.ceil(total / limit);
-
-    // Get filter options
-    const difficulties = await Quiz.distinct('difficulty', {
-      testType: 'EST',
-      status: 'active',
-    });
-
-    const user = req.session.user || null;
-
-    res.render('test-type', {
-      title: 'EST Test Preparation | ELKABLY',
-      theme: req.cookies.theme || 'light',
-      testType: 'EST',
-      testTypeName: 'Egyptian Scholastic Test',
-      testTypeDescription:
-        'Comprehensive preparation for the Egyptian Scholastic Test with math and science focus',
-      quizzes,
-      user,
-      cart: req.session.cart || [],
-      filterOptions: { difficulties },
-      currentFilters: { search, difficulty },
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-        nextPage: page < totalPages ? parseInt(page) + 1 : null,
-        prevPage: page > 1 ? parseInt(page) - 1 : null,
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching EST tests:', error);
-    res.status(500).render('500', {
-      title: 'Server Error',
-      theme: req.cookies.theme || 'light',
-      error: 'Failed to load EST tests',
-    });
-  }
+// Mock teacher data (same as index.ejs for consistency)
+const mockTeachersData = {
+  'math': [
+    { id: 'dr-marwa-diab', name: 'Dr. Marwa Diab', image: '/images/place.png', subject: 'Mathematics - Unit 1', specialty: 'IGCSE Mathematics Expert', bio: 'Experienced mathematics teacher with over 10 years of teaching IGCSE and A-Level students.', qualification: 'PhD in Mathematics', language: 'English & Arabic', teachingStyle: 'Interactive & Problem-Solving', courses: 8, students: 450, rating: 4.9, price: 675 },
+    { id: 'dr-ahmed-hassan', name: 'Dr. Ahmed Hassan', image: '/images/place.png', subject: 'Mathematics - Unit 4', specialty: 'A-Level Mathematics Specialist', bio: 'Dedicated to making complex mathematical concepts accessible to all students.', qualification: 'MSc in Applied Mathematics', language: 'English & Arabic', teachingStyle: 'Conceptual & Analytical', courses: 6, students: 380, rating: 4.8, price: 740 }
+  ],
+  'physics': [
+    { id: 'dr-yassmin-rakha', name: 'Dr. Yassmin Rakha', image: '/images/place.png', subject: 'OL Edexcel Unit 1', specialty: 'Physics Education Expert', bio: 'Passionate about making physics fun and understandable for IGCSE students.', qualification: 'PhD in Physics Education', language: 'English', teachingStyle: 'Practical & Experimental', courses: 5, students: 320, rating: 4.9, price: 655 }
+  ],
+  'chemistry': [
+    { id: 'dr-samia-elnawagy', name: 'Dr. Samia El Nawagy', image: '/images/place.png', subject: 'A2 Edexcel Unit 6', specialty: 'Organic Chemistry Expert', bio: 'Specializing in A-Level Chemistry with focus on organic chemistry.', qualification: 'PhD in Organic Chemistry', language: 'English & Arabic', teachingStyle: 'Visual & Structured', courses: 7, students: 290, rating: 4.7, price: 510 }
+  ],
+  'biology': [
+    { id: 'dr-sarah-ibrahim', name: 'Dr. Sarah Ibrahim', image: '/images/place.png', subject: 'Biology IGCSE', specialty: 'Biology Curriculum Expert', bio: 'Helping students understand the wonders of life sciences.', qualification: 'MSc in Molecular Biology', language: 'English', teachingStyle: 'Comprehensive & Detailed', courses: 6, students: 410, rating: 4.8, price: 620 }
+  ],
+  'english': [
+    { id: 'ms-nadia-farouk', name: 'Ms. Nadia Farouk', image: '/images/place.png', subject: 'English First Language', specialty: 'English Literature Expert', bio: 'Passionate about English language and literature education.', qualification: 'MA in English Literature', language: 'English', teachingStyle: 'Creative & Engaging', courses: 5, students: 350, rating: 4.9, price: 580 }
+  ],
+  'ict': [
+    { id: 'mr-omar-khaled', name: 'Mr. Omar Khaled', image: '/images/place.png', subject: 'ICT IGCSE', specialty: 'ICT & Technology Expert', bio: 'Making technology accessible and practical for all students.', qualification: 'BSc in Computer Science', language: 'English & Arabic', teachingStyle: 'Hands-on & Practical', courses: 4, students: 280, rating: 4.7, price: 520 }
+  ],
+  'economics': [
+    { id: 'dr-hany-mostafa', name: 'Dr. Hany Mostafa', image: '/images/place.png', subject: 'Economics AS/A2', specialty: 'Economics & Business Expert', bio: 'Bringing real-world economics into the classroom.', qualification: 'PhD in Economics', language: 'English & Arabic', teachingStyle: 'Case-Study Based', courses: 6, students: 310, rating: 4.8, price: 590 }
+  ],
+  'accounting': [
+    { id: 'mr-khaled-hassan', name: 'Mr. Khaled Hassan', image: '/images/place.png', subject: 'Accounting IGCSE', specialty: 'Accounting & Finance Expert', bio: 'Making accounting concepts clear and practical.', qualification: 'CPA, MBA in Finance', language: 'English & Arabic', teachingStyle: 'Practical & Step-by-Step', courses: 5, students: 260, rating: 4.6, price: 540 }
+  ],
+  'sociology': [
+    { id: 'dr-mona-salem', name: 'Dr. Mona Salem', image: '/images/place.png', subject: 'Sociology AS/A2', specialty: 'Sociology Expert', bio: 'Understanding society through critical analysis.', qualification: 'PhD in Sociology', language: 'English', teachingStyle: 'Discussion-Based & Analytical', courses: 4, students: 180, rating: 4.7, price: 500 }
+  ],
+  'arabic': [
+    { id: 'mr-ahmed-elbadawy', name: 'Mr. Ahmed El Badawy', image: '/images/place.png', subject: 'Arabic First Language', specialty: 'Arabic Language Expert', bio: 'Dedicated to excellence in Arabic language education.', qualification: 'MA in Arabic Literature', language: 'Arabic', teachingStyle: 'Traditional & Comprehensive', courses: 5, students: 340, rating: 4.8, price: 480 }
+  ],
+  'business': [
+    { id: 'dr-tarek-mahmoud', name: 'Dr. Tarek Mahmoud', image: '/images/place.png', subject: 'Business Studies IGCSE', specialty: 'Business & Management Expert', bio: 'Bridging academic knowledge with real business practices.', qualification: 'MBA, PhD in Business', language: 'English & Arabic', teachingStyle: 'Case-Study & Interactive', courses: 5, students: 290, rating: 4.7, price: 560 }
+  ],
+  'computer-science': [
+    { id: 'eng-mohamed-ali', name: 'Eng. Mohamed Ali', image: '/images/place.png', subject: 'Computer Science IGCSE', specialty: 'Computer Science Expert', bio: 'Teaching programming and computational thinking.', qualification: 'MSc in Computer Science', language: 'English & Arabic', teachingStyle: 'Project-Based & Coding', courses: 6, students: 320, rating: 4.9, price: 600 }
+  ],
+  'geography': [
+    { id: 'dr-laila-hassan', name: 'Dr. Laila Hassan', image: '/images/place.png', subject: 'Geography IGCSE', specialty: 'Geography Expert', bio: 'Exploring our world through geographical analysis.', qualification: 'PhD in Geography', language: 'English', teachingStyle: 'Visual & Map-Based', courses: 4, students: 220, rating: 4.6, price: 490 }
+  ],
+  'environmental': [
+    { id: 'dr-amira-soliman', name: 'Dr. Amira Soliman', image: '/images/place.png', subject: 'Environmental Management', specialty: 'Environmental Science Expert', bio: 'Understanding and protecting our environment.', qualification: 'PhD in Environmental Science', language: 'English', teachingStyle: 'Research-Based & Practical', courses: 3, students: 150, rating: 4.7, price: 470 }
+  ],
+  'german': [
+    { id: 'mr-peter-schmidt', name: 'Mr. Peter Schmidt', image: '/images/place.png', subject: 'German IGCSE', specialty: 'German Language Expert', bio: 'Native German speaker passionate about language education.', qualification: 'MA in German Studies', language: 'German & English', teachingStyle: 'Immersive & Conversational', courses: 4, students: 120, rating: 4.8, price: 550 }
+  ],
+  'checkpoint': [
+    { id: 'ms-fatma-zakaria', name: 'Ms. Fatma Zakaria', image: '/images/place.png', subject: 'Checkpoint Preparation', specialty: 'Checkpoint Exam Expert', bio: 'Preparing students for checkpoint exams with confidence.', qualification: 'BEd in Education', language: 'English & Arabic', teachingStyle: 'Exam-Focused & Structured', courses: 5, students: 380, rating: 4.9, price: 520 }
+  ],
+  'combined-science': [
+    { id: 'dr-hossam-kamel', name: 'Dr. Hossam Kamel', image: '/images/place.png', subject: 'Combined Science', specialty: 'Combined Science Expert', bio: 'Integrating physics, chemistry, and biology seamlessly.', qualification: 'PhD in Science Education', language: 'English', teachingStyle: 'Integrated & Comprehensive', courses: 6, students: 340, rating: 4.8, price: 580 }
+  ],
+  'math-american': [
+    { id: 'dr-karim-sobhy', name: 'Dr. Karim Sobhy', image: '/images/place.png', subject: 'Math American SAT', specialty: 'SAT Math Expert', bio: 'Helping students achieve their best SAT math scores.', qualification: 'PhD in Mathematics Education', language: 'English & Arabic', teachingStyle: 'Test-Strategy Focused', courses: 5, students: 300, rating: 4.9, price: 650 }
+  ]
 };
 
-// Get SAT test type page
-const getSATTests = async (req, res) => {
-  try {
-    const { page = 1, limit = 12, search, difficulty } = req.query;
-    const skip = (page - 1) * limit;
-
-    const filter = {
-      testType: 'SAT',
-      status: 'active',
-      isDeleted: { $ne: true },
-    };
-
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-      ];
+// Helper function to find mock teacher by ID
+const findMockTeacher = (teacherId) => {
+  for (const subject in mockTeachersData) {
+    const teacher = mockTeachersData[subject].find(t => t.id === teacherId);
+    if (teacher) {
+      return { teacher, subjectKey: subject };
     }
-    if (difficulty) filter.difficulty = difficulty;
-
-    const quizzes = await Quiz.find(filter)
-      .populate('questionBank', 'name bankCode description totalQuestions')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit))
-      .lean({ virtuals: true });
-
-    const total = await Quiz.countDocuments(filter);
-    const totalPages = Math.ceil(total / limit);
-
-    // Get filter options
-    const difficulties = await Quiz.distinct('difficulty', {
-      testType: 'SAT',
-      status: 'active',
-    });
-
-    const user = req.session.user || null;
-
-    res.render('test-type', {
-      title: 'SAT Test Preparation | ELKABLY',
-      theme: req.cookies.theme || 'light',
-      testType: 'SAT',
-      testTypeName: 'Scholastic Assessment Test',
-      testTypeDescription:
-        'Comprehensive preparation for the Scholastic Assessment Test for college admissions',
-      quizzes,
-      user,
-      cart: req.session.cart || [],
-      filterOptions: { difficulties },
-      currentFilters: { search, difficulty },
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-        nextPage: page < totalPages ? parseInt(page) + 1 : null,
-        prevPage: page > 1 ? parseInt(page) - 1 : null,
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching SAT tests:', error);
-    res.status(500).render('500', {
-      title: 'Server Error',
-      theme: req.cookies.theme || 'light',
-      error: 'Failed to load SAT tests',
-    });
   }
+  return null;
 };
 
-// Get ACT test type page
-const getACTTests = async (req, res) => {
-  try {
-    const { page = 1, limit = 12, search, difficulty } = req.query;
-    const skip = (page - 1) * limit;
-
-    const filter = {
-      testType: 'ACT',
-      status: 'active',
-      isDeleted: { $ne: true },
-    };
-
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-      ];
-    }
-    if (difficulty) filter.difficulty = difficulty;
-
-    const quizzes = await Quiz.find(filter)
-      .populate('questionBank', 'name bankCode description totalQuestions')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit))
-      .lean({ virtuals: true });
-
-    const total = await Quiz.countDocuments(filter);
-    const totalPages = Math.ceil(total / limit);
-
-    // Get filter options
-    const difficulties = await Quiz.distinct('difficulty', {
-      testType: 'ACT',
-      status: 'active',
-    });
-
-    const user = req.session.user || null;
-
-    res.render('test-type', {
-      title: 'ACT Test Preparation | ELKABLY',
-      theme: req.cookies.theme || 'light',
-      testType: 'ACT',
-      testTypeName: 'American College Testing',
-      testTypeDescription:
-        'Comprehensive preparation for the American College Testing with science reasoning',
-      quizzes,
-      user,
-      cart: req.session.cart || [],
-      filterOptions: { difficulties },
-      currentFilters: { search, difficulty },
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-        nextPage: page < totalPages ? parseInt(page) + 1 : null,
-        prevPage: page > 1 ? parseInt(page) - 1 : null,
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching ACT tests:', error);
-    res.status(500).render('500', {
-      title: 'Server Error',
-      theme: req.cookies.theme || 'light',
-      error: 'Failed to load ACT tests',
-    });
-  }
-};
-
-// Get IG Teacher Courses page (with temporary mock data)
-const getIGTeacherCourses = async (req, res) => {
+// Get Teacher Courses page
+const getTeacherCourses = async (req, res) => {
   try {
     const { teacherId } = req.params;
-    const { subject, examDate } = req.query;
+    const { subject, examDate, courseType } = req.query;
     
     // Get user if logged in
-    const User = require('../models/User');
     const user = req.session.user ? await User.findById(req.session.user.id) : null;
     
-    // Temporary mock data for teachers
-    const teachersData = {
-      'dr-marwa-diab': {
-        id: 'dr-marwa-diab',
-        name: 'Dr. Marwa Diab',
-        image: '/images/place.png',
-        specialty: 'Mathematics IGCSE & A-Level Expert',
-        bio: 'Dr. Marwa Diab has over 15 years of experience teaching Mathematics at the IGCSE and A-Level. She has helped thousands of students achieve top grades and is known for her clear explanations and engaging teaching style.',
-        rating: 4.9,
-        totalCourses: 8,
-        totalStudents: 450,
-        yearsExperience: 15,
-        credentials: 'Cambridge Certified',
-        qualification: 'PhD in Mathematics Education',
-        language: 'English & Arabic',
-        teachingStyle: 'Interactive & Visual'
-      },
-      'dr-ahmed-hassan': {
-        id: 'dr-ahmed-hassan',
-        name: 'Dr. Ahmed Hassan',
-        image: '/images/place.png',
-        specialty: 'Mathematics Unit 4 Specialist',
-        bio: 'Dr. Ahmed Hassan specializes in advanced mathematics topics and has extensive experience preparing students for challenging examinations.',
-        rating: 4.8,
-        totalCourses: 6,
-        totalStudents: 380,
-        yearsExperience: 12,
-        credentials: 'Edexcel Examiner',
-        qualification: 'MSc in Applied Mathematics',
-        language: 'English & Arabic',
-        teachingStyle: 'Problem-Solving Focus'
-      },
-      'dr-yassmin-rakha': {
-        id: 'dr-yassmin-rakha',
-        name: 'Dr. Yassmin Rakha',
-        image: '/images/place.png',
-        specialty: 'Physics OL Edexcel Specialist',
-        bio: 'Dr. Yassmin Rakha brings physics to life with practical examples and experiments. Her students consistently achieve outstanding results.',
-        rating: 4.9,
-        totalCourses: 5,
-        totalStudents: 320,
-        yearsExperience: 10,
-        credentials: 'Edexcel Approved',
-        qualification: 'PhD in Physics',
-        language: 'English & Arabic',
-        teachingStyle: 'Practical & Experimental'
-      },
-      'dr-samia-elnawagy': {
-        id: 'dr-samia-elnawagy',
-        name: 'Dr. Samia El Nawagy',
-        image: '/images/place.png',
-        specialty: 'Chemistry A2 Edexcel Expert',
-        bio: 'Dr. Samia El Nawagy is a chemistry expert with a passion for making complex concepts simple and understandable.',
-        rating: 4.7,
-        totalCourses: 7,
-        totalStudents: 290,
-        yearsExperience: 14,
-        credentials: 'Cambridge Examiner',
-        qualification: 'PhD in Chemistry',
-        language: 'English & Arabic',
-        teachingStyle: 'Concept-Based Learning'
+    // Find teacher by ID or teacherCode
+    let teacher;
+    let courses = [];
+    let useMockData = false;
+    
+    if (require('mongoose').Types.ObjectId.isValid(teacherId)) {
+      teacher = await Teacher.findById(teacherId);
+    } else {
+      teacher = await Teacher.findOne({ 
+        $or: [
+          { teacherCode: teacherId.toUpperCase() },
+          { username: teacherId }
+        ]
+      });
+    }
+    
+    // If no teacher found in DB, try mock data
+    if (!teacher) {
+      const mockResult = findMockTeacher(teacherId);
+      if (mockResult) {
+        useMockData = true;
+        const mockTeacher = mockResult.teacher;
+        
+        // Format mock teacher to match template expectations
+        teacher = {
+          _id: mockTeacher.id,
+          name: mockTeacher.name,
+          image: mockTeacher.image,
+          specialty: mockTeacher.specialty,
+          bio: mockTeacher.bio,
+          qualification: mockTeacher.qualification,
+          language: mockTeacher.language,
+          teachingStyle: mockTeacher.teachingStyle,
+          totalCourses: mockTeacher.courses,
+          totalStudents: mockTeacher.students,
+          rating: mockTeacher.rating
+        };
+        
+        // Generate mock courses for this teacher
+        courses = generateMockCourses(mockTeacher, subject || mockResult.subjectKey, examDate);
+      } else {
+        req.flash('error_msg', 'Teacher not found');
+        return res.redirect('/');
       }
-    };
+    } else {
+      // Build filter for real courses
+      const filter = {
+        teacher: teacher._id,
+        status: 'published',
+        isActive: true,
+      };
+      
+      if (subject) filter.subject = subject;
+      if (courseType) filter.courseType = courseType;
+      
+      // Get teacher's courses from database
+      courses = await Course.find(filter)
+        .populate('topics')
+        .sort({ order: 1, createdAt: -1 });
+      
+      // Transform real teacher to match template expectations
+      teacher = {
+        _id: teacher._id,
+        name: `${teacher.firstName} ${teacher.lastName}`,
+        image: teacher.profilePicture || '/images/place.png',
+        specialty: teacher.specialty || 'IGCSE Expert',
+        bio: teacher.bio || 'Dedicated to helping students succeed.',
+        qualification: teacher.qualification || 'Advanced Degree',
+        language: teacher.language || 'English',
+        teachingStyle: teacher.teachingStyle || 'Interactive',
+        totalCourses: courses.length,
+        totalStudents: new Set(courses.flatMap(c => c.enrolledStudents?.map(s => s.toString()) || [])).size
+      };
+    }
     
-    // Get teacher data or use default
-    const teacher = teachersData[teacherId] || {
-      id: teacherId,
-      name: 'Expert Teacher',
-      image: '/images/place.png',
-      specialty: 'IGCSE Specialist',
-      bio: 'An experienced teacher dedicated to helping students achieve their academic goals.',
-      rating: 4.5,
-      totalCourses: 5,
-      totalStudents: 200,
-      yearsExperience: 8,
-      credentials: 'Certified Teacher',
-      qualification: 'Master\'s Degree',
-      language: 'English & Arabic',
-      teachingStyle: 'Interactive Learning'
-    };
-    
-    // Mock courses data
-    const courses = [
-      {
-        id: 'course-1',
-        title: 'Complete Unit 1 Course',
-        shortDescription: 'Master all topics in Unit 1 with comprehensive lessons, practice problems, and exam preparation.',
-        thumbnail: '/images/courses/course-1.jpg',
-        type: 'online',
-        unit: 'Unit 1',
-        duration: '12 weeks',
-        lessonsCount: 24,
-        studentsEnrolled: 156,
-        rating: 4.9,
-        originalPrice: 800,
-        finalPrice: 675,
-        discountPercentage: 15,
-        features: ['Live Sessions', 'Recorded Videos', 'Practice Tests', 'WhatsApp Support'],
-        isBestseller: true,
-        isNew: false,
-        isFullyBooked: false
-      },
-      {
-        id: 'course-2',
-        title: 'Unit 2 Intensive Course',
-        shortDescription: 'Intensive preparation for Unit 2 covering all key concepts and exam techniques.',
-        thumbnail: '/images/courses/course-2.jpg',
-        type: 'recorded',
-        unit: 'Unit 2',
-        duration: '8 weeks',
-        lessonsCount: 16,
-        studentsEnrolled: 98,
-        rating: 4.8,
-        originalPrice: 600,
-        finalPrice: 540,
-        discountPercentage: 10,
-        features: ['HD Videos', 'PDF Notes', 'Quizzes', 'Certificate'],
-        isBestseller: false,
-        isNew: true,
-        isFullyBooked: false
-      },
-      {
-        id: 'course-3',
-        title: 'Exam Revision Bootcamp',
-        shortDescription: 'Intensive exam preparation with past paper analysis and exam strategies.',
-        thumbnail: '/images/courses/course-3.jpg',
-        type: 'online',
-        unit: 'All Units',
-        duration: '4 weeks',
-        lessonsCount: 12,
-        studentsEnrolled: 234,
-        rating: 4.9,
-        originalPrice: 450,
-        finalPrice: 450,
-        discountPercentage: 0,
-        features: ['Past Papers', 'Model Answers', 'Tips & Tricks', 'Mock Exams'],
-        isBestseller: true,
-        isNew: false,
-        isFullyBooked: false
-      },
-      {
-        id: 'course-4',
-        title: 'One-on-One Tutoring Package',
-        shortDescription: 'Personalized tutoring sessions tailored to your specific needs and learning pace.',
-        thumbnail: '/images/courses/course-4.jpg',
-        type: 'onground',
-        unit: 'Custom',
-        duration: '10 sessions',
-        lessonsCount: 10,
-        studentsEnrolled: 45,
-        rating: 5.0,
-        originalPrice: 1500,
-        finalPrice: 1350,
-        discountPercentage: 10,
-        features: ['1-on-1 Sessions', 'Flexible Timing', 'Personalized Plan', 'Progress Reports'],
-        isBestseller: false,
-        isNew: false,
-        isFullyBooked: true
-      },
-      {
-        id: 'course-5',
-        title: 'Topic-by-Topic Mastery',
-        shortDescription: 'Deep dive into each topic with detailed explanations and extensive practice.',
-        thumbnail: '/images/courses/course-5.jpg',
-        type: 'recorded',
-        unit: 'All Topics',
-        duration: '16 weeks',
-        lessonsCount: 48,
-        studentsEnrolled: 189,
-        rating: 4.7,
-        originalPrice: 950,
-        finalPrice: 760,
-        discountPercentage: 20,
-        features: ['Lifetime Access', 'Downloadable', 'Mobile App', 'Community Access'],
-        isBestseller: false,
-        isNew: false,
-        isFullyBooked: false
-      },
-      {
-        id: 'course-6',
-        title: 'Weekend Intensive Workshop',
-        shortDescription: 'Full-day weekend workshops covering critical exam topics and techniques.',
-        thumbnail: '/images/courses/course-6.jpg',
-        type: 'onground',
-        unit: 'Key Topics',
-        duration: '4 weekends',
-        lessonsCount: 8,
-        studentsEnrolled: 60,
-        rating: 4.8,
-        originalPrice: 400,
-        finalPrice: 350,
-        discountPercentage: 12,
-        features: ['In-Person', 'Small Groups', 'Printed Materials', 'Refreshments'],
-        isBestseller: false,
-        isNew: true,
-        isFullyBooked: false
-      }
-    ];
-    
-    // Special offers
-    const specialOffers = [
-      {
-        courseId: 'course-1',
-        title: 'Early Bird Special - Unit 1',
-        description: 'Register before the end of the month and save 20%!',
-        originalPrice: 800,
-        discountedPrice: 640,
-        discountPercentage: 20
-      },
-      {
-        courseId: 'course-5',
-        title: 'Flash Sale - Topic Mastery',
-        description: 'Limited time offer - 48 hours only!',
-        originalPrice: 950,
-        discountedPrice: 665,
-        discountPercentage: 30
-      }
-    ];
-    
-    // Bundle packages
-    const bundles = [
-      {
-        id: 'bundle-1',
-        title: 'Complete Course Bundle',
-        description: 'Get access to all courses and save big!',
-        includedCourses: ['Complete Unit 1 Course', 'Unit 2 Intensive Course', 'Exam Revision Bootcamp'],
-        originalPrice: 1850,
-        finalPrice: 1295,
-        savingsPercentage: 30
-      },
-      {
-        id: 'bundle-2',
-        title: 'Recorded Courses Pack',
-        description: 'All recorded courses with lifetime access.',
-        includedCourses: ['Unit 2 Intensive Course', 'Topic-by-Topic Mastery'],
-        originalPrice: 1550,
-        finalPrice: 1085,
-        savingsPercentage: 30
-      }
-    ];
-    
-    // Format exam date for display
-    const examDateDisplay = examDate ? examDate.replace(/-/g, ' ').replace(/(\w)(\w*)/g, (_, first, rest) => first.toUpperCase() + rest) : 'January 2026';
-    
-    // Format subject for display
-    const subjectDisplay = subject ? subject.replace(/-/g, ' ').replace(/(\w)(\w*)/g, (_, first, rest) => first.toUpperCase() + rest) : 'Mathematics';
+    // Format courses for template
+    const formattedCourses = courses.map((course, index) => ({
+      id: course._id || course.id,
+      title: course.title,
+      shortDescription: course.shortDescription || course.description || 'Comprehensive course content',
+      unit: course.unit || subject || 'Unit 1',
+      duration: course.duration || '12 weeks',
+      type: course.courseType || course.type || 'online',
+      thumbnail: course.thumbnail || '/images/adad.png',
+      originalPrice: course.originalPrice || course.price || 700,
+      finalPrice: course.finalPrice || course.price || 650,
+      discountPercentage: course.discountPercentage || 0,
+      lessonsCount: course.lessonsCount || course.topics?.length || 10,
+      studentsEnrolled: course.studentsEnrolled || course.enrolledStudents?.length || 50,
+      rating: course.rating || 4.8,
+      features: course.features || ['Video Lessons', 'Practice Problems', 'Live Support'],
+      isBestseller: course.isBestseller || index === 0,
+      isNew: course.isNew || false,
+      isFullyBooked: course.isFullyBooked || false
+    }));
     
     res.render('teacher-courses', {
-      title: `${teacher.name} - ${subjectDisplay} Courses | G-Teacher`,
+      title: `${teacher.name} - Courses | G-Teacher`,
       theme: req.cookies.theme || 'light',
       teacher,
-      subject: subjectDisplay,
-      examDate: examDateDisplay,
-      courses,
-      specialOffers,
-      bundles,
+      courses: formattedCourses,
+      subject: subject || 'Physics',
+      examDate: examDate || 'Jan 2026',
+      filterOptions: { subjects: [], courseTypes: [] },
+      currentFilters: { subject, courseType },
       user,
       cart: req.session.cart || []
     });
@@ -1148,6 +568,39 @@ const getIGTeacherCourses = async (req, res) => {
   }
 };
 
+// Helper function to generate mock courses for a teacher
+function generateMockCourses(teacher, subjectKey, examDate) {
+  const courseTypes = ['online', 'recorded', 'onground'];
+  const courses = [];
+  
+  for (let i = 1; i <= teacher.courses; i++) {
+    courses.push({
+      id: `${teacher.id}-course-${i}`,
+      title: `${teacher.subject} - Part ${i}`,
+      shortDescription: `Comprehensive ${teacher.subject} course covering essential topics for IGCSE/A-Level students.`,
+      unit: teacher.subject,
+      duration: '8-12 weeks',
+      type: courseTypes[i % 3],
+      thumbnail: '/images/adad.png',
+      originalPrice: teacher.price + 100,
+      finalPrice: teacher.price,
+      discountPercentage: Math.round((100 / (teacher.price + 100)) * 100),
+      lessonsCount: 10 + i,
+      studentsEnrolled: Math.floor(teacher.students / teacher.courses),
+      rating: teacher.rating,
+      features: ['Video Lessons', 'Practice Problems', 'Live Support', 'Exam Preparation'],
+      isBestseller: i === 1,
+      isNew: i === teacher.courses,
+      isFullyBooked: false
+    });
+  }
+  
+  return courses;
+}
+
+// Keep old function name for backwards compatibility
+const getIGTeacherCourses = getTeacherCourses;
+
 module.exports = {
   getLandingPage,
   getOnlineCourses,
@@ -1155,8 +608,7 @@ module.exports = {
   getRecordedCourses,
   getRecoveryCourses,
   getBundleContent,
-  getESTTests,
-  getSATTests,
-  getACTTests,
+  getCourseContent,
+  getTeacherCourses,
   getIGTeacherCourses,
 };

@@ -2,7 +2,7 @@ const wasender = require('./wasender');
 const { sendSms } = require('./sms');
 const User = require('../models/User');
 const Course = require('../models/Course');
-const BundleCourse = require('../models/BundleCourse');
+const Teacher = require('../models/Teacher');
 const cloudinary = require('./cloudinary');
 
 class WhatsAppSMSNotificationService {
@@ -227,20 +227,6 @@ class WhatsAppSMSNotificationService {
     let message = `Enrollment Confirmed!\nStudent: ${studentName}\nCourse: ${weekTitle}`;
     if (subject) message += `\nSubject: ${subject}`;
     message += `\nReady to learn!\nAccess materials now!\nELKABLY`;
-    return this.truncateSmsMessage(message);
-  }
-
-  /**
-   * Generate SMS message for bundle enrollment (140-160 chars) - Vertical format
-   */
-  getSmsBundleEnrollmentMessage(student, bundleData) {
-    const studentName = (student.firstName || '').substring(0, 20);
-    const courseTitle = (bundleData.title || 'Course').substring(0, 30);
-    const weeks = bundleData.courses ? bundleData.courses.length : 0;
-    const subject = (bundleData.subject || '').substring(0, 18);
-    let message = `Enrollment Confirmed!\nStudent: ${studentName}\nCourse: ${courseTitle}`;
-    if (subject) message += `\nSubject: ${subject}`;
-    message += `\nWeeks: ${weeks} included\nAccess all materials!\nELKABLY`;
     return this.truncateSmsMessage(message);
   }
 
@@ -896,42 +882,6 @@ ${performanceMessage}
   }
 
   /**
-   * Send bundle enrollment notification
-   */
-  async sendBundleEnrollmentNotification(studentId, bundleData) {
-    const student = await User.findById(studentId);
-    if (!student) {
-      console.error('Student not found:', studentId);
-      return { success: false, message: 'Student not found' };
-    }
-
-    const enrollmentDate = new Date().toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-
-    // WhatsApp message
-    const whatsappMessage = `📦 *Course Enrollment Confirmed!*
-
-🎓 *Student:* ${student.firstName || student.name}
-📚 *Course:* ${bundleData.title || 'Course'}
-📖 *Weeks:* ${bundleData.courses ? bundleData.courses.length : 0} weeks included
-📅 *Enrollment Date:* ${enrollmentDate}
-📚 *Subject:* ${bundleData.subject || 'Subject'}
-
-🎯 Your student is now enrolled in a comprehensive learning course!
-📖 Your student can access all week materials and start their learning journey.
-
-🏆 *ELKABLY TEAM*`;
-
-    // SMS message (max 160 chars)
-    const smsMessage = this.getSmsBundleEnrollmentMessage(student, bundleData);
-
-    return await this.sendToParent(studentId, whatsappMessage, smsMessage);
-  }
-
-  /**
    * Send bulk message to multiple parents
    */
   async sendBulkMessage(studentIds, message) {
@@ -972,24 +922,6 @@ ${performanceMessage}
     } catch (error) {
       console.error('Error sending message to course students:', error);
       return { success: false, message: 'Failed to send message to course students' };
-    }
-  }
-
-  /**
-   * Send message to bundle students
-   */
-  async sendMessageToBundleStudents(bundleId, message) {
-    try {
-      const bundle = await BundleCourse.findById(bundleId).populate('enrolledStudents');
-      if (!bundle) {
-        return { success: false, message: 'Bundle not found' };
-      }
-
-      const studentIds = bundle.enrolledStudents.map(student => student._id);
-      return await this.sendBulkMessage(studentIds, message);
-    } catch (error) {
-      console.error('Error sending message to bundle students:', error);
-      return { success: false, message: 'Failed to send message to bundle students' };
     }
   }
 

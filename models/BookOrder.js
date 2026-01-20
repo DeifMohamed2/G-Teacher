@@ -7,9 +7,9 @@ const BookOrderSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    bundle: {
+    course: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'BundleCourse',
+      ref: 'Course',
       required: true,
     },
     bookName: {
@@ -30,7 +30,7 @@ const BookOrderSchema = new mongoose.Schema(
     orderNumber: {
       type: String,
       required: true,
-      index: true,
+      unique: true,
     },
     shippingAddress: {
       firstName: {
@@ -131,10 +131,9 @@ const BookOrderSchema = new mongoose.Schema(
   }
 );
 
-// Indexes for better query performance
-BookOrderSchema.index({ user: 1, bundle: 1 });
+// Indexes for better query performance (excluding orderNumber which has unique: true)
+BookOrderSchema.index({ user: 1, course: 1 });
 BookOrderSchema.index({ status: 1 });
-BookOrderSchema.index({ orderNumber: 1 });
 BookOrderSchema.index({ createdAt: -1 });
 
 // Virtual for status display

@@ -7,10 +7,7 @@ const {
   getOngroundCourses,
   getRecordedCourses,
   getRecoveryCourses,
-  getBundleContent,
-  getESTTests,
-  getSATTests,
-  getACTTests,
+  getCourseContent,
   getIGTeacherCourses
 } = require('../controllers/landingController');
 
@@ -29,16 +26,14 @@ router.get('/courses/recorded', getRecordedCourses);
 // Recovery courses page route
 router.get('/courses/recovery', getRecoveryCourses);
 
-// Bundle course details route
-router.get('/bundle/:id', getBundleContent);
+// Course details route
+router.get('/course/:id', getCourseContent);
 
-// Bundle course content route
-router.get('/bundle/:id/content', getBundleContent);
+// Legacy bundle route - redirect to course
+router.get('/bundle/:id', (req, res) => res.redirect(`/course/${req.params.id}`));
 
-// Test type routes
-router.get('/tests/est', getESTTests);
-router.get('/tests/sat', getSATTests);
-router.get('/tests/act', getACTTests);
+// Course content route
+router.get('/course/:id/content', getCourseContent);
 
 // IG Teacher Courses route
 router.get('/ig/teacher/:teacherId', getIGTeacherCourses);

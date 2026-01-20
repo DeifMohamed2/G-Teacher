@@ -380,36 +380,76 @@ const registerUser = async (req, res) => {
     howDidYouKnow,
     howDidYouKnowOther,
     email,
+    studentEmail,
     password,
     password2,
     termsAccepted,
+    studentNumber,
+    studentCountryCode,
+    parentNumber,
+    parentCountryCode,
   } = req.body;
 
   let errors = [];
 
-  // Check required fields
-  if (!firstName || !lastName || !username || !grade || !curriculum || !email || !password || !password2) {
-    errors.push({ msg: 'Please fill in all required fields' });
+  // Use studentEmail if email is not provided (for backwards compatibility)
+  const userEmail = email || studentEmail;
+
+  // Check required fields individually for better error messages
+  if (!firstName || !firstName.trim()) {
+    errors.push({ msg: 'First name is required', field: 'firstName' });
+  }
+  
+  if (!lastName || !lastName.trim()) {
+    errors.push({ msg: 'Last name is required', field: 'lastName' });
+  }
+  
+  if (!username || !username.trim()) {
+    errors.push({ msg: 'Username is required', field: 'username' });
+  }
+  
+  if (!grade) {
+    errors.push({ msg: 'Please select your year', field: 'grade' });
+  }
+  
+  if (!curriculum) {
+    errors.push({ msg: 'Please select your curriculum', field: 'curriculum' });
+  }
+  
+  if (!userEmail || !userEmail.trim()) {
+    errors.push({ msg: 'Email address is required', field: 'studentEmail' });
+  }
+  
+  if (!password) {
+    errors.push({ msg: 'Password is required', field: 'password' });
+  }
+  
+  if (!password2) {
+    errors.push({ msg: 'Please confirm your password', field: 'password2' });
+  }
+  
+  if (!password2) {
+    errors.push({ msg: 'Please confirm your password', field: 'password2' });
   }
 
   // Validate first name
-  if (firstName && (firstName.length < 2 || firstName.length > 50)) {
+  if (firstName && (firstName.trim().length < 2 || firstName.trim().length > 50)) {
     errors.push({ msg: 'First name must be between 2 and 50 characters', field: 'firstName' });
   }
 
   // Validate last name
-  if (lastName && (lastName.length < 2 || lastName.length > 50)) {
+  if (lastName && (lastName.trim().length < 2 || lastName.trim().length > 50)) {
     errors.push({ msg: 'Last name must be between 2 and 50 characters', field: 'lastName' });
   }
 
   // Validate username
-  if (username && (username.length < 3 || username.length > 30)) {
+  if (username && (username.trim().length < 3 || username.trim().length > 30)) {
     errors.push({ msg: 'Username must be between 3 and 30 characters', field: 'username' });
   }
 
   // Validate username format (alphanumeric and underscores only)
   const usernameRegex = /^[a-zA-Z0-9_]+$/;
-  if (username && !usernameRegex.test(username)) {
+  if (username && username.trim() && !usernameRegex.test(username.trim())) {
     errors.push({
       msg: 'Username can only contain letters, numbers, and underscores',
       field: 'username',
@@ -418,12 +458,12 @@ const registerUser = async (req, res) => {
 
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (email && !emailRegex.test(email)) {
-    errors.push({ msg: 'Please enter a valid email address', field: 'email' });
+  if (userEmail && !emailRegex.test(userEmail.trim())) {
+    errors.push({ msg: 'Please enter a valid email address', field: 'studentEmail' });
   }
 
   // Check passwords match
-  if (password !== password2) {
+  if (password && password2 && password !== password2) {
     errors.push({ msg: 'Passwords do not match', field: 'password2' });
   }
 
@@ -435,6 +475,20 @@ const registerUser = async (req, res) => {
   // Check terms acceptance
   if (!termsAccepted) {
     errors.push({ msg: 'You must accept the terms of service', field: 'termsCheck' });
+  }
+
+  // Validate parent phone is different from student phone if both are provided
+  if (studentNumber && parentNumber) {
+    const cleanStudentPhone = studentNumber.replace(/\D/g, '');
+    const cleanParentPhone = parentNumber.replace(/\D/g, '');
+    
+    // If both have the same country code and number
+    if (studentCountryCode === parentCountryCode && cleanStudentPhone === cleanParentPhone) {
+      errors.push({ 
+        msg: 'Parent phone number must be different from student phone number', 
+        field: 'parentNumber' 
+      });
+    }
   }
 
   if (errors.length > 0) {
@@ -449,14 +503,19 @@ const registerUser = async (req, res) => {
       curriculum,
       howDidYouKnow,
       howDidYouKnowOther,
-      email,
+      email: userEmail,
+      studentEmail: userEmail,
+      studentNumber,
+      studentCountryCode,
+      parentNumber,
+      parentCountryCode,
     });
   }
 
   try {
     // Check for existing user data in parallel for better performance
     const [existingEmail, existingUsername] = await Promise.all([
-      User.findOne({ studentEmail: email.toLowerCase() }),
+      User.findOne({ studentEmail: userEmail.toLowerCase() }),
       User.findOne({ username: username.trim() }),
     ]);
 
@@ -464,7 +523,7 @@ const registerUser = async (req, res) => {
     if (existingEmail) {
       errors.push({
         msg: 'Email is already registered',
-        field: 'email',
+        field: 'studentEmail',
       });
     }
 
@@ -485,7 +544,16 @@ const registerUser = async (req, res) => {
         firstName,
         lastName,
         username,
-        email,
+        email: userEmail,
+        studentEmail: userEmail,
+        grade,
+        curriculum,
+        howDidYouKnow,
+        howDidYouKnowOther,
+        studentNumber,
+        studentCountryCode,
+        parentNumber,
+        parentCountryCode,
       });
     }
 
@@ -493,7 +561,7 @@ const registerUser = async (req, res) => {
     const newUser = new User({
       firstName: firstName.trim(),
       lastName: lastName.trim(),
-      studentEmail: email.toLowerCase().trim(),
+      studentEmail: userEmail.toLowerCase().trim(),
       username: username.trim(),
       password,
       grade: grade,
@@ -502,6 +570,17 @@ const registerUser = async (req, res) => {
       isActive: true, // Students are automatically active upon registration
       isCompleteData: true, // Profile data is now complete with new fields
     });
+
+    // Add phone numbers if provided
+    if (studentNumber && studentCountryCode) {
+      newUser.studentNumber = studentNumber.replace(/\D/g, ''); // Store digits only
+      newUser.studentCountryCode = studentCountryCode;
+    }
+
+    if (parentNumber && parentCountryCode) {
+      newUser.parentNumber = parentNumber.replace(/\D/g, ''); // Store digits only
+      newUser.parentCountryCode = parentCountryCode;
+    }
 
     const savedUser = await newUser.save();
 

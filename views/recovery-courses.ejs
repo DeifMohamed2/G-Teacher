@@ -71,8 +71,8 @@
     <div class="results-count-enhanced mb-4">
       <div class="results-info">
         <div class="results-stats">
-          <span class="results-number"><%= bundles.length %></span>
-          <span class="results-label">/ <%= pagination.totalBundles %> Courses</span>
+          <span class="results-number"><%= courses.length %></span>
+          <span class="results-label">/ <%= pagination.totalCourses %> Courses</span>
         </div>
         <div class="results-type">
           <i class="fas fa-redo"></i>
@@ -82,22 +82,22 @@
     </div>
 
     <div class="courses-grid">
-      <% if (bundles.length > 0) { %>
-      <% bundles.forEach((bundle, index) => { %>
+      <% if (courses.length > 0) { %>
+      <% courses.forEach((course, index) => { %>
       <article class="course-card-enhanced" data-aos="fade-up" data-aos-delay="<%= (index + 1) * 100 %>">
         <div class="course-card-header">
-          <div class="course-favorite-btn-enhanced" onclick="toggleWishlist('<%= bundle._id %>', 'bundle')" title="Add to Wishlist">
-            <% if (user && user.isBundleInWishlist(bundle._id.toString())) { %>
+          <div class="course-favorite-btn-enhanced" onclick="toggleWishlist('<%= course._id %>', 'course')" title="Add to Wishlist">
+            <% if (user && user.isCourseInWishlist(course._id.toString())) { %>
             <i class="fas fa-heart" style="color: #ff6b6b;"></i>
             <% } else { %>
             <i class="far fa-heart"></i>
             <% } %>
           </div>
           <div class="course-badge-container">
-            <% if (bundle.discountPrice) { %>
+            <% if (course.discountPrice) { %>
             <div class="course-offer-badge-enhanced discount">
               <i class="fas fa-percentage"></i>
-              <span>Save <%= bundle.savingsPercentage %>%</span>
+              <span>Save <%= course.savingsPercentage %>%</span>
             </div>
             <% } else { %>
             <div class="course-offer-badge-enhanced recovery">
@@ -109,23 +109,23 @@
         </div>
 
         <div class="course-card-media-enhanced">
-          <img src="<%= bundle.thumbnail || '/images/adad.png' %>" alt="<%= bundle.title %>" loading="lazy">
+          <img src="<%= course.thumbnail || '/images/adad.png' %>" alt="<%= course.title %>" loading="lazy">
           <div class="course-overlay-enhanced">
             <div class="course-quick-actions">
-              <% if (user && user.hasPurchasedBundle(bundle._id.toString())) { %>
+              <% if (user && user.hasPurchasedCourse(course._id.toString())) { %>
               <button class="quick-action-btn purchased" title="Already Purchased" disabled>
                 <i class="fas fa-check-circle"></i>
               </button>
-              <% } else if (bundle.isFullyBooked) { %>
-              <button class="quick-action-btn" title="<%= bundle.fullyBookedMessage || 'FULLY BOOKED' %>" disabled style="background-color: #dc3545; cursor: not-allowed;">
+              <% } else if (course.isFullyBooked) { %>
+              <button class="quick-action-btn" title="<%= course.fullyBookedMessage || 'FULLY BOOKED' %>" disabled style="background-color: #dc3545; cursor: not-allowed;">
                 <i class="fas fa-ban"></i>
               </button>
               <% } else { %>
-              <button class="quick-action-btn" onclick="addBundleToCart('<%= bundle._id %>')" title="Add to Cart">
+              <button class="quick-action-btn" onclick="addCourseToCart('<%= course._id %>')" title="Add to Cart">
                 <i class="fas fa-shopping-cart"></i>
               </button>
               <% } %>
-              <a href="/bundle/<%= bundle._id.toString() %>" class="quick-action-btn" title="View Details">
+              <a href="/course/<%= course._id.toString() %>" class="quick-action-btn" title="View Details">
                 <i class="fas fa-eye"></i>
               </a>
             </div>
@@ -135,54 +135,54 @@
         <div class="course-card-body-enhanced">
           <div class="course-meta">
 
-            <span class="course-subject"><%= bundle.subject %></span>
-            <span class="course-type"><%= bundle.testType %></span>
+            <span class="course-subject"><%= course.subject %></span>
+            <span class="course-type"><%= course.testType %></span>
           </div>
 
-          <h3 class="course-card-title-enhanced"><%= bundle.title %></h3>
-          <p class="course-card-description-enhanced"><%= bundle.shortDescription %></p>
+          <h3 class="course-card-title-enhanced"><%= course.title %></h3>
+          <p class="course-card-description-enhanced"><%= course.shortDescription %></p>
 
           <div class="course-stats-enhanced">
             <div class="stat-item">
               <i class="fas fa-book"></i>
-              <span><%= bundle.courses.length %> Weeks</span>
+              <span><%= course.topics.length %> Weeks</span>
             </div>
 
           </div>
 
           <div class="course-price-container-enhanced">
-            <% if (bundle.discountPrice) { %>
+            <% if (course.discountPrice) { %>
             <div class="price-wrapper">
-              <span class="course-price-original-enhanced">EGP<%= bundle.price %></span>
-              <span class="course-price-current-enhanced">EGP<%= bundle.finalPrice.toFixed(2) %></span>
+              <span class="course-price-original-enhanced">EGP<%= course.price %></span>
+              <span class="course-price-current-enhanced">EGP<%= course.finalPrice.toFixed(2) %></span>
             </div>
             <div class="savings-info">
-              <span class="savings-amount">Save EGP<%= bundle.savings.toFixed(2) %></span>
+              <span class="savings-amount">Save EGP<%= course.savings.toFixed(2) %></span>
             </div>
             <% } else { %>
             <div class="price-wrapper">
-              <span class="course-price-current-enhanced">EGP<%= bundle.price %></span>
+              <span class="course-price-current-enhanced">EGP<%= course.price %></span>
             </div>
             <% } %>
           </div>
 
           <div class="course-actions-enhanced">
-            <a href="/bundle/<%= bundle._id.toString() %>" class="btn-view-details-enhanced">
+            <a href="/course/<%= course._id.toString() %>" class="btn-view-details-enhanced">
               <span>View Details</span>
               <i class="fas fa-arrow-right"></i>
             </a>
-            <% if (user && user.hasPurchasedBundle(bundle._id.toString())) { %>
+            <% if (user && user.hasPurchasedCourse(course._id.toString())) { %>
             <button class="btn-purchased-enhanced" disabled>
               <i class="fas fa-check-circle"></i>
               <span>Already Purchased</span>
             </button>
-            <% } else if (bundle.isFullyBooked) { %>
+            <% } else if (course.isFullyBooked) { %>
             <button class="btn-fully-booked-enhanced" disabled>
               <i class="fas fa-ban"></i>
-              <span class="fully-booked-text"><%= bundle.fullyBookedMessage || 'FULLY BOOKED' %></span>
+              <span class="fully-booked-text"><%= course.fullyBookedMessage || 'FULLY BOOKED' %></span>
             </button>
             <% } else { %>
-            <button class="btn-add-to-cart-enhanced" onclick="addBundleToCart('<%= bundle._id %>')">
+            <button class="btn-add-to-cart-enhanced" onclick="addCourseToCart('<%= course._id %>')">
               <i class="fas fa-shopping-cart"></i>
               <span>Add to Cart</span>
             </button>
@@ -447,8 +447,8 @@
 
 <!-- Shopping Cart Functionality -->
 <script>
-  // Add bundle to cart functionality
-  function addBundleToCart(bundleId) {
+  // Add course to cart functionality
+  function addCourseToCart(courseId) {
     // Check if user is logged in
     <% if (!user) { %>
     showCartNotification('Please login to add items to cart', 'error');
@@ -458,9 +458,9 @@
     return;
     <% } %>
 
-    // Find the bundle button for visual feedback
-    const bundleCard = document.querySelector(`[onclick="addBundleToCart('${bundleId}')"]`).closest('.course-card-enhanced');
-    const btn = bundleCard.querySelector('.btn-add-to-cart-enhanced');
+    // Find the course button for visual feedback
+    const courseCard = document.querySelector(`[onclick="addCourseToCart('${courseId}')"]`).closest('.course-card-enhanced');
+    const btn = courseCard.querySelector('.btn-add-to-cart-enhanced');
     const originalText = btn.querySelector('span').textContent;
     const icon = btn.querySelector('i');
 
@@ -477,8 +477,8 @@
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          itemId: bundleId,
-          itemType: 'bundle'
+          itemId: courseId,
+          itemType: 'course'
         })
       })
       .then(response => response.json())
@@ -742,7 +742,7 @@
     font-size: 0.875rem;
   }
 
-  /* Fix course and bundle image display */
+  /* Fix course image display */
   .course-card-media-enhanced {
     position: relative;
     height: 240px;

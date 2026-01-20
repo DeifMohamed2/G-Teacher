@@ -350,17 +350,17 @@
                                         <% 
                                         // Render each active course as a separate clean card (similar to provided design)
                                         activeCourses.forEach(course => { 
-                                            const courseTitle = course.title || 'Week';
-                                            const bundleTitle = course.bundle ? course.bundle.title : null;
+                                            const courseTitle = course.title || 'Course';
+                                            const teacherName = course.teacher ? `${course.teacher.firstName} ${course.teacher.lastName}` : null;
                                         %>
                                             <div class="learning-path-card">
                                                 <div class="learning-path-card-header">
                                                     <i class="fas fa-book"></i>
-                                                    <span><%= bundleTitle ? bundleTitle : courseTitle %></span>
+                                                    <span><%= courseTitle %></span>
                                                 </div>
                                                 <div class="learning-path-card-subtitle">
-                                                    <% if (bundleTitle) { %>
-                                                        <span><%= courseTitle %></span>
+                                                    <% if (teacherName) { %>
+                                                        <span>By <%= teacherName %></span>
                                                     <% } else { %>
                                                         <span>Session Notes</span>
                                                     <% } %>

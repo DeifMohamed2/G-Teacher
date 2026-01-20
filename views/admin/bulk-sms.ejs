@@ -76,8 +76,8 @@
                     <i class="fas fa-box"></i>
                   </div>
                   <div class="meta-card-content">
-                    <span class="meta-card-label">Total Bundles</span>
-                    <span class="meta-card-value"><%= stats.totalBundles || 0 %></span>
+                    <span class="meta-card-label">Total Courses</span>
+                    <span class="meta-card-value"><%= stats.totalCourses || 0 %></span>
                   </div>
                 </div>
               </div>
@@ -114,7 +114,7 @@
                     <option value="">Select Target Type</option>
                     <option value="all_students">All Students</option>
                     <option value="course">Specific Week</option>
-                    <option value="bundle">Specific Bundle</option>
+                    <option value="course">Specific Course</option>
                     <option value="selected_students">Selected Students</option>
                   </select>
                   <small class="form-help">Choose how to target your recipients</small>
@@ -128,7 +128,7 @@
                   <select class="form-control" id="targetId" name="targetId">
                     <option value="">Select...</option>
                   </select>
-                  <small class="form-help">Select the specific week or bundle</small>
+                  <small class="form-help">Select the specific week or course</small>
                 </div>
               </div>
             </div>
@@ -394,7 +394,7 @@
       const value = this.value;
       
       // Show/hide target select
-      if (value === 'course' || value === 'bundle') {
+      if (value === 'course' || value === 'course') {
         targetSelectContainer.style.display = 'block';
         loadTargetOptions(value);
       } else {
@@ -443,7 +443,7 @@
     updateCharacterLimit(messageTextarea.value);
   }
 
-  // Load target options (courses/bundles)
+  // Load target options (courses)
   function loadTargetOptions(type) {
     const targetId = document.getElementById('targetId');
     const endpoint = type === 'course' ? '/admin/bulk-sms/courses' : '/admin/bulk-sms/bundles';
@@ -454,7 +454,7 @@
       .then(response => response.json())
       .then(data => {
         if (data.success) {
-          const label = type === 'course' ? 'week' : 'bundle';
+          const label = type === 'course' ? 'week' : 'course';
           targetId.innerHTML = '<option value="">Select ' + label + '</option>';
           const items = type === 'course' ? data.courses : data.bundles;
           items.forEach(item => {
@@ -508,16 +508,16 @@
       } catch (error) {
         console.error('Error fetching course student count:', error);
       }
-    } else if (targetType === 'bundle' && targetId) {
+    } else if (targetType === 'course' && targetId) {
       // Fetch student count for bundle
       try {
-        const response = await fetch(`/admin/bulk-sms/bundle-students-count/${targetId}`);
+        const response = await fetch(`/admin/bulk-sms/course-students-count/${targetId}`);
         const data = await response.json();
         if (data.success) {
           studentCount = data.count || 0;
         }
       } catch (error) {
-        console.error('Error fetching bundle student count:', error);
+        console.error('Error fetching course student count:', error);
       }
     }
     
@@ -838,7 +838,7 @@
       return;
     }
     
-    if ((targetType === 'course' || targetType === 'bundle') && !formData.get('targetId')) {
+    if ((targetType === 'course' || targetType === 'course') && !formData.get('targetId')) {
       showNotification('Please select a ' + targetType, 'error');
       return;
     }

@@ -44,7 +44,7 @@
                 </div>
 
                 <!-- Wishlist Content -->
-                <% if ((wishlistCourses && wishlistCourses.length > 0) || (wishlistBundles && wishlistBundles.length > 0)) { %>
+                <% if ((wishlistCourses && wishlistCourses.length > 0) || (wishlistCourses && wishlistCourses.length > 0)) { %>
                     
                     <!-- Weeks Section -->
                     <% if (wishlistCourses && wishlistCourses.length > 0) { %>
@@ -142,7 +142,7 @@
                     <% } %>
 
                     <!-- Courses Section -->
-                    <% if (wishlistBundles && wishlistBundles.length > 0) { %>
+                    <% if (wishlistCourses && wishlistCourses.length > 0) { %>
                         <div class="wishlist-section" style="margin-bottom: var(--spacing-2xl);">
                             <div class="section-header" style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
                                 <div class="section-icon" style="width: 40px; height: 40px; background: linear-gradient(135deg, #059669, #10b981); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
@@ -150,88 +150,88 @@
                                 </div>
                                 <div>
                                     <h3 style="color: var(--text-primary); margin: 0; font-size: 1.5rem; font-weight: 600;">
-                                        Week Bundles (<%= wishlistBundles.length %>)
+                                        Courses (<%= wishlistCourses.length %>)
                                     </h3>
                                     <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">
-                                        Complete week bundles you've saved for later
+                                        Complete courses you've saved for later
                                     </p>
                                 </div>
                             </div>
                             
                             <div class="courses-grid">
-                                <% wishlistBundles.forEach(bundle => { %>
-                                    <div class="course-card bundle-card">
-                                        <!-- Bundle Thumbnail -->
+                                <% wishlistCourses.forEach(course => { %>
+                                    <div class="course-card course-card">
+                                        <!-- Course Thumbnail -->
                                         <div class="course-thumbnail">
-                                            <% if (bundle.thumbnail) { %>
-                                                <img src="<%= bundle.thumbnail %>" alt="<%= bundle.title %>" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <% if (course.thumbnail) { %>
+                                                <img src="<%= course.thumbnail %>" alt="<%= course.title %>" style="width: 100%; height: 100%; object-fit: cover;">
                                             <% } else { %>
                                                 <i class="fas fa-layer-group"></i>
                                             <% } %>
                                             <!-- Bundle Badge -->
-                                            <div class="bundle-badge" style="position: absolute; top: var(--spacing-sm); right: var(--spacing-sm); background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 600;">
-                                                BUNDLE
+                                            <div class="course-badge" style="position: absolute; top: var(--spacing-sm); right: var(--spacing-sm); background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 600;">
+                                                COURSE
                                             </div>
                                         </div>
 
-                                        <!-- Bundle Content -->
+                                        <!-- Course Content -->
                                         <div class="course-content">
-                                            <!-- Bundle Header -->
+                                            <!-- Course Header -->
                                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-sm);">
-                                                <h3 class="course-title"><%= bundle.title %></h3>
+                                                <h3 class="course-title"><%= course.title %></h3>
                                                 <div style="display: flex; gap: var(--spacing-xs);">
-                                                    <button class="btn btn-outline btn-sm" onclick="removeFromWishlist('<%= bundle._id %>', 'bundle')" title="Remove from wishlist">
+                                                    <button class="btn btn-outline btn-sm" onclick="removeFromWishlist('<%= course._id %>', 'course')" title="Remove from wishlist">
                                                         <i class="fas fa-heart-broken"></i>
                                                     </button>
                                                 </div>
                                             </div>
 
-                                            <!-- Bundle Description -->
+                                            <!-- Course Description -->
                                             <p class="course-description">
-                                                <%= bundle.shortDescription || bundle.description.substring(0, 100) + '...' %>
+                                                <%= course.shortDescription || course.description.substring(0, 100) + '...' %>
                                             </p>
 
-                                            <!-- Bundle Meta -->
+                                            <!-- Course Meta -->
                                             <div class="course-meta">
-                                                <span class="course-level"><%= bundle.subject %></span>
+                                                <span class="course-level"><%= course.subject %></span>
                                                 <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
                                                     <i class="fas fa-clock" style="color: var(--text-muted); font-size: 0.75rem;"></i>
-                                                    <span style="font-size: 0.75rem; color: var(--text-muted);"><%= bundle.duration %>h</span>
+                                                    <span style="font-size: 0.75rem; color: var(--text-muted);"><%= course.duration %>h</span>
                                                 </div>
                                             </div>
 
-                                            <!-- Bundle Price -->
+                                            <!-- Course Price -->
                                             <div style="margin-bottom: var(--spacing-md);">
-                                                <% if (bundle.discountPrice && bundle.discountPrice > 0) { %>
+                                                <% if (course.discountPrice && course.discountPrice > 0) { %>
                                                     <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
                                                         <span style="font-size: 1.1rem; font-weight: 600; color: var(--success-color);">
-                                                            <%= (bundle.price - (bundle.price * bundle.discountPrice / 100)).toFixed(2) %> EGP
+                                                            <%= (course.price - (course.price * course.discountPrice / 100)).toFixed(2) %> EGP
                                                         </span>
                                                         <span style="font-size: 0.9rem; color: var(--text-muted); text-decoration: line-through;">
-                                                            <%= bundle.price %> EGP
+                                                            <%= course.price %> EGP
                                                         </span>
                                                         <span class="badge badge-success" style="font-size: 0.625rem;">
-                                                            <%= bundle.discountPrice %>% OFF
+                                                            <%= course.discountPrice %>% OFF
                                                         </span>
                                                     </div>
                                                 <% } else { %>
                                                     <span style="font-size: 1.1rem; font-weight: 600; color: var(--primary-color);">
-                                                        $<%= bundle.price %>
+                                                        $<%= course.price %>
                                                     </span>
                                                 <% } %>
                                             </div>
 
-                                            <!-- Bundle Tags -->
-                                            <% if (bundle.tags && bundle.tags.length > 0) { %>
+                                            <!-- Course Tags -->
+                                            <% if (course.tags && course.tags.length > 0) { %>
                                                 <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-xs); margin-bottom: var(--spacing-md);">
-                                                    <% bundle.tags.slice(0, 3).forEach(tag => { %>
+                                                    <% course.tags.slice(0, 3).forEach(tag => { %>
                                                         <span class="badge badge-info" style="font-size: 0.625rem;">
                                                             <%= tag %>
                                                         </span>
                                                     <% }); %>
-                                                    <% if (bundle.tags.length > 3) { %>
+                                                    <% if (course.tags.length > 3) { %>
                                                         <span style="font-size: 0.625rem; color: var(--text-muted);">
-                                                            +<%= bundle.tags.length - 3 %> more
+                                                            +<%= course.tags.length - 3 %> more
                                                         </span>
                                                     <% } %>
                                                 </div>
@@ -242,14 +242,14 @@
                                                 <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
                                                     <i class="fas fa-layer-group" style="color: var(--text-muted); font-size: 0.75rem;"></i>
                                                     <span style="font-size: 0.75rem; color: var(--text-muted);">
-                                                        <%= bundle.courses ? bundle.courses.length : 0 %> courses
+                                                        <%= course.courses ? course.courses.length : 0 %> courses
                                                     </span>
                                                 </div>
                                                 <div style="display: flex; gap: var(--spacing-xs);">
-                                                    <button class="btn btn-outline btn-sm" onclick="removeFromWishlist('<%= bundle._id %>', 'bundle')">
+                                                    <button class="btn btn-outline btn-sm" onclick="removeFromWishlist('<%= course._id %>', 'course')">
                                                         Remove
                                                     </button>
-                                                    <a href="/bundle/<%= bundle._id %>" class="btn btn-primary btn-sm">
+                                                    <a href="/bundle/<%= course._id %>" class="btn btn-primary btn-sm">
                                                         View Details
                                                     </a>
                                                 </div>
@@ -318,7 +318,7 @@
     <script>
         // Remove item from wishlist
         async function removeFromWishlist(itemId, itemType = 'course') {
-            const itemName = itemType === 'course' ? 'course' : 'bundle';
+            const itemName = itemType === 'course' ? 'course' : 'course';
             if (!confirm(`Are you sure you want to remove this ${itemName} from your wishlist?`)) {
                 return;
             }
@@ -426,14 +426,14 @@
                 transition: all 0.3s ease;
             }
             
-            .bundle-card {
+            .course-card {
                 position: relative;
                 border: 2px solid transparent;
                 background: linear-gradient(var(--bg-primary), var(--bg-primary)) padding-box,
                             linear-gradient(135deg, #059669, #10b981) border-box;
             }
             
-            .bundle-card:hover {
+            .course-card:hover {
                 transform: translateY(-4px);
                 box-shadow: 0 8px 25px rgba(5, 150, 105, 0.15);
             }
@@ -442,7 +442,7 @@
                 position: relative;
             }
             
-            .bundle-badge {
+            .course-badge {
                 position: absolute;
                 top: var(--spacing-sm);
                 right: var(--spacing-sm);
@@ -493,7 +493,7 @@
                     gap: var(--spacing-sm);
                 }
                 
-                .bundle-badge {
+                .course-badge {
                     font-size: 0.625rem;
                     padding: 0.2rem 0.4rem;
                 }

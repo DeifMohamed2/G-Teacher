@@ -64,13 +64,13 @@
               <div class="item-media">
                 <img src="<%= item.item.thumbnail || '/images/adad.png' %>" alt="<%= item.title %>">
                 <div class="item-badge">
-                  <i class="fas fa-<%= item.itemType === 'bundle' ? 'box' : 'book' %>"></i>
+                  <i class="fas fa-<%= item.itemType === 'course' ? 'box' : 'book' %>"></i>
                 </div>
               </div>
               <div class="item-details">
                 <h4 class="item-title"><%= item.title %></h4>
-                <span class="item-type"><%= item.itemType === 'bundle' ? 'Course Bundle' : 'Individual Course' %></span>
-                <% if (item.itemType === 'bundle') { %>
+                <span class="item-type"><%= item.itemType === 'course' ? 'Course' : 'Individual Course' %></span>
+                <% if (item.itemType === 'course') { %>
                   <div class="item-info">
                     <%= item.item.courses ? item.item.courses.length : 0 %> courses included
                   </div>

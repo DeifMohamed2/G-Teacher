@@ -438,7 +438,7 @@
     });
   }
   
-  function addBundleToCart(bundleId) {
+  function addCourseToCart(courseId) {
     <% if (!user) { %>
     showCartNotification('Please login to add items to cart', 'error');
     setTimeout(() => {
@@ -447,10 +447,10 @@
     return;
     <% } %>
     
-    const bundleCard = document.querySelector(`[onclick="addBundleToCart('${bundleId}')"]`).closest('.bundle-package-card');
-    const bundleTitle = bundleCard.querySelector('.bundle-title').textContent;
-    const priceElement = bundleCard.querySelector('.bundle-final-price');
-    const bundlePrice = parseFloat(priceElement.textContent.replace(' EGP', ''));
+    const courseCard = document.querySelector(`[onclick="addCourseToCart('${courseId}')"]`).closest('.course-package-card');
+    const courseTitle = courseCard.querySelector('.course-title').textContent;
+    const priceElement = courseCard.querySelector('.course-final-price');
+    const coursePrice = parseFloat(priceElement.textContent.replace(' EGP', ''));
     
     fetch('/purchase/cart/add', {
       method: 'POST',
@@ -458,11 +458,11 @@
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        itemId: bundleId,
-        itemType: 'bundle',
-        title: bundleTitle,
-        price: bundlePrice,
-        image: '/images/bundle-default.png'
+        itemId: courseId,
+        itemType: 'course',
+        title: courseTitle,
+        price: coursePrice,
+        image: '/images/course-default.png'
       })
     })
     .then(response => response.json())

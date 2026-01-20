@@ -1,6 +1,6 @@
 const Purchase = require('../models/Purchase');
 const User = require('../models/User');
-const BundleCourse = require('../models/BundleCourse');
+const Teacher = require('../models/Teacher');
 const Course = require('../models/Course');
 const PromoCode = require('../models/PromoCode');
 const BookOrder = require('../models/BookOrder');
@@ -16,36 +16,6 @@ function generateUUID() {
     const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
-}
-
-// Helper function to get the effective starting order for a student in a bundle
-async function getStudentStartingOrderInBundle(userId, bundleId) {
-  try {
-    const user = await User.findById(userId);
-    if (!user) return null;
-
-    const bundleCourses = await Course.find({ bundle: bundleId })
-      .select('_id order')
-      .sort({ order: 1 });
-
-    let bundleStartingOrder = null;
-    for (const bundleCourse of bundleCourses) {
-      const enrollment = user.enrolledCourses.find(
-        (e) => e.course && e.course.toString() === bundleCourse._id.toString()
-      );
-      if (enrollment && enrollment.startingOrder !== null && enrollment.startingOrder !== undefined) {
-        // Use the minimum startingOrder found in the bundle
-        if (bundleStartingOrder === null || enrollment.startingOrder < bundleStartingOrder) {
-          bundleStartingOrder = enrollment.startingOrder;
-        }
-      }
-    }
-
-    return bundleStartingOrder;
-  } catch (error) {
-    console.error('Error getting student starting order:', error);
-    return null;
-  }
 }
 
 /**
@@ -78,21 +48,9 @@ async function processSuccessfulPayment(purchase, req = null) {
         let allEnrolled = true;
         
         for (const item of freshPurchase.items) {
-          if (item.itemType === 'bundle') {
-            const bundle = await BundleCourse.findById(item.item).populate('courses');
-            if (bundle) {
-              for (const course of bundle.courses) {
-                if (!user.isEnrolled(course._id)) {
-                  allEnrolled = false;
-                  console.log(`⚠️ Missing enrollment for course ${course._id} in bundle ${bundle._id}`);
-                }
-              }
-            }
-          } else {
-            if (!user.isEnrolled(item.item)) {
-              allEnrolled = false;
-              console.log(`⚠️ Missing enrollment for course ${item.item}`);
-            }
+          if (!user.isEnrolled(item.item)) {
+            allEnrolled = false;
+            console.log(`⚠️ Missing enrollment for course ${item.item}`);
           }
         }
         
@@ -158,7 +116,6 @@ async function processSuccessfulPayment(purchase, req = null) {
 
     // Get user with all necessary data
     const user = await User.findById(purchaseToProcess.user._id)
-      .populate('purchasedBundles.bundle')
       .populate('purchasedCourses.course')
       .populate('enrolledCourses.course');
 
@@ -168,39 +125,23 @@ async function processSuccessfulPayment(purchase, req = null) {
 
     // Process user enrollments - CRITICAL: This must complete successfully
     for (const purchaseItem of purchaseToProcess.items) {
-      if (purchaseItem.itemType === 'bundle') {
-        await user.addPurchasedBundle(
-          purchaseItem.item,
-          purchaseItem.price,
-          purchaseToProcess.orderNumber
-        );
+      await user.addPurchasedCourse(
+        purchaseItem.item,
+        purchaseItem.price,
+        purchaseToProcess.orderNumber
+      );
 
-        const bundle = await BundleCourse.findById(purchaseItem.item).populate(
-          'courses'
-        );
-        if (bundle) {
-          await user.enrollInBundleCourses(bundle);
-          console.log(`✅ Enrolled user in bundle: ${bundle.title}`);
-        }
-      } else {
-        await user.addPurchasedCourse(
-          purchaseItem.item,
-          purchaseItem.price,
-          purchaseToProcess.orderNumber
-        );
-
-        if (!user.isEnrolled(purchaseItem.item)) {
-          user.enrolledCourses.push({
-            course: purchaseItem.item,
-            enrolledAt: new Date(),
-            progress: 0,
-            lastAccessed: new Date(),
-            completedTopics: [],
-            status: 'active',
-          });
-          await user.save();
-          console.log(`✅ Enrolled user in course: ${purchaseItem.title}`);
-        }
+      if (!user.isEnrolled(purchaseItem.item)) {
+        user.enrolledCourses.push({
+          course: purchaseItem.item,
+          enrolledAt: new Date(),
+          progress: 0,
+          lastAccessed: new Date(),
+          completedTopics: [],
+          status: 'active',
+        });
+        await user.save();
+        console.log(`✅ Enrolled user in course: ${purchaseItem.title}`);
       }
     }
 
@@ -372,7 +313,7 @@ async function sendLibraryBookOrderNotification(bookOrderIds, user) {
     // Fetch BookOrder documents from database
     const BookOrder = require('../models/BookOrder');
     const bookOrders = await BookOrder.find({ _id: { $in: cleanIds } })
-      .populate('bundle', 'title bundleCode');
+      .populate('teacher', 'firstName lastName teacherCode');
     
     console.log(`📚 Found ${bookOrders.length} book orders in database`);
     
@@ -587,9 +528,10 @@ async function sendLibraryBookOrderNotification(bookOrderIds, user) {
 }
 
 // Helper function to validate course ordering when adding to cart
+// Courses now belong to teachers directly - ordering is based on teacher's courses
 async function validateCourseOrdering(courseId, userId, cartItems = []) {
   try {
-    const course = await Course.findById(courseId).select('order bundle requiresSequential');
+    const course = await Course.findById(courseId).select('order teacher requiresSequential');
     if (!course) {
       return { valid: false, message: 'Course not found' };
     }
@@ -599,13 +541,18 @@ async function validateCourseOrdering(courseId, userId, cartItems = []) {
       return { valid: true };
     }
 
-    // Get all courses in the same bundle, sorted by order
-    const bundleCourses = await Course.find({ bundle: course.bundle })
+    // If no teacher assigned, allow the purchase
+    if (!course.teacher) {
+      return { valid: true };
+    }
+
+    // Get all courses from the same teacher, sorted by order
+    const teacherCourses = await Course.find({ teacher: course.teacher })
       .select('_id title order')
       .sort({ order: 1 });
 
     // Find current course index
-    const currentIndex = bundleCourses.findIndex(
+    const currentIndex = teacherCourses.findIndex(
       (c) => c._id.toString() === courseId.toString()
     );
 
@@ -623,25 +570,13 @@ async function validateCourseOrdering(courseId, userId, cartItems = []) {
       return { valid: false, message: 'User not found' };
     }
 
-    // Check if student has a startingOrder set for this bundle (manual enrollment)
-    const startingOrder = await getStudentStartingOrderInBundle(userId, course.bundle);
-    
-    // If student has a startingOrder, check if this course is at or after that order
-    if (startingOrder !== null) {
-      if (course.order >= startingOrder) {
-        // Student can access this course and all courses after their starting order
-        return { valid: true };
-      }
-      // If course is before startingOrder, continue with validation below
-    }
-
-    // Find the highest order course the student has access to in this bundle
+    // Find the highest order course the student has access to from this teacher
     let highestPurchasedOrder = -1;
-    for (const bundleCourse of bundleCourses) {
-      const hasAccess = user.hasAccessToCourse(bundleCourse._id.toString());
+    for (const teacherCourse of teacherCourses) {
+      const hasAccess = user.hasAccessToCourse(teacherCourse._id.toString());
       if (hasAccess) {
-        if (bundleCourse.order > highestPurchasedOrder) {
-          highestPurchasedOrder = bundleCourse.order;
+        if (teacherCourse.order > highestPurchasedOrder) {
+          highestPurchasedOrder = teacherCourse.order;
         }
       }
     }
@@ -649,7 +584,7 @@ async function validateCourseOrdering(courseId, userId, cartItems = []) {
     // Also check cart for highest order
     for (const cartItem of cartItems) {
       if (cartItem.type === 'course') {
-        const cartCourse = bundleCourses.find(
+        const cartCourse = teacherCourses.find(
           c => c._id.toString() === cartItem.id
         );
         if (cartCourse && cartCourse.order > highestPurchasedOrder) {
@@ -658,21 +593,20 @@ async function validateCourseOrdering(courseId, userId, cartItems = []) {
       }
     }
 
-    // If student has purchased any course in this bundle, they can purchase courses
+    // If student has purchased any course from this teacher, they can purchase courses
     // that come after their highest purchased course without needing earlier ones
     if (highestPurchasedOrder >= 0 && course.order > highestPurchasedOrder) {
-      // Student can purchase this course (it's after their highest purchased)
       return { valid: true };
     }
 
     // Check all previous courses (with lower order)
-    const previousCourses = bundleCourses.slice(0, currentIndex);
+    const previousCourses = teacherCourses.slice(0, currentIndex);
     const missingCourses = [];
 
     for (const prevCourse of previousCourses) {
       // Skip if this previous course is before or equal to the student's highest purchased order
       if (highestPurchasedOrder >= 0 && prevCourse.order <= highestPurchasedOrder) {
-        continue; // Student already has access to courses up to highestPurchasedOrder
+        continue;
       }
 
       // Check if user has purchased/enrolled in this course
@@ -712,9 +646,10 @@ async function validateCourseOrdering(courseId, userId, cartItems = []) {
 }
 
 // Helper function to validate course ordering when removing from cart
+// Courses now belong to teachers directly
 async function validateCourseRemoval(courseId, userId, cartItems = []) {
   try {
-    const course = await Course.findById(courseId).select('order bundle requiresSequential');
+    const course = await Course.findById(courseId).select('order teacher requiresSequential');
     if (!course) {
       return { valid: true }; // If course not found, allow removal
     }
@@ -724,18 +659,23 @@ async function validateCourseRemoval(courseId, userId, cartItems = []) {
       return { valid: true };
     }
 
-    // Get all courses in the same bundle, sorted by order
-    const bundleCourses = await Course.find({ bundle: course.bundle })
+    // If no teacher assigned, allow removal
+    if (!course.teacher) {
+      return { valid: true };
+    }
+
+    // Get all courses from the same teacher, sorted by order
+    const teacherCourses = await Course.find({ teacher: course.teacher })
       .select('_id title order')
       .sort({ order: 1 });
 
     // Find current course index
-    const currentIndex = bundleCourses.findIndex(
+    const currentIndex = teacherCourses.findIndex(
       (c) => c._id.toString() === courseId.toString()
     );
 
     // Check if any courses with higher order depend on this course
-    const dependentCourses = bundleCourses.slice(currentIndex + 1);
+    const dependentCourses = teacherCourses.slice(currentIndex + 1);
     const blockingCourses = [];
 
     for (const depCourse of dependentCourses) {
@@ -773,6 +713,7 @@ async function validateCourseRemoval(courseId, userId, cartItems = []) {
 }
 
 // Helper function to validate all courses in cart have proper ordering
+// Courses now belong to teachers directly
 async function validateCartOrdering(cartItems, userId) {
   try {
     const courseItems = cartItems.filter(item => item.type === 'course');
@@ -781,29 +722,29 @@ async function validateCartOrdering(cartItems, userId) {
       return { valid: true };
     }
 
-    // Group courses by bundle
-    const bundleGroups = {};
+    // Group courses by teacher
+    const teacherGroups = {};
     for (const item of courseItems) {
-      const course = await Course.findById(item.id).select('bundle order');
-      if (course && course.bundle) {
-        const bundleId = course.bundle.toString();
-        if (!bundleGroups[bundleId]) {
-          bundleGroups[bundleId] = [];
+      const course = await Course.findById(item.id).select('teacher order');
+      if (course && course.teacher) {
+        const teacherId = course.teacher.toString();
+        if (!teacherGroups[teacherId]) {
+          teacherGroups[teacherId] = [];
         }
-        bundleGroups[bundleId].push({
+        teacherGroups[teacherId].push({
           id: item.id,
           order: course.order || 0
         });
       }
     }
 
-    // Validate each bundle group
-    for (const [bundleId, courses] of Object.entries(bundleGroups)) {
+    // Validate each teacher group
+    for (const [teacherId, courses] of Object.entries(teacherGroups)) {
       // Sort by order
       courses.sort((a, b) => a.order - b.order);
       
-      // Get all courses in this bundle
-      const bundleCourses = await Course.find({ bundle: bundleId })
+      // Get all courses from this teacher
+      const teacherCourses = await Course.find({ teacher: teacherId })
         .select('_id title order requiresSequential')
         .sort({ order: 1 });
 
@@ -816,71 +757,52 @@ async function validateCartOrdering(cartItems, userId) {
         return { valid: false, message: 'User not found' };
       }
 
-      // Check if student has a startingOrder set for this bundle (manual enrollment)
-      const startingOrder = await getStudentStartingOrderInBundle(userId, bundleId);
-
       // Check ordering for each course in cart
       for (let i = 0; i < courses.length; i++) {
         const cartCourse = courses[i];
-        const courseIndex = bundleCourses.findIndex(
+        const courseIndex = teacherCourses.findIndex(
           c => c._id.toString() === cartCourse.id
         );
 
         if (courseIndex === -1) continue;
 
-        const course = bundleCourses[courseIndex];
+        const course = teacherCourses[courseIndex];
         
         // Skip if sequential requirement is disabled
         if (!course.requiresSequential) continue;
 
-        // If student has a startingOrder, check if this course is at or after that order
-        if (startingOrder !== null) {
-          if (course.order >= startingOrder) {
-            // Student can access this course - skip further validation
-            continue;
-          }
-          // If course is before startingOrder, they might still want to buy it (catch up)
-          // Allow it but continue with normal validation
-        }
-
-        // Find the highest order course the student has access to in this bundle
+        // Find the highest order course the student has access to from this teacher
         let highestPurchasedOrder = -1;
-        for (const bundleCourse of bundleCourses) {
-          if (user.hasAccessToCourse(bundleCourse._id.toString())) {
-            if (bundleCourse.order > highestPurchasedOrder) {
-              highestPurchasedOrder = bundleCourse.order;
+        for (const teacherCourse of teacherCourses) {
+          if (user.hasAccessToCourse(teacherCourse._id.toString())) {
+            if (teacherCourse.order > highestPurchasedOrder) {
+              highestPurchasedOrder = teacherCourse.order;
             }
           }
         }
 
         // Also check cart for highest order
-        for (const cartCourse of courses) {
-          const bundleCourse = bundleCourses.find(
-            c => c._id.toString() === cartCourse.id
+        for (const cc of courses) {
+          const tc = teacherCourses.find(
+            c => c._id.toString() === cc.id
           );
-          if (bundleCourse && bundleCourse.order > highestPurchasedOrder) {
-            highestPurchasedOrder = bundleCourse.order;
+          if (tc && tc.order > highestPurchasedOrder) {
+            highestPurchasedOrder = tc.order;
           }
         }
 
-        // If student has purchased any course in this bundle, they can purchase courses
+        // If student has purchased any course from this teacher, they can purchase courses
         // that come after their highest purchased course without needing earlier ones
         if (highestPurchasedOrder >= 0 && course.order > highestPurchasedOrder) {
-          // Student can purchase this course (it's after their highest purchased)
           continue;
         }
 
         // Check all previous courses
-        const previousCourses = bundleCourses.slice(0, courseIndex);
+        const previousCourses = teacherCourses.slice(0, courseIndex);
         for (const prevCourse of previousCourses) {
-          // Skip if prevCourse is before startingOrder (student doesn't need it)
-          if (startingOrder !== null && prevCourse.order < startingOrder) {
-            continue;
-          }
-
           // Skip if this previous course is before the student's highest purchased order
           if (highestPurchasedOrder >= 0 && prevCourse.order <= highestPurchasedOrder) {
-            continue; // Student already has access to courses up to highestPurchasedOrder
+            continue;
           }
 
           const hasPurchased = user.hasAccessToCourse(prevCourse._id.toString());
@@ -927,7 +849,6 @@ async function recalculateCartFromDB(cart, userId = null) {
   let user = null;
   if (userId) {
     user = await User.findById(userId)
-      .populate('purchasedBundles.bundle')
       .populate('purchasedCourses.course')
       .populate('enrolledCourses.course');
   }
@@ -936,15 +857,6 @@ async function recalculateCartFromDB(cart, userId = null) {
     try {
       // Check if user already purchased this item
       if (user) {
-        if (
-          cartItem.type === 'bundle' &&
-          user.hasPurchasedBundle(cartItem.id)
-        ) {
-          console.log(
-            `Removing already purchased bundle from cart: ${cartItem.id}`
-          );
-          continue;
-        }
         if (cartItem.type === 'course' && user.hasAccessToCourse(cartItem.id)) {
           console.log(
             `Removing already purchased course from cart: ${cartItem.id}`
@@ -953,23 +865,16 @@ async function recalculateCartFromDB(cart, userId = null) {
         }
       }
 
-      let dbItem;
-      if (cartItem.type === 'bundle') {
-        dbItem = await BundleCourse.findById(cartItem.id).select(
-          'title price discountPrice thumbnail status isActive'
-        );
-      } else {
-        dbItem = await Course.findById(cartItem.id).select(
-          'title price discountPrice thumbnail status isActive'
-        );
-      }
+      // Only handle courses now
+      const dbItem = await Course.findById(cartItem.id).select(
+        'title price discountPrice thumbnail status isActive'
+      );
 
       // Only include valid, active items
       if (
         dbItem &&
         dbItem.isActive &&
-        ((cartItem.type === 'bundle' && dbItem.status === 'published') ||
-          (cartItem.type === 'course' && dbItem.status === 'published'))
+        dbItem.status === 'published'
       ) {
         // Calculate final price considering discount
         const originalPrice = dbItem.price || 0;
@@ -983,7 +888,7 @@ async function recalculateCartFromDB(cart, userId = null) {
 
         const validItem = {
           id: cartItem.id,
-          type: cartItem.type,
+          type: 'course',
           title: dbItem.title,
           originalPrice: originalPrice,
           discountPrice: discountPercentage,
@@ -1370,7 +1275,8 @@ const clearCartAPI = async (req, res) => {
 // Add item to cart
 const addToCart = async (req, res) => {
   try {
-    const { itemId, itemType } = req.body;
+    const { itemId } = req.body;
+    const itemType = 'course'; // Only courses are supported now
 
     if (!req.session.user) {
       return res.status(401).json({
@@ -1380,16 +1286,9 @@ const addToCart = async (req, res) => {
     }
 
     // Validate item exists and get price from database
-    let item;
-    if (itemType === 'bundle') {
-      item = await BundleCourse.findById(itemId).select(
-        'title price discountPrice thumbnail status isActive isFullyBooked fullyBookedMessage'
-      );
-    } else {
-      item = await Course.findById(itemId).select(
-        'title price discountPrice thumbnail status isActive isFullyBooked fullyBookedMessage'
-      );
-    }
+    const item = await Course.findById(itemId).select(
+      'title price discountPrice thumbnail status isActive isFullyBooked fullyBookedMessage'
+    );
 
     if (!item) {
       return res.status(404).json({
@@ -1407,20 +1306,7 @@ const addToCart = async (req, res) => {
     }
 
     // Validate item is available for purchase
-    if (
-      itemType === 'bundle' &&
-      (!item.isActive || item.status !== 'published')
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: 'This bundle is not available for purchase',
-      });
-    }
-
-    if (
-      itemType === 'course' &&
-      (!item.isActive || item.status !== 'published')
-    ) {
+    if (!item.isActive || item.status !== 'published') {
       return res.status(400).json({
         success: false,
         message: 'This course is not available for purchase',
@@ -1429,7 +1315,6 @@ const addToCart = async (req, res) => {
 
     // Check if user already purchased this item by querying the database
     const user = await User.findById(req.session.user.id)
-      .populate('purchasedBundles.bundle')
       .populate('purchasedCourses.course')
       .populate('enrolledCourses.course');
     if (!user) {
@@ -1439,18 +1324,11 @@ const addToCart = async (req, res) => {
       });
     }
 
-    if (itemType === 'bundle' && user.hasPurchasedBundle(itemId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'You have already purchased this bundle',
-      });
-    }
-
-    if (itemType === 'course' && user.hasAccessToCourse(itemId)) {
+    if (user.hasAccessToCourse(itemId)) {
       return res.status(400).json({
         success: false,
         message:
-          'You already have access to this course through a previous purchase or bundle',
+          'You already have access to this course through a previous purchase',
       });
     }
 
@@ -1471,65 +1349,19 @@ const addToCart = async (req, res) => {
       });
     }
 
-    // Check for bundle/course conflicts
-    if (itemType === 'course') {
-      // Validate course ordering before adding to cart
-      const orderValidation = await validateCourseOrdering(
-        itemId,
-        req.session.user.id,
-        req.session.cart
-      );
+    // Validate course ordering before adding to cart
+    const orderValidation = await validateCourseOrdering(
+      itemId,
+      req.session.user.id,
+      req.session.cart
+    );
 
-      if (!orderValidation.valid) {
-        return res.status(400).json({
-          success: false,
-          message: orderValidation.message,
-          missingCourse: orderValidation.missingCourse
-        });
-      }
-
-      // Check if this course is already in a bundle that's in the cart
-      for (const cartItem of req.session.cart) {
-        if (cartItem.type === 'bundle') {
-          const bundle = await BundleCourse.findById(cartItem.id).populate(
-            'courses'
-          );
-          if (
-            bundle &&
-            bundle.courses.some((course) => course._id.toString() === itemId)
-          ) {
-            return res.status(400).json({
-              success: false,
-              message: `This course is already included in the "${bundle.title}" bundle in your cart. Please remove the bundle first if you want to purchase this course individually.`,
-            });
-          }
-        }
-      }
-    } else if (itemType === 'bundle') {
-      // Check if any courses from this bundle are already in the cart individually
-      const bundle = await BundleCourse.findById(itemId).populate('courses');
-      if (bundle && bundle.courses) {
-        const conflictingCourses = [];
-        for (const course of bundle.courses) {
-          const existingCourse = req.session.cart.find(
-            (cartItem) =>
-              cartItem.type === 'course' &&
-              cartItem.id === course._id.toString()
-          );
-          if (existingCourse) {
-            conflictingCourses.push(course.title);
-          }
-        }
-
-        if (conflictingCourses.length > 0) {
-          return res.status(400).json({
-            success: false,
-            message: `This bundle contains courses that are already in your cart: ${conflictingCourses.join(
-              ', '
-            )}. Please remove those individual courses first if you want to purchase the bundle.`,
-          });
-        }
-      }
+    if (!orderValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        message: orderValidation.message,
+        missingCourse: orderValidation.missingCourse
+      });
     }
 
     // Add item to cart (using database values only)
@@ -1671,7 +1503,7 @@ const updateCartQuantity = async (req, res) => {
   }
 };
 
-// Direct book purchase checkout - for students who already purchased bundle but not the book
+// Direct book purchase checkout - for students who already purchased course but not the book
 const getBookCheckout = async (req, res) => {
   try {
     if (!req.session.user) {
@@ -1679,9 +1511,9 @@ const getBookCheckout = async (req, res) => {
       return res.redirect('/auth/login');
     }
 
-    const bundleId = req.query.bundle;
-    if (!bundleId) {
-      req.flash('error_msg', 'Bundle ID is required');
+    const courseId = req.query.course;
+    if (!courseId) {
+      req.flash('error_msg', 'Course ID is required');
       return res.redirect('/student/enrolled-courses');
     }
 
@@ -1691,16 +1523,16 @@ const getBookCheckout = async (req, res) => {
       return res.redirect('/auth/login');
     }
 
-    // Check if user has purchased the bundle
-    if (!user.hasPurchasedBundle(bundleId)) {
-      req.flash('error_msg', 'You must purchase the bundle first before buying the book');
+    // Check if user has purchased the course
+    if (!user.hasAccessToCourse(courseId)) {
+      req.flash('error_msg', 'You must purchase the course first before buying the book');
       return res.redirect('/student/enrolled-courses');
     }
 
     // Check if user has already ordered the book
     const hasOrderedBook = await BookOrder.hasUserOrderedBook(
       user._id,
-      bundleId
+      courseId
     );
 
     if (hasOrderedBook) {
@@ -1708,12 +1540,12 @@ const getBookCheckout = async (req, res) => {
       return res.redirect('/student/enrolled-courses');
     }
 
-    // Get bundle details
-    const bundle = await BundleCourse.findById(bundleId)
-      .select('_id title bundleCode hasBook bookName bookPrice thumbnail');
+    // Get course details
+    const course = await Course.findById(courseId)
+      .select('_id title courseCode hasBook bookName bookPrice thumbnail');
 
-    if (!bundle || !bundle.hasBook || bundle.bookPrice <= 0) {
-      req.flash('error_msg', 'Book is not available for this bundle');
+    if (!course || !course.hasBook || course.bookPrice <= 0) {
+      req.flash('error_msg', 'Book is not available for this course');
       return res.redirect('/student/enrolled-courses');
     }
 
@@ -1722,12 +1554,12 @@ const getBookCheckout = async (req, res) => {
     
     // Create a book-only cart item (we'll handle this specially in checkout)
     req.session.bookOnlyPurchase = {
-      bundleId: bundle._id.toString(),
-      bundleTitle: bundle.title,
-      bundleCode: bundle.bundleCode,
-      bookName: bundle.bookName,
-      bookPrice: bundle.bookPrice,
-      thumbnail: bundle.thumbnail || '/images/bundle-placeholder.jpg',
+      courseId: course._id.toString(),
+      courseTitle: course.title,
+      courseCode: course.courseCode,
+      bookName: course.bookName,
+      bookPrice: course.bookPrice,
+      thumbnail: course.thumbnail || '/images/course-placeholder.jpg',
     };
 
     // Save session before redirect to ensure it's persisted
@@ -1763,15 +1595,15 @@ const getCheckout = async (req, res) => {
       
       // Validate the book purchase is still valid
       const user = await User.findById(req.session.user.id);
-      if (!user.hasPurchasedBundle(bookPurchase.bundleId)) {
+      if (!user.hasAccessToCourse(bookPurchase.courseId)) {
         delete req.session.bookOnlyPurchase;
-        req.flash('error_msg', 'You must purchase the bundle first before buying the book');
+        req.flash('error_msg', 'You must purchase the course first before buying the book');
         return res.redirect('/student/enrolled-courses');
       }
 
       const hasOrderedBook = await BookOrder.hasUserOrderedBook(
         user._id,
-        bookPurchase.bundleId
+        bookPurchase.courseId
       );
 
       if (hasOrderedBook) {
@@ -1782,9 +1614,9 @@ const getCheckout = async (req, res) => {
 
       // Render checkout with book-only data
       const availableBooks = [{
-        bundleId: bookPurchase.bundleId,
-        bundleTitle: bookPurchase.bundleTitle,
-        bundleCode: bookPurchase.bundleCode,
+        courseId: bookPurchase.courseId,
+        courseTitle: bookPurchase.courseTitle,
+        courseCode: bookPurchase.courseCode,
         bookName: bookPurchase.bookName,
         bookPrice: bookPurchase.bookPrice,
         thumbnail: bookPurchase.thumbnail,
@@ -1822,95 +1654,10 @@ const getCheckout = async (req, res) => {
       });
     }
 
-    // Check if bundle or course query parameter is present (for "Buy Now" functionality)
-    const bundleId = req.query.bundle;
+    // Check if course query parameter is present (for "Buy Now" functionality)
     const courseId = req.query.course;
 
-    if (bundleId) {
-      // Initialize cart if not exists
-      if (!req.session.cart) {
-        req.session.cart = [];
-      }
-
-      // Check if bundle is already in cart
-      const existingBundle = req.session.cart.find(
-        (cartItem) => cartItem.id === bundleId && cartItem.type === 'bundle'
-      );
-
-      if (!existingBundle) {
-        // Add bundle to cart - fetch with courses populated for conflict check
-        const bundle = await BundleCourse.findById(bundleId)
-          .select('title price discountPrice thumbnail status isActive isFullyBooked fullyBookedMessage')
-          .populate('courses');
-
-        if (!bundle) {
-          req.flash('error_msg', 'Bundle not found');
-          return res.redirect('/');
-        }
-
-        // Check if bundle is fully booked
-        if (bundle.isFullyBooked) {
-          req.flash('error_msg', bundle.fullyBookedMessage || 'This bundle is fully booked');
-          return res.redirect('back');
-        }
-
-        // Validate bundle is available for purchase
-        if (!bundle.isActive || bundle.status !== 'published') {
-          req.flash('error_msg', 'This bundle is not available for purchase');
-          return res.redirect('/');
-        }
-
-        // Check if user already purchased this bundle
-        const user = await User.findById(req.session.user.id);
-        if (user && user.hasPurchasedBundle(bundleId)) {
-          req.flash('error_msg', 'You have already purchased this bundle');
-          return res.redirect('/');
-        }
-
-        // Check for bundle/course conflicts
-        if (bundle.courses && bundle.courses.length > 0) {
-          const conflictingCourses = [];
-          for (const course of bundle.courses) {
-            const existingCourse = req.session.cart.find(
-              (cartItem) =>
-                cartItem.type === 'course' &&
-                cartItem.id === course._id.toString()
-            );
-            if (existingCourse) {
-              conflictingCourses.push(course.title);
-            }
-          }
-
-          if (conflictingCourses.length > 0) {
-            req.flash('error_msg', `This bundle contains courses that are already in your cart: ${conflictingCourses.join(', ')}. Please remove those individual courses first if you want to purchase the bundle.`);
-            return res.redirect('back');
-          }
-        }
-
-        // Calculate final price
-        const originalPrice = bundle.price || 0;
-        const discountPercentage = bundle.discountPrice || 0;
-        let finalPrice = originalPrice;
-
-        if (discountPercentage > 0) {
-          finalPrice = originalPrice - originalPrice * (discountPercentage / 100);
-        }
-
-        // Add bundle to cart
-        const cartItem = {
-          id: bundleId,
-          type: 'bundle',
-          title: bundle.title,
-          originalPrice: originalPrice,
-          discountPrice: discountPercentage,
-          price: finalPrice,
-          image: bundle.thumbnail || '/images/adad.png',
-          addedAt: new Date(),
-        };
-
-        req.session.cart.push(cartItem);
-      }
-    } else if (courseId) {
+    if (courseId) {
       // Initialize cart if not exists
       if (!req.session.cart) {
         req.session.cart = [];
@@ -1963,20 +1710,6 @@ const getCheckout = async (req, res) => {
           return res.redirect('back');
         }
 
-        // Check if this course is already in a bundle that's in the cart
-        for (const cartItem of req.session.cart) {
-          if (cartItem.type === 'bundle') {
-            const bundle = await BundleCourse.findById(cartItem.id).populate('courses');
-            if (
-              bundle &&
-              bundle.courses.some((c) => c._id.toString() === courseId)
-            ) {
-              req.flash('error_msg', `This course is already included in the "${bundle.title}" bundle in your cart. Please remove the bundle first if you want to purchase this course individually.`);
-              return res.redirect('back');
-            }
-          }
-        }
-
         // Calculate final price
         const originalPrice = course.price || 0;
         const discountPercentage = course.discountPrice || 0;
@@ -2006,7 +1739,7 @@ const getCheckout = async (req, res) => {
     // since validateCartMiddleware already ran before getCheckout
     let validatedCart = req.validatedCart;
     
-    if (bundleId || courseId) {
+    if (courseId) {
       // Recalculate cart from database to include newly added items
       const recalculatedCart = await recalculateCartFromDB(
         req.session.cart,
@@ -2046,57 +1779,49 @@ const getCheckout = async (req, res) => {
       }
     }
 
-    // Get available books for bundles in cart (both direct bundles and courses from bundles)
-    // Logic: If a student buys a course from a bundle, they should see the bundle's book
-    // But if they already bought the book for that bundle (even with a different course), it won't show again
+    // Get available books for courses in cart
+    // Check if courses have books available
     const availableBooks = [];
-    const bundleIds = new Set(); // Use Set to avoid duplicates
+    const courseIds = new Set();
 
-    // Collect bundle IDs from cart (both direct bundles and courses' parent bundles)
+    // Collect course IDs from cart
     for (const item of validatedCart.items) {
-      if (item.type === 'bundle' && item.id) {
-        // Direct bundle purchase
-        bundleIds.add(item.id.toString());
-      } else if (item.type === 'course' && item.id) {
-        // Course purchase - find which bundle this course belongs to
-        const course = await Course.findById(item.id).select('bundle');
-        if (course && course.bundle) {
-          bundleIds.add(course.bundle.toString());
-        }
+      if (item.type === 'course' && item.id) {
+        courseIds.add(item.id.toString());
       }
     }
 
-    // Get bundles with books
-    if (bundleIds.size > 0) {
-      const bundles = await BundleCourse.find({
-        _id: { $in: Array.from(bundleIds) },
+    // Get courses with books
+    if (courseIds.size > 0) {
+      const courses = await Course.find({
+        _id: { $in: Array.from(courseIds) },
         hasBook: true,
         bookPrice: { $gt: 0 },
-      }).select('_id title bundleCode bookName bookPrice thumbnail');
+      }).select('_id title courseCode bookName bookPrice thumbnail');
 
       // Check which books user already purchased
       const user = await User.findById(req.session.user.id);
-      for (const bundle of bundles) {
-        // Check if user has already ordered the book for this bundle
+      for (const course of courses) {
+        // Check if user has already ordered the book for this course
         const hasOrderedBook = await BookOrder.hasUserOrderedBook(
           user._id,
-          bundle._id
+          course._id
         );
 
         if (!hasOrderedBook) {
           // Check if this book is already in availableBooks (avoid duplicates)
           const alreadyAdded = availableBooks.some(
-            book => book.bundleId === bundle._id.toString()
+            book => book.courseId === course._id.toString()
           );
           
           if (!alreadyAdded) {
             availableBooks.push({
-              bundleId: bundle._id.toString(),
-              bundleTitle: bundle.title,
-              bundleCode: bundle.bundleCode,
-              bookName: bundle.bookName,
-              bookPrice: bundle.bookPrice,
-              thumbnail: bundle.thumbnail || '/images/bundle-placeholder.jpg',
+              courseId: course._id.toString(),
+              courseTitle: course.title,
+              courseCode: course.courseCode,
+              bookName: course.bookName,
+              bookPrice: course.bookPrice,
+              thumbnail: course.thumbnail || '/images/course-placeholder.jpg',
             });
           }
         }
@@ -2197,7 +1922,7 @@ const directCheckout = async (req, res) => {
 
     // Get user from database
     const user = await User.findById(req.session.user.id)
-      .populate('purchasedBundles.bundle')
+      .populate('purchasedCourses.course')
       .populate('purchasedCourses.course')
       .populate('enrolledCourses.course');
     if (!user) {
@@ -2855,7 +2580,7 @@ const getPurchaseHistory = async (req, res) => {
 // Add item to wishlist
 const addToWishlist = async (req, res) => {
   try {
-    const { itemId, itemType } = req.body;
+    const { itemId } = req.body;
 
     if (!req.session.user) {
       return res.status(401).json({
@@ -2864,18 +2589,13 @@ const addToWishlist = async (req, res) => {
       });
     }
 
-    // Validate item exists
-    let item;
-    if (itemType === 'bundle') {
-      item = await BundleCourse.findById(itemId);
-    } else {
-      item = await Course.findById(itemId);
-    }
+    // Validate course exists
+    const item = await Course.findById(itemId);
 
     if (!item) {
       return res.status(404).json({
         success: false,
-        message: 'Item not found',
+        message: 'Course not found',
       });
     }
 
@@ -2889,29 +2609,17 @@ const addToWishlist = async (req, res) => {
     }
 
     // Add to wishlist
-    if (itemType === 'bundle') {
-      if (user.isBundleInWishlist(itemId)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Bundle already in wishlist',
-        });
-      }
-      await user.addBundleToWishlist(itemId);
-    } else {
-      if (user.isCourseInWishlist(itemId)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Course already in wishlist',
-        });
-      }
-      await user.addCourseToWishlist(itemId);
+    const result = await user.addToWishlist(itemId);
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.message,
+      });
     }
 
     res.json({
       success: true,
-      message: `${
-        itemType === 'bundle' ? 'Bundle' : 'Course'
-      } added to wishlist successfully`,
+      message: 'Course added to wishlist successfully',
     });
   } catch (error) {
     console.error('Error adding to wishlist:', error);
@@ -2925,7 +2633,7 @@ const addToWishlist = async (req, res) => {
 // Remove item from wishlist
 const removeFromWishlist = async (req, res) => {
   try {
-    const { itemId, itemType } = req.body;
+    const { itemId } = req.body;
 
     if (!req.session.user) {
       return res.status(401).json({
@@ -2944,29 +2652,17 @@ const removeFromWishlist = async (req, res) => {
     }
 
     // Remove from wishlist
-    if (itemType === 'bundle') {
-      if (!user.isBundleInWishlist(itemId)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Bundle not in wishlist',
-        });
-      }
-      await user.removeBundleFromWishlist(itemId);
-    } else {
-      if (!user.isCourseInWishlist(itemId)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Course not in wishlist',
-        });
-      }
-      await user.removeCourseFromWishlist(itemId);
+    const result = await user.removeFromWishlist(itemId);
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.message,
+      });
     }
 
     res.json({
       success: true,
-      message: `${
-        itemType === 'bundle' ? 'Bundle' : 'Course'
-      } removed from wishlist successfully`,
+      message: 'Course removed from wishlist successfully',
     });
   } catch (error) {
     console.error('Error removing from wishlist:', error);
@@ -2980,7 +2676,7 @@ const removeFromWishlist = async (req, res) => {
 // Toggle wishlist status
 const toggleWishlist = async (req, res) => {
   try {
-    const { itemId, itemType } = req.body;
+    const { itemId } = req.body;
 
     if (!req.session.user) {
       return res.status(401).json({
@@ -2998,30 +2694,18 @@ const toggleWishlist = async (req, res) => {
       });
     }
 
-    let isInWishlist = false;
+    let isInWishlist = user.wishlist && user.wishlist.some(id => id.toString() === itemId);
     let message = '';
 
     // Toggle wishlist status
-    if (itemType === 'bundle') {
-      isInWishlist = user.isBundleInWishlist(itemId);
-      if (isInWishlist) {
-        await user.removeBundleFromWishlist(itemId);
-        message = 'Bundle removed from wishlist';
-      } else {
-        await user.addBundleToWishlist(itemId);
-        message = 'Bundle added to wishlist';
-        isInWishlist = true;
-      }
+    if (isInWishlist) {
+      await user.removeFromWishlist(itemId);
+      message = 'Course removed from wishlist';
+      isInWishlist = false;
     } else {
-      isInWishlist = user.isCourseInWishlist(itemId);
-      if (isInWishlist) {
-        await user.removeCourseFromWishlist(itemId);
-        message = 'Course removed from wishlist';
-      } else {
-        await user.addCourseToWishlist(itemId);
-        message = 'Course added to wishlist';
-        isInWishlist = true;
-      }
+      await user.addToWishlist(itemId);
+      message = 'Course added to wishlist';
+      isInWishlist = true;
     }
 
     res.json({
@@ -3123,7 +2807,7 @@ const handlePaymentSuccess = async (req, res) => {
         const bookOrders = await BookOrder.find({
           _id: { $in: purchaseObj.bookOrders },
         })
-          .populate('bundle', 'title bundleCode')
+          .populate('teacher', 'firstName lastName teacherCode')
           .lean();
         purchaseObj.bookOrders = bookOrders || [];
       } else {
@@ -3238,7 +2922,7 @@ const handlePaymentSuccess = async (req, res) => {
       const bookOrders = await BookOrder.find({
         _id: { $in: purchaseObj.bookOrders },
       })
-        .populate('bundle', 'title bundleCode')
+        .populate('teacher', 'firstName lastName teacherCode')
         .lean();
       purchaseObj.bookOrders = bookOrders || [];
     } else {
