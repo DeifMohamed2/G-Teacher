@@ -196,7 +196,7 @@
 
 /* Order Header Card */
 .order-header-card {
-  background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+  background: linear-gradient(135deg, #3a92bd, #0c5374);
   border-radius: 16px;
   padding: 2rem;
   margin-bottom: 1.5rem;
@@ -314,7 +314,7 @@
 }
 
 .order-summary-header {
-  background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+  background: linear-gradient(135deg, #3a92bd, #0c5374);
   border-bottom: none;
   padding: 1.25rem 1.5rem;
 }
@@ -662,7 +662,7 @@
 .method-icon-wrapper {
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+  background: linear-gradient(135deg, #3a92bd, #0c5374);
   border-radius: 14px;
   display: flex;
   align-items: center;

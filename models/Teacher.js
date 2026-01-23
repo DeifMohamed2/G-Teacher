@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
 const TeacherSchema = new mongoose.Schema(
   {
@@ -18,25 +17,12 @@ const TeacherSchema = new mongoose.Schema(
       minlength: 2,
       maxlength: 50,
     },
-    username: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-      minlength: 3,
-      maxlength: 30,
-    },
     email: {
       type: String,
       required: true,
       unique: true,
       trim: true,
       lowercase: true,
-    },
-    password: {
-      type: String,
-      required: true,
-      minlength: 6,
     },
     phoneNumber: {
       type: String,
@@ -60,90 +46,21 @@ const TeacherSchema = new mongoose.Schema(
       trim: true,
       maxlength: 100,
     },
-    specialization: [{
-      type: String,
-      trim: true,
-    }],
     bio: {
       type: String,
       trim: true,
       maxlength: 1000,
     },
-    qualifications: [{
-      type: String,
-      trim: true,
-    }],
     profilePicture: {
       type: String,
+      trim: true,
       default: '',
     },
 
-    // Teacher settings
-    settings: {
-      allowEnrollment: {
-        type: Boolean,
-        default: true,
-      },
-      showContactInfo: {
-        type: Boolean,
-        default: false,
-      },
-      maxStudentsPerCourse: {
-        type: Number,
-        default: 100,
-        min: 1,
-      },
-    },
-
-    // Social links
-    socialLinks: {
-      website: { type: String, trim: true },
-      facebook: { type: String, trim: true },
-      instagram: { type: String, trim: true },
-      twitter: { type: String, trim: true },
-      youtube: { type: String, trim: true },
-      linkedin: { type: String, trim: true },
-      tiktok: { type: String, trim: true },
-    },
-
     // Status
-    role: {
-      type: String,
-      enum: ['teacher', 'admin', 'superAdmin'],
-      default: 'teacher',
-    },
     isActive: {
       type: Boolean,
       default: true,
-    },
-    isVerified: {
-      type: Boolean,
-      default: false,
-    },
-
-    // Session management
-    sessionToken: {
-      type: String,
-      default: null,
-      index: true,
-    },
-
-    // Preferences
-    preferences: {
-      theme: {
-        type: String,
-        enum: ['light', 'dark'],
-        default: 'light',
-      },
-      notifications: {
-        email: { type: Boolean, default: true },
-        newEnrollment: { type: Boolean, default: true },
-        courseUpdates: { type: Boolean, default: true },
-      },
-      language: {
-        type: String,
-        default: 'en',
-      },
     },
   },
   {
@@ -165,28 +82,7 @@ TeacherSchema.virtual('courses', {
   foreignField: 'teacher',
 });
 
-// Virtual for total students count
-TeacherSchema.virtual('totalStudents').get(async function () {
-  const Course = mongoose.model('Course');
-  const courses = await Course.find({ teacher: this._id });
-  const studentIds = new Set();
-  courses.forEach(course => {
-    if (course.enrolledStudents) {
-      course.enrolledStudents.forEach(id => studentIds.add(id.toString()));
-    }
-  });
-  return studentIds.size;
-});
-
-// Hash password before save
-TeacherSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
-
-// Generate unique teacher code before saving
+// Generate unique teacher code before saving (TCH + 6 random digits)
 TeacherSchema.pre('save', async function (next) {
   if (this.isNew && !this.teacherCode) {
     let teacherCode;
@@ -194,10 +90,9 @@ TeacherSchema.pre('save', async function (next) {
     let attempts = 0;
 
     while (!isUnique && attempts < 10) {
-      // Generate code: TCH + first 2 letters of name + random 4 digits
-      const namePrefix = this.firstName.replace(/[^a-zA-Z]/g, '').substring(0, 2).toUpperCase();
-      const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-      teacherCode = `TCH${namePrefix}${randomNum}`;
+      // Generate code: TCH + 6 random digits
+      const randomDigits = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+      teacherCode = `TCH${randomDigits}`;
 
       const existingTeacher = await this.constructor.findOne({ teacherCode });
       if (!existingTeacher) {
@@ -210,11 +105,6 @@ TeacherSchema.pre('save', async function (next) {
   }
   next();
 });
-
-// Compare password
-TeacherSchema.methods.matchPassword = async function (enteredPassword) {
-  return bcrypt.compare(enteredPassword, this.password);
-};
 
 // Instance method to get all courses
 TeacherSchema.methods.getCourses = async function () {
@@ -262,7 +152,7 @@ TeacherSchema.methods.getStatistics = async function () {
   };
 };
 
-// Indexes for better query performance (excluding fields with unique: true which auto-create indexes)
-TeacherSchema.index({ isActive: 1, isVerified: 1 });
+// Index for better query performance
+TeacherSchema.index({ isActive: 1 });
 
 module.exports = mongoose.model('Teacher', TeacherSchema);

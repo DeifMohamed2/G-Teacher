@@ -30,10 +30,19 @@
               <h1 class="admin-dashboard-title">Course Management</h1>
               <p class="admin-dashboard-subtitle">Create and manage your educational courses</p>
             </div>
-            <button class="btn btn-primary admin-btn-primary" data-bs-toggle="modal" data-bs-target="#createCourseModal">
-              <i class="fas fa-plus me-2"></i>
-              Create New Course
-            </button>
+            <div class="d-flex gap-2">
+              <button class="btn exam-period-btn" data-bs-toggle="modal" data-bs-target="#examPeriodModal">
+                <span class="btn-icon-wrapper">
+                  <i class="fas fa-calendar-alt"></i>
+                </span>
+                <span class="btn-text">Manage Exam Periods</span>
+                <span class="btn-shine"></span>
+              </button>
+              <button class="btn btn-primary admin-btn-primary" data-bs-toggle="modal" data-bs-target="#createCourseModal">
+                <i class="fas fa-plus me-2"></i>
+                Create New Course
+              </button>
+            </div>
           </div>
         </div>
 
@@ -103,7 +112,7 @@
               <h5 class="admin-filters-title mb-0">
                 <i class="fas fa-filter me-2 filter-icon"></i>Course Filters
               </h5>
-              <% if (currentFilters.level || currentFilters.bundle || currentFilters.status !== 'all' || currentFilters.search) { %>
+              <% if (currentFilters.status !== 'all' || currentFilters.search) { %>
               <span class="badge filter-active-badge">
                 <i class="fas fa-check-circle me-1"></i>Active Filters
               </span>
@@ -124,17 +133,6 @@
                     </option>
                     <% }); %>
                     <% } %>
-                  </select>
-                </div>
-                <div class="col-12 col-sm-6 col-md-2">
-                  <label class="form-label filter-label">
-                    <i class="fas fa-layer-group me-1 filter-icon"></i>Level
-                  </label>
-                  <select name="level" class="form-select filter-select">
-                    <option value="">All Levels</option>
-                    <option value="Beginner" <%= currentFilters.level === 'Beginner' ? 'selected' : '' %>>Beginner</option>
-                    <option value="Intermediate" <%= currentFilters.level === 'Intermediate' ? 'selected' : '' %>>Intermediate</option>
-                    <option value="Advanced" <%= currentFilters.level === 'Advanced' ? 'selected' : '' %>>Advanced</option>
                   </select>
                 </div>
                 <div class="col-12 col-sm-6 col-md-2">
@@ -162,7 +160,7 @@
                     <select name="sortBy" class="form-select filter-select mb-2">
                       <option value="createdAt" <%= currentFilters.sortBy === 'createdAt' ? 'selected' : '' %>>Date</option>
                       <option value="title" <%= currentFilters.sortBy === 'title' ? 'selected' : '' %>>Title</option>
-                      <option value="duration" <%= currentFilters.sortBy === 'duration' ? 'selected' : '' %>>Duration</option>
+                      <option value="price" <%= currentFilters.sortBy === 'price' ? 'selected' : '' %>>Price</option>
                     </select>
                     <select name="sortOrder" class="form-select filter-select">
                       <option value="desc" <%= currentFilters.sortOrder === 'desc' ? 'selected' : '' %>>Desc</option>
@@ -240,102 +238,22 @@
 
           <% if (courses && courses.length > 0) { %>
           <%
-            // Group courses by bundle for better organization
-            const groupedCourses = {};
-            courses.forEach(course => {
-              if (!course) return;
-              
-              const bundleId = course.bundle ? course.bundle._id || course.bundle : 'individual';
-              const bundleName = course.bundle ? course.bundle.title || 'Bundle Course' : 'Individual Courses';
-              const bundleThumbnail = course.bundle ? (course.bundle.thumbnail || '') : '';
-              
-              if (!groupedCourses[bundleId]) {
-                groupedCourses[bundleId] = {
-                  bundleName: bundleName,
-                  bundleId: bundleId,
-                  bundleCode: course.bundle ? course.bundle.bundleCode : null,
-                  bundleThumbnail: bundleThumbnail,
-                  courses: []
-                };
-              }
-              
-              groupedCourses[bundleId].courses.push(course);
-            });
-            
-            // Sort courses within each bundle by order
-            Object.keys(groupedCourses).forEach(bundleId => {
-              groupedCourses[bundleId].courses.sort((a, b) => {
-                const orderA = a.order || 0;
-                const orderB = b.order || 0;
-                return orderA - orderB;
-              });
+            // Sort courses by order
+            const sortedCourses = courses.sort((a, b) => {
+              const orderA = a.order || 0;
+              const orderB = b.order || 0;
+              return orderA - orderB;
             });
           %>
           
-          <% Object.values(groupedCourses).forEach((bundleGroup, index) => { %>
-            <!-- Bundle Name Display (Collapsible Header) - Enhanced with Image -->
-            <div class="admin-bundle-header bundle-name-display" 
-                 style="margin: var(--spacing-xl) 0 var(--spacing-lg) 0; padding: var(--spacing-lg) var(--spacing-xl); background: var(--bg-secondary); border-left: 5px solid var(--primary-color); border-radius: 0 12px 12px 0; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.08);"
-                 onclick="toggleAdminBundle('admin-bundle-<%= index %>')">
-              <div style="display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-lg);">
-                <div style="display: flex; align-items: center; gap: var(--spacing-lg); flex: 1;">
-                  <!-- Bundle Thumbnail -->
-                  <div style="width: 80px; height: 80px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: linear-gradient(135deg, var(--primary-color), #dc2626); box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                    <% if (bundleGroup.bundleThumbnail) { %>
-                      <img src="<%= bundleGroup.bundleThumbnail %>" alt="<%= bundleGroup.bundleName %>" style="width: 100%; height: 100%; object-fit: cover;">
-                    <% } else { %>
-                      <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-layer-group" style="font-size: 2rem; color: white; opacity: 0.9;"></i>
-                      </div>
-                    <% } %>
-                  </div>
-                  
-                  <!-- Bundle Info -->
-                  <div style="display: flex; align-items: center; gap: var(--spacing-md); flex: 1;">
-                    <i class="fas fa-chevron-down admin-bundle-toggle-icon bundle-toggle-icon" id="admin-icon-bundle-<%= index %>" style="color: var(--primary-color); font-size: 1.2rem; transition: transform 0.3s ease; flex-shrink: 0;"></i>
-                    <div style="flex: 1;">
-                      <h3 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">
-                        <%= bundleGroup.bundleName %>
-                        <% if (bundleGroup.bundleCode) { %>
-                          <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500; margin-left: 8px;">
-                            (<%= bundleGroup.bundleCode %>)
-                          </span>
-                        <% } %>
-                      </h3>
-                      <div style="display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap;">
-                        <span style="font-size: 0.95rem; color: var(--text-muted); background: var(--bg-primary); padding: 4px 12px; border-radius: 16px; font-weight: 500;">
-                          <i class="fas fa-book" style="margin-right: 4px;"></i>
-                          <%= bundleGroup.courses.length %> course<%= bundleGroup.courses.length !== 1 ? 's' : '' %>
-                        </span>
-                        <span style="font-size: 0.95rem; color: var(--text-muted); font-weight: 500;">
-                          <i class="fas fa-eye" style="margin-right: 4px; color: var(--primary-color);"></i>
-                          <%= bundleGroup.courses.filter(c => c.status === 'published').length %> published
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Courses in this Bundle (Collapsible Content) -->
-            <div class="admin-courses-grid admin-bundle-content" 
-                 id="admin-bundle-<%= index %>"
-                 style="display: none; margin-bottom: 30px; overflow: hidden; transition: all 0.3s ease;">
-              <% bundleGroup.courses.forEach(course => { %>
+          <div class="admin-courses-grid">
+            <% sortedCourses.forEach(course => { %>
               <div class="admin-course-card" data-status="<%= course.status %>" data-course-code="<%= course.courseCode %>" data-course-id="<%= course._id %>" style="position: relative;">
                 <div class="admin-course-thumbnail" style="position: relative;">
                   <img src="<%= course.thumbnail || '/images/course-placeholder.jpg' %>" alt="Course Thumbnail">
                   <div class="admin-course-badges">
                     <div class="admin-course-status <%= course.status %>"><%= course.status.charAt(0).toUpperCase() + course.status.slice(1) %></div>
                   </div>
-                  <!-- Week Order Badge -->
-                  <% if (course.order && course.order > 0) { %>
-                  <div style="position: absolute; top: 12px; left: 12px; background: rgba(59, 130, 246, 0.9); padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; color: white; z-index: 5;">
-                    <i class="fas fa-book" style="margin-right: 4px;"></i>
-                    Week <%= course.order %>
-                  </div>
-                  <% } %>
                 </div>
 
                 <div class="admin-course-content" style="position: relative;">
@@ -354,26 +272,25 @@
                     <h4 class="admin-course-title"><%= course.title %></h4>
                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                       <span class="admin-course-code"><%= course.courseCode %></span>
-                      <% if (course.requiresSequential !== false) { %>
-                      <span style="font-size: 0.7rem; color: #6b7280; font-weight: 500;">
-                        <i class="fas fa-lock" style="margin-right: 2px;"></i>
-                        Sequential
-                      </span>
-                      <% } %>
+                    </div>
                     </div>
                   </div>
 
                   <p class="admin-course-description"><%= course.shortDescription %></p>
 
                   <div class="admin-course-meta">
+                    <% if (course.teacher) { %>
                     <div class="admin-course-meta-item">
-                      <i class="fas fa-layer-group"></i>
-                      <span><%= course.level %></span>
+                      <i class="fas fa-chalkboard-teacher"></i>
+                      <span><%= course.teacher.firstName %> <%= course.teacher.lastName %></span>
                     </div>
+                    <% } %>
+                    <% if (course.examPeriod) { %>
                     <div class="admin-course-meta-item">
-                      <i class="fas fa-clock"></i>
-                      <span><%= course.duration %> hours</span>
+                      <i class="fas fa-calendar-alt"></i>
+                      <span><%= course.examPeriod.name %></span>
                     </div>
+                    <% } %>
                     <div class="admin-course-meta-item">
                       <i class="fas fa-coins"></i>
                       <% if (course.discountPrice) { %>
@@ -407,9 +324,8 @@
                   </div>
                 </div>
               </div>
-              <% }); %>
-            </div>
-          <% }); %>
+            <% }); %>
+          </div>
           <% } else { %>
           <div class="admin-empty-state">
             <div class="admin-empty-icon">
@@ -520,47 +436,27 @@
                 </h6>
 
                 <div class="admin-form-group">
-                  <label for="courseBundle" class="admin-form-label">
-                    <i class="fas fa-box me-2"></i>
-                    Select Bundle
+                  <label for="courseTeacher" class="admin-form-label">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>
+                    Select Teacher
                   </label>
-                  <select class="admin-form-control" id="courseBundle" name="bundleId" required>
-                    <option value="">Select Bundle</option>
-                    <!-- Bundles will be loaded dynamically -->
+                  <select class="admin-form-control" id="courseTeacher" name="teacher">
+                    <option value="">No Teacher Assigned</option>
+                    <!-- Teachers will be loaded dynamically -->
                   </select>
-                  <small class="admin-form-text">Course will be added to the selected bundle</small>
+                  <small class="admin-form-text">Optional: Assign a teacher to this course</small>
                 </div>
 
                 <div class="admin-form-group">
-                  <label for="courseLevel" class="admin-form-label">
-                    <i class="fas fa-layer-group me-2"></i>
-                    Course Level
+                  <label for="courseExamPeriod" class="admin-form-label">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Exam Period
                   </label>
-                  <select class="admin-form-control" id="courseLevel" name="level" required>
-                    <option value="">Select Level</option>
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
+                  <select class="admin-form-control" id="courseExamPeriod" name="examPeriod">
+                    <option value="">No Exam Period</option>
+                    <!-- Exam periods will be loaded dynamically -->
                   </select>
-                </div>
-
-                <div class="admin-form-group">
-                  <label for="courseCategory" class="admin-form-label">
-                    <i class="fas fa-tags me-2"></i>
-                    Category
-                  </label>
-                  <input type="text" class="admin-form-control" id="courseCategory" name="category" placeholder="e.g., Core, Elective, Supplementary" required>
-                  <div class="invalid-feedback" id="courseCategoryError"></div>
-                </div>
-
-                <div class="admin-form-group">
-                  <label for="courseDuration" class="admin-form-label">
-                    <i class="fas fa-clock me-2"></i>
-                    Duration (hours)
-                  </label>
-                  <input type="number" class="admin-form-control" id="courseDuration" name="duration" min="1" required>
-                  <small class="admin-form-text">Duration must be at least 1 hour</small>
-                  <div class="invalid-feedback" id="courseDurationError"></div>
+                  <small class="admin-form-text">Optional: Associate course with an exam period</small>
                 </div>
 
                 <div class="admin-form-group">
@@ -582,27 +478,6 @@
                   <small class="admin-form-text">Optional: Set a discount percentage (0-100)</small>
                   <div class="invalid-feedback" id="courseDiscountPriceError"></div>
                 </div>
-
-                <div class="admin-form-group">
-                  <label for="courseOrder" class="admin-form-label">
-                    <i class="fas fa-list-ol me-2"></i>
-                    Week Order (Optional)
-                  </label>
-                  <input type="number" class="admin-form-control" id="courseOrder" name="order" min="1" step="1">
-                  <small class="admin-form-text">Leave empty to auto-assign next available order in bundle</small>
-                  <div class="invalid-feedback" id="courseOrderError"></div>
-                </div>
-
-                <div class="admin-form-group">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="requiresSequential" name="requiresSequential" value="on" checked>
-                    <label class="form-check-label admin-form-label" for="requiresSequential">
-                      <i class="fas fa-lock me-2"></i>
-                      Requires Sequential Completion
-                    </label>
-                    <small class="admin-form-text d-block mt-1">Students must complete previous courses in order</small>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -620,6 +495,112 @@
   </div>
 </div>
 
+<!-- Exam Period Management Modal -->
+<div class="modal fade" id="examPeriodModal" tabindex="-1" aria-labelledby="examPeriodModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content admin-modal-content">
+      <div class="modal-header admin-modal-header">
+        <h5 class="modal-title" id="examPeriodModalLabel">
+          <i class="fas fa-calendar-alt me-2"></i>
+          Manage Exam Periods
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Add New Period Form -->
+        <div class="admin-form-section mb-4">
+          <h6 class="admin-form-section-title">
+            <i class="fas fa-plus-circle me-2"></i>
+            Add New Exam Period
+          </h6>
+          <form id="addExamPeriodForm">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="admin-form-group">
+                  <label class="admin-form-label">
+                    <i class="fas fa-tag me-2"></i>
+                    Period Name
+                  </label>
+                  <input type="text" class="admin-form-control" id="periodName" name="name" placeholder="e.g., January 2026" required>
+                  <small class="admin-form-text">Full period name with year</small>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="admin-form-group">
+                  <label class="admin-form-label">
+                    <i class="fas fa-text-width me-2"></i>
+                    Display Name
+                  </label>
+                  <input type="text" class="admin-form-control" id="periodDisplayName" name="displayName" placeholder="e.g., January" required>
+                  <small class="admin-form-text">Short name for display</small>
+                </div>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-4">
+                <div class="admin-form-group">
+                  <label class="admin-form-label">
+                    <i class="fas fa-calendar me-2"></i>
+                    Year
+                  </label>
+                  <input type="number" class="admin-form-control" id="periodYear" name="year" min="2024" max="2030" value="2026" required>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="admin-form-group">
+                  <label class="admin-form-label">
+                    <i class="fas fa-calendar-day me-2"></i>
+                    Start Date
+                  </label>
+                  <input type="date" class="admin-form-control" id="periodStartDate" name="startDate" required>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="admin-form-group">
+                  <label class="admin-form-label">
+                    <i class="fas fa-calendar-check me-2"></i>
+                    End Date
+                  </label>
+                  <input type="date" class="admin-form-control" id="periodEndDate" name="endDate" required>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary admin-btn-primary">
+              <i class="fas fa-plus me-2"></i>
+              Add Period
+            </button>
+          </form>
+        </div>
+
+        <!-- Existing Periods List -->
+        <div class="admin-form-section">
+          <h6 class="admin-form-section-title">
+            <i class="fas fa-list me-2"></i>
+            Existing Exam Periods
+          </h6>
+          <div id="examPeriodsList" class="exam-periods-list">
+            <!-- Will be populated dynamically -->
+            <div class="text-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer admin-modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <%- include('./partials/admin-footer') %>
 
 <!-- Toast Container -->
@@ -627,6 +608,147 @@
 
 <!-- Bundle Header Styles to Match Student View -->
 <style>
+  /* Enhanced Exam Period Button */
+  .exam-period-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #3a92bd 0%, #2d7a9f 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(58, 146, 189, 0.3);
+  }
+
+  .exam-period-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.6s ease;
+  }
+
+  .exam-period-btn:hover::before {
+    left: 100%;
+  }
+
+  .exam-period-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    padding: 2px;
+    background: linear-gradient(135deg, #5ba8cc, #3a92bd, #2d7a9f);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .exam-period-btn:hover::after {
+    opacity: 1;
+  }
+
+  .exam-period-btn .btn-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .exam-period-btn:hover .btn-icon-wrapper {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(360deg) scale(1.1);
+  }
+
+  .exam-period-btn .btn-icon-wrapper i {
+    font-size: 1.1rem;
+    transition: all 0.4s ease;
+  }
+
+  .exam-period-btn:hover .btn-icon-wrapper i {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  }
+
+  .exam-period-btn .btn-text {
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+  }
+
+  .exam-period-btn:hover .btn-text {
+    color: white;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .exam-period-btn:hover {
+    color: white;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(58, 146, 189, 0.5), 
+                0 0 30px rgba(58, 146, 189, 0.3);
+  }
+
+  .exam-period-btn:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 3px 10px rgba(58, 146, 189, 0.4);
+  }
+
+  .exam-period-btn .btn-shine {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  .exam-period-btn:hover .btn-shine {
+    opacity: 1;
+    animation: shine 1.5s ease-in-out infinite;
+  }
+
+  @keyframes shine {
+    0% {
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0.8;
+    }
+    50% {
+      opacity: 0.4;
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0;
+    }
+  }
+
+  /* Dark theme adjustments */
+  .dark-theme .exam-period-btn {
+    background: linear-gradient(135deg, #5ba8cc 0%, #3a92bd 100%);
+    box-shadow: 0 4px 15px rgba(91, 168, 204, 0.4);
+  }
+
+  .dark-theme .exam-period-btn:hover {
+    box-shadow: 0 8px 25px rgba(91, 168, 204, 0.6), 
+                0 0 30px rgba(91, 168, 204, 0.4);
+  }
+
   /* CSS Variables for Bundle Headers - Matching Student View */
   :root {
     --primary-color: #dc2626;
@@ -696,7 +818,7 @@
   }
 
   .filter-active-badge {
-    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    background: linear-gradient(135deg, #3a92bd, #0c5374);
     padding: 6px 12px;
     border-radius: 6px;
     font-weight: 500;
@@ -763,7 +885,7 @@
   }
 
   .filter-apply-btn {
-    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    background: linear-gradient(135deg, #3a92bd, #0c5374);
     color: white;
     border: none;
     padding: 8px 20px;
@@ -929,7 +1051,7 @@
   }
 
   .bulk-apply-btn {
-    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    background: linear-gradient(135deg, #3a92bd, #0c5374);
     color: white;
     border: none;
     padding: 8px 20px;
@@ -1008,7 +1130,7 @@
   }
 
   .custom-checkbox-label:has(.course-checkbox:checked) {
-    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+    background: linear-gradient(135deg, #3a92bd, #0c5374) !important;
     border-color: #dc2626 !important;
     box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3) !important;
   }
@@ -1244,7 +1366,7 @@
   .share-item-icon {
     width: 50px;
     height: 50px;
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    background: linear-gradient(135deg, #3a92bd 0%, #0c5374 100%);
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -1320,7 +1442,7 @@
 
   .share-copy-btn {
     padding: 0.875rem 1.5rem;
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    background: linear-gradient(135deg, #3a92bd 0%, #0c5374 100%);
     color: white;
     border: none;
     border-radius: 10px;
@@ -1512,6 +1634,71 @@
     }
   }
 
+  /* Exam Period Styles */
+  .exam-periods-list {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .exam-period-item {
+    padding: 1rem;
+    background: var(--admin-card-light);
+    border: 1px solid var(--admin-border-light);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+  }
+
+  .exam-period-item.opacity-50 {
+    opacity: 0.6;
+    filter: grayscale(0.3);
+  }
+
+  .dark-theme .exam-period-item {
+    background: var(--admin-card-dark);
+    border-color: var(--admin-border-dark);
+  }
+
+  .exam-period-item:hover {
+    border-color: #3a92bd;
+    box-shadow: 0 2px 8px rgba(58, 146, 189, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .exam-period-item h6 {
+    color: var(--admin-text-light);
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .dark-theme .exam-period-item h6 {
+    color: var(--admin-text-dark);
+  }
+
+  .exam-period-item small {
+    color: var(--text-muted);
+  }
+
+  .exam-period-item .btn-group {
+    gap: 0.25rem;
+    display: flex;
+  }
+
+  .exam-period-item .btn-sm {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.875rem;
+  }
+
+  .exam-period-item .badge {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.6rem;
+    font-weight: 500;
+  }
+
 </style>
 
 <!-- Local Upload Script -->
@@ -1557,111 +1744,320 @@
     });
   }
 
-  // Load available bundles for course creation
+  // Load available teachers and exam periods on page load
   document.addEventListener('DOMContentLoaded', function() {
-    loadAvailableBundles();
+    loadAvailableTeachers();
+    loadExamPeriods();
     setupFormValidation();
-    
-    // Initialize bundle collapse state
-    const bundleIcons = document.querySelectorAll('.admin-bundle-toggle-icon');
-    bundleIcons.forEach(icon => {
-      icon.style.transform = 'rotate(-90deg)';
-    });
-
-    // Add hover effect to bundle headers - Matching Student View
-    const bundleHeaders = document.querySelectorAll('.bundle-name-display');
-    bundleHeaders.forEach(header => {
-      header.addEventListener('mouseenter', function() {
-        this.style.background = 'var(--bg-primary)';
-      });
-      
-      header.addEventListener('mouseleave', function() {
-        this.style.background = 'var(--bg-secondary)';
-      });
-    });
-
-    // Initialize order field visibility based on bundle selection
-    const bundleSelect = document.getElementById('courseBundle');
-    const orderFieldGroup = document.getElementById('courseOrder').closest('.admin-form-group');
-    
-    // Hide order field initially
-    if (orderFieldGroup) {
-      orderFieldGroup.style.display = 'none';
-    }
-
-    // Show/hide order field when bundle is selected
-    if (bundleSelect) {
-      bundleSelect.addEventListener('change', function() {
-        if (this.value && orderFieldGroup) {
-          orderFieldGroup.style.display = 'block';
-        } else if (orderFieldGroup) {
-          orderFieldGroup.style.display = 'none';
-        }
-      });
-    }
-
-    // Reset form when modal is closed
-    const createCourseModal = document.getElementById('createCourseModal');
-    if (createCourseModal) {
-      createCourseModal.addEventListener('hidden.bs.modal', function() {
-        const form = document.getElementById('createCourseForm');
-        if (form) {
-          form.reset();
-          // Reset order field visibility
-          if (orderFieldGroup) {
-            orderFieldGroup.style.display = 'none';
-          }
-          // Reset requiresSequential checkbox to checked
-          const requiresSequentialCheckbox = document.getElementById('requiresSequential');
-          if (requiresSequentialCheckbox) {
-            requiresSequentialCheckbox.checked = true;
-          }
-        }
-      });
-    }
+    setupExamPeriodForm();
   });
 
-  function loadAvailableBundles() {
-    fetch('/admin/api/bundles')
+  // Load available teachers
+  function loadAvailableTeachers() {
+    fetch('/admin/api/teachers')
       .then(response => response.json())
-      .then(bundles => {
-        const bundleSelect = document.getElementById('courseBundle');
-        bundleSelect.innerHTML = '<option value="">Select Bundle</option>';
+      .then(teachers => {
+        // Filter only active teachers for the dropdown
+        const activeTeachers = teachers.filter(t => t.isActive);
+        
+        const teacherSelect = document.getElementById('courseTeacher');
+        teacherSelect.innerHTML = '<option value="">No Teacher Assigned</option>';
 
-        bundles.forEach(bundle => {
+        activeTeachers.forEach(teacher => {
           const option = document.createElement('option');
-          option.value = bundle._id;
-          option.textContent = `${bundle.title} (${bundle.bundleCode})`;
-          bundleSelect.appendChild(option);
-        });
-
-        // Add event listener for bundle selection change
-        bundleSelect.addEventListener('change', function() {
-          const orderField = document.getElementById('courseOrder');
-          const orderLabel = orderField.closest('.admin-form-group');
-          
-          if (this.value) {
-            // Bundle selected - show order field
-            orderLabel.style.display = 'block';
-            // Fetch current max order for this bundle
-            fetchCurrentBundleOrder(this.value);
-          } else {
-            // No bundle selected - hide order field
-            orderLabel.style.display = 'none';
-          }
+          option.value = teacher._id;
+          option.textContent = `${teacher.firstName} ${teacher.lastName} (${teacher.teacherCode || 'No Code'})`;
+          teacherSelect.appendChild(option);
         });
       })
       .catch(error => {
-        console.error('Error loading bundles:', error);
-        const bundleSelect = document.getElementById('courseBundle');
-        bundleSelect.innerHTML = '<option value="">Error loading bundles</option>';
+        console.error('Error loading teachers:', error);
+        const teacherSelect = document.getElementById('courseTeacher');
+        teacherSelect.innerHTML = '<option value="">Error loading teachers</option>';
       });
   }
 
-  // Fetch current max order for selected bundle to show hint
-  function fetchCurrentBundleOrder(bundleId) {
-    // This is optional - just a nice-to-have feature
-    // The order will be auto-assigned on server side if not provided
+  // Load exam periods
+  function loadExamPeriods() {
+    fetch('/admin/api/exam-periods')
+      .then(response => response.json())
+      .then(periods => {
+        // Filter only active periods for the dropdown
+        const activePeriods = periods.filter(p => p.isActive);
+        
+        const periodSelect = document.getElementById('courseExamPeriod');
+        periodSelect.innerHTML = '<option value="">No Exam Period</option>';
+
+        activePeriods.forEach(period => {
+          const option = document.createElement('option');
+          option.value = period._id;
+          option.textContent = `${period.name}`;
+          periodSelect.appendChild(option);
+        });
+
+        // Update the periods list in the modal with ALL periods (for management)
+        updateExamPeriodsList(periods);
+      })
+      .catch(error => {
+        console.error('Error loading exam periods:', error);
+        const periodSelect = document.getElementById('courseExamPeriod');
+        periodSelect.innerHTML = '<option value="">Error loading periods</option>';
+      });
+  }
+
+  // Update exam periods list in modal
+  function updateExamPeriodsList(periods) {
+    const listContainer = document.getElementById('examPeriodsList');
+    
+    if (!periods || periods.length === 0) {
+      listContainer.innerHTML = `
+        <div class="text-center py-4 text-muted">
+          <i class="fas fa-calendar-times fa-3x mb-3"></i>
+          <p>No exam periods created yet</p>
+        </div>
+      `;
+      return;
+    }
+
+    const now = new Date();
+    listContainer.innerHTML = periods.map(period => {
+      const startDate = new Date(period.startDate);
+      const endDate = new Date(period.endDate);
+      const isUpcoming = startDate > now;
+      const isPast = endDate < now;
+      const isCurrent = startDate <= now && endDate >= now;
+      
+      let statusBadge = '';
+      if (period.isCurrent) {
+        statusBadge = '<span class="badge bg-success ms-2"><i class="fas fa-star me-1"></i>Current</span>';
+      } else if (isUpcoming) {
+        statusBadge = '<span class="badge bg-info ms-2"><i class="fas fa-clock me-1"></i>Soon</span>';
+      } else if (isPast) {
+        statusBadge = '<span class="badge bg-secondary ms-2"><i class="fas fa-history me-1"></i>Past</span>';
+      }
+      
+      const activeStatus = period.isActive 
+        ? '<span class="badge bg-success ms-2"><i class="fas fa-check-circle me-1"></i>Active</span>' 
+        : '<span class="badge bg-danger ms-2"><i class="fas fa-times-circle me-1"></i>Inactive</span>';
+      
+      return `
+        <div class="exam-period-item ${!period.isActive ? 'opacity-50' : ''}" data-period-id="${period._id}">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <h6 class="mb-1">
+                <i class="fas fa-calendar-alt me-2" style="color: #3a92bd"></i>
+                ${period.name}
+                ${statusBadge}
+                ${activeStatus}
+              </h6>
+              <small class="text-muted d-block mb-1">
+                <i class="fas fa-calendar me-1"></i>
+                ${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </small>
+              ${period.coursesCount > 0 ? `
+                <small class="text-muted d-block">
+                  <i class="fas fa-book me-1"></i>${period.coursesCount} courses assigned
+                </small>
+              ` : ''}
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-sm btn-outline-primary" onclick="editExamPeriod('${period._id}')" title="Edit" ${!period.isActive ? 'disabled' : ''}>
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm ${period.isCurrent ? 'btn-warning' : 'btn-outline-warning'}" onclick="togglePeriodCurrent('${period._id}', ${!period.isCurrent})" title="${period.isCurrent ? 'Unset current' : 'Set as current'}" ${!period.isActive ? 'disabled' : ''}>
+                <i class="fas fa-star"></i>
+              </button>
+              <button class="btn btn-sm ${period.isActive ? 'btn-outline-secondary' : 'btn-outline-success'}" onclick="togglePeriodActive('${period._id}', ${!period.isActive})" title="${period.isActive ? 'Deactivate' : 'Activate'}">
+                <i class="fas fa-${period.isActive ? 'toggle-on' : 'toggle-off'}"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger" onclick="deleteExamPeriod('${period._id}')" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Setup exam period form submission
+  function setupExamPeriodForm() {
+    const form = document.getElementById('addExamPeriodForm');
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const formData = {
+        name: document.getElementById('periodName').value,
+        displayName: document.getElementById('periodDisplayName').value,
+        year: parseInt(document.getElementById('periodYear').value),
+        months: document.getElementById('periodDisplayName').value.split('/'),
+        startDate: document.getElementById('periodStartDate').value,
+        endDate: document.getElementById('periodEndDate').value,
+      };
+
+      const isEditing = form.dataset.editingPeriodId;
+      const url = isEditing 
+        ? `/admin/api/exam-periods/${form.dataset.editingPeriodId}` 
+        : '/admin/api/exam-periods';
+      const method = isEditing ? 'PUT' : 'POST';
+
+      try {
+        const response = await fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          showToast(`Exam period ${isEditing ? 'updated' : 'created'} successfully!`, 'success');
+          form.reset();
+          if (isEditing) {
+            cancelEditPeriod();
+          }
+          loadExamPeriods(); // Reload the list
+        } else {
+          showToast(result.message || `Failed to ${isEditing ? 'update' : 'create'} exam period`, 'error');
+        }
+      } catch (error) {
+        console.error(`Error ${isEditing ? 'updating' : 'creating'} exam period:`, error);
+        showToast(`Error ${isEditing ? 'updating' : 'creating'} exam period`, 'error');
+      }
+    });
+  }
+
+  // Edit exam period
+  function editExamPeriod(periodId) {
+    // Find the period in the current list
+    const periodItem = document.querySelector(`[data-period-id="${periodId}"]`);
+    if (!periodItem) return;
+
+    // Get period data from the API
+    fetch(`/admin/api/exam-periods`)
+      .then(res => res.json())
+      .then(periods => {
+        const period = periods.find(p => p._id === periodId);
+        if (!period) return;
+
+        // Populate form with period data
+        document.getElementById('periodName').value = period.name;
+        document.getElementById('periodDisplayName').value = period.displayName;
+        document.getElementById('periodYear').value = period.year;
+        document.getElementById('periodStartDate').value = period.startDate.split('T')[0];
+        document.getElementById('periodEndDate').value = period.endDate.split('T')[0];
+
+        // Change form submit to update mode
+        const form = document.getElementById('addExamPeriodForm');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class=\"fas fa-save me-2\"></i>Update Period';
+        
+        // Store period ID in form
+        form.dataset.editingPeriodId = periodId;
+        
+        // Change form title
+        document.getElementById('examPeriodModalLabel').innerHTML = '<i class=\"fas fa-edit me-2\"></i>Edit Exam Period';
+        
+        // Add cancel edit button if not exists
+        if (!form.querySelector('.cancel-edit-btn')) {
+          const cancelBtn = document.createElement('button');
+          cancelBtn.type = 'button';
+          cancelBtn.className = 'btn btn-secondary cancel-edit-btn ms-2';
+          cancelBtn.innerHTML = '<i class=\"fas fa-times me-2\"></i>Cancel';
+          cancelBtn.onclick = cancelEditPeriod;
+          submitBtn.parentElement.appendChild(cancelBtn);
+        }
+      })
+      .catch(error => {
+        console.error('Error loading period:', error);
+        showToast('Error loading period data', 'error');
+      });
+  }
+
+  // Cancel edit mode
+  function cancelEditPeriod() {
+    const form = document.getElementById('addExamPeriodForm');
+    form.reset();
+    delete form.dataset.editingPeriodId;
+    
+    const submitBtn = form.querySelector('button[type=\"submit\"]');
+    submitBtn.innerHTML = '<i class=\"fas fa-plus me-2\"></i>Add Period';
+    
+    document.getElementById('examPeriodModalLabel').innerHTML = '<i class=\"fas fa-calendar-alt me-2\"></i>Manage Exam Periods';
+    
+    const cancelBtn = form.querySelector('.cancel-edit-btn');
+    if (cancelBtn) cancelBtn.remove();
+  }
+
+  // Toggle period active/inactive
+  async function togglePeriodActive(periodId, isActive) {
+    try {
+      const response = await fetch(`/admin/api/exam-periods/${periodId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        showToast(`Exam period ${isActive ? 'activated' : 'deactivated'}!`, 'success');
+        loadExamPeriods();
+      } else {
+        showToast(result.message || 'Failed to update period', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating period:', error);
+      showToast('Error updating period', 'error');
+    }
+  }
+
+  // Toggle period as current
+  async function togglePeriodCurrent(periodId, isCurrent) {
+    try {
+      const response = await fetch(`/admin/api/exam-periods/${periodId}/toggle-current`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isCurrent })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        showToast('Exam period updated!', 'success');
+        loadExamPeriods();
+      } else {
+        showToast(result.message || 'Failed to update period', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating period:', error);
+      showToast('Error updating period', 'error');
+    }
+  }
+
+  // Delete exam period
+  async function deleteExamPeriod(periodId) {
+    if (!confirm('Are you sure you want to delete this exam period? Courses associated with it will not be deleted but will have no period assigned.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/admin/api/exam-periods/${periodId}`, {
+        method: 'DELETE'
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        showToast('Exam period deleted successfully!', 'success');
+        loadExamPeriods();
+      } else {
+        showToast(result.message || 'Failed to delete period', 'error');
+      }
+    } catch (error) {
+      console.error('Error deleting period:', error);
+      showToast('Error deleting period', 'error');
+    }
   }
 
   function setupFormValidation() {
@@ -1768,11 +2164,8 @@
       'description': 'Description',
       'shortDescription': 'Short Description',
       'bundleId': 'Bundle',
-      'category': 'Category',
-      'duration': 'Duration',
       'price': 'Price',
-      'discountPrice': 'Discount Percentage',
-      'order': 'Week Order'
+      'discountPrice': 'Discount Percentage'
     };
     return labels[fieldName] || fieldName;
   }
@@ -1800,31 +2193,12 @@
     });
   }
 
-  // Toggle bundle collapse/expand
-  function toggleAdminBundle(bundleId) {
-    const bundleContent = document.getElementById(bundleId);
-    const iconId = bundleId.replace('admin-bundle-', 'admin-icon-bundle-');
-    const icon = document.getElementById(iconId);
-    
-    if (bundleContent && bundleContent.style.display === 'none') {
-      bundleContent.style.display = 'grid';
-      if (icon) {
-        icon.style.transform = 'rotate(0deg)';
-      }
-    } else if (bundleContent) {
-      bundleContent.style.display = 'none';
-      if (icon) {
-        icon.style.transform = 'rotate(-90deg)';
-      }
-    }
-  }
-
   // Toggle checkbox icon visibility
   function toggleCheckboxIcon(checkbox) {
     const icon = checkbox.nextElementSibling;
     if (checkbox.checked) {
       if (icon) icon.style.opacity = '1';
-      checkbox.closest('.custom-checkbox-label').style.background = 'linear-gradient(135deg, #dc2626, #b91c1c)';
+      checkbox.closest('.custom-checkbox-label').style.background = 'linear-gradient(135deg, #3a92bd, #0c5374)';
       checkbox.closest('.custom-checkbox-label').style.borderColor = '#dc2626';
       checkbox.closest('.custom-checkbox-label').style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.3)';
     } else {

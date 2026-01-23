@@ -16,7 +16,7 @@
     align-items: center;
     margin-bottom: 2rem;
     padding: 1.5rem;
-    background: linear-gradient(135deg, #3a92bd, #dc2626);
+    background: #3a92bd;
     border-radius: 15px;
     box-shadow: 0 8px 25px rgba(58, 146, 189, 0.15);
     color: white;
@@ -36,7 +36,7 @@
 }
 
 .create-promo-btn {
-    background: linear-gradient(135deg, #3a92bd 0%, #dc2626 100%);
+    background: #3a92bd;
     border: 2px solid #3a92bd;
     color: white;
     padding: 1rem 2rem;
@@ -62,7 +62,7 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    background: rgba(255, 255, 255, 0.2);
     transition: left 0.5s;
 }
 
@@ -71,8 +71,8 @@
 }
 
 .create-promo-btn:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    border-color: #dc2626;
+    background: #0c5374;
+    border-color: #3a92bd;
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(58, 146, 189, 0.4);
     color: white;
@@ -97,7 +97,7 @@
 }
 
 .promo-stat-card {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    background: #ffffff;
     padding: 2rem;
     border-radius: 20px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
@@ -114,9 +114,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #3a92bd, #dc2626, #3a92bd);
-    background-size: 200% 100%;
-    animation: shimmer 3s ease-in-out infinite;
+    background: #3a92bd;
 }
 
 @keyframes shimmer {
@@ -163,19 +161,19 @@
 }
 
 .promo-stat-icon.active {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: #10b981;
 }
 
 .promo-stat-icon.expired {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
+    background: #3a92bd;
 }
 
 .promo-stat-icon.used {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    background: #3b82f6;
 }
 
 .promo-stat-icon.total {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    background: #8b5cf6;
 }
 
 .promo-stat-title {
@@ -195,10 +193,6 @@
     margin: 0;
     text-align: center;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    background: linear-gradient(135deg, #1f2937, #374151);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 /* Create Promo Code Modal */
@@ -242,7 +236,7 @@
 }
 
 .create-promo-modal-header {
-    background: linear-gradient(135deg, #3a92bd, #dc2626);
+    background: #3a92bd;
     color: white;
     padding: 1.5rem;
     border-radius: 20px 20px 0 0;
@@ -284,7 +278,7 @@
 
 /* Modal Button Styling */
 .create-promo-modal .create-promo-btn {
-    background: linear-gradient(135deg, #3a92bd 0%, #dc2626 100%) !important;
+    background: #3a92bd !important;
     border: 2px solid #3a92bd !important;
     color: white !important;
     padding: 1rem 2rem !important;
@@ -306,8 +300,8 @@
 }
 
 .create-promo-modal .create-promo-btn:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
-    border-color: #dc2626 !important;
+    background: #0c5374 !important;
+    border-color: #3a92bd !important;
     transform: translateY(-3px) !important;
     box-shadow: 0 8px 25px rgba(58, 146, 189, 0.4) !important;
     color: white !important;
@@ -340,7 +334,7 @@
 
 /* Additional button visibility fixes */
 button[type="submit"].create-promo-btn {
-    background: linear-gradient(135deg, #3a92bd 0%, #dc2626 100%) !important;
+    background: #3a92bd !important;
     border: 2px solid #3a92bd !important;
     color: white !important;
     padding: 1rem 2rem !important;
@@ -364,8 +358,8 @@ button[type="submit"].create-promo-btn {
 }
 
 button[type="submit"].create-promo-btn:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
-    border-color: #dc2626 !important;
+    background: #0c5374 !important;
+    border-color: #3a92bd !important;
     transform: translateY(-3px) !important;
     box-shadow: 0 8px 25px rgba(58, 146, 189, 0.4) !important;
     color: white !important;
@@ -474,7 +468,7 @@ button[type="submit"].create-promo-btn:hover {
 
 /* Promo Codes Table */
 .promo-codes-table-container {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    background: #ffffff;
     border-radius: 20px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
     border: 1px solid #e2e8f0;
@@ -489,13 +483,11 @@ button[type="submit"].create-promo-btn:hover {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #3a92bd, #dc2626, #3a92bd);
-    background-size: 200% 100%;
-    animation: shimmer 3s ease-in-out infinite;
+    background: #3a92bd;
 }
 
 .promo-codes-table-header {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background: #f8fafc;
     padding: 2rem;
     border-bottom: 2px solid #e2e8f0;
     display: flex;
@@ -572,7 +564,7 @@ button[type="submit"].create-promo-btn:hover {
 
 /* Promo Code Badge */
 .promo-code-badge {
-    background: linear-gradient(135deg, #3a92bd, #dc2626);
+    background: #3a92bd;
     color: white;
     padding: 0.5rem 1rem;
     border-radius: 8px;
@@ -684,7 +676,7 @@ button[type="submit"].create-promo-btn:hover {
 
 .usage-progress-bar {
     height: 100%;
-    background: linear-gradient(135deg, #3a92bd, #dc2626);
+    background: #3a92bd;
     transition: width 0.3s ease;
 }
 
@@ -776,7 +768,7 @@ button[type="submit"].create-promo-btn:hover {
 }
 
 .edit-promo-modal-header {
-    background: linear-gradient(135deg, #3a92bd, #dc2626);
+    background: #3a92bd;
     color: white;
     padding: 1.5rem;
     border-radius: 20px 20px 0 0;
@@ -864,7 +856,7 @@ button[type="submit"].create-promo-btn:hover {
 }
 
 .status-toggle input:checked+.status-toggle-slider {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: #10b981;
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
 }
 
@@ -921,7 +913,7 @@ button[type="submit"].create-promo-btn:hover {
 }
 
 .usage-history-modal-header {
-    background: linear-gradient(135deg, #3a92bd, #dc2626);
+    background: #3a92bd;
     color: white;
     padding: 1.5rem;
     display: flex;
@@ -983,7 +975,7 @@ button[type="submit"].create-promo-btn:hover {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #3a92bd, #dc2626);
+    background: #3a92bd;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1030,7 +1022,7 @@ button[type="submit"].create-promo-btn:hover {
     text-align: center;
     padding: 4rem 2rem;
     color: #6b7280;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background: #f8fafc;
     border: 2px dashed #cbd5e1;
     border-radius: 20px;
     margin: 2rem 0;
@@ -1105,7 +1097,7 @@ button[type="submit"].create-promo-btn:hover {
 }
 
 .empty-state .create-promo-btn {
-    background: linear-gradient(135deg, #3a92bd 0%, #dc2626 100%);
+    background: #3a92bd;
     border: none;
     color: white;
     padding: 1rem 2rem;
@@ -1124,7 +1116,7 @@ button[type="submit"].create-promo-btn:hover {
 }
 
 .empty-state .create-promo-btn:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    background: #0c5374;
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(58, 146, 189, 0.4);
     color: white;

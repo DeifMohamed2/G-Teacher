@@ -8,7 +8,7 @@
    ======================================== */
 
 .orders-kpi .card {
-  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  background: #ffffff;
   border: 2px solid #e2e8f0;
   border-radius: 20px;
   overflow: hidden;
@@ -24,13 +24,13 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #3a92bd, #dc2626, #ef4444);
+  background: #3a92bd;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 .dark-theme .orders-kpi .card {
-  background: linear-gradient(135deg, var(--admin-card-dark), #1e293b);
+  background: var(--admin-card-dark);
   border-color: var(--admin-border-dark);
 }
 
@@ -98,7 +98,7 @@
 }
 
 .orders-table .card-header {
-  background: linear-gradient(135deg, #3a92bd, #dc2626, #ef4444, #f97316);
+  background: #3a92bd;
   border-bottom: none;
   padding: 24px 28px;
   box-shadow: 0 8px 24px rgba(58, 146, 189, 0.3);
@@ -150,7 +150,7 @@
 }
 
 .orders-table .table thead th {
-  background: linear-gradient(135deg, #3a92bd, #dc2626, #ef4444);
+  background: #3a92bd;
   color: #ffffff;
   padding: 20px 24px;
   text-align: left;
@@ -184,7 +184,7 @@
 }
 
 .orders-table .table tbody tr:hover {
-  background: linear-gradient(135deg, rgba(58, 146, 189, 0.05), rgba(220, 38, 38, 0.03));
+  background: rgba(58, 146, 189, 0.05);
   transform: scale(1.01);
   box-shadow: 0 4px 12px rgba(58, 146, 189, 0.1);
 }
@@ -317,42 +317,42 @@
 }
 
 .status-badge.status-pending {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.1));
+  background: rgba(245, 158, 11, 0.15);
   color: #d97706;
   border-color: rgba(245, 158, 11, 0.3);
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
 }
 
 .status-badge.status-completed {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.1));
+  background: rgba(16, 185, 129, 0.15);
   color: #059669;
   border-color: rgba(16, 185, 129, 0.3);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
 }
 
 .status-badge.status-processing {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1));
+  background: rgba(59, 130, 246, 0.15);
   color: #2563eb;
   border-color: rgba(59, 130, 246, 0.3);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 .status-badge.status-cancelled {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.1));
+  background: rgba(239, 68, 68, 0.15);
   color: #dc2626;
   border-color: rgba(239, 68, 68, 0.3);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 
 .status-badge.status-refunded {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(147, 51, 234, 0.1));
+  background: rgba(168, 85, 247, 0.15);
   color: #9333ea;
   border-color: rgba(168, 85, 247, 0.3);
   box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
 }
 
 .status-badge.status-failed {
-  background: linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(185, 28, 28, 0.1));
+  background: rgba(220, 38, 38, 0.15);
   color: #b91c1c;
   border-color: rgba(220, 38, 38, 0.3);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
@@ -396,7 +396,7 @@
 }
 
 .orders-filter-card .card-header {
-  background: linear-gradient(135deg, #3a92bd, #dc2626, #ef4444);
+  background: #3a92bd;
   border-bottom: none;
   padding: 20px 24px;
   box-shadow: 0 4px 12px rgba(58, 146, 189, 0.2);
@@ -455,7 +455,7 @@
 }
 
 .orders-filter-card .input-group-text {
-  background: linear-gradient(135deg, #3a92bd, #dc2626);
+  background: #3a92bd;
   border: 2px solid #3a92bd;
   color: #ffffff;
   border-radius: 12px 0 0 12px;
@@ -471,14 +471,14 @@
 }
 
 .orders-filter-card .btn-primary {
-  background: linear-gradient(135deg, #3a92bd, #dc2626);
+  background: #3a92bd;
   border-color: #3a92bd;
   box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .orders-filter-card .btn-primary:hover {
-  background: linear-gradient(135deg, #dc2626, #ef4444);
-  border-color: #dc2626;
+  background: #0c5374;
+  border-color: #3a92bd;
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(58, 146, 189, 0.4);
 }
@@ -512,7 +512,7 @@
 
 /* Order Header */
 .order-details-header {
-  background: linear-gradient(135deg, #3a92bd, #dc2626, #ef4444, #f97316);
+  background: #3a92bd;
   color: #ffffff;
   padding: 40px;
   border-radius: 24px;
@@ -546,10 +546,6 @@
   margin: 0;
   color: #ffffff;
   text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
-  background: linear-gradient(45deg, #ffffff, #f8f9fa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
@@ -587,7 +583,7 @@
   font-weight: 900;
   color: #ffffff;
   text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+  background: rgba(255, 255, 255, 0.2);
   padding: 10px 20px;
   border-radius: 25px;
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -631,7 +627,7 @@
 }
 
 .order-items-table thead th {
-  background: linear-gradient(135deg, #3a92bd, #dc2626, #ef4444);
+  background: #3a92bd;
   color: #ffffff;
   padding: 16px 20px;
   text-align: left;
@@ -698,21 +694,21 @@
 }
 
 .product-type.course {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1));
+  background: rgba(59, 130, 246, 0.15);
   color: #2563eb;
   border: 2px solid rgba(59, 130, 246, 0.3);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 .product-type.bundle {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.1));
+  background: rgba(16, 185, 129, 0.15);
   color: #059669;
   border: 2px solid rgba(16, 185, 129, 0.3);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
 }
 
 .product-type.quiz {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.1));
+  background: rgba(245, 158, 11, 0.15);
   color: #d97706;
   border: 2px solid rgba(245, 158, 11, 0.3);
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
@@ -774,7 +770,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3a92bd, #dc2626, #ef4444);
+  background: #3a92bd;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -850,7 +846,7 @@
   width: 50px;
   height: 50px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8, #1e40af);
+  background: #3b82f6;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -867,7 +863,7 @@
 }
 
 .badge-method {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.1));
+  background: rgba(59, 130, 246, 0.15);
   color: #2563eb;
   border: 2px solid rgba(59, 130, 246, 0.3);
   padding: 6px 14px;
@@ -913,7 +909,7 @@
 /* Refund Information */
 .refund-alert {
   border: 2px solid #ef4444;
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(220, 38, 38, 0.05));
+  background: rgba(239, 68, 68, 0.05);
 }
 
 .refund-details .detail-value.text-danger {
@@ -944,7 +940,7 @@
 }
 
 .order-details-header {
-  background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+  background: #3a92bd;
   color: #ffffff;
   padding: 32px;
   border-radius: 20px;
@@ -975,10 +971,7 @@
   font-weight: 900;
   margin: 0 0 12px 0;
   text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  background: linear-gradient(45deg, #ffffff, #f0f0f0);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ffffff;
   letter-spacing: -0.5px;
 }
 
@@ -1070,15 +1063,15 @@
 }
 
 .summary-icon.status {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: #10b981;
 }
 
 .summary-icon.payment {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: #3b82f6;
 }
 
 .summary-icon.customer {
-  background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+  background: #3a92bd;
 }
 
 .order-summary-card .text-muted {
@@ -1127,7 +1120,7 @@
 }
 
 .order-items-table th {
-  background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+  background: #3a92bd;
   color: #ffffff;
   padding: 16px 20px;
   text-align: left;
@@ -1291,7 +1284,7 @@
 }
 
 .customer-card .card-header {
-  background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+  background: #3a92bd;
   border-bottom: none;
   padding: 20px 24px;
 }
@@ -1358,7 +1351,7 @@
 
 /* Refund Alert */
 .refund-alert {
-  background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(239, 68, 68, 0.05));
+  background: rgba(220, 38, 38, 0.1);
   border: 2px solid rgba(220, 38, 38, 0.2);
   border-radius: 16px;
   overflow: hidden;
@@ -1451,15 +1444,15 @@
 }
 
 .order-pagination .btn.btn-primary {
-  background: linear-gradient(135deg, #3a92bd, #dc2626);
+  background: #3a92bd;
   border-color: #3a92bd;
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .order-pagination .btn.btn-primary:hover {
-  background: linear-gradient(135deg, #dc2626, #ef4444);
-  border-color: #dc2626;
+  background: #0c5374;
+  border-color: #3a92bd;
   color: #ffffff;
   box-shadow: 0 6px 20px rgba(58, 146, 189, 0.4);
 }
@@ -1499,7 +1492,7 @@
 }
 
 .export-options .card-header {
-  background: linear-gradient(135deg, #3a92bd, #dc2626, #ef4444);
+  background: #3a92bd;
   border-bottom: none;
   padding: 20px 24px;
   box-shadow: 0 4px 12px rgba(58, 146, 189, 0.2);
@@ -2014,7 +2007,7 @@
 }
 
 .order-items-table th {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: #f59e0b;
   color: #ffffff;
   padding: 16px 20px;
   text-align: left;
@@ -2056,7 +2049,7 @@
 .order-item-image {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: #f59e0b;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -2197,7 +2190,7 @@
 .payment-info-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: #f59e0b;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -2260,7 +2253,7 @@
 }
 
 .shipping-method {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: #f59e0b;
   color: #ffffff;
   padding: 8px 16px;
   border-radius: 20px;
@@ -2289,7 +2282,7 @@
   top: 0;
   bottom: 0;
   width: 2px;
-  background: linear-gradient(180deg, #f59e0b, #d97706);
+  background: #f59e0b;
 }
 
 .order-timeline-item {
@@ -2542,13 +2535,13 @@
 .orders-empty-state {
   text-align: center;
   padding: 60px 20px;
-  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  background: #f8fafc;
   border-radius: 20px;
   border: 2px dashed #e2e8f0;
 }
 
 .dark-theme .orders-empty-state {
-  background: linear-gradient(135deg, var(--admin-card-dark), #1e293b);
+  background: var(--admin-card-dark);
   border-color: var(--admin-border-dark);
 }
 
@@ -2586,7 +2579,7 @@
    ======================================== */
 
 .order-filters-section {
-  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  background: #f8fafc;
   border-radius: 16px;
   padding: 24px;
   border: 2px solid #e2e8f0;
@@ -2594,7 +2587,7 @@
 }
 
 .dark-theme .order-filters-section {
-  background: linear-gradient(135deg, var(--admin-card-dark), #1e293b);
+  background: var(--admin-card-dark);
   border-color: var(--admin-border-dark);
 }
 

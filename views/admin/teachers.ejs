@@ -1,0 +1,1078 @@
+<%- include('partials/admin-header', { title: 'Teachers Management | G-Teacher Admin', user, theme, currentPage: 'teachers', pageCSS: 'teachers' }) %>
+
+<style>
+  /* CSS Variables - Matching Dashboard Exactly */
+  /* Dashboard uses: #3a92bd (teal blue) and #0c5374 (dark teal) */
+  
+  .admin-main-content {
+    margin-left: 280px;
+    min-height: 100vh;
+    background: var(--admin-bg-light);
+    transition: margin-left 0.3s ease;
+  }
+
+  @media (max-width: 1024px) {
+    .admin-main-content {
+      margin-left: 0;
+    }
+  }
+</style>
+
+<!-- Admin Layout -->
+<div class="admin-layout">
+
+  <!-- Sidebar -->
+  <%- include('./partials/admin-sidebar', { currentPage: 'teachers' }) %>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+
+    <!-- Top Bar -->
+    <%- include('./partials/admin-topbar', { 
+        breadcrumb: 'Teachers Management',
+        breadcrumbSubtitle: 'Manage and add new teachers to the platform',
+        showSearch: false
+    }) %>
+
+    <!-- Content Area -->
+    <div class="admin-content">
+      <div class="admin-teachers-container">
+
+        <!-- Page Header -->
+        <div class="teachers-page-header">
+          <div class="page-header-top">
+            <div class="page-title-section">
+              <div class="page-title-icon">
+                <i class="fas fa-chalkboard-teacher"></i>
+              </div>
+              <div>
+                <h1 class="page-title">Teachers Management</h1>
+                <p class="page-subtitle">Add, manage, and organize teachers on the platform</p>
+              </div>
+            </div>
+            <div class="page-actions">
+              <button type="button" class="btn-add-teacher" onclick="openAddTeacherModal()">
+                <i class="fas fa-plus"></i>
+                Add New Teacher
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="admin-analytics-grid">
+          <div class="admin-analytics-card">
+            <div class="analytics-header">
+              <div class="analytics-icon teachers">
+                <i class="fas fa-chalkboard-teacher"></i>
+              </div>
+              <div class="analytics-trend trend-up">
+                <i class="fas fa-users"></i>
+              </div>
+            </div>
+            <div class="analytics-number"><%= teachers ? teachers.length : 0 %></div>
+            <div class="analytics-label">Total Teachers</div>
+          </div>
+          <div class="admin-analytics-card">
+            <div class="analytics-header">
+              <div class="analytics-icon active">
+                <i class="fas fa-user-check"></i>
+              </div>
+              <div class="analytics-trend trend-up">
+                <i class="fas fa-check"></i>
+              </div>
+            </div>
+            <div class="analytics-number"><%= teachers ? teachers.filter(t => t.isActive).length : 0 %></div>
+            <div class="analytics-label">Active Teachers</div>
+          </div>
+          <div class="admin-analytics-card">
+            <div class="analytics-header">
+              <div class="analytics-icon inactive">
+                <i class="fas fa-user-times"></i>
+              </div>
+              <div class="analytics-trend trend-down">
+                <i class="fas fa-pause"></i>
+              </div>
+            </div>
+            <div class="analytics-number"><%= teachers ? teachers.filter(t => !t.isActive).length : 0 %></div>
+            <div class="analytics-label">Inactive Teachers</div>
+          </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 12px; margin-bottom: 24px;">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>Success!</strong>&nbsp;<%= success %>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <% } %>
+
+        <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 12px; margin-bottom: 24px;">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Error!</strong>&nbsp;<%= error %>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <% } %>
+
+        <!-- Filters Section -->
+        <div class="filters-section">
+          <div class="filters-header">
+            <h3 class="filters-title">
+              <i class="fas fa-filter"></i>
+              Filter Teachers
+            </h3>
+            <button type="button" class="filters-toggle" onclick="clearFilters()">
+              <i class="fas fa-times"></i> Clear Filters
+            </button>
+          </div>
+          <div class="filters-grid">
+            <div class="filter-group">
+              <label class="filter-label">Search</label>
+              <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchTeachers" class="filter-control search-input" placeholder="Name, email, or code..." onkeyup="filterTeachers()">
+              </div>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">Status</label>
+              <select id="statusFilter" class="filter-control" onchange="filterTeachers()">
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">Subject</label>
+              <select id="subjectFilter" class="filter-control" onchange="filterTeachers()">
+                <option value="all">All Subjects</option>
+                <optgroup label="Mathematics">
+                  <option value="Mathematics">Mathematics</option>
+                  <option value="Pure Mathematics">Pure Mathematics</option>
+                  <option value="Additional Mathematics">Additional Mathematics</option>
+                </optgroup>
+                <optgroup label="Sciences">
+                  <option value="Sciences">Sciences (General)</option>
+                  <option value="Physics">Physics</option>
+                  <option value="Chemistry">Chemistry</option>
+                  <option value="Biology">Biology</option>
+                </optgroup>
+                <optgroup label="Languages">
+                  <option value="English">English</option>
+                  <option value="Arabic">Arabic</option>
+                  <option value="French">French</option>
+                </optgroup>
+                <optgroup label="Humanities">
+                  <option value="History">History</option>
+                  <option value="Geography">Geography</option>
+                  <option value="Economics">Economics</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Teachers Table -->
+        <div class="teachers-table-container">
+          <div class="table-header">
+            <h2 class="table-title">All Teachers</h2>
+            <div class="table-actions">
+              <span class="results-count"><%= teachers ? teachers.length : 0 %> teachers found</span>
+            </div>
+          </div>
+
+          <div class="table-overflow">
+            <% if (teachers && teachers.length > 0) { %>
+            <table class="teachers-table" id="teachersTable">
+              <thead>
+                <tr>
+                  <th>Teacher</th>
+                  <th style="text-align: center;">Code</th>
+                  <th style="text-align: center;">Subject</th>
+                  <th style="text-align: center;">Contact</th>
+                  <th style="text-align: center;">Status</th>
+                  <th style="text-align: center;">Joined</th>
+                  <th style="text-align: center;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% teachers.forEach((teacher, index) => { %>
+                <tr data-name="<%= teacher.firstName %> <%= teacher.lastName %>" 
+                    data-email="<%= teacher.email %>" 
+                    data-code="<%= teacher.teacherCode %>"
+                    data-subject="<%= teacher.subject || '' %>"
+                    data-status="<%= teacher.isActive ? 'active' : 'inactive' %>">
+                  <td>
+                    <div class="teacher-profile">
+                      <% if (teacher.profilePicture && teacher.profilePicture.startsWith('data:image')) { %>
+                        <div class="teacher-avatar has-image">
+                          <img src="<%= teacher.profilePicture %>" alt="<%= teacher.firstName %>">
+                        </div>
+                      <% } else { %>
+                        <div class="teacher-avatar">
+                          <%= teacher.firstName ? teacher.firstName.charAt(0).toUpperCase() : 'T' %><%= teacher.lastName ? teacher.lastName.charAt(0).toUpperCase() : '' %>
+                        </div>
+                      <% } %>
+                      <div class="teacher-info">
+                        <h6 class="teacher-name"><%= teacher.firstName %> <%= teacher.lastName %></h6>
+                        <span class="teacher-email"><%= teacher.email %></span>
+                      </div>
+                    </div>
+                  </td>
+                  <td style="text-align: center;">
+                    <span class="code-badge">
+                      <i class="fas fa-id-card"></i>
+                      <%= teacher.teacherCode || 'N/A' %>
+                    </span>
+                  </td>
+                  <td style="text-align: center;">
+                    <% if (teacher.subject) { %>
+                      <span class="subject-badge"><%= teacher.subject %></span>
+                    <% } else { %>
+                      <span class="no-data">Not set</span>
+                    <% } %>
+                  </td>
+                  <td style="text-align: center;">
+                    <div class="contact-cell">
+                      <% if (teacher.phoneNumber) { %>
+                        <span class="phone-badge">
+                          <i class="fas fa-phone"></i>
+                          <%= teacher.countryCode || '' %> <%= teacher.phoneNumber %>
+                        </span>
+                      <% } else { %>
+                        <span class="no-data">No phone</span>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td style="text-align: center;">
+                    <span class="status-badge <%= teacher.isActive ? 'status-active' : 'status-inactive' %>">
+                      <span class="status-icon"></span>
+                      <%= teacher.isActive ? 'Active' : 'Inactive' %>
+                    </span>
+                  </td>
+                  <td style="text-align: center;">
+                    <div class="date-cell">
+                      <span class="date-main"><%= teacher.createdAt ? new Date(teacher.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A' %></span>
+                      <span class="date-sub"><%= teacher.createdAt ? new Date(teacher.createdAt).getFullYear() : '' %></span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="teacher-actions">
+                      <button class="action-btn-sm view" onclick="viewTeacher('<%= teacher._id %>')" title="View Details">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button class="action-btn-sm edit" onclick="editTeacher('<%= teacher._id %>')" title="Edit Teacher">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button class="action-btn-sm toggle" onclick="toggleTeacherStatus('<%= teacher._id %>', <%= teacher.isActive %>)" title="<%= teacher.isActive ? 'Deactivate' : 'Activate' %>">
+                        <i class="fas fa-<%= teacher.isActive ? 'ban' : 'check' %>"></i>
+                      </button>
+                      <button class="action-btn-sm delete" onclick="confirmDeleteTeacher('<%= teacher._id %>', '<%= teacher.firstName %> <%= teacher.lastName %>')" title="Delete Teacher">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+            <% } else { %>
+            <div class="empty-state">
+              <div class="empty-icon">
+                <i class="fas fa-chalkboard-teacher"></i>
+              </div>
+              <h5>No Teachers Found</h5>
+              <p>Get started by adding your first teacher to the platform.</p>
+              <button type="button" class="btn-add-teacher" onclick="openAddTeacherModal()">
+                <i class="fas fa-plus"></i>
+                Add First Teacher
+              </button>
+            </div>
+            <% } %>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add/Edit Teacher Modal -->
+<div class="teacher-modal-overlay" id="teacherModal">
+  <div class="teacher-modal">
+    <div class="teacher-modal-header">
+      <h5>
+        <i class="fas fa-user-plus"></i>
+        <span id="modalTitle">Add New Teacher</span>
+      </h5>
+      <button class="teacher-modal-close" onclick="closeTeacherModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form id="teacherForm" method="POST" action="/admin/teachers">
+      <input type="hidden" name="teacherId" id="teacherId" value="">
+      <input type="hidden" name="croppedImage" id="croppedImageData" value="">
+      
+      <div class="teacher-modal-body">
+        <!-- Cover Photo Upload -->
+        <div class="profile-upload-section">
+          <div class="profile-preview-container">
+            <div class="profile-preview" id="profilePreview">
+              <i class="fas fa-image"></i>
+              <span class="upload-placeholder-text">Cover Photo</span>
+            </div>
+            <div class="profile-upload-overlay" onclick="document.getElementById('profilePictureInput').click()">
+              <i class="fas fa-camera"></i>
+              <span>Upload Cover Photo</span>
+            </div>
+          </div>
+          <input type="file" id="profilePictureInput" name="profilePicture" accept="image/*" style="display: none;" onchange="openCropperModal(this)">
+          <div class="profile-upload-actions">
+            <p class="profile-upload-hint">Click to upload cover photo (optional) - Will display on teacher cards</p>
+            <button type="button" class="btn-remove-photo" id="removePhotoBtn" onclick="removeProfilePicture()" style="display: none;">
+              <i class="fas fa-trash"></i> Remove Photo
+            </button>
+          </div>
+        </div>
+        
+        <!-- Basic Information -->
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fas fa-user"></i> First Name *
+              </label>
+              <input type="text" name="firstName" id="firstName" class="form-control" placeholder="Enter first name" required>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fas fa-user"></i> Last Name *
+              </label>
+              <input type="text" name="lastName" id="lastName" class="form-control" placeholder="Enter last name" required>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fas fa-envelope"></i> Email *
+              </label>
+              <input type="email" name="email" id="email" class="form-control" placeholder="Enter email address" required>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fas fa-phone"></i> Phone Number
+              </label>
+              <div class="phone-input-group">
+                <div class="country-code-selector">
+                  <select name="countryCode" id="countryCode" class="country-select">
+                    <option value="+20" selected>🇪🇬 +20</option>
+                    <option value="+966">🇸🇦 +966</option>
+                    <option value="+971">🇦🇪 +971</option>
+                    <option value="+965">🇰🇼 +965</option>
+                    <option value="+974">🇶🇦 +974</option>
+                    <option value="+973">🇧🇭 +973</option>
+                    <option value="+968">🇴🇲 +968</option>
+                    <option value="+962">🇯🇴 +962</option>
+                    <option value="+961">🇱🇧 +961</option>
+                    <option value="+963">🇸🇾 +963</option>
+                    <option value="+964">🇮🇶 +964</option>
+                    <option value="+967">🇾🇪 +967</option>
+                    <option value="+970">🇵🇸 +970</option>
+                    <option value="+212">🇲🇦 +212</option>
+                    <option value="+213">🇩🇿 +213</option>
+                    <option value="+216">🇹🇳 +216</option>
+                    <option value="+218">🇱🇾 +218</option>
+                    <option value="+249">🇸🇩 +249</option>
+                    <option value="+44">🇬🇧 +44</option>
+                    <option value="+49">🇩🇪 +49</option>
+                    <option value="+33">🇫🇷 +33</option>
+                    <option value="+39">🇮🇹 +39</option>
+                    <option value="+34">🇪🇸 +34</option>
+                    <option value="+31">🇳🇱 +31</option>
+                    <option value="+32">🇧🇪 +32</option>
+                    <option value="+41">🇨🇭 +41</option>
+                    <option value="+43">🇦🇹 +43</option>
+                    <option value="+46">🇸🇪 +46</option>
+                    <option value="+47">🇳🇴 +47</option>
+                    <option value="+45">🇩🇰 +45</option>
+                    <option value="+358">🇫🇮 +358</option>
+                    <option value="+48">🇵🇱 +48</option>
+                    <option value="+30">🇬🇷 +30</option>
+                    <option value="+90">🇹🇷 +90</option>
+                    <option value="+7">🇷🇺 +7</option>
+                    <option value="+380">🇺🇦 +380</option>
+                    <option value="+351">🇵🇹 +351</option>
+                    <option value="+353">🇮🇪 +353</option>
+                    <option value="+1">🇺🇸 +1</option>
+                    <option value="+52">🇲🇽 +52</option>
+                    <option value="+55">🇧🇷 +55</option>
+                    <option value="+54">🇦🇷 +54</option>
+                    <option value="+57">🇨🇴 +57</option>
+                    <option value="+56">🇨🇱 +56</option>
+                    <option value="+51">🇵🇪 +51</option>
+                    <option value="+58">🇻🇪 +58</option>
+                    <option value="+91">🇮🇳 +91</option>
+                    <option value="+92">🇵🇰 +92</option>
+                    <option value="+880">🇧🇩 +880</option>
+                    <option value="+86">🇨🇳 +86</option>
+                    <option value="+81">🇯🇵 +81</option>
+                    <option value="+82">🇰🇷 +82</option>
+                    <option value="+60">🇲🇾 +60</option>
+                    <option value="+65">🇸🇬 +65</option>
+                    <option value="+66">🇹🇭 +66</option>
+                    <option value="+62">🇮🇩 +62</option>
+                    <option value="+63">🇵🇭 +63</option>
+                    <option value="+84">🇻🇳 +84</option>
+                    <option value="+61">🇦🇺 +61</option>
+                    <option value="+64">🇳🇿 +64</option>
+                    <option value="+234">🇳🇬 +234</option>
+                    <option value="+27">🇿🇦 +27</option>
+                    <option value="+254">🇰🇪 +254</option>
+                    <option value="+233">🇬🇭 +233</option>
+                    <option value="+255">🇹🇿 +255</option>
+                    <option value="+256">🇺🇬 +256</option>
+                    <option value="+251">🇪🇹 +251</option>
+                  </select>
+                </div>
+                <input type="tel" name="phoneNumber" id="phoneNumber" class="phone-input" placeholder="Phone number">
+              </div>
+            </div>
+          </div>
+          
+          <!-- Subject Selection -->
+          <div class="col-12">
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fas fa-book"></i> Subject *
+              </label>
+              <select name="subject" id="subject" class="form-control" required>
+                <option value="">Select a subject</option>
+                <optgroup label="Mathematics">
+                  <option value="Mathematics">Mathematics</option>
+                  <option value="Pure Mathematics">Pure Mathematics</option>
+                  <option value="Additional Mathematics">Additional Mathematics</option>
+                </optgroup>
+                <optgroup label="Sciences">
+                  <option value="Sciences">Sciences (General)</option>
+                  <option value="Physics">Physics</option>
+                  <option value="Chemistry">Chemistry</option>
+                  <option value="Biology">Biology</option>
+                  <option value="Combined Science">Combined Science</option>
+                </optgroup>
+                <optgroup label="Languages">
+                  <option value="Languages">Languages (General)</option>
+                  <option value="English">English</option>
+                  <option value="Arabic">Arabic</option>
+                  <option value="French">French</option>
+                  <option value="German">German</option>
+                  <option value="Spanish">Spanish</option>
+                </optgroup>
+                <optgroup label="Humanities">
+                  <option value="Humanities">Humanities (General)</option>
+                  <option value="History">History</option>
+                  <option value="Geography">Geography</option>
+                  <option value="Economics">Economics</option>
+                  <option value="Business Studies">Business Studies</option>
+                  <option value="Accounting">Accounting</option>
+                </optgroup>
+                <optgroup label="Other">
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="ICT">ICT</option>
+                  <option value="Art & Design">Art & Design</option>
+                  <option value="Music">Music</option>
+                  <option value="Physical Education">Physical Education</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          
+          <div class="col-12">
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fas fa-align-left"></i> Bio
+              </label>
+              <textarea name="bio" id="bio" class="form-control" rows="3" placeholder="Brief description about the teacher..." maxlength="1000"></textarea>
+              <p class="form-text">Maximum 1000 characters</p>
+            </div>
+          </div>
+          
+          <!-- Active Status -->
+          <div class="col-12">
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fas fa-toggle-on"></i> Status
+              </label>
+              <div class="status-switch-container">
+                <label class="status-switch">
+                  <input type="checkbox" name="isActive" id="isActive" checked>
+                  <span class="status-slider"></span>
+                </label>
+                <div class="status-switch-label">
+                  <strong id="statusText">Active</strong>
+                  <span id="statusDesc">Teacher can be assigned to courses</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="teacher-modal-footer">
+        <button type="button" class="btn-modal btn-modal-secondary" onclick="closeTeacherModal()">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="submit" class="btn-modal btn-modal-primary">
+          <i class="fas fa-save"></i>
+          <span id="submitBtnText">Create Teacher</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- View Teacher Modal -->
+<div class="teacher-modal-overlay" id="viewTeacherModal">
+  <div class="teacher-modal view-modal">
+    <div class="teacher-modal-header">
+      <h5>
+        <i class="fas fa-user"></i>
+        <span>Teacher Details</span>
+      </h5>
+      <button class="teacher-modal-close" onclick="closeViewModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="teacher-modal-body" id="viewTeacherContent">
+      <!-- Content will be loaded dynamically -->
+    </div>
+    <div class="teacher-modal-footer">
+      <button type="button" class="btn-modal btn-modal-secondary" onclick="closeViewModal()">
+        <i class="fas fa-times"></i> Close
+      </button>
+      <button type="button" class="btn-modal btn-modal-primary" id="viewModalEditBtn" onclick="editFromViewModal()">
+        <i class="fas fa-edit"></i> Edit Teacher
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="teacher-modal-overlay" id="deleteModal">
+  <div class="teacher-modal delete-modal">
+    <div class="teacher-modal-header delete-header">
+      <h5>
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>Confirm Deletion</span>
+      </h5>
+      <button class="teacher-modal-close" onclick="closeDeleteModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="teacher-modal-body text-center">
+      <div class="delete-icon-wrapper">
+        <i class="fas fa-user-times"></i>
+      </div>
+      <h5 class="delete-title">Delete Teacher?</h5>
+      <p class="delete-message">
+        Are you sure you want to delete <strong id="deleteTeacherName"></strong>? This action cannot be undone.
+      </p>
+      <input type="hidden" id="deleteTeacherId">
+    </div>
+    <div class="teacher-modal-footer delete-footer">
+      <button type="button" class="btn-modal btn-modal-secondary" onclick="closeDeleteModal()">
+        <i class="fas fa-times"></i> Cancel
+      </button>
+      <button type="button" class="btn-modal btn-modal-danger" onclick="deleteTeacher()">
+        <i class="fas fa-trash"></i> Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Status switch label update
+  document.getElementById('isActive').addEventListener('change', function() {
+    const statusText = document.getElementById('statusText');
+    const statusDesc = document.getElementById('statusDesc');
+    if (this.checked) {
+      statusText.textContent = 'Active';
+      statusDesc.textContent = 'Teacher can be assigned to courses';
+    } else {
+      statusText.textContent = 'Inactive';
+      statusDesc.textContent = 'Teacher cannot be assigned to new courses';
+    }
+  });
+  
+  // Modal Functions
+  function openAddTeacherModal() {
+    document.getElementById('modalTitle').textContent = 'Add New Teacher';
+    document.getElementById('submitBtnText').textContent = 'Create Teacher';
+    document.getElementById('teacherForm').reset();
+    document.getElementById('teacherId').value = '';
+    document.getElementById('teacherForm').action = '/admin/teachers';
+    document.getElementById('isActive').checked = true;
+    document.getElementById('statusText').textContent = 'Active';
+    document.getElementById('statusDesc').textContent = 'Teacher can be assigned to courses';
+    
+    // Reset profile picture
+    const profilePreview = document.getElementById('profilePreview');
+    profilePreview.innerHTML = '<i class="fas fa-user"></i>';
+    profilePreview.classList.remove('has-image');
+    document.getElementById('croppedImageData').value = '';
+    document.getElementById('profilePictureInput').value = '';
+    document.getElementById('removePhotoBtn').style.display = 'none';
+    
+    document.getElementById('teacherModal').classList.add('active');
+  }
+  
+  function closeTeacherModal() {
+    document.getElementById('teacherModal').classList.remove('active');
+  }
+  
+  function closeViewModal() {
+    document.getElementById('viewTeacherModal').classList.remove('active');
+  }
+  
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('active');
+  }
+  
+  // Edit Teacher
+  async function editTeacher(teacherId) {
+    try {
+      const response = await fetch(`/admin/teachers/${teacherId}/data`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const teacher = data.teacher;
+        document.getElementById('modalTitle').textContent = 'Edit Teacher';
+        document.getElementById('submitBtnText').textContent = 'Update Teacher';
+        document.getElementById('teacherId').value = teacher._id;
+        document.getElementById('teacherForm').action = `/admin/teachers/${teacher._id}`;
+        
+        // Fill form fields
+        document.getElementById('firstName').value = teacher.firstName || '';
+        document.getElementById('lastName').value = teacher.lastName || '';
+        document.getElementById('email').value = teacher.email || '';
+        document.getElementById('phoneNumber').value = teacher.phoneNumber || '';
+        document.getElementById('countryCode').value = teacher.countryCode || '+20';
+        document.getElementById('subject').value = teacher.subject || '';
+        document.getElementById('bio').value = teacher.bio || '';
+        document.getElementById('isActive').checked = teacher.isActive;
+        
+        // Populate profile picture if exists
+        const profilePreview = document.getElementById('profilePreview');
+        const removePhotoBtn = document.getElementById('removePhotoBtn');
+        if (teacher.profilePicture && teacher.profilePicture.startsWith('data:image')) {
+          profilePreview.innerHTML = `<img src="${teacher.profilePicture}" alt="Profile">`;
+          profilePreview.classList.add('has-image');
+          document.getElementById('croppedImageData').value = teacher.profilePicture;
+          removePhotoBtn.style.display = 'inline-flex';
+        } else {
+          profilePreview.innerHTML = '<i class="fas fa-image"></i><span class="upload-placeholder-text">Cover Photo</span>';
+          profilePreview.classList.remove('has-image');
+          document.getElementById('croppedImageData').value = '';
+          removePhotoBtn.style.display = 'none';
+        }
+        
+        // Update status label
+        const statusText = document.getElementById('statusText');
+        const statusDesc = document.getElementById('statusDesc');
+        if (teacher.isActive) {
+          statusText.textContent = 'Active';
+          statusDesc.textContent = 'Teacher can be assigned to courses';
+        } else {
+          statusText.textContent = 'Inactive';
+          statusDesc.textContent = 'Teacher cannot be assigned to new courses';
+        }
+        
+        document.getElementById('teacherModal').classList.add('active');
+      } else {
+        alert('Error loading teacher data: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error loading teacher data');
+    }
+  }
+  
+  // View Teacher
+  let currentViewingTeacherId = null;
+  
+  async function viewTeacher(teacherId) {
+    currentViewingTeacherId = teacherId;
+    try {
+      const response = await fetch(`/admin/teachers/${teacherId}/data`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const teacher = data.teacher;
+        const createdDate = teacher.createdAt ? new Date(teacher.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
+        
+        // Build cover photo HTML - show cover photo if exists
+        let coverHTML;
+        if (teacher.profilePicture && teacher.profilePicture.startsWith('data:image')) {
+          coverHTML = `<div class="view-teacher-cover has-image"><img src="${teacher.profilePicture}" alt="${teacher.firstName}"></div>`;
+        } else {
+          coverHTML = `<div class="view-teacher-cover"><div class="view-teacher-initials">${(teacher.firstName ? teacher.firstName.charAt(0).toUpperCase() : 'T') + (teacher.lastName ? teacher.lastName.charAt(0).toUpperCase() : '')}</div></div>`;
+        }
+        
+        const html = `
+          ${coverHTML}
+          <div class="view-teacher-header">
+            <h4 class="view-teacher-name">${teacher.firstName} ${teacher.lastName}</h4>
+            <span class="teacher-code-large">${teacher.teacherCode || 'N/A'}</span>
+          </div>
+          
+          <div class="view-info-grid">
+            <div class="view-info-item">
+              <label><i class="fas fa-envelope"></i> Email</label>
+              <p>${teacher.email}</p>
+            </div>
+            <div class="view-info-item">
+              <label><i class="fas fa-phone"></i> Phone</label>
+              <p>${teacher.phoneNumber ? (teacher.countryCode || '') + ' ' + teacher.phoneNumber : 'Not set'}</p>
+            </div>
+            <div class="view-info-item">
+              <label><i class="fas fa-book"></i> Subject</label>
+              <p>${teacher.subject || 'Not set'}</p>
+            </div>
+            <div class="view-info-item">
+              <label><i class="fas fa-toggle-on"></i> Status</label>
+              <p><span class="status-badge ${teacher.isActive ? 'status-active' : 'status-inactive'}">
+                <span class="status-icon"></span>
+                ${teacher.isActive ? 'Active' : 'Inactive'}
+              </span></p>
+            </div>
+            <div class="view-info-item">
+              <label><i class="fas fa-calendar"></i> Joined</label>
+              <p>${createdDate}</p>
+            </div>
+            <div class="view-info-item full-width">
+              <label><i class="fas fa-align-left"></i> Bio</label>
+              <p>${teacher.bio || 'No bio provided'}</p>
+            </div>
+          </div>
+        `;
+        document.getElementById('viewTeacherContent').innerHTML = html;
+        document.getElementById('viewTeacherModal').classList.add('active');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error loading teacher details');
+    }
+  }
+  
+  // Edit from View Modal
+  function editFromViewModal() {
+    closeViewModal();
+    if (currentViewingTeacherId) {
+      editTeacher(currentViewingTeacherId);
+    }
+  }
+  
+  // Toggle Teacher Status
+  async function toggleTeacherStatus(teacherId, currentStatus) {
+    const action = currentStatus ? 'deactivate' : 'activate';
+    if (!confirm(`Are you sure you want to ${action} this teacher?`)) return;
+    
+    try {
+      const response = await fetch(`/admin/teachers/${teacherId}/toggle-status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        window.location.reload();
+      } else {
+        alert('Error: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error updating teacher status');
+    }
+  }
+  
+  // Delete Teacher
+  function confirmDeleteTeacher(teacherId, teacherName) {
+    document.getElementById('deleteTeacherId').value = teacherId;
+    document.getElementById('deleteTeacherName').textContent = teacherName;
+    document.getElementById('deleteModal').classList.add('active');
+  }
+  
+  async function deleteTeacher() {
+    const teacherId = document.getElementById('deleteTeacherId').value;
+    
+    try {
+      const response = await fetch(`/admin/teachers/${teacherId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        window.location.reload();
+      } else {
+        alert('Error: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error deleting teacher');
+    }
+  }
+  
+  // Search and Filter
+  function filterTeachers() {
+    const searchValue = document.getElementById('searchTeachers').value.toLowerCase();
+    const statusValue = document.getElementById('statusFilter').value;
+    const subjectValue = document.getElementById('subjectFilter').value;
+    const rows = document.querySelectorAll('#teachersTable tbody tr');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+      const name = row.getAttribute('data-name').toLowerCase();
+      const email = row.getAttribute('data-email').toLowerCase();
+      const code = row.getAttribute('data-code').toLowerCase();
+      const subject = row.getAttribute('data-subject');
+      const status = row.getAttribute('data-status');
+      
+      const matchesSearch = name.includes(searchValue) || email.includes(searchValue) || code.includes(searchValue);
+      const matchesStatus = statusValue === 'all' || status === statusValue;
+      const matchesSubject = subjectValue === 'all' || subject === subjectValue;
+      
+      if (matchesSearch && matchesStatus && matchesSubject) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+    
+    // Update results count
+    const resultsCount = document.querySelector('.results-count');
+    if (resultsCount) {
+      resultsCount.textContent = `${visibleCount} teachers found`;
+    }
+  }
+  
+  // Clear Filters
+  function clearFilters() {
+    document.getElementById('searchTeachers').value = '';
+    document.getElementById('statusFilter').value = 'all';
+    document.getElementById('subjectFilter').value = 'all';
+    filterTeachers();
+  }
+  
+  // Close modals on escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeTeacherModal();
+      closeViewModal();
+      closeDeleteModal();
+    }
+  });
+  
+  // Close modals on overlay click
+  document.querySelectorAll('.teacher-modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeTeacherModal();
+        closeViewModal();
+        closeDeleteModal();
+        closeCropperModal();
+      }
+    });
+  });
+  
+  // ========== CROPPER FUNCTIONALITY ==========
+  let cropper = null;
+  
+  function openCropperModal(input) {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file');
+        input.value = '';
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB');
+        input.value = '';
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const cropperImage = document.getElementById('cropperImage');
+        cropperImage.src = e.target.result;
+        
+        // Show cropper modal
+        document.getElementById('cropperModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Initialize Cropper after image loads
+        cropperImage.onload = function() {
+          if (cropper) {
+            cropper.destroy();
+          }
+          cropper = new Cropper(cropperImage, {
+            aspectRatio: 16 / 10,
+            viewMode: 1,
+            dragMode: 'move',
+            autoCropArea: 0.9,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+            minContainerWidth: 300,
+            minContainerHeight: 200
+          });
+        };
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+  
+  function closeCropperModal() {
+    document.getElementById('cropperModal').classList.remove('active');
+    document.body.style.overflow = '';
+    
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
+    
+    // Clear file input
+    document.getElementById('profilePictureInput').value = '';
+  }
+  
+  function rotateImage(degrees) {
+    if (cropper) {
+      cropper.rotate(degrees);
+    }
+  }
+  
+  function zoomImage(ratio) {
+    if (cropper) {
+      cropper.zoom(ratio);
+    }
+  }
+  
+  function resetCropper() {
+    if (cropper) {
+      cropper.reset();
+    }
+  }
+  
+  function applyCrop() {
+    if (cropper) {
+      // Get cropped canvas - 16:10 aspect ratio for cover photo
+      const canvas = cropper.getCroppedCanvas({
+        width: 480,
+        height: 300,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high'
+      });
+      
+      // Convert to base64
+      const croppedImageData = canvas.toDataURL('image/jpeg', 0.9);
+      
+      // Update preview
+      const profilePreview = document.getElementById('profilePreview');
+      profilePreview.innerHTML = `<img src="${croppedImageData}" alt="Profile">`;
+      profilePreview.classList.add('has-image');
+      
+      // Store cropped image data
+      document.getElementById('croppedImageData').value = croppedImageData;
+      
+      // Show remove button
+      document.getElementById('removePhotoBtn').style.display = 'inline-flex';
+      
+      // Close modal
+      closeCropperModal();
+    }
+  }
+  
+  function removeProfilePicture() {
+    const profilePreview = document.getElementById('profilePreview');
+    profilePreview.innerHTML = '<i class="fas fa-image"></i><span class="upload-placeholder-text">Cover Photo</span>';
+    profilePreview.classList.remove('has-image');
+    document.getElementById('croppedImageData').value = '';
+    document.getElementById('profilePictureInput').value = '';
+    document.getElementById('removePhotoBtn').style.display = 'none';
+  }
+</script>
+
+<!-- Image Cropper Modal - Separate from other modals -->
+<div class="cropper-modal-overlay" id="cropperModal">
+  <div class="cropper-modal-content">
+    <div class="cropper-modal-header">
+      <div class="cropper-modal-title">
+        <i class="fas fa-crop-alt"></i>
+        <span>Crop Cover Photo</span>
+      </div>
+      <button type="button" class="cropper-modal-close" onclick="closeCropperModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="cropper-modal-body">
+      <div class="cropper-image-container">
+        <img id="cropperImage" src="" alt="Crop Image">
+      </div>
+      <div class="cropper-toolbar">
+        <div class="cropper-toolbar-group">
+          <button type="button" class="cropper-tool-btn" onclick="rotateImage(-90)" title="Rotate Left">
+            <i class="fas fa-undo"></i>
+          </button>
+          <button type="button" class="cropper-tool-btn" onclick="rotateImage(90)" title="Rotate Right">
+            <i class="fas fa-redo"></i>
+          </button>
+        </div>
+        <div class="cropper-toolbar-group">
+          <button type="button" class="cropper-tool-btn" onclick="zoomImage(0.1)" title="Zoom In">
+            <i class="fas fa-search-plus"></i>
+          </button>
+          <button type="button" class="cropper-tool-btn" onclick="zoomImage(-0.1)" title="Zoom Out">
+            <i class="fas fa-search-minus"></i>
+          </button>
+        </div>
+        <div class="cropper-toolbar-group">
+          <button type="button" class="cropper-tool-btn" onclick="resetCropper()" title="Reset">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="cropper-modal-footer">
+      <button type="button" class="cropper-cancel-btn" onclick="closeCropperModal()">
+        <i class="fas fa-times"></i> Cancel
+      </button>
+      <button type="button" class="cropper-apply-btn" onclick="applyCrop()">
+        <i class="fas fa-check"></i> Apply Crop
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Cropper.js Library - Load before footer -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+
+<%- include('./partials/admin-footer') %>

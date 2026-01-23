@@ -7056,8 +7056,8 @@
 
   // Enhanced Elkably Team Carousel Functionality (manual navigation only)
   document.addEventListener('DOMContentLoaded', function() {
-    // Team member data from server
-    const teamMembers = <%- JSON.stringify(teamMembers || []) %>;
+    // Team member data from server (feature removed)
+    const teamMembers = [];
 
     if (teamMembers.length === 0) {
       return;

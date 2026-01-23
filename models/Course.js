@@ -35,41 +35,21 @@ const CourseSchema = new mongoose.Schema(
       required: false,
     },
 
+    // Course belongs to an Exam Period
+    examPeriod: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ExamPeriod',
+      required: false,
+    },
+
     // Course classification
-    subject: {
-      type: String,
-      required: false, // Made optional for backward compatibility
-      trim: true,
-      maxlength: 100,
-    },
-    level: {
-      type: String,
-      enum: ['Beginner', 'Intermediate', 'Advanced'],
-      required: false, // Made optional for backward compatibility
-    },
-    category: {
-      type: String,
-      enum: ['online', 'onground', 'recorded', 'recovery'],
-      default: 'online',
-    },
     year: {
       type: String,
       trim: true,
       default: '',
     },
-    testType: {
-      type: String,
-      enum: ['EST', 'SAT', 'ACT', 'EST&SAT', 'General'],
-      default: 'General',
-    },
 
     // Course details
-    duration: {
-      type: Number, // in hours
-      required: false, // Made optional for backward compatibility
-      min: 0,
-      default: 0,
-    },
     price: {
       type: Number,
       required: false, // Made optional for backward compatibility
@@ -165,23 +145,6 @@ const CourseSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
-
-    // Sequential ordering
-    order: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-    requiresSequential: {
-      type: Boolean,
-      default: false,
-    },
-    prerequisiteCourses: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Course',
-      },
-    ],
   },
   {
     timestamps: true,
@@ -265,80 +228,18 @@ CourseSchema.pre('save', async function (next) {
   next();
 });
 
-// Static method to check if a course is unlocked for a student
-CourseSchema.statics.isCourseUnlocked = async function (studentId, courseId) {
-  const Course = mongoose.model('Course');
-  const User = mongoose.model('User');
-
-  try {
-    const course = await Course.findById(courseId);
-    if (!course) {
-      return { unlocked: false, reason: 'Course not found' };
-    }
-
-    // If no sequential requirement, course is always unlocked
-    if (!course.requiresSequential) {
-      return { unlocked: true, reason: 'No sequential requirement' };
-    }
-
-    // If no prerequisite courses defined, course is unlocked
-    if (!course.prerequisiteCourses || course.prerequisiteCourses.length === 0) {
-      return { unlocked: true, reason: 'No prerequisites' };
-    }
-
-    const student = await User.findById(studentId);
-    if (!student) {
-      return { unlocked: false, reason: 'Student not found' };
-    }
-
-    // Check all prerequisite courses are completed
-    for (const prereqId of course.prerequisiteCourses) {
-      const enrollment = student.enrolledCourses.find(
-        (e) => e.course && e.course.toString() === prereqId.toString()
-      );
-
-      if (!enrollment || enrollment.status !== 'completed') {
-        const prereqCourse = await Course.findById(prereqId);
-        return {
-          unlocked: false,
-          reason: `Complete "${prereqCourse?.title || 'prerequisite course'}" first`,
-          prerequisiteCourse: {
-            id: prereqId,
-            title: prereqCourse?.title,
-          },
-        };
-      }
-    }
-
-    return { unlocked: true, reason: 'All prerequisites completed' };
-  } catch (error) {
-    console.error('Error checking course unlock status:', error);
-    return { unlocked: false, reason: 'Error checking unlock status' };
-  }
-};
-
-// Instance method to get unlock status for a student
-CourseSchema.methods.getUnlockStatus = async function (studentId) {
-  const Course = mongoose.model('Course');
-  return await Course.isCourseUnlocked(studentId, this._id);
-};
-
 // Static method to get all courses by a teacher with unlock status for a student
 CourseSchema.statics.getTeacherCoursesWithStatus = async function (teacherId, studentId) {
   const Course = mongoose.model('Course');
   const courses = await Course.find({ teacher: teacherId })
-    .sort({ order: 1 })
+    .sort({ createdAt: -1 })
     .populate('topics')
     .populate('teacher', 'firstName lastName teacherCode');
 
   const coursesWithStatus = await Promise.all(
     courses.map(async (course) => {
-      const unlockStatus = await course.getUnlockStatus(studentId);
       return {
         ...course.toObject(),
-        isUnlocked: unlockStatus.unlocked,
-        unlockReason: unlockStatus.reason,
-        prerequisiteCourse: unlockStatus.prerequisiteCourse,
       };
     })
   );
@@ -380,10 +281,9 @@ CourseSchema.statics.enrollStudent = async function (courseId, studentId) {
 
 // Indexes for better query performance (excluding courseCode which has unique: true)
 CourseSchema.index({ teacher: 1 });
+CourseSchema.index({ examPeriod: 1 });
 CourseSchema.index({ status: 1, isActive: 1 });
-CourseSchema.index({ courseType: 1 });
-CourseSchema.index({ testType: 1 });
-CourseSchema.index({ subject: 1 });
 CourseSchema.index({ teacher: 1, status: 1, isActive: 1 });
+CourseSchema.index({ examPeriod: 1, isActive: 1 });
 
 module.exports = mongoose.model('Course', CourseSchema);

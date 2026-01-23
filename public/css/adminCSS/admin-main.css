@@ -9,15 +9,10 @@
 /* Import all separated admin CSS files */
 @import url('./dashboard.css');
 @import url('./courses.css');
-@import url('./bundles.css');
-@import url('./quizzes.css');
-@import url('./question-banks.css');
 @import url('./students.css');
 @import url('./orders.css');
 @import url('./content-details.css');
 @import url('./topic-details.css');
-@import url('./brilliant-students.css');
-@import url('./game-rooms.css');
 @import url('./whatsapp-dashboard.css');
 @import url('./admin-logs.css');
 
@@ -62,7 +57,7 @@
   left: 0;
   width: 60px;
   height: 2px;
-  background: linear-gradient(90deg, var(--admin-primary), #dc2626);
+  background: #3a92bd;
   border-radius: 1px;
 }
 
@@ -182,7 +177,7 @@
 }
 
 .admin-table th {
-  background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+  background: #3a92bd;
   color: #ffffff;
   padding: 16px 20px;
   text-align: left;
@@ -282,7 +277,7 @@
 
 .admin-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, var(--admin-primary), #dc2626);
+  background: #3a92bd;
   border-radius: 4px;
   transition: width 0.3s ease;
   position: relative;
@@ -442,8 +437,8 @@
 }
 
 .admin-action-btn.primary:hover {
-  background: #dc2626;
-  border-color: #dc2626;
+  background: #0c5374;
+  border-color: #0c5374;
   color: #ffffff;
 }
 
@@ -489,7 +484,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--admin-primary), #dc2626);
+  background: #3a92bd;
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
@@ -511,7 +506,7 @@
 .admin-stat-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+  background: #3a92bd;
   border-radius: 50%;
   display: flex;
   align-items: center;

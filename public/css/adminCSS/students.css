@@ -3,10 +3,10 @@
    Professional design for students management
    ======================================== */
 
-/* Professional Color Palette - These will be overridden by the theme system */
+/* Professional Color Palette - Consistent Blue Theme */
 .light-theme {
   --admin-primary: #3a92bd;
-  --admin-primary-light: #d40000;
+  --admin-primary-light: #5ba8cc;
   --admin-primary-dark: #0c5374;
   --admin-secondary: #f8f9fa;
   --admin-success: #10b981;
@@ -26,14 +26,14 @@
 }
 
 .dark-theme {
-  --admin-primary: #d40000;
-  --admin-primary-light: #ff0000;
-  --admin-primary-dark: #0c5374;
+  --admin-primary: #5ba8cc;
+  --admin-primary-light: #7bbfdd;
+  --admin-primary-dark: #3a92bd;
   --admin-secondary: #2d3748;
-  --admin-success: #10b981;
-  --admin-warning: #f59e0b;
-  --admin-danger: #ef4444;
-  --admin-info: #3b82f6;
+  --admin-success: #34d399;
+  --admin-warning: #fbbf24;
+  --admin-danger: #f87171;
+  --admin-info: #60a5fa;
   --admin-bg-light: #1e293b;
   --admin-bg-dark: #0f172a;
   --admin-card-light: #2d3748;
@@ -51,15 +51,15 @@
    ======================================== */
 
 .student-progress-section {
-  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  background: #f8fafc;
   border-radius: 16px;
   padding: 24px;
-  border: 2px solid #e2e8f0;
+  border: 1px solid #e2e8f0;
   margin-bottom: 32px;
 }
 
 .dark-theme .student-progress-section {
-  background: linear-gradient(135deg, var(--admin-card-dark), #1e293b);
+  background: var(--admin-card-dark);
   border-color: var(--admin-border-dark);
 }
 
@@ -80,7 +80,7 @@
   left: 0;
   width: 60px;
   height: 2px;
-  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  background: #3a92bd;
   border-radius: 1px;
 }
 
@@ -112,7 +112,7 @@
 }
 
 .student-count {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: #3a92bd;
   color: #ffffff;
   padding: 8px 16px;
   border-radius: 20px;
@@ -120,7 +120,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .section-actions {
@@ -219,7 +219,7 @@
 }
 
 .students-table th {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: #3a92bd;
   color: #ffffff;
   padding: 16px 20px;
   text-align: left;
@@ -345,26 +345,10 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  background: #3a92bd;
   border-radius: 4px;
   transition: width 0.3s ease;
   position: relative;
-}
-
-.progress-fill::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-  animation: shimmer 2s infinite;
-}
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
 }
 
 .progress-text {
@@ -433,13 +417,13 @@
 }
 
 .grade-pass {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: #10b981;
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .grade-fail {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: #ef4444;
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
@@ -555,20 +539,20 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-dark) 100%);
+  background: var(--admin-primary);
   color: white;
   border: 1px solid var(--admin-primary);
   box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--admin-primary-dark) 0%, #800000 100%);
+  background: var(--admin-primary-dark);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(58, 146, 189, 0.4);
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  background: rgba(255, 255, 255, 0.1);
   color: var(--admin-text-light);
   border: 2px solid var(--admin-border-light);
   backdrop-filter: blur(10px);
@@ -577,11 +561,11 @@
 .dark-theme .btn-secondary {
   color: var(--admin-text-dark);
   border-color: var(--admin-border-dark);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .btn-secondary:hover {
-  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-dark) 100%);
+  background: var(--admin-primary);
   color: white;
   transform: translateY(-2px);
   border-color: var(--admin-primary);
@@ -589,42 +573,42 @@
 }
 
 .btn-export {
-  background: linear-gradient(135deg, var(--admin-success) 0%, #059669 100%);
+  background: var(--admin-success);
   color: white;
   border: 1px solid var(--admin-success);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .btn-export:hover {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  background: #059669;
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
 .btn-clear {
-  background: linear-gradient(135deg, var(--admin-danger) 0%, #dc2626 100%);
+  background: #64748b;
   color: white;
-  border: 1px solid var(--admin-danger);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  border: 1px solid #64748b;
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
 }
 
 .btn-clear:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: #475569;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
 }
 
 .btn-apply {
-  background: linear-gradient(135deg, var(--admin-info) 0%, #2563eb 100%);
+  background: var(--admin-primary);
   color: white;
-  border: 1px solid var(--admin-info);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  border: 1px solid var(--admin-primary);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .btn-apply:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: var(--admin-primary-dark);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 6px 20px rgba(58, 146, 189, 0.4);
 }
 
 .sort-btn {
@@ -666,8 +650,8 @@
    ======================================== */
 
 .student-details-card {
-  background: linear-gradient(135deg, #ffffff, #f8fafc);
-  border: 2px solid #e2e8f0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 20px;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -682,21 +666,21 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 6px;
-  background: linear-gradient(90deg, #3b82f6, #1d4ed8, #7c3aed);
+  height: 4px;
+  background: #3a92bd;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 .dark-theme .student-details-card {
-  background: linear-gradient(135deg, var(--admin-card-dark), #1e293b);
+  background: var(--admin-card-dark);
   border-color: var(--admin-border-dark);
 }
 
 .student-details-card:hover {
   transform: translateY(-8px);
-  border-color: #3b82f6;
-  box-shadow: 0 25px 50px rgba(59, 130, 246, 0.2);
+  border-color: #3a92bd;
+  box-shadow: 0 25px 50px rgba(58, 146, 189, 0.2);
 }
 
 .student-details-card:hover::before {
@@ -708,7 +692,7 @@
    ======================================== */
 
 .student-header {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: #3a92bd;
   color: #ffffff;
   padding: 32px;
   position: relative;
@@ -812,7 +796,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  background: #3a92bd;
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
@@ -824,7 +808,7 @@
 
 .student-stat-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 15px 35px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 15px 35px rgba(58, 146, 189, 0.15);
 }
 
 .student-stat-card:hover::before {
@@ -834,7 +818,7 @@
 .student-stat-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: #3a92bd;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -842,7 +826,7 @@
   margin: 0 auto 12px;
   color: #ffffff;
   font-size: 20px;
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 8px 20px rgba(58, 146, 189, 0.3);
 }
 
 .student-stat-number {
@@ -904,8 +888,8 @@
 }
 
 .student-course-card {
-  background: linear-gradient(135deg, #ffffff, #f8fafc);
-  border: 2px solid #e2e8f0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   padding: 20px;
   transition: all 0.3s ease;
@@ -920,19 +904,19 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  background: #3a92bd;
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
 
 .dark-theme .student-course-card {
-  background: linear-gradient(135deg, var(--admin-card-dark), #1e293b);
+  background: var(--admin-card-dark);
   border-color: var(--admin-border-dark);
 }
 
 .student-course-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 25px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 12px 25px rgba(58, 146, 189, 0.15);
 }
 
 .student-course-card:hover::before {
@@ -969,7 +953,7 @@
 
 .course-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  background: #3a92bd;
   border-radius: 3px;
   transition: width 0.3s ease;
 }
@@ -977,12 +961,12 @@
 .course-progress-text {
   font-size: 12px;
   font-weight: 600;
-  color: #3b82f6;
+  color: #3a92bd;
   text-align: right;
 }
 
 .dark-theme .course-progress-text {
-  color: #60a5fa;
+  color: #5ba8cc;
 }
 
 .course-meta {
@@ -1181,13 +1165,13 @@
 .students-empty-state {
   text-align: center;
   padding: 60px 20px;
-  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  background: #f8fafc;
   border-radius: 20px;
   border: 2px dashed #e2e8f0;
 }
 
 .dark-theme .students-empty-state {
-  background: linear-gradient(135deg, var(--admin-card-dark), #1e293b);
+  background: var(--admin-card-dark);
   border-color: var(--admin-border-dark);
 }
 
@@ -1242,15 +1226,15 @@
    ======================================== */
 
 .student-filters-section {
-  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  background: #f8fafc;
   border-radius: 16px;
   padding: 24px;
-  border: 2px solid #e2e8f0;
+  border: 1px solid #e2e8f0;
   margin-bottom: 24px;
 }
 
 .dark-theme .student-filters-section {
-  background: linear-gradient(135deg, var(--admin-card-dark), #1e293b);
+  background: var(--admin-card-dark);
   border-color: var(--admin-border-dark);
 }
 

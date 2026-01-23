@@ -28,7 +28,7 @@
   left: 0;
   width: 60px;
   height: 2px;
-  background: linear-gradient(90deg, var(--admin-primary), #dc2626);
+  background: #3a92bd;
   border-radius: 1px;
 }
 
@@ -107,7 +107,7 @@
 }
 
 .admin-filter-tab.active {
-  background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+  background: #3a92bd;
   border-color: var(--admin-primary);
   color: #ffffff;
   box-shadow: 0 8px 25px rgba(58, 146, 189, 0.3);
@@ -141,7 +141,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--admin-primary), #dc2626, #f59e0b);
+  background: #3a92bd;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -169,7 +169,7 @@
   position: relative;
   height: 200px;
   overflow: hidden;
-  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+  background: #e2e8f0;
 }
 
 .admin-course-thumbnail img {
@@ -357,9 +357,9 @@
   align-items: center;
   margin-bottom: 32px;
   padding: 24px;
-  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  background: #f8fafc;
   border-radius: 16px;
-  border: 2px solid #e2e8f0;
+  border: 1px solid #e2e8f0;
   position: relative;
   overflow: hidden;
 }
@@ -371,11 +371,11 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--admin-primary), #dc2626);
+  background: #3a92bd;
 }
 
 .dark-theme .admin-course-content-header {
-  background: linear-gradient(135deg, var(--admin-card-dark), #1e293b);
+  background: var(--admin-card-dark);
   border-color: var(--admin-border-dark);
 }
 
@@ -389,7 +389,7 @@
 }
 
 .admin-course-level {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: #3a92bd;
   color: #ffffff;
   padding: 6px 12px;
   border-radius: 20px;
@@ -467,8 +467,8 @@
    ======================================== */
 
 .course-header-card {
-  background: linear-gradient(135deg, #ffffff, #f8fafc);
-  border: 2px solid #e2e8f0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 20px;
   padding: 32px;
   margin-bottom: 32px;
@@ -483,12 +483,12 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 6px;
-  background: linear-gradient(90deg, var(--admin-primary), #dc2626, #f59e0b);
+  height: 4px;
+  background: #3a92bd;
 }
 
 .dark-theme .course-header-card {
-  background: linear-gradient(135deg, var(--admin-card-dark), #1e293b);
+  background: var(--admin-card-dark);
   border-color: var(--admin-border-dark);
 }
 
@@ -510,7 +510,7 @@
 }
 
 .course-level-badge {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: #3a92bd;
   color: #ffffff;
   padding: 8px 16px;
   border-radius: 25px;
@@ -518,7 +518,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .course-code-badge {
@@ -532,7 +532,7 @@
 }
 
 .bundle-badge {
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  background: #8b5cf6;
   color: #ffffff;
   padding: 8px 16px;
   border-radius: 25px;
@@ -566,17 +566,10 @@
   color: #1e293b;
   margin: 0 0 16px 0;
   line-height: 1.2;
-  background: linear-gradient(135deg, #1e293b, var(--admin-primary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .dark-theme .course-title {
-  background: linear-gradient(135deg, #f1f5f9, #ff6b6b);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--admin-text-dark);
 }
 
 .course-description {
@@ -603,8 +596,8 @@
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #ffffff, #f8fafc);
-  border: 2px solid #e2e8f0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   padding: 24px;
   text-align: center;
@@ -620,13 +613,13 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--admin-primary), #dc2626);
+  background: #3a92bd;
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
 
 .dark-theme .stat-card {
-  background: linear-gradient(135deg, var(--admin-card-dark), #1e293b);
+  background: var(--admin-card-dark);
   border-color: var(--admin-border-dark);
 }
 
@@ -642,7 +635,7 @@
 .stat-icon {
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+  background: #3a92bd;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -932,13 +925,13 @@
 .courses-empty-state {
   text-align: center;
   padding: 60px 20px;
-  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  background: #f8fafc;
   border-radius: 20px;
   border: 2px dashed #e2e8f0;
 }
 
 .dark-theme .courses-empty-state {
-  background: linear-gradient(135deg, var(--admin-card-dark), #1e293b);
+  background: var(--admin-card-dark);
   border-color: var(--admin-border-dark);
 }
 
@@ -990,15 +983,15 @@
 }
 
 .toast.bg-success {
-  background: linear-gradient(135deg, #10b981, #059669) !important;
+  background: #10b981 !important;
 }
 
 .toast.bg-danger {
-  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  background: #3a92bd !important;
 }
 
 .toast.bg-info {
-  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  background: #3b82f6 !important;
 }
 
 .toast-body {
@@ -1038,15 +1031,15 @@
 }
 
 .dark-theme .toast.bg-success {
-  background: linear-gradient(135deg, #059669, #047857) !important;
+  background: #059669 !important;
 }
 
 .dark-theme .toast.bg-danger {
-  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+  background: #3a92bd !important;
 }
 
 .dark-theme .toast.bg-info {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  background: #2563eb !important;
 }
 
 /* ========================================
@@ -1109,7 +1102,7 @@
 
 /* Enhanced modal styles */
 .modal-header.bg-primary {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+  background: #3b82f6 !important;
   border-bottom: none;
 }
 
@@ -1159,7 +1152,7 @@
 
 /* Modal Header */
 .edit-topic-header {
-  background: linear-gradient(135deg, #3a92bd, #dc2626);
+  background: #3a92bd;
   border: none;
   padding: 25px 30px;
   position: relative;
@@ -1269,7 +1262,7 @@
 
 /* Section Header */
 .section-header {
-  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  background: #f8fafc;
   padding: 20px 25px;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
@@ -1278,14 +1271,14 @@
 }
 
 .dark-theme .section-header {
-  background: linear-gradient(135deg, #2d3748, #1a202c);
+  background: #2d3748;
   border-bottom-color: #4a5568;
 }
 
 .section-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #3a92bd, #dc2626);
+  background: #3a92bd;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -1392,14 +1385,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  background: #f0f9ff;
   padding: 20px;
   border-radius: 12px;
   border: 1px solid #bae6fd;
 }
 
 .dark-theme .publish-toggle {
-  background: linear-gradient(135deg, #1e3a8a, #1e40af);
+  background: #1e3a8a;
   border-color: #3b82f6;
 }
 
@@ -1412,7 +1405,7 @@
 .toggle-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #3a92bd, #dc2626);
+  background: #3a92bd;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -1514,13 +1507,13 @@
 }
 
 .btn-save {
-  background: linear-gradient(135deg, #3a92bd, #dc2626);
+  background: #3a92bd;
   color: white;
   box-shadow: 0 4px 15px rgba(58, 146, 189, 0.3);
 }
 
 .btn-save:hover {
-  background: linear-gradient(135deg, #0c5374, #3a92bd);
+  background: #0c5374;
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(58, 146, 189, 0.4);
 }
@@ -1719,19 +1712,19 @@
 }
 
 .status-badge.published {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(5, 150, 105, 0.9));
+  background: rgba(16, 185, 129, 0.9);
   color: #ffffff;
   border-color: rgba(16, 185, 129, 0.3);
 }
 
 .status-badge.draft {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.9), rgba(217, 119, 6, 0.9));
+  background: rgba(245, 158, 11, 0.9);
   color: #ffffff;
   border-color: rgba(245, 158, 11, 0.3);
 }
 
 .status-badge.archived {
-  background: linear-gradient(135deg, rgba(107, 114, 128, 0.9), rgba(75, 85, 99, 0.9));
+  background: rgba(107, 114, 128, 0.9);
   color: #ffffff;
   border-color: rgba(107, 114, 128, 0.3);
 }
@@ -1743,7 +1736,7 @@
 /* Enhanced Topic Card Layout */
 .topic-card {
   position: relative;
-  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  background: #ffffff;
   border: 2px solid #e2e8f0;
   border-radius: 16px;
   padding: 20px;
@@ -1754,7 +1747,7 @@
 }
 
 .dark-theme .topic-card {
-  background: linear-gradient(135deg, #1a1f2e, #2d3748);
+  background: #1a1f2e;
   border-color: #4a5568;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
@@ -1777,7 +1770,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #3a92bd, #dc2626);
+  background: #3a92bd;
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
@@ -1796,7 +1789,7 @@
 .topic-number {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #3a92bd, #dc2626);
+  background: #3a92bd;
   color: white;
   border-radius: 12px;
   display: flex;
@@ -1962,7 +1955,7 @@
    ======================================== */
 
 .modal-header.bg-danger {
-  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  background: #3a92bd !important;
   border-bottom: none;
 }
 
@@ -2481,7 +2474,7 @@
 }
 
 .question-header {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: #3a92bd;
   color: white;
   padding: 28px;
   margin: 0;
@@ -2682,7 +2675,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  background: #3a92bd;
   color: white;
   display: flex;
   align-items: center;
@@ -2697,7 +2690,7 @@
 }
 
 .option-item.correct .option-letter {
-  background: linear-gradient(135deg, #16a34a, #15803d);
+  background: #16a34a;
   box-shadow: 0 4px 15px rgba(34, 197, 94, 0.5);
   border-color: rgba(255, 255, 255, 0.3);
   animation: letterGlow 2s ease-in-out infinite;
@@ -3710,7 +3703,7 @@
 }
 
 .preview-question-number {
-  background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+  background: #3a92bd;
   color: white;
   padding: 8px 16px;
   border-radius: 10px;
@@ -3720,7 +3713,7 @@
 }
 
 .preview-question-points {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: #10b981;
   color: white;
   padding: 8px 16px;
   border-radius: 10px;

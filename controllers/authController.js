@@ -222,7 +222,7 @@ const sendOTP = async (req, res) => {
         // Send via WhatsApp for non-Egyptian numbers
         const wasender = require('../utils/wasender');
         const SESSION_API_KEY = process.env.WASENDER_SESSION_API_KEY || process.env.WHATSAPP_SESSION_API_KEY || '';
-        
+
         if (!SESSION_API_KEY) {
           throw new Error('WhatsApp session API key not configured');
         }
@@ -230,24 +230,24 @@ const sendOTP = async (req, res) => {
         // Format phone number for WhatsApp (remove + and ensure proper format)
         const cleanPhone = fullPhoneNumber.replace(/^\+/, '').replace(/\D/g, '');
         const whatsappJid = `${cleanPhone}@s.whatsapp.net`;
-        
+
         const result = await wasender.sendTextMessage(SESSION_API_KEY, whatsappJid, message);
-        
+
         if (!result.success) {
           // Check if the error is about JID not existing on WhatsApp
           const errorMessage = result.message || '';
-          const hasJidError = errorMessage.toLowerCase().includes('JID does not exist on WhatsApp') || 
-                             errorMessage.toLowerCase().includes('does not exist on whatsapp') ||
-                             (result.errors && result.errors.to && 
-                              result.errors.to.some(err => err.toLowerCase().includes('does not exist')));
-          
+          const hasJidError = errorMessage.toLowerCase().includes('JID does not exist on WhatsApp') ||
+            errorMessage.toLowerCase().includes('does not exist on whatsapp') ||
+            (result.errors && result.errors.to &&
+              result.errors.to.some(err => err.toLowerCase().includes('does not exist')));
+
           if (hasJidError) {
             throw new Error('This phone number does not have WhatsApp or WhatsApp is not available for this number. Please use an Egyptian phone number (+20) to receive OTP via SMS, or ensure your phone number is registered on WhatsApp.');
           }
-          
+
           throw new Error(result.message || 'Failed to send WhatsApp message');
         }
-        
+
         console.log(`OTP sent via WhatsApp to ${fullPhoneNumber} for ${type}`);
       }
 
@@ -399,35 +399,35 @@ const registerUser = async (req, res) => {
   if (!firstName || !firstName.trim()) {
     errors.push({ msg: 'First name is required', field: 'firstName' });
   }
-  
+
   if (!lastName || !lastName.trim()) {
     errors.push({ msg: 'Last name is required', field: 'lastName' });
   }
-  
+
   if (!username || !username.trim()) {
     errors.push({ msg: 'Username is required', field: 'username' });
   }
-  
+
   if (!grade) {
     errors.push({ msg: 'Please select your year', field: 'grade' });
   }
-  
+
   if (!curriculum) {
     errors.push({ msg: 'Please select your curriculum', field: 'curriculum' });
   }
-  
+
   if (!userEmail || !userEmail.trim()) {
     errors.push({ msg: 'Email address is required', field: 'studentEmail' });
   }
-  
+
   if (!password) {
     errors.push({ msg: 'Password is required', field: 'password' });
   }
-  
+
   if (!password2) {
     errors.push({ msg: 'Please confirm your password', field: 'password2' });
   }
-  
+
   if (!password2) {
     errors.push({ msg: 'Please confirm your password', field: 'password2' });
   }
@@ -481,12 +481,12 @@ const registerUser = async (req, res) => {
   if (studentNumber && parentNumber) {
     const cleanStudentPhone = studentNumber.replace(/\D/g, '');
     const cleanParentPhone = parentNumber.replace(/\D/g, '');
-    
+
     // If both have the same country code and number
     if (studentCountryCode === parentCountryCode && cleanStudentPhone === cleanParentPhone) {
-      errors.push({ 
-        msg: 'Parent phone number must be different from student phone number', 
-        field: 'parentNumber' 
+      errors.push({
+        msg: 'Parent phone number must be different from student phone number',
+        field: 'parentNumber'
       });
     }
   }
@@ -650,7 +650,8 @@ const loginUser = async (req, res) => {
   let errors = [];
 
   // Check if this is a duplicate submission (browser refresh or back button)
-  if (req.session.lastLoginSubmissionId === submissionId) {
+  // Only check if submissionId is provided and not undefined
+  if (submissionId && req.session.lastLoginSubmissionId === submissionId) {
     console.log('Duplicate login submission detected:', submissionId);
     req.flash(
       'error_msg',
@@ -659,8 +660,10 @@ const loginUser = async (req, res) => {
     return res.redirect('/auth/login');
   }
 
-  // Store current submission ID in session
-  req.session.lastLoginSubmissionId = submissionId;
+  // Store current submission ID in session only if provided
+  if (submissionId) {
+    req.session.lastLoginSubmissionId = submissionId;
+  }
 
   // Validate input
   if (!email || !password) {
@@ -1307,13 +1310,13 @@ const createStudentFromExternalSystem = async (req, res) => {
       headers: req.headers['content-type'],
       bodyKeys: Object.keys(req.body || {}),
     });
-    
+
     const { studentName, studentPhone, parentPhone, studentCode, apiKey } =
       req.body;
 
     // Validate API key for security
     const validApiKey =
-      process.env.EXTERNAL_SYSTEM_API_ACCEPT_KEY ;
+      process.env.EXTERNAL_SYSTEM_API_ACCEPT_KEY;
     if (!apiKey || apiKey !== validApiKey) {
       return res.status(401).json({
         success: false,
@@ -1364,12 +1367,12 @@ const createStudentFromExternalSystem = async (req, res) => {
           return { code: '+971', number: phoneNumber.substring(4) };
         } else if (phoneNumber.startsWith('+965')) {
           return { code: '+965', number: phoneNumber.substring(4) };
-      } else {
+        } else {
           // Unknown country code with +, default to +20
           return { code: '+20', number: phoneNumber.substring(1) };
         }
       }
-      
+
       // Check for country codes without + prefix
       if (phoneNumber.startsWith('966') && phoneNumber.length >= 12) {
         return { code: '+966', number: phoneNumber.substring(3) };
@@ -1380,7 +1383,7 @@ const createStudentFromExternalSystem = async (req, res) => {
       } else if (phoneNumber.startsWith('965') && phoneNumber.length >= 11) {
         return { code: '+965', number: phoneNumber.substring(3) };
       }
-      
+
       // Default: assume Egypt (+20) and use the whole number
       // This handles cases where the number is already without country code
       return { code: '+20', number: phoneNumber };
@@ -1748,7 +1751,7 @@ const sendForgotPasswordOTP = async (req, res) => {
         // Send via WhatsApp for non-Egyptian numbers
         const wasender = require('../utils/wasender');
         const SESSION_API_KEY = process.env.WASENDER_SESSION_API_KEY || process.env.WHATSAPP_SESSION_API_KEY || '';
-        
+
         if (!SESSION_API_KEY) {
           throw new Error('WhatsApp session API key not configured');
         }
@@ -1756,24 +1759,24 @@ const sendForgotPasswordOTP = async (req, res) => {
         // Format phone number for WhatsApp (remove + and ensure proper format)
         const cleanPhone = fullPhoneNumber.replace(/^\+/, '').replace(/\D/g, '');
         const whatsappJid = `${cleanPhone}@s.whatsapp.net`;
-        
+
         const result = await wasender.sendTextMessage(SESSION_API_KEY, whatsappJid, message);
-        
+
         if (!result.success) {
           // Check if the error is about JID not existing on WhatsApp
           const errorMessage = result.message || '';
-          const hasJidError = errorMessage.toLowerCase().includes('jid does not exist') || 
-                             errorMessage.toLowerCase().includes('does not exist on whatsapp') ||
-                             (result.errors && result.errors.to && 
-                              result.errors.to.some(err => err.toLowerCase().includes('does not exist')));
-          
+          const hasJidError = errorMessage.toLowerCase().includes('jid does not exist') ||
+            errorMessage.toLowerCase().includes('does not exist on whatsapp') ||
+            (result.errors && result.errors.to &&
+              result.errors.to.some(err => err.toLowerCase().includes('does not exist')));
+
           if (hasJidError) {
             throw new Error('This phone number does not have WhatsApp or WhatsApp is not available for this number. Please use an Egyptian phone number (+20) to receive OTP via SMS, or ensure your phone number is registered on WhatsApp.');
           }
-          
+
           throw new Error(result.message || 'Failed to send WhatsApp message');
         }
-        
+
         console.log(`Forgot password OTP sent via WhatsApp to ${fullPhoneNumber}`);
       }
 

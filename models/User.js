@@ -160,7 +160,7 @@ const UserSchema = new mongoose.Schema(
             },
             contentType: {
               type: String,
-              enum: ['video', 'pdf', 'quiz', 'homework', 'assignment', 'reading', 'link', 'zoom'],
+              enum: ['video', 'pdf', 'assignment', 'reading', 'link', 'zoom'],
               required: true,
             },
             completionStatus: {
@@ -267,44 +267,6 @@ const UserSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Course',
     }],
-
-    // Quiz attempts (standalone quizzes)
-    quizAttempts: [
-      {
-        quiz: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'Quiz',
-        },
-        attempts: [
-          {
-            attemptNumber: { type: Number, required: true },
-            score: { type: Number, min: 0, max: 100 },
-            totalQuestions: { type: Number, required: true },
-            correctAnswers: { type: Number, required: true },
-            timeSpent: { type: Number, required: true },
-            startedAt: { type: Date, required: true },
-            completedAt: Date,
-            status: {
-              type: String,
-              enum: ['in_progress', 'completed', 'abandoned', 'timeout'],
-              default: 'in_progress',
-            },
-            answers: [
-              {
-                questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question' },
-                selectedAnswer: String,
-                isCorrect: Boolean,
-                points: Number,
-              },
-            ],
-            passed: { type: Boolean, default: false },
-            passingScore: { type: Number, default: 60 },
-          },
-        ],
-        bestScore: { type: Number, default: 0 },
-        lastAttempt: { type: Date, default: Date.now },
-      },
-    ],
 
     // Preferences
     preferences: {
@@ -495,40 +457,6 @@ UserSchema.methods.removeFromWishlist = async function (courseId) {
   this.wishlist = this.wishlist.filter((id) => id.toString() !== courseId.toString());
   await this.save();
   return { success: true, message: 'Removed from wishlist' };
-};
-
-// Instance method to add quiz attempt
-UserSchema.methods.addQuizAttempt = async function (quizId, attemptData) {
-  let quizAttempt = this.quizAttempts.find(
-    (attempt) => attempt.quiz.toString() === quizId.toString()
-  );
-
-  if (!quizAttempt) {
-    quizAttempt = {
-      quiz: quizId,
-      attempts: [],
-      bestScore: 0,
-      lastAttempt: new Date(),
-    };
-    this.quizAttempts.push(quizAttempt);
-  }
-
-  const attemptNumber = quizAttempt.attempts.length + 1;
-  const newAttempt = {
-    attemptNumber,
-    ...attemptData,
-    startedAt: new Date(attemptData.startedAt),
-    completedAt: new Date(attemptData.completedAt),
-  };
-
-  quizAttempt.attempts.push(newAttempt);
-  quizAttempt.lastAttempt = new Date();
-
-  if (attemptData.score > quizAttempt.bestScore) {
-    quizAttempt.bestScore = attemptData.score;
-  }
-
-  return await this.save();
 };
 
 // Check if user is enrolled in a course

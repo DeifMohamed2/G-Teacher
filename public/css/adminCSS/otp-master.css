@@ -115,7 +115,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #dc2626 0%, #ef4444 50%, #fca5a5 100%);
+    background: #3a92bd;
     animation: shimmer 2s infinite;
 }
 
@@ -137,7 +137,7 @@
 
 .generated-otp-display {
     position: relative;
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%);
+    background: #3a92bd;
     color: white;
     padding: 40px;
     border: 2px solid rgba(255, 255, 255, 0.3);
@@ -409,13 +409,13 @@
 }
 
 .validation-result.success {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    background: #d1fae5;
     border: 2px solid #10b981;
     color: #065f46;
 }
 
 .validation-result.error {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    background: #fee2e2;
     border: 2px solid #ef4444;
     color: #991b1b;
 }
@@ -476,7 +476,7 @@
     left: 0;
     width: 4px;
     height: 100%;
-    background: linear-gradient(180deg, #dc2626 0%, #ef4444 100%);
+    background: #3a92bd;
     transform: scaleY(0);
     transition: transform 0.3s ease;
 }
@@ -541,18 +541,11 @@
     font-weight: 800;
     letter-spacing: 6px;
     font-family: 'Courier New', monospace;
-    color: #dc2626;
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #3a92bd;
 }
 
 .dark-theme .code-value {
-    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #5ba8cc;
 }
 
 .copy-btn-small {
@@ -604,19 +597,19 @@
 }
 
 .status-badge.active {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    background: #d1fae5;
     color: #065f46;
     border: 1px solid #10b981;
 }
 
 .status-badge.used {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    background: #dbeafe;
     color: #1e40af;
     border: 1px solid #3b82f6;
 }
 
 .status-badge.expired {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    background: #fee2e2;
     color: #991b1b;
     border: 1px solid #ef4444;
 }
@@ -669,7 +662,7 @@
 }
 
 .revoke-btn {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    background: #fee2e2;
     border: 2px solid #fca5a5;
     color: #991b1b;
     padding: 10px 20px;
@@ -684,7 +677,7 @@
 }
 
 .revoke-btn:hover {
-    background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+    background: #fecaca;
     border-color: #ef4444;
     color: #7f1d1d;
     transform: translateY(-2px);

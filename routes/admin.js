@@ -108,19 +108,6 @@ const {
   generateInvoice,
   refundOrder,
   completeFailedPayment,
-  getBookOrders,
-  updateBookOrderStatus,
-  bulkUpdateBookOrdersStatus,
-  exportBookOrders,
-  // Brilliant Students Management
-  getBrilliantStudents,
-  getBrilliantStudentDetails,
-  createBrilliantStudent,
-  updateBrilliantStudent,
-  deleteBrilliantStudent,
-  reorderBrilliantStudents,
-  getBrilliantStudentsStats,
-  exportBrilliantStudents,
   // Admin Management
   getCreateAdminForm,
   createNewAdmin,
@@ -164,14 +151,6 @@ const {
   exportBulkCollection,
   deleteBulkCollection,
   toggleBulkCollectionStatus,
-  // Team Management (moved from authController)
-  getTeamManagementPage,
-  getTeamMember,
-  createTeamMember,
-  updateTeamMember,
-  deleteTeamMember,
-  reorderTeamMembers,
-  exportTeamMembers,
   // Bulk SMS Messaging
   getBulkSMSPage,
   getStudentsForSMS,
@@ -185,9 +164,21 @@ const {
   validateMasterOTP,
   getActiveMasterOTPs,
   revokeMasterOTP,
+  // Teacher Management
+  getTeachersPage,
+  getTeacherData,
+  createTeacher,
+  updateTeacher,
+  toggleTeacherStatus,
+  deleteTeacher,
+  getTeachersAPI,
+  // Exam Period Management
+  getExamPeriods,
+  createExamPeriod,
+  updateExamPeriod,
+  toggleExamPeriodCurrent,
+  deleteExamPeriod,
 } = require('../controllers/adminController');
-
-// Team Management is now imported from adminController (moved from authController)
 
 // Import WhatsApp Controllers
 const {
@@ -332,55 +323,12 @@ router.get('/orders/:orderNumber/invoice', isAdmin, generateInvoice);
 router.post('/orders/:orderNumber/refund', isAdmin, refundOrder);
 router.post('/orders/:orderNumber/complete-failed', isAdmin, completeFailedPayment);
 
-// Book Orders Management
-router.get('/book-orders', isAdmin, getBookOrders);
-router.get('/book-orders/export', isAdmin, exportBookOrders);
-router.get('/book-orders/:bookOrderId', isAdmin, async (req, res) => {
-  try {
-    const BookOrder = require('../models/BookOrder');
-    const bookOrder = await BookOrder.findById(req.params.bookOrderId)
-      .populate('user', 'firstName lastName studentEmail')
-      .populate('course', 'title courseCode _id')
-      .lean();
-
-    if (!bookOrder) {
-      return res.status(404).json({
-        success: false,
-        message: 'Book order not found',
-      });
-    }
-
-    return res.json({
-      success: true,
-      bookOrder,
-    });
-  } catch (error) {
-    console.error('Error fetching book order:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Error fetching book order',
-    });
-  }
-});
-router.put('/book-orders/:bookOrderId/update', isAdmin, updateBookOrderStatus);
-router.put('/book-orders/bulk-update', isAdmin, bulkUpdateBookOrdersStatus);
-
 // Admin Management Routes
 router.get('/create-admin', isAdmin, getCreateAdminForm);
 router.post('/create-admin', isAdmin, createNewAdmin);
 router.put('/admins/:adminId', isAdmin, updateAdmin);
 router.delete('/admins/:adminId', isAdmin, deleteAdmin);
 router.post('/admins/:adminId/toggle-status', isAdmin, toggleAdminStatus);
-
-// Brilliant Students Management Routes
-router.get('/brilliant-students', isAdmin, getBrilliantStudents);
-router.post('/brilliant-students', isAdmin, createBrilliantStudent);
-router.get('/brilliant-students/export', isAdmin, exportBrilliantStudents);
-router.get('/brilliant-students/stats', isAdmin, getBrilliantStudentsStats);
-router.put('/brilliant-students/reorder', isAdmin, reorderBrilliantStudents);
-router.get('/brilliant-students/:id', isAdmin, getBrilliantStudentDetails);
-router.put('/brilliant-students/:id', isAdmin, updateBrilliantStudent);
-router.delete('/brilliant-students/:id', isAdmin, deleteBrilliantStudent);
 
 // Excel Export Routes
 router.get('/export/courses', isAdmin, exportCourses);
@@ -392,15 +340,6 @@ router.get(
 );
 router.get('/export/orders', isAdmin, exportOrders);
 router.get('/export/comprehensive', isAdmin, exportComprehensiveReport);
-
-// Team Management Routes
-router.get('/team-management', isAdmin, getTeamManagementPage);
-router.post('/team-management', isAdmin, createTeamMember);
-router.get('/team-management/export', isAdmin, exportTeamMembers);
-router.put('/team-management/reorder', isAdmin, reorderTeamMembers);
-router.get('/team-management/:id', isAdmin, getTeamMember);
-router.put('/team-management/:id', isAdmin, updateTeamMember);
-router.delete('/team-management/:id', isAdmin, deleteTeamMember);
 
 // Promo Codes Management Routes
 router.get('/promo-codes', isAdmin, getPromoCodes);
@@ -506,5 +445,24 @@ router.get('/logs/export', isAdmin, isSuperAdmin, exportLogs);
 router.get('/logs/stats', isAdmin, isSuperAdmin, getLogsStats);
 router.get('/logs/:logId', isAdmin, isSuperAdmin, getLogDetails);
 router.post('/logs/cleanup', isAdmin, isSuperAdmin, deleteOldLogs);
+
+// Teacher Management Routes
+router.get('/teachers', isAdmin, getTeachersPage);
+router.post('/teachers', isAdmin, createTeacher);
+router.get('/teachers/:teacherId/data', isAdmin, getTeacherData);
+router.put('/teachers/:teacherId', isAdmin, updateTeacher);
+router.post('/teachers/:teacherId', isAdmin, updateTeacher); // For form submissions
+router.put('/teachers/:teacherId/toggle-status', isAdmin, toggleTeacherStatus);
+router.delete('/teachers/:teacherId', isAdmin, deleteTeacher);
+
+// API Routes for Teachers
+router.get('/api/teachers', isAdmin, getTeachersAPI);
+
+// Exam Period Management Routes
+router.get('/api/exam-periods', isAdmin, getExamPeriods);
+router.post('/api/exam-periods', isAdmin, createExamPeriod);
+router.put('/api/exam-periods/:periodId', isAdmin, updateExamPeriod);
+router.patch('/api/exam-periods/:periodId/toggle-current', isAdmin, toggleExamPeriodCurrent);
+router.delete('/api/exam-periods/:periodId', isAdmin, deleteExamPeriod);
 
 module.exports = router;

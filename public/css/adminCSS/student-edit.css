@@ -23,7 +23,7 @@
 }
 
 .dark-theme {
-    --admin-primary: #d40000;
+    --admin-primary: #5ba8cc;
     --admin-secondary: #2d3748;
     --admin-success: #10b981;
     --admin-warning: #f59e0b;
@@ -88,7 +88,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, var(--admin-primary), #0c5374);
+    background: var(--admin-primary);
     opacity: 0.8;
 }
 
@@ -189,7 +189,7 @@
 .section-icon {
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, var(--admin-primary), #0c5374);
+    background: var(--admin-primary);
     color: white;
     border-radius: 10px;
     display: flex;
@@ -372,7 +372,7 @@ textarea.form-control {
     width: 120px;
     height: 120px;
     border-radius: 16px;
-    background: linear-gradient(135deg, var(--admin-primary), #0c5374);
+    background: var(--admin-primary);
     color: white;
     display: flex;
     align-items: center;
@@ -424,7 +424,7 @@ textarea.form-control {
     align-items: center;
     gap: 10px;
     padding: 12px 24px;
-    background: linear-gradient(135deg, var(--admin-primary), #0c5374);
+    background: var(--admin-primary);
     color: white;
     border-radius: 8px;
     cursor: pointer;
@@ -434,7 +434,7 @@ textarea.form-control {
 }
 
 .file-input-label:hover {
-    background: linear-gradient(135deg, #0c5374, #660000);
+    background: #0c5374;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(58, 146, 189, 0.4);
 }
@@ -568,14 +568,14 @@ textarea.form-control {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--admin-primary) 0%, #0c5374 100%);
+    background: var(--admin-primary);
     color: white;
     border: 1px solid var(--admin-primary);
     box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #0c5374 0%, #660000 100%);
+    background: #0c5374;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(58, 146, 189, 0.4);
 }
@@ -587,14 +587,14 @@ textarea.form-control {
 }
 
 .btn-secondary {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    background: rgba(255, 255, 255, 0.1);
     color: var(--admin-text-light);
     border: 2px solid var(--admin-border-light);
     backdrop-filter: blur(10px);
 }
 
 .btn-secondary:hover {
-    background: linear-gradient(135deg, var(--admin-primary) 0%, #0c5374 100%);
+    background: var(--admin-primary);
     color: white;
     transform: translateY(-2px);
     border-color: var(--admin-primary);
@@ -602,14 +602,14 @@ textarea.form-control {
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, var(--admin-danger) 0%, #dc2626 100%);
+    background: #3a92bd;
     color: white;
     border: 1px solid var(--admin-danger);
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .btn-danger:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    background: #0c5374;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
 }

@@ -6,7 +6,7 @@
 <style>
   /* CSS Variables for Admin Theme */
   .light-theme {
-    --admin-primary: #b80101;
+    --admin-primary: #3a92bd;
     --admin-secondary: #f8f9fa;
     --admin-success: #10b981;
     --admin-warning: #f59e0b;
@@ -24,7 +24,7 @@
   }
 
   .dark-theme {
-    --admin-primary: #d40000;
+    --admin-primary: #5ba8cc;
     --admin-secondary: #2d3748;
     --admin-success: #10b981;
     --admin-warning: #f59e0b;
@@ -164,17 +164,17 @@
   .student-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border-color: rgba(184, 1, 1, 0.3);
+    border-color: rgba(58, 146, 189, 0.3);
   }
 
   .student-item.selected {
-    background: rgba(184, 1, 1, 0.05) !important;
-    border-color: rgba(184, 1, 1, 0.5);
+    background: rgba(58, 146, 189, 0.05) !important;
+    border-color: rgba(58, 146, 189, 0.5);
   }
 
   .dark-theme .student-item.selected {
-    background: rgba(184, 1, 1, 0.15) !important;
-    border-color: rgba(212, 0, 0, 0.6);
+    background: rgba(58, 146, 189, 0.15) !important;
+    border-color: rgba(58, 146, 189, 0.6);
   }
 
   .student-avatar {
@@ -1630,7 +1630,7 @@ function showNotification(message, type = 'info') {
   if (type === 'success') {
     notification.style.background = 'linear-gradient(135deg, #10b981, #059669)';
   } else if (type === 'error') {
-    notification.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+    notification.style.background = 'linear-gradient(135deg, #3a92bd, #0c5374)';
   } else {
     notification.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
   }

@@ -1,0 +1,2191 @@
+/* ============================================
+   Teachers Management Page - Professional Styles
+   Matching Students Page Design Exactly
+   Colors: #3a92bd (teal blue) and #0c5374 (dark teal)
+   ============================================ */
+
+/* Page Container */
+.admin-teachers-container {
+  padding: 20px;
+  background: var(--admin-bg-light);
+  min-height: calc(100vh - 80px);
+}
+
+@media (max-width: 1024px) {
+  .admin-main-content {
+    margin-left: 0;
+  }
+  
+  .admin-teachers-container {
+    padding: 15px;
+  }
+}
+
+/* ========================================
+   PAGE HEADER - Matching Students Header
+   ======================================== */
+
+.teachers-page-header {
+  background: var(--admin-card-light);
+  border: 1px solid var(--admin-border-light);
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: var(--admin-shadow);
+}
+
+.page-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-title-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.page-title-icon {
+  width: 50px;
+  height: 50px;
+  background: #3a92bd;
+  color: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--admin-text-light);
+  margin: 0;
+}
+
+.page-subtitle {
+  color: var(--admin-text-light);
+  opacity: 0.7;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.page-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* ========================================
+   ADD TEACHER BUTTON
+   ======================================== */
+
+.btn-add-teacher {
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  background: #3a92bd;
+  color: white;
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
+}
+
+.btn-add-teacher:hover {
+  background: #0c5374;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(58, 146, 189, 0.4);
+}
+
+/* ========================================
+   ANALYTICS GRID - Matching Students Stats
+   ======================================== */
+
+.admin-analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.admin-analytics-card {
+  background: var(--admin-card-light);
+  border: 1px solid var(--admin-border-light);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--admin-shadow);
+  transition: all 0.3s ease;
+}
+
+.admin-analytics-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.analytics-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.analytics-icon.teachers {
+  background: #3a92bd;
+}
+
+.analytics-icon.active {
+  background: #10b981;
+}
+
+.analytics-icon.inactive {
+  background: #6b7280;
+}
+
+.analytics-trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  border-radius: 16px;
+}
+
+.trend-up {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.trend-down {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+.analytics-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--admin-text-light);
+  margin: 8px 0;
+}
+
+.analytics-label {
+  color: var(--admin-text-light);
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+/* ========================================
+   FILTERS SECTION - Matching Students Filters
+   ======================================== */
+
+.filters-section {
+  background: var(--admin-card-light);
+  border: 1px solid var(--admin-border-light);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 30px;
+  box-shadow: var(--admin-shadow);
+}
+
+.filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--admin-border-light);
+}
+
+.filters-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--admin-text-light);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filters-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid var(--admin-border-light);
+  color: var(--admin-text-light);
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.filters-toggle:hover {
+  background: #3a92bd;
+  color: white;
+  border-color: #3a92bd;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(58, 146, 189, 0.3);
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--admin-text-light);
+  opacity: 0.8;
+}
+
+.filter-control {
+  padding: 10px 12px;
+  border: 1px solid var(--admin-border-light);
+  border-radius: 8px;
+  background: var(--admin-card-light);
+  color: var(--admin-text-light);
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.filter-control:focus {
+  outline: none;
+  border-color: #3a92bd;
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.1);
+}
+
+.search-box {
+  position: relative;
+}
+
+.search-input {
+  padding: 10px 12px 10px 40px;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #3a92bd;
+  opacity: 0.6;
+}
+
+/* ========================================
+   TABLE CONTAINER
+   ======================================== */
+
+.teachers-table-container {
+  background: var(--admin-card-light);
+  border: 1px solid var(--admin-border-light);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.teachers-table-container:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.table-header {
+  padding: 24px 28px;
+  border-bottom: 2px solid var(--admin-border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--admin-card-light);
+}
+
+.table-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--admin-text-light);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  letter-spacing: -0.5px;
+}
+
+.table-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.results-count {
+  font-size: 0.95rem;
+  color: var(--admin-text-light);
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+.table-overflow {
+  overflow-x: auto;
+  max-height: calc(100vh - 450px);
+}
+
+.table-overflow::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-overflow::-webkit-scrollbar-track {
+  background: var(--admin-bg-light);
+}
+
+.table-overflow::-webkit-scrollbar-thumb {
+  background: var(--admin-border-light);
+  border-radius: 4px;
+}
+
+.table-overflow::-webkit-scrollbar-thumb:hover {
+  background: #3a92bd;
+}
+
+/* ========================================
+   TABLE STYLES
+   ======================================== */
+
+.teachers-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: auto;
+}
+
+.teachers-table th {
+  background: var(--admin-card-light);
+  color: var(--admin-text-light);
+  font-weight: 700;
+  padding: 18px 16px;
+  text-align: left;
+  border-bottom: 2px solid #3a92bd;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.teachers-table td {
+  padding: 18px 16px;
+  border-bottom: 1px solid var(--admin-border-light);
+  vertical-align: middle;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.teachers-table tbody tr {
+  transition: all 0.3s ease;
+  border-left: 3px solid transparent;
+}
+
+.teachers-table tbody tr:nth-child(even) {
+  background: rgba(58, 146, 189, 0.02);
+}
+
+.teachers-table tbody tr:hover {
+  background: rgba(58, 146, 189, 0.08);
+  border-left-color: #3a92bd;
+  transform: scale(1.001);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.teachers-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ========================================
+   TEACHER PROFILE CELL
+   ======================================== */
+
+.teacher-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teacher-avatar {
+  width: 50px;
+  height: 50px;
+  background: #3a92bd;
+  color: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.teacher-avatar.has-image {
+  background: none;
+  border-color: transparent;
+}
+
+.teacher-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.teacher-avatar:hover {
+  transform: scale(1.08) rotate(2deg);
+  box-shadow: 0 6px 16px rgba(58, 146, 189, 0.4);
+}
+
+.teacher-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.teacher-name {
+  font-weight: 700;
+  color: var(--admin-text-light);
+  margin: 0 0 2px;
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.4;
+  font-size: 0.95rem;
+}
+
+.teacher-email {
+  font-size: 0.8rem;
+  color: var(--admin-text-light);
+  opacity: 0.65;
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.3;
+}
+
+/* ========================================
+   BADGES
+   ======================================== */
+
+.code-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: transparent;
+  color: #3a92bd;
+  border: 2px solid #3a92bd;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  font-family: 'Courier New', monospace;
+}
+
+.code-badge:hover {
+  background: #3a92bd;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
+}
+
+.code-badge i {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.subject-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  background: rgba(58, 146, 189, 0.1);
+  color: #0c5374;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.dark-theme .subject-badge {
+  background: rgba(58, 146, 189, 0.2);
+  color: #5ba9d1;
+}
+
+.subject-badge:hover {
+  background: rgba(58, 146, 189, 0.2);
+  transform: translateY(-2px);
+}
+
+.phone-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--admin-text-light);
+}
+
+.phone-badge i {
+  color: #3a92bd;
+}
+
+.no-data {
+  font-size: 0.85rem;
+  color: var(--admin-text-light);
+  opacity: 0.5;
+  font-style: italic;
+}
+
+/* ========================================
+   STATUS BADGE
+   ======================================== */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-active {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.status-inactive {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+.status-icon {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ========================================
+   DATE CELL
+   ======================================== */
+
+.date-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.date-main {
+  font-weight: 700;
+  color: var(--admin-text-light);
+  font-size: 0.95rem;
+}
+
+.date-sub {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  color: var(--admin-text-light);
+  font-weight: 500;
+}
+
+/* ========================================
+   CONTACT CELL
+   ======================================== */
+
+.contact-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ========================================
+   ACTION BUTTONS
+   ======================================== */
+
+.teacher-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: transparent;
+  color: var(--admin-text-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.action-btn-sm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn-sm.view {
+  color: #3a92bd;
+  border-color: rgba(58, 146, 189, 0.3);
+}
+
+.action-btn-sm.view:hover {
+  background: #3a92bd;
+  color: white;
+  border-color: #3a92bd;
+}
+
+.action-btn-sm.edit {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.action-btn-sm.edit:hover {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.action-btn-sm.toggle {
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.action-btn-sm.toggle:hover {
+  background: #f59e0b;
+  color: white;
+  border-color: #f59e0b;
+}
+
+.action-btn-sm.delete {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.action-btn-sm.delete:hover {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+/* ========================================
+   EMPTY STATE
+   ======================================== */
+
+.teachers-table-container .empty-state {
+  text-align: center;
+  padding: 100px 40px;
+  color: var(--admin-text-light);
+  background: rgba(58, 146, 189, 0.02);
+  border-radius: 16px;
+  margin: 20px;
+  border: none !important;
+}
+
+.teachers-table-container .empty-icon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 30px;
+  background: #3a92bd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 15px 40px rgba(58, 146, 189, 0.3);
+  position: relative;
+}
+
+.teachers-table-container .empty-icon::after {
+  content: '';
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: rgba(58, 146, 189, 0.1);
+  z-index: -1;
+}
+
+.teachers-table-container .empty-icon i {
+  font-size: 3rem;
+  color: #fff;
+  opacity: 1;
+}
+
+.teachers-table-container .empty-state h5 {
+  margin: 0 0 12px;
+  font-weight: 700;
+  font-size: 1.6rem;
+  color: #2c3e50;
+}
+
+.teachers-table-container .empty-state p {
+  margin: 0 0 30px;
+  color: #6c7a89;
+  font-size: 1.05rem;
+  max-width: 350px;
+  margin-left: auto;
+  margin-right: auto;
+  opacity: 1;
+}
+
+.teachers-table-container .empty-state .btn-add-teacher {
+  background: #3a92bd;
+  color: #fff;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(58, 146, 189, 0.3);
+}
+
+.teachers-table-container .empty-state .btn-add-teacher:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(58, 146, 189, 0.4);
+}
+
+.teachers-table-container .empty-state .btn-add-teacher i {
+  font-size: 1rem;
+  color: #fff;
+}
+
+/* ========================================
+   MODAL STYLES
+   ======================================== */
+
+.teacher-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 20px;
+}
+
+.teacher-modal-overlay.active {
+  display: flex;
+}
+
+.teacher-modal {
+  background: var(--admin-card-light);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalSlideIn 0.3s ease;
+  border: 1px solid var(--admin-border-light);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+
+.teacher-modal.view-modal {
+  max-width: 700px;
+}
+
+.teacher-modal.delete-modal {
+  max-width: 450px;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.teacher-modal-header {
+  padding: 24px;
+  border-bottom: 1px solid var(--admin-border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #3a92bd;
+  color: white;
+  border-radius: 20px 20px 0 0;
+}
+
+.teacher-modal-header.delete-header {
+  background: #ef4444;
+}
+
+.teacher-modal-header h5 {
+  margin: 0;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.2rem;
+}
+
+.teacher-modal-close {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.teacher-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.teacher-modal-body {
+  padding: 24px;
+}
+
+/* ========================================
+   PROFILE PICTURE UPLOAD STYLES
+   ======================================== */
+
+.profile-upload-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--admin-border-light);
+}
+
+.profile-preview-container {
+  position: relative;
+  width: 240px;
+  height: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profile-preview {
+  width: 100%;
+  height: 100%;
+  background: #e0e7ef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 2rem;
+  transition: all 0.3s ease;
+  border: 2px dashed #cbd5e1;
+}
+
+.profile-preview.has-image {
+  background: none;
+  border: none;
+}
+
+.profile-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.upload-placeholder-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.profile-upload-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(58, 146, 189, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.profile-upload-overlay i {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.profile-upload-overlay span {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.profile-preview-container:hover .profile-upload-overlay {
+  opacity: 1;
+}
+
+.profile-upload-hint {
+  margin-top: 12px;
+  font-size: 0.875rem;
+  color: var(--admin-text-light);
+  opacity: 0.7;
+}
+
+.profile-upload-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-remove-photo {
+  padding: 6px 12px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-remove-photo:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+}
+
+/* ========================================
+   IMAGE CROPPER MODAL - NEW DESIGN
+   ======================================== */
+
+/* Cropper Modal Overlay */
+.cropper-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  padding: 20px;
+}
+
+.cropper-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Cropper Modal Content */
+.cropper-modal-overlay .cropper-modal-content {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+  transform: scale(0.9) translateY(20px);
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.cropper-modal-overlay.active .cropper-modal-content {
+  transform: scale(1) translateY(0);
+}
+
+/* Cropper Modal Header */
+.cropper-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  background: #3a92bd;
+  color: white;
+}
+
+.cropper-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.cropper-modal-title i {
+  font-size: 1.3rem;
+}
+
+.cropper-modal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.cropper-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* Cropper Modal Body */
+.cropper-modal-body {
+  padding: 24px;
+  background: #f8fafc;
+  flex: 1;
+  overflow: auto;
+}
+
+/* Cropper Image Container */
+.cropper-image-container {
+  width: 100%;
+  height: 350px;
+  background: #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.cropper-image-container img {
+  display: block;
+  max-width: 100%;
+}
+
+/* Cropper Toolbar */
+.cropper-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cropper-toolbar-group {
+  display: flex;
+  gap: 8px;
+  background: white;
+  padding: 6px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.cropper-tool-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #64748b;
+  font-size: 1rem;
+}
+
+.cropper-tool-btn:hover {
+  background: #3a92bd;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.cropper-tool-btn:active {
+  transform: translateY(0);
+}
+
+/* Cropper Modal Footer */
+.cropper-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+}
+
+.cropper-cancel-btn {
+  padding: 12px 24px;
+  border: 2px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.cropper-cancel-btn:hover {
+  border-color: #94a3b8;
+  color: #334155;
+}
+
+.cropper-apply-btn {
+  padding: 12px 28px;
+  border: none;
+  background: #3a92bd;
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(58, 146, 189, 0.3);
+}
+
+.cropper-apply-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(58, 146, 189, 0.4);
+}
+
+.cropper-apply-btn:active {
+  transform: translateY(0);
+}
+
+/* Cropper.js Library Overrides */
+.cropper-view-box,
+.cropper-face {
+  border-radius: 8px !important;
+}
+
+.cropper-view-box {
+  outline: 3px solid #3a92bd !important;
+  outline-offset: 0 !important;
+}
+
+.cropper-line {
+  background-color: #3a92bd !important;
+}
+
+.cropper-point {
+  background-color: #3a92bd !important;
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+}
+
+.cropper-point.point-se {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.cropper-dashed {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Fix cropper modal background - prevent dark overlay inside cropper */
+.cropper-modal {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.cropper-bg {
+  background-image: none !important;
+  background-color: #1e293b !important;
+}
+
+/* Dark Mode Cropper Modal */
+.dark-theme .cropper-modal-overlay .cropper-modal-content {
+  background: #1e293b;
+}
+
+.dark-theme .cropper-modal-header {
+  background: #0c5374;
+}
+
+.dark-theme .cropper-modal-body {
+  background: #0f172a;
+}
+
+.dark-theme .cropper-image-container {
+  background: #1e293b;
+}
+
+.dark-theme .cropper-toolbar-group {
+  background: #1e293b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme .cropper-tool-btn {
+  color: #94a3b8;
+}
+
+.dark-theme .cropper-tool-btn:hover {
+  background: #5ba9d1;
+  color: white;
+}
+
+.dark-theme .cropper-modal-footer {
+  background: #1e293b;
+  border-top-color: #334155;
+}
+
+.dark-theme .cropper-cancel-btn {
+  background: #334155;
+  border-color: #475569;
+  color: #94a3b8;
+}
+
+.dark-theme .cropper-cancel-btn:hover {
+  border-color: #5ba9d1;
+  color: #f1f5f9;
+}
+
+.dark-theme .cropper-apply-btn {
+  background: #5ba9d1;
+}
+
+/* Responsive Cropper Modal */
+@media (max-width: 640px) {
+  .cropper-modal-overlay {
+    padding: 10px;
+  }
+  
+  .cropper-modal-overlay .cropper-modal-content {
+    max-height: 95vh;
+  }
+  
+  .cropper-image-container {
+    height: 280px;
+  }
+  
+  .cropper-toolbar-group {
+    padding: 4px;
+  }
+  
+  .cropper-tool-btn {
+    width: 38px;
+    height: 38px;
+  }
+  
+  .cropper-modal-footer {
+    flex-direction: column;
+  }
+  
+  .cropper-cancel-btn,
+  .cropper-apply-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.teacher-modal-footer {
+  padding: 20px 24px;
+  border-top: 1px solid var(--admin-border-light);
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.teacher-modal-footer.delete-footer {
+  justify-content: center;
+}
+
+/* ========================================
+   DELETE MODAL STYLES
+   ======================================== */
+
+.delete-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-icon-wrapper i {
+  font-size: 2.5rem;
+  color: #ef4444;
+  opacity: 0.8;
+}
+
+.delete-title {
+  color: var(--admin-text-light);
+  font-weight: 700;
+  font-size: 1.3rem;
+  margin: 0 0 12px;
+}
+
+.delete-message {
+  color: var(--admin-text-light);
+  opacity: 0.7;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.delete-message strong {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+/* Text alignment helper */
+.text-center {
+  text-align: center;
+}
+
+/* ========================================
+   FORM STYLES
+   ======================================== */
+
+.form-group {
+  margin-bottom: 0;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--admin-text-light);
+  font-size: 0.9rem;
+}
+
+.form-label i {
+  margin-right: 6px;
+  color: #3a92bd;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--admin-border-light);
+  border-radius: 10px;
+  background: var(--admin-card-light);
+  color: var(--admin-text-light);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #3a92bd;
+  box-shadow: 0 0 0 4px rgba(58, 146, 189, 0.15);
+}
+
+.form-control::placeholder {
+  color: var(--admin-text-light);
+  opacity: 0.5;
+}
+
+.form-text {
+  font-size: 0.8rem;
+  color: var(--admin-text-light);
+  opacity: 0.6;
+  margin-top: 6px;
+}
+
+/* Phone Input Group */
+.phone-input-group {
+  display: flex;
+  gap: 10px;
+}
+
+.country-code-selector {
+  flex-shrink: 0;
+}
+
+.country-select {
+  padding: 12px 16px;
+  border: 2px solid var(--admin-border-light);
+  border-radius: 10px;
+  background: var(--admin-card-light);
+  color: var(--admin-text-light);
+  font-size: 1rem;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.country-select:focus {
+  outline: none;
+  border-color: #3a92bd;
+}
+
+.phone-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid var(--admin-border-light);
+  border-radius: 10px;
+  background: var(--admin-card-light);
+  color: var(--admin-text-light);
+  font-size: 1rem;
+}
+
+.phone-input:focus {
+  outline: none;
+  border-color: #3a92bd;
+  box-shadow: 0 0 0 4px rgba(58, 146, 189, 0.15);
+}
+
+/* Status Switch */
+.status-switch-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(58, 146, 189, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(58, 146, 189, 0.1);
+}
+
+.status-switch {
+  position: relative;
+  width: 56px;
+  height: 28px;
+}
+
+.status-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.status-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #cbd5e1;
+  transition: all 0.3s ease;
+  border-radius: 28px;
+}
+
+.status-slider::before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  transition: all 0.3s ease;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.status-switch input:checked + .status-slider {
+  background: #3a92bd;
+}
+
+.status-switch input:checked + .status-slider::before {
+  transform: translateX(28px);
+}
+
+.status-switch-label strong {
+  display: block;
+  color: var(--admin-text-light);
+  margin-bottom: 2px;
+}
+
+.status-switch-label span {
+  font-size: 0.85rem;
+  color: var(--admin-text-light);
+  opacity: 0.6;
+}
+
+/* ========================================
+   MODAL BUTTONS
+   ======================================== */
+
+.btn-modal {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  border: none;
+}
+
+.btn-modal-primary {
+  background: #3a92bd;
+  color: white;
+}
+
+.btn-modal-primary:hover {
+  background: #0c5374;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
+}
+
+.btn-modal-secondary {
+  background: var(--admin-card-light);
+  color: var(--admin-text-light);
+  border: 2px solid var(--admin-border-light);
+}
+
+.btn-modal-secondary:hover {
+  background: var(--admin-bg-light);
+  border-color: #3a92bd;
+  color: #3a92bd;
+}
+
+.btn-modal-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-modal-danger:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* ========================================
+   VIEW TEACHER MODAL
+   ======================================== */
+
+.view-teacher-header {
+  text-align: center;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--admin-border-light);
+  margin-bottom: 24px;
+}
+
+/* Cover Photo for View Modal */
+.view-teacher-cover {
+  width: 100%;
+  height: 180px;
+  margin-bottom: 20px;
+  background: #e0e7ef;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-teacher-cover.has-image {
+  background: none;
+}
+
+.view-teacher-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.view-teacher-initials {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #3a92bd;
+  background: rgba(58, 146, 189, 0.1);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Keep legacy avatar styles for backwards compatibility */
+.view-teacher-avatar {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 16px;
+  background: #3a92bd;
+  color: white;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 800;
+  box-shadow: 0 10px 30px rgba(58, 146, 189, 0.3);
+  overflow: hidden;
+}
+
+.view-teacher-avatar.has-image {
+  background: none;
+}
+
+.view-teacher-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.view-teacher-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--admin-text-light);
+  margin: 0 0 8px;
+}
+
+.teacher-code-large {
+  display: inline-block;
+  padding: 8px 16px;
+  background: rgba(58, 146, 189, 0.1);
+  color: #3a92bd;
+  border-radius: 8px;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+}
+
+.view-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.view-info-item {
+  padding: 16px;
+  background: rgba(58, 146, 189, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(58, 146, 189, 0.1);
+}
+
+.view-info-item.full-width {
+  grid-column: span 2;
+}
+
+.view-info-item label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #3a92bd;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.view-info-item p {
+  margin: 0;
+  color: var(--admin-text-light);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* ========================================
+   RESPONSIVE STYLES
+   ======================================== */
+
+@media (max-width: 768px) {
+  .page-header-top {
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  
+  .admin-analytics-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .filters-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .table-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .teacher-modal {
+    max-width: 100%;
+    margin: 10px;
+    max-height: 95vh;
+  }
+  
+  .view-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .view-info-item.full-width {
+    grid-column: span 1;
+  }
+  
+  .phone-input-group {
+    flex-direction: column;
+  }
+  
+  .teacher-actions {
+    flex-wrap: wrap;
+  }
+}
+
+/* ========================================
+   DARK THEME STYLES
+   ======================================== */
+
+/* Page Container */
+.dark-theme .admin-teachers-container {
+  background: var(--admin-bg-dark);
+}
+
+/* Page Header */
+.dark-theme .teachers-page-header {
+  background: var(--admin-card-dark);
+  border-color: var(--admin-border-dark);
+}
+
+.dark-theme .page-title {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .page-subtitle {
+  color: var(--admin-text-dark);
+}
+
+/* Analytics Cards */
+.dark-theme .admin-analytics-card {
+  background: var(--admin-card-dark);
+  border-color: var(--admin-border-dark);
+}
+
+.dark-theme .analytics-number {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .analytics-label {
+  color: var(--admin-text-dark);
+}
+
+/* Filters Section */
+.dark-theme .filters-section {
+  background: var(--admin-card-dark);
+  border-color: var(--admin-border-dark);
+}
+
+.dark-theme .filters-header {
+  border-bottom-color: var(--admin-border-dark);
+}
+
+.dark-theme .filters-title {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .filters-toggle {
+  border-color: var(--admin-border-dark);
+  color: var(--admin-text-dark);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dark-theme .filter-label {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .filter-control {
+  background: var(--admin-bg-dark);
+  border-color: var(--admin-border-dark);
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .filter-control:focus {
+  border-color: #3a92bd;
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.2);
+}
+
+.dark-theme .filter-control option {
+  background: var(--admin-card-dark);
+  color: var(--admin-text-dark);
+}
+
+/* Table Container */
+.dark-theme .teachers-table-container {
+  background: var(--admin-card-dark);
+  border-color: var(--admin-border-dark);
+}
+
+.dark-theme .table-header {
+  background: var(--admin-card-dark);
+  border-bottom-color: var(--admin-border-dark);
+}
+
+.dark-theme .table-title {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .results-count {
+  color: var(--admin-text-dark);
+}
+
+/* Table Scrollbar */
+.dark-theme .table-overflow::-webkit-scrollbar-track {
+  background: var(--admin-bg-dark);
+}
+
+.dark-theme .table-overflow::-webkit-scrollbar-thumb {
+  background: var(--admin-border-dark);
+}
+
+/* Table */
+.dark-theme .teachers-table th {
+  background: var(--admin-card-dark);
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .teachers-table td {
+  border-bottom-color: var(--admin-border-dark);
+}
+
+.dark-theme .teachers-table tbody tr:nth-child(even) {
+  background: rgba(58, 146, 189, 0.03);
+}
+
+.dark-theme .teachers-table tbody tr:hover {
+  background: rgba(58, 146, 189, 0.1);
+}
+
+/* Teacher Profile */
+.dark-theme .teacher-name {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .teacher-email {
+  color: var(--admin-text-dark);
+}
+
+/* Badges */
+.dark-theme .code-badge {
+  background: rgba(58, 146, 189, 0.1);
+  border-color: #3a92bd;
+  color: #5ba9d1;
+}
+
+.dark-theme .phone-badge {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .no-data {
+  color: var(--admin-text-dark);
+}
+
+/* Date Cell */
+.dark-theme .date-main {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .date-sub {
+  color: var(--admin-text-dark);
+}
+
+/* Action Buttons */
+.dark-theme .action-btn-sm {
+  color: var(--admin-text-dark);
+}
+
+/* Empty State */
+.dark-theme .teachers-table-container .empty-state {
+  background: rgba(58, 146, 189, 0.05);
+}
+
+.dark-theme .teachers-table-container .empty-state h5 {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .teachers-table-container .empty-state p {
+  color: #94a3b8;
+}
+
+/* Modals */
+.dark-theme .teacher-modal-overlay {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.dark-theme .teacher-modal {
+  background: var(--admin-card-dark);
+  border-color: var(--admin-border-dark);
+}
+
+.dark-theme .teacher-modal-header {
+  background: #0c5374;
+  border-bottom-color: var(--admin-border-dark);
+}
+
+.dark-theme .teacher-modal-header h5 {
+  color: #fff;
+}
+
+.dark-theme .teacher-modal-close {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.dark-theme .teacher-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.dark-theme .teacher-modal-body {
+  background: var(--admin-card-dark);
+}
+
+/* Form Elements */
+.dark-theme .form-group label {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .form-control {
+  background: var(--admin-bg-dark);
+  border-color: var(--admin-border-dark);
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .form-control:focus {
+  border-color: #3a92bd;
+  box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.2);
+}
+
+.dark-theme .form-control::placeholder {
+  color: #64748b;
+}
+
+.dark-theme .country-code-select {
+  background: var(--admin-bg-dark);
+  border-color: var(--admin-border-dark);
+  color: var(--admin-text-dark);
+}
+
+/* Switch */
+.dark-theme .switch-label {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .switch-track {
+  background: #4b5563;
+}
+
+/* Modal Footer */
+.dark-theme .teacher-modal-footer {
+  background: var(--admin-card-dark);
+  border-top-color: var(--admin-border-dark);
+}
+
+.dark-theme .btn-cancel {
+  background: #374151;
+  border-color: #4b5563;
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .btn-cancel:hover {
+  background: #4b5563;
+}
+
+/* View Modal */
+.dark-theme .view-modal-header {
+  background: #0c5374;
+}
+
+.dark-theme .view-info-grid {
+  background: var(--admin-card-dark);
+}
+
+.dark-theme .view-info-item {
+  background: var(--admin-bg-dark);
+  border-color: var(--admin-border-dark);
+}
+
+.dark-theme .view-info-item label {
+  color: #5ba9d1;
+}
+
+.dark-theme .view-info-item p {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .view-teacher-header {
+  border-bottom-color: var(--admin-border-dark);
+}
+
+.dark-theme .view-teacher-name {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .teacher-code-large {
+  background: rgba(58, 146, 189, 0.15);
+  color: #5ba9d1;
+}
+
+/* Delete Modal */
+.dark-theme .delete-modal-body {
+  background: var(--admin-card-dark);
+}
+
+.dark-theme .delete-title {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .delete-message {
+  color: #94a3b8;
+}
+
+.dark-theme .delete-message strong {
+  color: #f87171;
+}
+
+.dark-theme .delete-icon-wrapper {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.dark-theme .delete-modal-body h4 {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .delete-modal-body p {
+  color: #94a3b8;
+}
+
+.dark-theme .delete-warning {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.dark-theme .btn-modal-secondary {
+  background: #374151;
+  border-color: #4b5563;
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .btn-modal-secondary:hover {
+  background: #4b5563;
+  border-color: #5ba9d1;
+  color: #5ba9d1;
+}
+
+.dark-theme .teacher-name-highlight {
+  color: #f87171;
+}
+
+.dark-theme .delete-modal-footer {
+  background: var(--admin-card-dark);
+  border-top-color: var(--admin-border-dark);
+}
+
+/* ========================================
+   DARK MODE - PROFILE UPLOAD
+   ======================================== */
+
+.dark-theme .profile-upload-section {
+  border-bottom-color: var(--admin-border-dark);
+}
+
+.dark-theme .profile-upload-hint {
+  color: var(--admin-text-dark);
+}
+
+.dark-theme .btn-remove-photo {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.dark-theme .btn-remove-photo:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #f87171;
+}
+
+/* Dark mode for cover photo elements */
+.dark-theme .profile-preview {
+  background: #1e293b;
+  border-color: #334155;
+  color: #64748b;
+}
+
+.dark-theme .upload-placeholder-text {
+  color: #64748b;
+}
+
+.dark-theme .view-teacher-cover {
+  background: #1e293b;
+}
+
+.dark-theme .view-teacher-initials {
+  color: #5ba9d1;
+  background: rgba(91, 169, 209, 0.1);
+}

@@ -113,6 +113,12 @@ const AdminLogSchema = new mongoose.Schema(
         'DELETE_TEAM_MEMBER',
         'REORDER_TEAM_MEMBERS',
         
+        // Teacher Management
+        'CREATE_TEACHER',
+        'UPDATE_TEACHER',
+        'DELETE_TEACHER',
+        'TOGGLE_TEACHER_STATUS',
+        
         // Game Room Actions
         'CREATE_GAME_ROOM',
         'UPDATE_GAME_ROOM',
@@ -136,6 +142,11 @@ const AdminLogSchema = new mongoose.Schema(
         'EXPORT_ORDERS',
         'EXPORT_QUIZZES',
         'EXPORT_COMPREHENSIVE_REPORT',
+        
+        // Exam Period Actions
+        'CREATE_EXAM_PERIOD',
+        'UPDATE_EXAM_PERIOD',
+        'DELETE_EXAM_PERIOD',
         
         // Other Actions
         'CLEANUP_DUPLICATES',
@@ -161,6 +172,7 @@ const AdminLogSchema = new mongoose.Schema(
         'ADMIN_MANAGEMENT',
         'PROMO_CODE_MANAGEMENT',
         'TEAM_MANAGEMENT',
+        'TEACHER_MANAGEMENT',
         'GAME_ROOM_MANAGEMENT',
         'ZOOM_MANAGEMENT',
         'COMMUNICATION',
@@ -189,6 +201,8 @@ const AdminLogSchema = new mongoose.Schema(
         'PromoCode',
         'BrilliantStudent',
         'TeamMember',
+        'Teacher',
+        'ExamPeriod',
         'GameRoom',
         'ZoomMeeting',
         'Multiple',

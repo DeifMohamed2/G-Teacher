@@ -1,12 +1,12 @@
 <style>
-  /* Custom text selection color - Red background */
+  /* Custom text selection color - Blue background for G-Teacher branding */
   ::selection {
-    background-color: #cb0000;
+    background-color: #3a92bd;
     color: #ffffff;
   }
-  
+
   ::-moz-selection {
-    background-color: #cd0000;
+    background-color: #3a92bd;
     color: #ffffff;
   }
 </style>
@@ -15,64 +15,63 @@
   <div class="admin-sidebar-header">
     <div class="admin-logo">
       <div class="admin-logo-icon">
-        <img src="/images/K.png" alt="ELKABLY Logo" class="admin-logo-image">
+        <img src="/images/G-TeacherLogo.png" alt="G-Teacher Logo" class="admin-logo-image">
       </div>
-      <h3 class="admin-logo-text">ELKABLY</h3>
+      <h3 class="admin-logo-text">G-Teacher</h3>
     </div>
   </div>
 
   <nav class="admin-sidebar-nav">
-    <a href="/admin/dashboard" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>">
+    <a href="/admin/dashboard"
+      class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>">
       <i class="fas fa-tachometer-alt admin-nav-icon"></i>
       Dashboard
     </a>
 
-    <a href="/admin/students" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'students' ? 'active' : '' %>">
+    <a href="/admin/students"
+      class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'students' ? 'active' : '' %>">
       <i class="fas fa-users admin-nav-icon"></i>
       Students
     </a>
 
-    <a href="/admin/courses" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'courses' ? 'active' : '' %>">
+    <a href="/admin/courses"
+      class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'courses' ? 'active' : '' %>">
       <i class="fas fa-book admin-nav-icon"></i>
       Courses
     </a>
 
-    <a href="/admin/orders" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'orders' ? 'active' : '' %>">
+    <a href="/admin/teachers"
+      class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'teachers' ? 'active' : '' %>">
+      <i class="fas fa-chalkboard-teacher admin-nav-icon"></i>
+      Teachers
+    </a>
+
+    <a href="/admin/orders"
+      class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'orders' ? 'active' : '' %>">
       <i class="fas fa-receipt admin-nav-icon"></i>
       Orders
     </a>
 
-    <a href="/admin/book-orders" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'book-orders' ? 'active' : '' %>">
-      <i class="fas fa-book admin-nav-icon"></i>
-      Book Orders
-    </a>
-
-    <a href="/admin/promo-codes" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'promo-codes' ? 'active' : '' %>">
+    <a href="/admin/promo-codes"
+      class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'promo-codes' ? 'active' : '' %>">
       <i class="fas fa-ticket-alt admin-nav-icon"></i>
       Promo Codes
     </a>
 
-    <a href="/admin/brilliant-students" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'brilliant-students' ? 'active' : '' %>">
-      <i class="fas fa-trophy admin-nav-icon"></i>
-      Brilliant Students
-    </a>
-
-    <a href="/admin/team-management" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'team-management' ? 'active' : '' %>">
-      <i class="fas fa-users admin-nav-icon"></i>
-      Team Management
-    </a>
-
-    <a href="/admin/whatsapp" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'whatsapp' ? 'active' : '' %>">
+    <a href="/admin/whatsapp"
+      class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'whatsapp' ? 'active' : '' %>">
       <i class="fab fa-whatsapp admin-nav-icon"></i>
       WhatsApp
     </a>
 
-    <a href="/admin/bulk-sms" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'bulk-sms' ? 'active' : '' %>">
+    <a href="/admin/bulk-sms"
+      class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'bulk-sms' ? 'active' : '' %>">
       <i class="fas fa-sms admin-nav-icon"></i>
       Bulk SMS
     </a>
 
-    <a href="/admin/otp-master" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'otp-master' ? 'active' : '' %>">
+    <a href="/admin/otp-master"
+      class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'otp-master' ? 'active' : '' %>">
       <i class="fas fa-key admin-nav-icon"></i>
       OTP Master
     </a>
@@ -94,24 +93,26 @@
      -->
     <div class="admin-nav-divider"></div>
 
-    <% const adminUser = typeof admin !== 'undefined' ? admin : (typeof user !== 'undefined' ? user : null); %>
-    <% if (adminUser && adminUser.role === 'superAdmin') { %>
-    <a href="/admin/logs" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'admin-logs' ? 'active' : '' %>">
-      <i class="fas fa-history admin-nav-icon"></i>
-      Admin Logs
-      <span class="badge bg-danger ms-2">Super Admin</span>
-    </a>
-    <% } %>
+    <% const adminUser=typeof admin !=='undefined' ? admin : (typeof user !=='undefined' ? user : null); %>
+      <% if (adminUser && adminUser.role==='superAdmin' ) { %>
+        <a href="/admin/logs"
+          class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'admin-logs' ? 'active' : '' %>">
+          <i class="fas fa-history admin-nav-icon"></i>
+          Admin Logs
+          <span class="badge bg-primary ms-2">Super Admin</span>
+        </a>
+        <% } %>
 
-    <a href="/admin/create-admin" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'create-admin' ? 'active' : '' %>">
-      <i class="fas fa-user-plus admin-nav-icon"></i>
-      Create Admin
-    </a>
+          <a href="/admin/create-admin"
+            class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'create-admin' ? 'active' : '' %>">
+            <i class="fas fa-user-plus admin-nav-icon"></i>
+            Create Admin
+          </a>
 
-    <a href="/auth/logout" class="admin-nav-item">
-      <i class="fas fa-sign-out-alt admin-nav-icon"></i>
-      Logout
-    </a>
+          <a href="/auth/logout" class="admin-nav-item">
+            <i class="fas fa-sign-out-alt admin-nav-icon"></i>
+            Logout
+          </a>
   </nav>
 
 </aside>

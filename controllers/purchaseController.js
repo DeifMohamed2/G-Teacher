@@ -3,7 +3,7 @@ const User = require('../models/User');
 const Teacher = require('../models/Teacher');
 const Course = require('../models/Course');
 const PromoCode = require('../models/PromoCode');
-const BookOrder = require('../models/BookOrder');
+// BookOrder model removed - feature deprecated
 const crypto = require('crypto');
 const paymobService = require('../utils/paymobService');
 const whatsappSMSNotificationService = require('../utils/whatsappSMSNotificationService');
@@ -96,19 +96,7 @@ async function processSuccessfulPayment(purchase, req = null) {
     // Use the updated purchase for rest of processing
     const purchaseToProcess = updatedPurchase;
 
-    // Update book orders status to 'processing' when payment is completed
-    if (purchaseToProcess.bookOrders && purchaseToProcess.bookOrders.length > 0) {
-      await BookOrder.updateMany(
-        { _id: { $in: purchaseToProcess.bookOrders } },
-        { 
-          status: 'processing',
-          $unset: { cancelledAt: '' } // Remove cancelledAt if it exists
-        }
-      );
-      console.log(
-        `📚 Updated ${purchaseToProcess.bookOrders.length} book order(s) to 'processing' status`
-      );
-    }
+    // Book orders feature removed - skipping book order processing
 
     console.log(
       `✅ Processing successful payment for order: ${purchaseToProcess.orderNumber}`
@@ -188,27 +176,7 @@ async function processSuccessfulPayment(purchase, req = null) {
       }
     }
 
-    // Send library notification for book orders if they exist
-    if (purchaseToProcess.bookOrders && purchaseToProcess.bookOrders.length > 0) {
-      try {
-        console.log(
-          `📚 Initiating library notification for book orders: ${purchaseToProcess.orderNumber}`
-        );
-
-        const libraryResult = await sendLibraryBookOrderNotification(
-          purchaseToProcess.bookOrders,
-          user
-        );
-        if (libraryResult.success) {
-          console.log(`✅ Library notification completed successfully`);
-        } else {
-          console.log(`⚠️ Library notification result:`, libraryResult.message);
-        }
-      } catch (libraryError) {
-        console.error(`❌ Library notification error:`, libraryError);
-        // Don't fail the payment if library notification fails
-      }
-    }
+    // Book orders feature removed - library notification skipped
 
     // Clear cart and book-only purchase session after payment is confirmed completed
     if (req && req.session) {
@@ -259,16 +227,7 @@ async function processFailedPayment(purchase, failureReason, paymentGatewayRespo
     freshPurchase.paymentGatewayResponse = paymentGatewayResponse;
     await freshPurchase.save();
 
-    // Cancel any book orders associated with this failed purchase
-    if (freshPurchase.bookOrders && freshPurchase.bookOrders.length > 0) {
-      await BookOrder.updateMany(
-        { _id: { $in: freshPurchase.bookOrders } },
-        { status: 'cancelled' }
-      );
-      console.log(
-        `📚 Cancelled ${freshPurchase.bookOrders.length} book order(s) for failed payment`
-      );
-    }
+    // Book orders feature removed - skipping book order cancellation
 
     console.log('💾 Failed purchase saved:', {
       orderNumber: freshPurchase.orderNumber,
@@ -285,247 +244,7 @@ async function processFailedPayment(purchase, failureReason, paymentGatewayRespo
   }
 }
 
-// Helper function to send WhatsApp notification to library for book orders
-// Accepts book order IDs (string or ObjectId array)
-// Sends notification directly without any tracking - called only on payment confirmation
-async function sendLibraryBookOrderNotification(bookOrderIds, user) {
-  try {
-    console.log('\n📚 ========== LIBRARY NOTIFICATION ==========');
-    console.log('📚 Book order IDs:', bookOrderIds);
-    
-    if (!bookOrderIds || bookOrderIds.length === 0) {
-      console.log('❌ No book order IDs provided');
-      return { success: false, message: 'No book orders to notify' };
-    }
-
-    // Convert to array if single ID
-    const idsArray = Array.isArray(bookOrderIds) ? bookOrderIds : [bookOrderIds];
-    
-    // Convert all to strings for consistency
-    const cleanIds = idsArray.map(id => {
-      if (typeof id === 'string') return id;
-      if (id._id) return id._id.toString();
-      return id.toString();
-    });
-    
-    console.log('📚 Cleaned IDs:', cleanIds);
-    
-    // Fetch BookOrder documents from database
-    const BookOrder = require('../models/BookOrder');
-    const bookOrders = await BookOrder.find({ _id: { $in: cleanIds } })
-      .populate('teacher', 'firstName lastName teacherCode');
-    
-    console.log(`📚 Found ${bookOrders.length} book orders in database`);
-    
-    if (bookOrders.length === 0) {
-      console.log('❌ No book orders found in database');
-      return { success: false, message: 'Book orders not found' };
-    }
-    
-    const firstBookOrder = bookOrders[0];
-    
-    // Check if library notification was already sent for this purchase
-    const Purchase = require('../models/Purchase');
-    const purchase = await Purchase.findById(firstBookOrder.purchase);
-    
-    if (purchase && purchase.libraryNotificationSent) {
-      console.log('⚠️ Library notification already sent for this purchase:', purchase.orderNumber);
-      console.log('📚 Notification was sent at:', purchase.libraryNotificationSentAt);
-      return { 
-        success: true, 
-        message: 'Library notification already sent', 
-        alreadySent: true,
-        sentAt: purchase.libraryNotificationSentAt
-      };
-    }
-    
-    // Validate shipping address
-    if (!firstBookOrder.shippingAddress) {
-      console.error('❌ Book order missing shippingAddress:', firstBookOrder._id);
-      return { success: false, message: 'Book order missing shipping address' };
-    }
-    
-    console.log('✓ Shipping address validated');
-
-    // Get WhatsApp session API key
-    const SESSION_API_KEY = process.env.WASENDER_SESSION_API_KEY || process.env.WHATSAPP_SESSION_API_KEY || '';
-    if (!SESSION_API_KEY) {
-      console.error('❌ WhatsApp session API key not configured');
-      return { success: false, message: 'WhatsApp session API key not configured' };
-    }
-    console.log('✓ API key found');
-
-    // Determine library phone number based on country
-    const country = firstBookOrder.shippingAddress?.country || '';
-    console.log(`📚 Shipping country: ${country}`);
-    const isEgypt = country.toLowerCase().includes('egypt') || country.toLowerCase().includes('مصر') || country === 'EG' || country === 'Egypt';
-    console.log(`📚 Is Egypt: ${isEgypt}`);
-    
-    // Library phone numbers - Both Egypt and International use same number
-        // Library phone numbers (local Egyptian format, will be converted to international format)
-    const egyptLibraryPhone = '01023680795'; // Egypt library
-    const internationalLibraryPhone = '01026652507'; // International library
-    const libraryPhone = isEgypt ? egyptLibraryPhone : internationalLibraryPhone;
-
-    // Format phone number for WhatsApp
-    const formatPhoneForWhatsApp = (phone) => {
-      const cleaned = phone.replace(/\D/g, '');
-      if (cleaned.startsWith('0')) {
-        return `20${cleaned.substring(1)}`;
-      }
-      if (!cleaned.startsWith('20') && !cleaned.startsWith('+')) {
-        return `20${cleaned}`;
-      }
-      return cleaned.replace(/^\+/, '');
-    };
-
-    const formattedLibraryPhone = formatPhoneForWhatsApp(libraryPhone);
-    const libraryJid = `${formattedLibraryPhone}@s.whatsapp.net`;
-    console.log(`📚 Library WhatsApp JID: ${libraryJid}`);
-
-    // Helper function to format phone number with country code
-    const formatPhoneNumber = (countryCode, phoneNumber) => {
-      if (!phoneNumber || phoneNumber === 'N/A') return 'N/A';
-      if (!countryCode) return phoneNumber;
-      // Ensure country code has + sign
-      const code = countryCode.startsWith('+') ? countryCode : `+${countryCode}`;
-      return `${code}${phoneNumber}`;
-    };
-
-    // Build WhatsApp message
-    let message = '📚 *طلب جديد*\n\n';
-    message += '═══════════════════\n\n';
-    
-    // Add order details for each book
-    for (let i = 0; i < bookOrders.length; i++) {
-      const bookOrder = bookOrders[i];
-      message += `*رقم الطلب:* ${bookOrder.orderNumber || 'N/A'}\n`;
-      message += `*معرف الطلب:* ${bookOrder._id}\n`;
-      message += `*اسم الكتاب:* ${bookOrder.bookName || 'N/A'}\n`;
-      message += `*اسم الكورس:* ${bookOrder.bundle?.title || 'N/A'}\n`;
-      message += `*سعر الكتاب:* ${bookOrder.bookPrice || 0} جنيه\n`;
-      if (i < bookOrders.length - 1) {
-        message += '\n';
-      }
-    }
-
-    message += '\n';
-
-    // Add shipping address
-    if (firstBookOrder.shippingAddress) {
-      const address = firstBookOrder.shippingAddress;
-      message += '*عنوان الشحن:*\n';
-      message += `*الاسم:* ${(address.firstName || '').trim()} ${(address.lastName || '').trim()}\n`;
-      message += `*البريد الإلكتروني:* ${address.email || 'N/A'}\n`;
-      message += `*رقم الهاتف:* ${address.phone || 'N/A'}\n`;
-      
-      // Street address details
-      if (address.streetName) {
-        message += `*اسم الشارع:* ${address.streetName.trim()}\n`;
-      }
-      if (address.buildingNumber) {
-        message += `*رقم المبنى:* ${address.buildingNumber}\n`;
-      }
-      if (address.apartmentNumber) {
-        message += `*رقم الشقة:* ${address.apartmentNumber}\n`;
-      }
-      
-      // Governorate (if exists)
-      if (address.governorate) {
-        message += `*المحافظة:* ${address.governorate}\n`;
-      }
-      
-      // Zone/City (use city field, not state)
-      if (address.city) {
-        message += `*المنطقة:* ${address.city}\n`;
-      }
-      message += `*البلد:* ${address.country || 'N/A'}\n`;
-      // if (address.zipCode) {
-      //   message += `*الرمز البريدي:* ${address.zipCode}\n`;
-      // }
-      
-      // Location on map with Google Maps link
-      if (address.location && (address.location.link || (address.location.lat && address.location.lng))) {
-        const mapsLink = address.location.link || `https://www.google.com/maps?q=${address.location.lat},${address.location.lng}`;
-        message += `\n*📍 موقع التوصيل:* ${mapsLink}\n`;
-      }
-      
-      message += '\n';
-    }
-
-    // Add student and parent contact info
-    if (user) {
-      message += '*معلومات الطالب والوالد:*\n';
-      message += `*اسم الطالب:* ${(user.firstName || '').trim()} ${(user.lastName || '').trim()}\n`;
-      const studentPhone = formatPhoneNumber(user.studentCountryCode, user.studentNumber);
-      message += `*رقم هاتف الطالب:* ${studentPhone}\n`;
-      const parentPhone = formatPhoneNumber(user.parentCountryCode, user.parentNumber);
-      message += `*رقم هاتف الوالد:* ${parentPhone}\n`;
-    }
-
-    message += '═══════════════════\n';
-    // Format date in Arabic
-    const date = new Date();
-    const arabicMonths = [
-      'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-      'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
-    ];
-    const day = date.getDate();
-    const month = arabicMonths[date.getMonth()];
-    const year = date.getFullYear();
-    const hour = date.getHours();
-    const minute = date.getMinutes();
-    const period = hour >= 12 ? 'م' : 'ص';
-    const hour12 = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
-    message += `*التاريخ:* ${day} ${month} ${year} في ${String(hour12).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${period}\n`;
-    
-    console.log('📚 Message built - length:', message.length, 'characters');
-
-    // Send WhatsApp message
-    console.log(`📚 Sending to ${isEgypt ? 'Egypt' : 'International'} Library: ${libraryJid}`);
-    
-    const result = await wasender.sendTextMessage(SESSION_API_KEY, libraryJid, message);
-    
-    console.log('📚 WhatsApp API Response:', JSON.stringify(result, null, 2));
-
-    if (result.success) {
-      // Mark library notification as sent in Purchase document
-      if (purchase) {
-        purchase.libraryNotificationSent = true;
-        purchase.libraryNotificationSentAt = new Date();
-        await purchase.save();
-        console.log('✅ Purchase marked with library notification sent flag');
-      }
-      
-      console.log('✅ Library notification sent successfully!');
-      console.log('📚 ========== END LIBRARY NOTIFICATION (SUCCESS) ==========\n');
-      return { 
-        success: true, 
-        message: 'Library notification sent successfully', 
-        libraryPhone: formattedLibraryPhone,
-        orderCount: bookOrders.length
-      };
-    } else {
-      console.error('❌ WhatsApp API returned failure:', result.message);
-      console.log('📚 ========== END LIBRARY NOTIFICATION (FAILED) ==========\n');
-      return { 
-        success: false, 
-        message: result.message || 'Failed to send library notification',
-        error: result.error
-      };
-    }
-  } catch (error) {
-    console.error('\n❌ ========== LIBRARY NOTIFICATION CRASHED ==========');
-    console.error('❌ Error:', error.message);
-    console.error('❌ Stack:', error.stack);
-    console.error('❌ ========== END ERROR ==========\n');
-    return { 
-      success: false, 
-      message: error.message || 'Error sending library notification',
-      error: error.name
-    };
-  }
-}
+// sendLibraryBookOrderNotification function removed - Book orders feature deprecated
 
 // Helper function to validate course ordering when adding to cart
 // Courses now belong to teachers directly - ordering is based on teacher's courses

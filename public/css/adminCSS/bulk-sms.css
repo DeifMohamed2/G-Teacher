@@ -176,7 +176,7 @@
 }
 
 .count-preview-card {
-    background: linear-gradient(135deg, rgba(58, 146, 189, 0.05), rgba(58, 146, 189, 0.02));
+    background: rgba(58, 146, 189, 0.05);
     border: 2px solid var(--admin-primary);
     border-radius: 12px;
     padding: 20px;
@@ -184,7 +184,7 @@
 }
 
 .dark-theme .count-preview-card {
-    background: linear-gradient(135deg, rgba(58, 146, 189, 0.1), rgba(58, 146, 189, 0.05));
+    background: rgba(58, 146, 189, 0.1);
 }
 
 .count-preview-header {
@@ -253,7 +253,7 @@
 }
 
 .count-item.total {
-    background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+    background: #3a92bd;
     border-color: var(--admin-primary);
     color: white;
 }
@@ -356,7 +356,7 @@
 
 .recipient-option input[type="radio"]:checked+.recipient-option-content {
     border-color: var(--admin-primary);
-    background: linear-gradient(135deg, rgba(58, 146, 189, 0.1), rgba(58, 146, 189, 0.05));
+    background: rgba(58, 146, 189, 0.1);
     box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
@@ -1513,7 +1513,7 @@
 
 .progress-bar-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--admin-primary), #dc2626);
+    background: #3a92bd;
     border-radius: 10px;
     transition: width 0.3s ease;
     animation: progressPulse 1.5s ease-in-out infinite;

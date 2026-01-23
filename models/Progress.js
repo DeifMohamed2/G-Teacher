@@ -23,7 +23,7 @@ const ProgressSchema = new mongoose.Schema(
     },
     contentType: {
       type: String,
-      enum: ['video', 'pdf', 'quiz', 'homework', 'reading', 'assignment', 'link'],
+      enum: ['video', 'pdf', 'reading', 'assignment', 'link'],
       required: false,
     },
     activity: {
@@ -37,13 +37,6 @@ const ProgressSchema = new mongoose.Schema(
         'content_viewed',
         'content_completed',
         'content_failed',
-        'quiz_attempted',
-        'quiz_completed',
-        'quiz_passed',
-        'quiz_failed',
-        'homework_started',
-        'homework_submitted',
-        'homework_graded',
         'assignment_started',
         'assignment_submitted',
         'assignment_graded',
@@ -348,7 +341,7 @@ ProgressSchema.statics.trackContentProgress = async function(studentId, courseId
   }
 
   // For completion activities, check if already completed
-  if (['content_completed', 'quiz_passed', 'homework_submitted', 'assignment_submitted'].includes(activity)) {
+  if (['content_completed', 'assignment_submitted'].includes(activity)) {
     const existingCompletion = await this.findOne({
       student: studentId,
       course: courseId,
@@ -378,9 +371,6 @@ ProgressSchema.statics.trackContentProgress = async function(studentId, courseId
   const pointsMap = {
     'content_viewed': 1,
     'content_completed': 5,
-    'quiz_passed': 10,
-    'quiz_completed': 5,
-    'homework_submitted': 8,
     'assignment_submitted': 15,
     'topic_completed': 20,
     'course_completed': 100
@@ -464,7 +454,7 @@ ProgressSchema.statics.isContentUnlocked = async function(studentId, courseId, c
       student: studentId,
       course: courseId,
       content: { $in: contentData.prerequisites },
-      activity: { $in: ['content_completed', 'quiz_passed', 'homework_submitted', 'assignment_submitted'] },
+      activity: { $in: ['content_completed', 'assignment_submitted'] },
       status: 'completed'
     });
 
@@ -572,9 +562,7 @@ ProgressSchema.statics.updateCourseProgress = async function(studentId, courseId
   // Calculate overall progress
   const totalContent = contentProgress.length;
   const completedContent = contentProgress.filter(p => 
-    p.activities.includes('content_completed') || 
-    p.activities.includes('quiz_passed') ||
-    p.activities.includes('homework_submitted') ||
+    p.activities.includes('content_completed') ||
     p.activities.includes('assignment_submitted')
   ).length;
 
@@ -596,13 +584,6 @@ ProgressSchema.pre('save', function(next) {
   if (this.activity === 'topic_started' || this.activity === 'topic_completed') {
     if (!this.topic) {
       return next(new Error('Topic is required for topic-related activities'));
-    }
-  }
-
-  // Validate quiz-related activities
-  if (this.activity.includes('quiz')) {
-    if (!this.details.score && this.details.score !== 0) {
-      return next(new Error('Score is required for quiz activities'));
     }
   }
 

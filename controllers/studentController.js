@@ -226,7 +226,6 @@ const enrolledCourses = async (req, res) => {
     const enrolledCourses = coursesWithUnlockStatus;
 
     // Get available teachers for filter dropdown (replaces bundles)
-    const BookOrder = require('../models/BookOrder');
     const teacherIds = validEnrollments
       .map((e) => e.course.teacher?._id)
       .filter(Boolean)
@@ -236,36 +235,8 @@ const enrolledCourses = async (req, res) => {
       _id: { $in: teacherIds },
     }).select('_id firstName lastName teacherCode');
 
-    // Get book purchase info for each course (adapted from bundles)
+    // Book orders feature removed - courseBookInfo is now empty
     const courseBookInfo = {};
-    for (const enrollment of validEnrollments) {
-      const course = enrollment.course;
-      if (course && course.hasBook && course.bookPrice > 0) {
-        // Check if student has purchased the course
-        const hasPurchasedCourse = student.purchasedCourses?.some(
-          p => p.course?.toString() === course._id.toString()
-        );
-        
-        if (hasPurchasedCourse) {
-          // Check if student has already ordered the book
-          const hasOrderedBook = await BookOrder.hasUserOrderedBook(
-            studentId,
-            course._id
-          );
-          
-          if (!hasOrderedBook) {
-            courseBookInfo[course._id.toString()] = {
-              courseId: course._id.toString(),
-              courseTitle: course.title,
-              courseCode: course.courseCode,
-              bookName: course.bookName,
-              bookPrice: course.bookPrice,
-              thumbnail: course.thumbnail || '/images/course-placeholder.jpg',
-            };
-          }
-        }
-      }
-    }
 
     res.render('student/enrolled-courses', {
       title: 'My Enrolled Weeks | ELKABLY',
@@ -347,35 +318,8 @@ const courseDetails = async (req, res) => {
       })
     );
 
-    // Check if course has book info (now directly on course instead of bundle)
+    // Book orders feature removed
     let bookPurchaseInfo = null;
-    if (course.hasBook && course.bookPrice > 0) {
-      const BookOrder = require('../models/BookOrder');
-      
-      // Check if student has purchased the course
-      const hasPurchasedCourse = student.purchasedCourses?.some(
-        p => p.course?.toString() === course._id.toString()
-      );
-      
-      if (hasPurchasedCourse) {
-        // Check if student has already ordered the book
-        const hasOrderedBook = await BookOrder.hasUserOrderedBook(
-          studentId,
-          course._id
-        );
-        
-        if (!hasOrderedBook) {
-          bookPurchaseInfo = {
-            courseId: course._id.toString(),
-            courseTitle: course.title,
-            courseCode: course.courseCode,
-            bookName: course.bookName,
-            bookPrice: course.bookPrice,
-            thumbnail: course.thumbnail || '/images/course-placeholder.jpg',
-          };
-        }
-      }
-    }
 
     res.render('student/course-details', {
       title: `${course.title} - Course Details | ELKABLY`,
@@ -548,34 +492,8 @@ const courseContent = async (req, res) => {
     );
 
     // Check if course has book info (now directly on course instead of bundle)
+    // Book orders feature removed
     let bookPurchaseInfo = null;
-    if (course.hasBook && course.bookPrice > 0) {
-      const BookOrder = require('../models/BookOrder');
-      
-      // Check if student has purchased the course
-      const hasPurchasedCourse = student.purchasedCourses?.some(
-        p => p.course?.toString() === course._id.toString()
-      );
-      
-      if (hasPurchasedCourse) {
-        // Check if student has already ordered the book
-        const hasOrderedBook = await BookOrder.hasUserOrderedBook(
-          studentId,
-          course._id
-        );
-        
-        if (!hasOrderedBook) {
-          bookPurchaseInfo = {
-            courseId: course._id.toString(),
-            courseTitle: course.title,
-            courseCode: course.courseCode,
-            bookName: course.bookName,
-            bookPrice: course.bookPrice,
-            thumbnail: course.thumbnail || '/images/course-placeholder.jpg',
-          };
-        }
-      }
-    }
 
     // Get locked content ID from query parameter (if redirected from locked content)
     const lockedContentId = req.query.lockedContent || null;

@@ -1,1167 +1,1793 @@
 <%- include('./partials/admin-header', { pageCSS: 'dashboard' }) %>
 
-<!-- Chart.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Admin Layout -->
-<div class="admin-layout">
-  
-  <!-- Sidebar -->
-  <%- include('./partials/admin-sidebar', { currentPage: 'dashboard', admin: user }) %>
-  
-  <!-- Main Content -->
-  <main class="admin-main">
-    
-    <!-- Top Bar -->
-    <%- include('./partials/admin-topbar', { 
-        breadcrumb: 'Dashboard',
-        breadcrumbSubtitle: 'Platform Overview',
-        showSearch: false
-    }) %>
-    
-    <!-- Content Area -->
-    <div class="admin-content">
-      <div class="admin-dashboard admin-fade-in">
-        
-        <!-- Compact Toast Notification -->
-        <% if (dashboardData.newOrdersCount > 0) { %>
-        <div class="toast-notification" id="newOrdersNotification" data-order-count="<%= dashboardData.newOrdersCount %>">
-          <div class="toast-content">
-            <div class="toast-icon">
-              <i class="fas fa-shopping-cart"></i>
-              <span class="toast-badge"><%= dashboardData.newOrdersCount %></span>
-            </div>
-            <div class="toast-text">
-              <div class="toast-title">
-                <strong><%= dashboardData.newOrdersCount %></strong> New Order<%= dashboardData.newOrdersCount > 1 ? 's' : '' %>
-              </div>
-              <div class="toast-message">Needs your attention</div>
-            </div>
-            <div class="toast-actions">
-              <button class="toast-btn" onclick="viewNewOrders()" title="View Orders">
-                <i class="fas fa-eye"></i>
-              </button>
-              <button class="toast-btn close" onclick="dismissNotification()" title="Dismiss">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-          </div>
-          <div class="toast-progress" id="notificationProgress"></div>
-        </div>
-        <% } %>
+  <!-- Admin Layout -->
+  <div class="admin-layout">
 
-        <!-- Enhanced Premium Dashboard Header -->
-        <div class="admin-dashboard-header">
-          <div class="dashboard-header-content">
-            <div class="dashboard-header-left">
-              <div class="dashboard-title-section">
-                <h1 class="admin-dashboard-title">
-                  <span class="title-icon">📊</span>
-                  Elkably Analytics Dashboard
-                </h1>
-                <p class="admin-dashboard-subtitle">
-                  Comprehensive insights into your e-learning platform performance and student engagement.
-                </p>
-              </div>
-              
-        
-            </div>
-            
-            <div class="dashboard-header-right">
-              <div class="dashboard-meta-cards">
-                <div class="meta-card">
-                  <div class="meta-card-icon">
-                    <i class="fas fa-calendar-alt"></i>
-                  </div>
-                  <div class="meta-card-content">
-                    <span class="meta-card-label">Last Updated</span>
-                    <span class="meta-card-value"><%= new Date().toLocaleDateString() %></span>
-                  </div>
-                </div>
-                
-                <div class="meta-card">
-                  <div class="meta-card-icon">
-                    <i class="fas fa-broadcast-tower"></i>
-                  </div>
-                  <div class="meta-card-content">
-                    <span class="meta-card-label">Data Status</span>
-                    <span class="meta-card-value">Real-time</span>
-                  </div>
-                </div>
-                
-                <div class="meta-card">
-                  <div class="meta-card-icon">
-                    <i class="fab fa-whatsapp"></i>
-                  </div>
-                  <div class="meta-card-content">
-                    <span class="meta-card-label">WhatsApp</span>
-                    <span class="meta-card-value <%= dashboardData.whatsappStatus === 'connected' ? 'status-connected' : 'status-disconnected' %>" id="whatsappStatusValue">
-                      <%= dashboardData.whatsappStatus === 'connected' ? 'Connected' : 'Disconnected' %>
-                    </span>
-                    <button class="meta-card-refresh" onclick="updateWhatsAppStatusInHeader()" title="Refresh WhatsApp Status">
-                      <i class="fas fa-sync-alt"></i>
-                    </button>
-                  </div>
-                </div>
-                
-              </div>
-              
-       
-            </div>
-          </div>
-        </div>
-        
-        <!-- Premium Stats Grid -->
-        <div class="admin-stats-grid">
-          <div class="admin-stat-card admin-slide-in">
-            <div class="admin-stat-header">
-              <div class="admin-stat-icon">
-                <i class="fas fa-users"></i>
-              </div>
-              <div class="admin-stat-trend positive">
-                <i class="fas fa-arrow-up"></i>
-                +<%= dashboardData.students.growth || 12 %>%
-              </div>
-            </div>
-            <h3 class="admin-stat-number"><%= dashboardData.students.total || 0 %></h3>
-            <p class="admin-stat-label">Total Students</p>
-            <div class="admin-stat-details">
-              <small>Active: <%= dashboardData.students.active || 0 %> | New this month: <%= dashboardData.students.newThisMonth || 0 %></small>
-            </div>
-          </div>
-          
-          <div class="admin-stat-card admin-slide-in">
-            <div class="admin-stat-header">
-              <div class="admin-stat-icon">
-                <i class="fas fa-graduation-cap"></i>
-              </div>
-              <div class="admin-stat-trend positive">
-                <i class="fas fa-arrow-up"></i>
-                +<%= dashboardData.courses.growth || 8 %>%
-              </div>
-            </div>
-            <h3 class="admin-stat-number"><%= dashboardData.courses.total || 0 %></h3>
-            <p class="admin-stat-label">Total Courses</p>
-            <div class="admin-stat-details">
-              <small>Published: <%= dashboardData.courses.published || 0 %> | Draft: <%= dashboardData.courses.draft || 0 %></small>
-            </div>
-          </div>
-          
-          <div class="admin-stat-card admin-slide-in">
-            <div class="admin-stat-header">
-              <div class="admin-stat-icon">
-                <i class="fas fa-shopping-cart"></i>
-              </div>
-              <div class="admin-stat-trend positive">
-                <i class="fas fa-arrow-up"></i>
-                +<%= dashboardData.revenue.growth || 15 %>%
-              </div>
-            </div>
-            <h3 class="admin-stat-number">EGP <%= dashboardData.revenue.total || 0 %></h3>
-            <p class="admin-stat-label">Total Revenue</p>
-            <div class="admin-stat-details">
-              <small>This month: EGP <%= dashboardData.revenue.thisMonth || 0 %> | Orders: <%= dashboardData.revenue.orders || 0 %></small>
-            </div>
-          </div>
-          
-          <div class="admin-stat-card admin-slide-in">
-            <div class="admin-stat-header">
-              <div class="admin-stat-icon">
-                <i class="fas fa-chart-line"></i>
-              </div>
-              <div class="admin-stat-trend <%= dashboardData.engagement.trend === 'up' ? 'positive' : dashboardData.engagement.trend === 'down' ? 'negative' : 'neutral' %>">
-                <i class="fas fa-<%= dashboardData.engagement.trend === 'up' ? 'arrow-up' : dashboardData.engagement.trend === 'down' ? 'arrow-down' : 'minus' %>"></i>
-                <%= dashboardData.engagement.change || 0 %>%
-              </div>
-            </div>
-            <h3 class="admin-stat-number"><%= dashboardData.engagement.score || 0 %>%</h3>
-            <p class="admin-stat-label">Engagement Score</p>
-            <div class="admin-stat-details">
-              <small>Active: <%= dashboardData.engagement.activeStudents || 0 %> | Progress: <%= dashboardData.engagement.studentsWithProgress || 0 %> | Completion: <%= dashboardData.engagement.completion || 0 %>%</small>
-            </div>
-          </div>
-          
-          <div class="admin-stat-card admin-slide-in">
-            <div class="admin-stat-header">
-              <div class="admin-stat-icon">
-                <i class="fas fa-trophy"></i>
-              </div>
-              <div class="admin-stat-trend positive">
-                <i class="fas fa-star"></i>
-                Excellence
-              </div>
-            </div>
-            <h3 class="admin-stat-number"><%= dashboardData.brilliantStudents.total || 0 %></h3>
-            <p class="admin-stat-label">Brilliant Students</p>
-            <div class="admin-stat-details">
-              <small>EST: <%= dashboardData.brilliantStudents.est || 0 %> | DSAT: <%= dashboardData.brilliantStudents.dsat || 0 %> | ACT: <%= dashboardData.brilliantStudents.act || 0 %></small>
-            </div>
-          </div>
+    <!-- Sidebar -->
+    <%- include('./partials/admin-sidebar', { currentPage: 'dashboard' , admin: user }) %>
 
-        </div>
-        
-        
-        <!-- Analytics Charts Grid -->
-        <div class="admin-charts-grid">
-          <div class="admin-chart-container">
-            <div class="admin-chart-header">
-              <h3 class="admin-chart-title">Student Growth Trend</h3>
-              <div class="chart-controls">
-                <button class="chart-period-btn active" data-period="7d">7D</button>
-                <button class="chart-period-btn" data-period="30d">30D</button>
-                <button class="chart-period-btn" data-period="90d">90D</button>
-              </div>
-            </div>
-            <div class="chart-loading" id="growthChartLoading">
-              <i class="fas fa-chart-line"></i>
-              <span>Loading growth data...</span>
-            </div>
-            <canvas id="growthChart" class="chart-canvas" style="display: none;"></canvas>
-          </div>
-          
-          <div class="admin-chart-container">
-            <div class="admin-chart-header">
-              <h3 class="admin-chart-title">Revenue Analytics</h3>
-              <div class="chart-controls">
-                <button class="chart-period-btn active" data-period="7d">7D</button>
-                <button class="chart-period-btn" data-period="30d">30D</button>
-                <button class="chart-period-btn" data-period="90d">90D</button>
-              </div>
-            </div>
-            <div class="chart-loading" id="revenueChartLoading">
-              <i class="fas fa-coins"></i>
-              <span>Loading revenue data...</span>
-            </div>
-            <canvas id="revenueChart" class="chart-canvas" style="display: none;"></canvas>
-          </div>
-        </div>
-        
-        <!-- Course Performance Section -->
-        <div class="course-performance-section">
-          <div class="course-performance-header">
-            <h3 class="course-performance-title">Top Performing Courses</h3>
-            <div class="course-performance-filters">
-              <button class="course-filter-btn active" data-filter="all">All Courses</button>
-              <button class="course-filter-btn" data-filter="published">Published</button>
-              <button class="course-filter-btn" data-filter="draft">Draft</button>
-              <button class="course-filter-btn" data-filter="featured">Featured</button>
-            </div>
-          </div>
-          <div class="course-performance-grid">
-            <% if (dashboardData.topCourses && dashboardData.topCourses.length > 0) { %>
-              <% dashboardData.topCourses.forEach((course, index) => { %>
-                <div class="course-performance-card <%= course.featured ? 'featured' : '' %>" data-status="<%= course.status %>" data-featured="<%= course.featured %>">
-                  <div class="course-performance-header-card">
-                    <div class="course-performance-info">
-                      <h4><%= course.title %><% if (course.featured) { %> <span class="featured-badge">⭐</span><% } %></h4>
-                      <p><%= course.level %> • <%= course.category %></p>
-                    </div>
-                    <div class="course-performance-badge">
-                      <span class="badge badge-<%= course.status === 'published' ? 'success' : 'warning' %>">
-                        <%= course.status %>
+      <!-- Main Content -->
+      <main class="admin-main">
+
+        <!-- Top Bar -->
+        <%- include('./partials/admin-topbar', { breadcrumb: 'Dashboard' , breadcrumbSubtitle: 'Platform Overview' ,
+          showSearch: false }) %>
+
+          <!-- Content Area -->
+          <div class="admin-content">
+            <div class="admin-dashboard admin-fade-in">
+
+              <!-- Compact Toast Notification -->
+              <% if (dashboardData.newOrdersCount> 0) { %>
+                <div class="toast-notification" id="newOrdersNotification"
+                  data-order-count="<%= dashboardData.newOrdersCount %>">
+                  <div class="toast-content">
+                    <div class="toast-icon">
+                      <i class="fas fa-shopping-cart"></i>
+                      <span class="toast-badge">
+                        <%= dashboardData.newOrdersCount %>
                       </span>
-                      <% if (course.featured) { %>
-                      <span class="badge badge-primary">Featured</span>
-                      <% } %>
+                    </div>
+                    <div class="toast-text">
+                      <div class="toast-title">
+                        <strong>
+                          <%= dashboardData.newOrdersCount %>
+                        </strong> New Order<%= dashboardData.newOrdersCount> 1 ? 's' : '' %>
+                      </div>
+                      <div class="toast-message">Needs your attention</div>
+                    </div>
+                    <div class="toast-actions">
+                      <button class="toast-btn" onclick="viewNewOrders()" title="View Orders">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button class="toast-btn close" onclick="dismissNotification()" title="Dismiss">
+                        <i class="fas fa-times"></i>
+                      </button>
                     </div>
                   </div>
-                  <div class="course-performance-stats">
-                    <div class="course-stat-item">
-                      <div class="course-stat-value"><%= course.enrollments %></div>
-                      <div class="course-stat-label">Enrollments</div>
-                    </div>
-                    <div class="course-stat-item">
-                      <div class="course-stat-value"><%= course.completionRate %>%</div>
-                      <div class="course-stat-label">Completion</div>
-                    </div>
-                  </div>
+                  <div class="toast-progress" id="notificationProgress"></div>
                 </div>
-              <% }); %>
-            <% } else { %>
-              <div class="course-performance-card">
-                <div class="course-performance-header-card">
-                  <div class="course-performance-info">
-                    <h4>No courses available</h4>
-                    <p>Create your first course to see performance data</p>
-                  </div>
-                </div>
-              </div>
-            <% } %>
-          </div>
-        </div>
-        
-        
-        <!-- Analytics Grid -->
-        <div class="admin-analytics-grid">
-          <div class="admin-chart-card">
-            <div class="admin-chart-header">
-              <h3 class="admin-chart-title">Student Engagement</h3>
-            </div>
-            <div class="chart-loading" id="engagementChartLoading">
-              <i class="fas fa-chart-pie"></i>
-              <span>Loading engagement data...</span>
-            </div>
-            <canvas id="engagementChart" class="chart-canvas" style="display: none;"></canvas>
-          </div>
-          
-          <div class="admin-activity-card">
-            <div class="admin-chart-header">
-              <h3 class="admin-chart-title">Recent Activity</h3>
-            </div>
-            
-            <div class="admin-activity-content">
-              <% if (dashboardData.recentActivity && dashboardData.recentActivity.length > 0) { %>
-                <% dashboardData.recentActivity.forEach((activity, index) => { %>
-                  <div class="admin-activity-item">
-                    <div class="admin-activity-icon">
-                      <i class="fas fa-<%= activity.icon %>"></i>
-                    </div>
-                    <div class="admin-activity-content">
-                      <p class="admin-activity-text"><%= activity.message %></p>
-                      <p class="admin-activity-time"><%= activity.time %></p>
+                <% } %>
+
+                  <!-- Enhanced Dashboard Header -->
+                  <div class="dashboard-hero-header">
+                    <div class="dashboard-hero-content">
+                      <div class="dashboard-hero-left">
+                        <div class="dashboard-greeting">
+                          <span class="greeting-wave">👋</span>
+                          <span class="greeting-text">Welcome back, <strong><%= user.name || 'Admin' %></strong></span>
+                        </div>
+                        <h1 class="dashboard-title">
+                          <i class="fas fa-chart-line dashboard-title-icon"></i>
+                          Dashboard Overview
+                        </h1>
+                        <p class="dashboard-subtitle">
+                          <i class="fas fa-graduation-cap"></i>
+                          G-Teacher IGCSE Academy — Track your platform performance
+                        </p>
+                      </div>
+                      <div class="dashboard-hero-right">
+                        <div class="dashboard-date-card">
+                          <div class="date-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                          </div>
+                          <div class="date-info">
+                            <span class="date-label">Today</span>
+                            <span class="date-value" id="currentDate"></span>
+                          </div>
+                        </div>
+                        <div class="dashboard-quick-stats">
+                          <div class="quick-stat-item">
+                            <span class="quick-stat-value"><%= dashboardData.students.newThisMonth || 0 %></span>
+                            <span class="quick-stat-label">New Students</span>
+                          </div>
+                          <div class="quick-stat-divider"></div>
+                          <div class="quick-stat-item">
+                            <span class="quick-stat-value"><%= dashboardData.courses?.total || 0 %></span>
+                            <span class="quick-stat-label">Active Courses</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                <% }); %>
-              <% } else { %>
-                <div class="admin-activity-item">
-                  <div class="admin-activity-icon">
-                    <i class="fas fa-info-circle"></i>
+                  
+                  <style>
+                    .dashboard-hero-header {
+                      background: linear-gradient(135deg, #3a92bd 0%, #0c5374 100%);
+                      border-radius: 20px;
+                      padding: 32px 36px;
+                      margin-bottom: 28px;
+                      position: relative;
+                      overflow: hidden;
+                      box-shadow: 0 10px 40px rgba(58, 146, 189, 0.25);
+                    }
+                    
+                    .dashboard-hero-header::before {
+                      content: '';
+                      position: absolute;
+                      top: -50%;
+                      right: -20%;
+                      width: 400px;
+                      height: 400px;
+                      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+                      border-radius: 50%;
+                    }
+                    
+                    .dashboard-hero-header::after {
+                      content: '';
+                      position: absolute;
+                      bottom: -30%;
+                      left: 10%;
+                      width: 250px;
+                      height: 250px;
+                      background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+                      border-radius: 50%;
+                    }
+                    
+                    .dashboard-hero-content {
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
+                      position: relative;
+                      z-index: 1;
+                    }
+                    
+                    .dashboard-hero-left {
+                      flex: 1;
+                    }
+                    
+                    .dashboard-greeting {
+                      display: flex;
+                      align-items: center;
+                      gap: 10px;
+                      margin-bottom: 12px;
+                    }
+                    
+                    .greeting-wave {
+                      font-size: 24px;
+                      animation: wave 2s ease-in-out infinite;
+                    }
+                    
+                    @keyframes wave {
+                      0%, 100% { transform: rotate(0deg); }
+                      25% { transform: rotate(20deg); }
+                      75% { transform: rotate(-10deg); }
+                    }
+                    
+                    .greeting-text {
+                      color: rgba(255, 255, 255, 0.9);
+                      font-size: 15px;
+                      font-weight: 500;
+                    }
+                    
+                    .greeting-text strong {
+                      color: #fff;
+                      font-weight: 700;
+                    }
+                    
+                    .dashboard-title {
+                      color: #ffffff;
+                      font-size: 2.2rem;
+                      font-weight: 800;
+                      margin: 0 0 10px 0;
+                      display: flex;
+                      align-items: center;
+                      gap: 14px;
+                      text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    }
+                    
+                    .dashboard-title-icon {
+                      background: rgba(255, 255, 255, 0.2);
+                      padding: 12px;
+                      border-radius: 14px;
+                      font-size: 1.3rem;
+                    }
+                    
+                    .dashboard-subtitle {
+                      color: rgba(255, 255, 255, 0.85);
+                      font-size: 14px;
+                      margin: 0;
+                      display: flex;
+                      align-items: center;
+                      gap: 8px;
+                    }
+                    
+                    .dashboard-subtitle i {
+                      opacity: 0.8;
+                    }
+                    
+                    .dashboard-hero-right {
+                      display: flex;
+                      flex-direction: column;
+                      gap: 16px;
+                      align-items: flex-end;
+                    }
+                    
+                    .dashboard-date-card {
+                      display: flex;
+                      align-items: center;
+                      gap: 12px;
+                      background: rgba(255, 255, 255, 0.15);
+                      backdrop-filter: blur(10px);
+                      padding: 12px 18px;
+                      border-radius: 14px;
+                      border: 1px solid rgba(255, 255, 255, 0.2);
+                    }
+                    
+                    .date-icon {
+                      background: rgba(255, 255, 255, 0.2);
+                      width: 40px;
+                      height: 40px;
+                      border-radius: 10px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      color: #fff;
+                      font-size: 16px;
+                    }
+                    
+                    .date-info {
+                      display: flex;
+                      flex-direction: column;
+                    }
+                    
+                    .date-label {
+                      color: rgba(255, 255, 255, 0.7);
+                      font-size: 11px;
+                      font-weight: 600;
+                      text-transform: uppercase;
+                      letter-spacing: 0.5px;
+                    }
+                    
+                    .date-value {
+                      color: #fff;
+                      font-size: 14px;
+                      font-weight: 700;
+                    }
+                    
+                    .dashboard-quick-stats {
+                      display: flex;
+                      align-items: center;
+                      gap: 20px;
+                      background: rgba(255, 255, 255, 0.15);
+                      backdrop-filter: blur(10px);
+                      padding: 14px 22px;
+                      border-radius: 14px;
+                      border: 1px solid rgba(255, 255, 255, 0.2);
+                    }
+                    
+                    .quick-stat-item {
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                      text-align: center;
+                    }
+                    
+                    .quick-stat-value {
+                      color: #fff;
+                      font-size: 22px;
+                      font-weight: 800;
+                      line-height: 1;
+                    }
+                    
+                    .quick-stat-label {
+                      color: rgba(255, 255, 255, 0.75);
+                      font-size: 11px;
+                      font-weight: 600;
+                      margin-top: 4px;
+                      text-transform: uppercase;
+                      letter-spacing: 0.3px;
+                    }
+                    
+                    .quick-stat-divider {
+                      width: 1px;
+                      height: 36px;
+                      background: rgba(255, 255, 255, 0.25);
+                    }
+                    
+                    @media (max-width: 992px) {
+                      .dashboard-hero-content {
+                        flex-direction: column;
+                        gap: 24px;
+                        text-align: center;
+                      }
+                      
+                      .dashboard-hero-right {
+                        align-items: center;
+                        flex-direction: row;
+                        flex-wrap: wrap;
+                        justify-content: center;
+                      }
+                      
+                      .dashboard-title {
+                        justify-content: center;
+                        font-size: 1.8rem;
+                      }
+                      
+                      .dashboard-subtitle {
+                        justify-content: center;
+                      }
+                      
+                      .dashboard-greeting {
+                        justify-content: center;
+                      }
+                    }
+                    
+                    @media (max-width: 576px) {
+                      .dashboard-hero-header {
+                        padding: 24px 20px;
+                      }
+                      
+                      .dashboard-title {
+                        font-size: 1.5rem;
+                        flex-direction: column;
+                        gap: 10px;
+                      }
+                      
+                      .dashboard-hero-right {
+                        flex-direction: column;
+                      }
+                      
+                      .dashboard-quick-stats {
+                        width: 100%;
+                        justify-content: center;
+                      }
+                    }
+                  </style>
+                  
+                  <script>
+                    // Set current date
+                    document.addEventListener('DOMContentLoaded', function() {
+                      const dateEl = document.getElementById('currentDate');
+                      if (dateEl) {
+                        const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+                        dateEl.textContent = new Date().toLocaleDateString('en-US', options);
+                      }
+                    });
+                  </script>
+
+                  <!-- KPI Stats Cards (Horizontal Layout) -->
+                  <div class="row g-4 mb-4 dashboard-kpi">
+                    <!-- Total Students -->
+                    <div class="col-12 col-lg-3 col-md-6">
+                      <div class="card shadow-sm h-100"
+                        style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05); transition: all 0.3s ease;">
+                        <div class="card-body" style="padding: 24px;">
+                          <div class="d-flex align-items-center">
+                            <div class="kpi-icon"
+                              style="background-color: rgba(58, 146, 189, 0.1); color: #3a92bd; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.5rem; margin-right: 16px;">
+                              <i class="fas fa-users"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                              <div class="text-muted small"
+                                style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                Total Students</div>
+                              <div class="d-flex align-items-center gap-2">
+                                <span class="fs-4 fw-bold"
+                                  style="color: var(--admin-text-light); font-size: 28px; font-weight: 700;">
+                                  <%= dashboardData.students.total || 0 %>
+                                </span>
+                                <span class="badge"
+                                  style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
+                                  <i class="fas fa-arrow-up" style="font-size: 9px;"></i> +<%=
+                                    dashboardData.students.growth || 12 %>%
+                                </span>
+                              </div>
+                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">Active: <%=
+                                  dashboardData.students.active || 0 %> | New: <%= dashboardData.students.newThisMonth
+                                    || 0 %>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Total Courses -->
+                    <div class="col-12 col-lg-3 col-md-6">
+                      <div class="card shadow-sm h-100"
+                        style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05); transition: all 0.3s ease;">
+                        <div class="card-body" style="padding: 24px;">
+                          <div class="d-flex align-items-center">
+                            <div class="kpi-icon"
+                              style="background-color: rgba(139, 92, 246, 0.1); color: #8b5cf6; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.5rem; margin-right: 16px;">
+                              <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                              <div class="text-muted small"
+                                style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                Total Courses</div>
+                              <div class="d-flex align-items-center gap-2">
+                                <span class="fs-4 fw-bold"
+                                  style="color: var(--admin-text-light); font-size: 28px; font-weight: 700;">
+                                  <%= dashboardData.courses.total || 0 %>
+                                </span>
+                                <span class="badge"
+                                  style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
+                                  <i class="fas fa-arrow-up" style="font-size: 9px;"></i> +<%=
+                                    dashboardData.courses.growth || 8 %>%
+                                </span>
+                              </div>
+                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">Published: <%=
+                                  dashboardData.courses.published || 0 %> | Draft: <%= dashboardData.courses.draft || 0
+                                    %>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Total Revenue -->
+                    <div class="col-12 col-lg-3 col-md-6">
+                      <div class="card shadow-sm h-100"
+                        style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05); transition: all 0.3s ease;">
+                        <div class="card-body" style="padding: 24px;">
+                          <div class="d-flex align-items-center">
+                            <div class="kpi-icon"
+                              style="background-color: rgba(16, 185, 129, 0.1); color: #10b981; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.5rem; margin-right: 16px;">
+                              <i class="fas fa-coins"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                              <div class="text-muted small"
+                                style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                Total Revenue</div>
+                              <div class="d-flex align-items-center gap-2">
+                                <span class="fs-4 fw-bold"
+                                  style="color: var(--admin-text-light); font-size: 28px; font-weight: 700;">EGP <%=
+                                    dashboardData.revenue.total || 0 %></span>
+                                <span class="badge"
+                                  style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
+                                  <i class="fas fa-arrow-up" style="font-size: 9px;"></i> +<%=
+                                    dashboardData.revenue.growth || 15 %>%
+                                </span>
+                              </div>
+                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">This month: EGP <%=
+                                  dashboardData.revenue.thisMonth || 0 %>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Engagement Score -->
+                    <div class="col-12 col-lg-3 col-md-6">
+                      <div class="card shadow-sm h-100"
+                        style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05); transition: all 0.3s ease;">
+                        <div class="card-body" style="padding: 24px;">
+                          <div class="d-flex align-items-center">
+                            <div class="kpi-icon"
+                              style="background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.5rem; margin-right: 16px;">
+                              <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                              <div class="text-muted small"
+                                style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                Engagement</div>
+                              <div class="d-flex align-items-center gap-2">
+                                <span class="fs-4 fw-bold"
+                                  style="color: var(--admin-text-light); font-size: 28px; font-weight: 700;">
+                                  <%= dashboardData.engagement.score || 0 %>%
+                                </span>
+                                <% if (dashboardData.engagement.trend==='up' ) { %>
+                                  <span class="badge"
+                                    style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
+                                    <i class="fas fa-arrow-up" style="font-size: 9px;"></i> +<%=
+                                      dashboardData.engagement.change || 0 %>%
+                                  </span>
+                                  <% } else if (dashboardData.engagement.trend==='down' ) { %>
+                                    <span class="badge"
+                                      style="background: rgba(239, 68, 68, 0.1); color: #ef4444; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
+                                      <i class="fas fa-arrow-down" style="font-size: 9px;"></i>
+                                      <%= dashboardData.engagement.change || 0 %>%
+                                    </span>
+                                    <% } %>
+                              </div>
+                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">Active: <%=
+                                  dashboardData.engagement.activeStudents || 0 %> students</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div class="admin-activity-content">
-                    <p class="admin-activity-text">No recent activity to display</p>
-                    <p class="admin-activity-time">Check back later for updates</p>
+
+                  <!-- Additional Stats Row -->
+                  <div class="row g-4 mb-4">
+                    <!-- Brilliant Students -->
+                    <div class="col-12 col-lg-6">
+                      <div class="card shadow-sm h-100"
+                        style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05);">
+                        <div class="card-body" style="padding: 24px;">
+                          <div class="d-flex align-items-center">
+                            <div class="kpi-icon"
+                              style="background-color: rgba(251, 191, 36, 0.1); color: #fbbf24; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.5rem; margin-right: 16px;">
+                              <i class="fas fa-trophy"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                              <div class="text-muted small"
+                                style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                Brilliant Students</div>
+                              <div class="d-flex align-items-center gap-2">
+                                <span class="fs-4 fw-bold"
+                                  style="color: var(--admin-text-light); font-size: 28px; font-weight: 700;">
+                                  <%= dashboardData.brilliantStudents.total || 0 %>
+                                </span>
+                                <span class="badge"
+                                  style="background: rgba(251, 191, 36, 0.1); color: #d97706; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
+                                  <i class="fas fa-star" style="font-size: 9px;"></i> Excellence
+                                </span>
+                              </div>
+                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">EST: <%=
+                                  dashboardData.brilliantStudents.est || 0 %> | DSAT: <%=
+                                    dashboardData.brilliantStudents.dsat || 0 %> | ACT: <%=
+                                      dashboardData.brilliantStudents.act || 0 %>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Orders Overview -->
+                    <div class="col-12 col-lg-6">
+                      <div class="card shadow-sm h-100"
+                        style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05);">
+                        <div class="card-body" style="padding: 24px;">
+                          <div class="d-flex align-items-center">
+                            <div class="kpi-icon"
+                              style="background-color: rgba(236, 72, 153, 0.1); color: #ec4899; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.5rem; margin-right: 16px;">
+                              <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                              <div class="text-muted small"
+                                style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                Total Orders</div>
+                              <div class="d-flex align-items-center gap-2">
+                                <span class="fs-4 fw-bold"
+                                  style="color: var(--admin-text-light); font-size: 28px; font-weight: 700;">
+                                  <%= dashboardData.revenue.orders || 0 %>
+                                </span>
+                                <% if (dashboardData.newOrdersCount> 0) { %>
+                                  <span class="badge"
+                                    style="background: rgba(239, 68, 68, 0.1); color: #ef4444; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
+                                    <%= dashboardData.newOrdersCount %> New
+                                  </span>
+                                  <% } %>
+                              </div>
+                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">Revenue this month: EGP
+                                <%= dashboardData.revenue.thisMonth || 0 %>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              <% } %>
+
+                  <!-- Teacher Performance Section -->
+                  <div class="card shadow-sm mb-4"
+                    style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05); overflow: hidden;">
+                    <div class="card-header"
+                      style="background: linear-gradient(135deg, #3a92bd, #0c5374); border-bottom: none; padding: 20px 24px;">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"
+                          style="color: #ffffff; font-weight: 700; display: flex; align-items: center; gap: 12px;">
+                          <i class="fas fa-chalkboard-teacher"></i> Teacher Performance
+                        </h5>
+                        <span class="badge"
+                          style="background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.3); padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                          Monitor your teaching staff
+                        </span>
+                      </div>
+                    </div>
+                    <div class="card-body" style="padding: 24px;">
+                      <div class="row g-4">
+                        <!-- Top Performing Teachers -->
+                        <div class="col-12 col-lg-6">
+                          Top Performing Teachers
+                          </h3>
+                          <span class="performance-badge success">Top 3</span>
+                        </div>
+
+                        <div class="teacher-leaderboard">
+                          <div class="teacher-leaderboard-card rank-1">
+                            <div class="teacher-rank">
+                              <span class="rank-number">1</span>
+                              <i class="fas fa-crown rank-icon gold"></i>
+                            </div>
+                            <div class="teacher-avatar">
+                              <div class="avatar-placeholder">AM</div>
+                            </div>
+                            <div class="teacher-info">
+                              <h4 class="teacher-name">Ahmed Mohamed</h4>
+                              <span class="teacher-subject">Chemistry</span>
+                            </div>
+                            <div class="teacher-stats">
+                              <div class="stat-item">
+                                <i class="fas fa-users"></i>
+                                <span>142 students</span>
+                              </div>
+                              <div class="stat-item">
+                                <i class="fas fa-star text-gold"></i>
+                                <span>4.9 rating</span>
+                              </div>
+                              <div class="stat-item">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <span>98% completion</span>
+                              </div>
+                            </div>
+                            <div class="teacher-trend positive">
+                              <i class="fas fa-arrow-up"></i>
+                              <span>+12%</span>
+                            </div>
+                          </div>
+
+                          <div class="teacher-leaderboard-card rank-2">
+                            <div class="teacher-rank">
+                              <span class="rank-number">2</span>
+                              <i class="fas fa-medal rank-icon silver"></i>
+                            </div>
+                            <div class="teacher-avatar">
+                              <div class="avatar-placeholder">SK</div>
+                            </div>
+                            <div class="teacher-info">
+                              <h4 class="teacher-name">Sarah Khalil</h4>
+                              <span class="teacher-subject">Mathematics</span>
+                            </div>
+                            <div class="teacher-stats">
+                              <div class="stat-item">
+                                <i class="fas fa-users"></i>
+                                <span>128 students</span>
+                              </div>
+                              <div class="stat-item">
+                                <i class="fas fa-star text-gold"></i>
+                                <span>4.8 rating</span>
+                              </div>
+                              <div class="stat-item">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <span>95% completion</span>
+                              </div>
+                            </div>
+                            <div class="teacher-trend positive">
+                              <i class="fas fa-arrow-up"></i>
+                              <span>+8%</span>
+                            </div>
+                          </div>
+
+                          <div class="teacher-leaderboard-card rank-3">
+                            <div class="teacher-rank">
+                              <span class="rank-number">3</span>
+                              <i class="fas fa-award rank-icon bronze"></i>
+                            </div>
+                            <div class="teacher-avatar">
+                              <div class="avatar-placeholder">OE</div>
+                            </div>
+                            <div class="teacher-info">
+                              <h4 class="teacher-name">Omar Essam</h4>
+                              <span class="teacher-subject">Physics</span>
+                            </div>
+                            <div class="teacher-stats">
+                              <div class="stat-item">
+                                <i class="fas fa-users"></i>
+                                <span>115 students</span>
+                              </div>
+                              <div class="stat-item">
+                                <i class="fas fa-star text-gold"></i>
+                                <span>4.7 rating</span>
+                              </div>
+                              <div class="stat-item">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <span>92% completion</span>
+                              </div>
+                            </div>
+                            <div class="teacher-trend positive">
+                              <i class="fas fa-arrow-up"></i>
+                              <span>+5%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Teachers Needing Support -->
+                      <div class="teacher-performance-card">
+                        <div class="performance-card-header">
+                          <h3 class="performance-card-title">
+                            <i class="fas fa-hand-holding-heart text-orange"></i>
+                            Teachers Needing Support
+                          </h3>
+                          <span class="performance-badge warning">Attention</span>
+                        </div>
+
+                        <div class="teacher-support-list">
+                          <div class="teacher-support-card">
+                            <div class="teacher-avatar">
+                              <div class="avatar-placeholder warning">MA</div>
+                            </div>
+                            <div class="teacher-info">
+                              <h4 class="teacher-name">Mohamed Ali</h4>
+                              <span class="teacher-subject">Biology</span>
+                            </div>
+                            <div class="support-metrics">
+                              <div class="metric-item low">
+                                <span class="metric-label">Students</span>
+                                <span class="metric-value">23</span>
+                              </div>
+                              <div class="metric-item low">
+                                <span class="metric-label">Rating</span>
+                                <span class="metric-value">3.2</span>
+                              </div>
+                              <div class="metric-item low">
+                                <span class="metric-label">Completion</span>
+                                <span class="metric-value">45%</span>
+                              </div>
+                            </div>
+                            <div class="teacher-trend negative">
+                              <i class="fas fa-arrow-down"></i>
+                              <span>-15%</span>
+                            </div>
+                            <div class="support-actions">
+                              <button class="support-btn" title="Send Feedback">
+                                <i class="fas fa-comment"></i>
+                              </button>
+                              <button class="support-btn primary" title="Schedule Review">
+                                <i class="fas fa-calendar-check"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <div class="teacher-support-card">
+                            <div class="teacher-avatar">
+                              <div class="avatar-placeholder warning">NA</div>
+                            </div>
+                            <div class="teacher-info">
+                              <h4 class="teacher-name">Nour Ahmed</h4>
+                              <span class="teacher-subject">English</span>
+                            </div>
+                            <div class="support-metrics">
+                              <div class="metric-item low">
+                                <span class="metric-label">Students</span>
+                                <span class="metric-value">31</span>
+                              </div>
+                              <div class="metric-item medium">
+                                <span class="metric-label">Rating</span>
+                                <span class="metric-value">3.8</span>
+                              </div>
+                              <div class="metric-item low">
+                                <span class="metric-label">Completion</span>
+                                <span class="metric-value">52%</span>
+                              </div>
+                            </div>
+                            <div class="teacher-trend negative">
+                              <i class="fas fa-arrow-down"></i>
+                              <span>-8%</span>
+                            </div>
+                            <div class="support-actions">
+                              <button class="support-btn" title="Send Feedback">
+                                <i class="fas fa-comment"></i>
+                              </button>
+                              <button class="support-btn primary" title="Schedule Review">
+                                <i class="fas fa-calendar-check"></i>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Analytics Charts Section -->
+                  <div class="row g-4 mb-4">
+                    <!-- Student Growth Chart -->
+                    <div class="col-12 col-lg-6">
+                      <div class="card shadow-sm"
+                        style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05); overflow: hidden;">
+                        <div class="card-header"
+                          style="background: linear-gradient(135deg, #3a92bd, #0c5374); border-bottom: none; padding: 20px 24px;">
+                          <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"
+                              style="color: #ffffff; font-weight: 700; display: flex; align-items: center; gap: 12px;">
+                              <i class="fas fa-chart-line"></i> Student Growth Trend
+                            </h5>
+                            <div class="d-flex gap-1">
+                              <button class="chart-period-btn btn btn-sm active" data-period="7d"
+                                style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">7D</button>
+                              <button class="chart-period-btn btn btn-sm" data-period="30d"
+                                style="background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.7); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">30D</button>
+                              <button class="chart-period-btn btn btn-sm" data-period="90d"
+                                style="background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.7); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">90D</button>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="card-body" style="padding: 24px; min-height: 300px;">
+                          <div class="chart-loading" id="growthChartLoading"
+                            style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 250px; color: #64748b;">
+                            <i class="fas fa-chart-line fa-2x mb-3" style="color: #3a92bd;"></i>
+                            <span>Loading growth data...</span>
+                          </div>
+                          <canvas id="growthChart" style="display: none;"></canvas>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Revenue Chart -->
+                    <div class="col-12 col-lg-6">
+                      <div class="card shadow-sm"
+                        style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05); overflow: hidden;">
+                        <div class="card-header"
+                          style="background: linear-gradient(135deg, #3a92bd, #0c5374); border-bottom: none; padding: 20px 24px;">
+                          <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"
+                              style="color: #ffffff; font-weight: 700; display: flex; align-items: center; gap: 12px;">
+                              <i class="fas fa-coins"></i> Revenue Analytics
+                            </h5>
+                            <div class="d-flex gap-1">
+                              <button class="chart-period-btn btn btn-sm active" data-period="7d"
+                                style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">7D</button>
+                              <button class="chart-period-btn btn btn-sm" data-period="30d"
+                                style="background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.7); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">30D</button>
+                              <button class="chart-period-btn btn btn-sm" data-period="90d"
+                                style="background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.7); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">90D</button>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="card-body" style="padding: 24px; min-height: 300px;">
+                          <div class="chart-loading" id="revenueChartLoading"
+                            style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 250px; color: #64748b;">
+                            <i class="fas fa-coins fa-2x mb-3" style="color: #3a92bd;"></i>
+                            <span>Loading revenue data...</span>
+                          </div>
+                          <canvas id="revenueChart" style="display: none;"></canvas>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Course Performance Section -->
+                  <div class="course-performance-section">
+                    <div class="course-performance-header">
+                      <h3 class="course-performance-title">Top Performing Courses</h3>
+                      <div class="course-performance-filters">
+                        <button class="course-filter-btn active" data-filter="all">All Courses</button>
+                        <button class="course-filter-btn" data-filter="published">Published</button>
+                        <button class="course-filter-btn" data-filter="draft">Draft</button>
+                        <button class="course-filter-btn" data-filter="featured">Featured</button>
+                      </div>
+                    </div>
+                    <div class="course-performance-grid">
+                      <% if (dashboardData.topCourses && dashboardData.topCourses.length> 0) { %>
+                        <% dashboardData.topCourses.forEach((course, index)=> { %>
+                          <div class="course-performance-card <%= course.featured ? 'featured' : '' %>"
+                            data-status="<%= course.status %>" data-featured="<%= course.featured %>">
+                            <div class="course-performance-header-card">
+                              <div class="course-performance-info">
+                                <h4>
+                                  <%= course.title %>
+                                    <% if (course.featured) { %> <span class="featured-badge">⭐</span>
+                                      <% } %>
+                                </h4>
+                                <p>
+                                  <%= course.level %> • <%= course.category %>
+                                </p>
+                              </div>
+                              <div class="course-performance-badge">
+                                <span class="badge badge-<%= course.status === 'published' ? 'success' : 'warning' %>">
+                                  <%= course.status %>
+                                </span>
+                                <% if (course.featured) { %>
+                                  <span class="badge badge-primary">Featured</span>
+                                  <% } %>
+                              </div>
+                            </div>
+                            <div class="course-performance-stats">
+                              <div class="course-stat-item">
+                                <div class="course-stat-value">
+                                  <%= course.enrollments %>
+                                </div>
+                                <div class="course-stat-label">Enrollments</div>
+                              </div>
+                              <div class="course-stat-item">
+                                <div class="course-stat-value">
+                                  <%= course.completionRate %>%
+                                </div>
+                                <div class="course-stat-label">Completion</div>
+                              </div>
+                            </div>
+                          </div>
+                          <% }); %>
+                            <% } else { %>
+                              <div class="course-performance-card">
+                                <div class="course-performance-header-card">
+                                  <div class="course-performance-info">
+                                    <h4>No courses available</h4>
+                                    <p>Create your first course to see performance data</p>
+                                  </div>
+                                </div>
+                              </div>
+                              <% } %>
+                    </div>
+                  </div>
+
+
+                  <!-- Analytics Grid -->
+                  <div class="admin-analytics-grid">
+                    <div class="admin-chart-card">
+                      <div class="admin-chart-header">
+                        <h3 class="admin-chart-title">Student Engagement</h3>
+                      </div>
+                      <div class="chart-loading" id="engagementChartLoading">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Loading engagement data...</span>
+                      </div>
+                      <canvas id="engagementChart" class="chart-canvas" style="display: none;"></canvas>
+                    </div>
+
+                    <div class="admin-activity-card">
+                      <div class="admin-chart-header">
+                        <h3 class="admin-chart-title">Recent Activity</h3>
+                      </div>
+
+                      <div class="admin-activity-content">
+                        <% if (dashboardData.recentActivity && dashboardData.recentActivity.length> 0) { %>
+                          <% dashboardData.recentActivity.forEach((activity, index)=> { %>
+                            <div class="admin-activity-item">
+                              <div class="admin-activity-icon">
+                                <i class="fas fa-<%= activity.icon %>"></i>
+                              </div>
+                              <div class="admin-activity-content">
+                                <p class="admin-activity-text">
+                                  <%= activity.message %>
+                                </p>
+                                <p class="admin-activity-time">
+                                  <%= activity.time %>
+                                </p>
+                              </div>
+                            </div>
+                            <% }); %>
+                              <% } else { %>
+                                <div class="admin-activity-item">
+                                  <div class="admin-activity-icon">
+                                    <i class="fas fa-info-circle"></i>
+                                  </div>
+                                  <div class="admin-activity-content">
+                                    <p class="admin-activity-text">No recent activity to display</p>
+                                    <p class="admin-activity-time">Check back later for updates</p>
+                                  </div>
+                                </div>
+                                <% } %>
+                      </div>
+                    </div>
+                  </div>
+
             </div>
           </div>
-        </div>
-        
-      </div>
-    </div>
-    
-  </main>
-</div>
 
-<%- include('./partials/admin-footer') %>
+      </main>
+  </div>
 
-<script>
-// Dashboard JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize charts
-    initializeCharts();
-    
-    // Initialize chart period controls
-    initializeChartControls();
-    
-    // Initialize course filters
-    initializeCourseFilters();
-});
+  <%- include('./partials/admin-footer') %>
 
-// Global chart instances
-let growthChartInstance = null;
-let revenueChartInstance = null;
-let engagementChartInstance = null;
+    <script>
+      // Dashboard JavaScript
+      document.addEventListener('DOMContentLoaded', function () {
+        // Initialize charts
+        initializeCharts();
 
-// Chart initialization with real data
-function initializeCharts() {
-    // Get real data from the server
-    const dashboardData = <%- JSON.stringify(dashboardData) %>;
-    
-    // Initialize with 30 days period by default
-    loadChartData(30, dashboardData);
-}
+        // Initialize chart period controls
+        initializeChartControls();
 
-// Load chart data from API
-async function loadChartData(days = 30, cachedData = null) {
-    try {
-        // Show loading states
-        document.getElementById('growthChartLoading').style.display = 'flex';
-        document.getElementById('revenueChartLoading').style.display = 'flex';
-        document.getElementById('growthChart').style.display = 'none';
-        document.getElementById('revenueChart').style.display = 'none';
-        
-        // Fetch data from API
-        const response = await fetch(`/admin/dashboard/chart-data?days=${days}`);
-        const data = await response.json();
-        
-        // Update charts with new data
-        updateGrowthChart(data.studentGrowth || []);
-        updateRevenueChart(data.revenueData || []);
-        updateEngagementChart(cachedData || data);
-        
-    } catch (error) {
-        console.error('Error loading chart data:', error);
-        // Fallback to cached data if available
-        if (cachedData) {
+        // Initialize course filters
+        initializeCourseFilters();
+      });
+
+      // Global chart instances
+      let growthChartInstance = null;
+      let revenueChartInstance = null;
+      let engagementChartInstance = null;
+
+      // Chart initialization with real data
+      function initializeCharts() {
+        // Get real data from the server
+        const dashboardData = <% - JSON.stringify(dashboardData) %>;
+
+        // Initialize with 30 days period by default
+        loadChartData(30, dashboardData);
+      }
+
+      // Load chart data from API
+      async function loadChartData(days = 30, cachedData = null) {
+        try {
+          // Show loading states
+          document.getElementById('growthChartLoading').style.display = 'flex';
+          document.getElementById('revenueChartLoading').style.display = 'flex';
+          document.getElementById('growthChart').style.display = 'none';
+          document.getElementById('revenueChart').style.display = 'none';
+
+          // Fetch data from API
+          const response = await fetch(`/admin/dashboard/chart-data?days=${days}`);
+          const data = await response.json();
+
+          // Update charts with new data
+          updateGrowthChart(data.studentGrowth || []);
+          updateRevenueChart(data.revenueData || []);
+          updateEngagementChart(cachedData || data);
+
+        } catch (error) {
+          console.error('Error loading chart data:', error);
+          // Fallback to cached data if available
+          if (cachedData) {
             updateGrowthChart(cachedData.charts?.studentGrowth || []);
             updateRevenueChart(cachedData.charts?.revenueData || []);
             updateEngagementChart(cachedData);
+          }
         }
-    }
-}
+      }
 
-// Update Growth Chart
-function updateGrowthChart(growthData) {
-    const growthCtx = document.getElementById('growthChart');
-    if (!growthCtx) return;
-    
-    document.getElementById('growthChartLoading').style.display = 'none';
-    growthCtx.style.display = 'block';
-    
-    // Prepare data
-    const labels = growthData.map(item => {
-        const date = new Date(item._id);
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    });
-    const data = growthData.map(item => item.count);
-    
-    // If no data, create placeholder
-    let chartLabels = labels.length > 0 ? labels : [];
-    let chartData = data.length > 0 ? data : [];
-    
-    if (chartLabels.length === 0) {
-        chartLabels = ['No Data'];
-        chartData = [0];
-    }
-    
-    // Destroy existing chart if it exists
-    if (growthChartInstance) {
-        growthChartInstance.destroy();
-    }
-    
-    // Create new chart
-    growthChartInstance = new Chart(growthCtx, {
-        type: 'line',
-        data: {
+      // Update Growth Chart
+      function updateGrowthChart(growthData) {
+        const growthCtx = document.getElementById('growthChart');
+        if (!growthCtx) return;
+
+        document.getElementById('growthChartLoading').style.display = 'none';
+        growthCtx.style.display = 'block';
+
+        // Prepare data
+        const labels = growthData.map(item => {
+          const date = new Date(item._id);
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        });
+        const data = growthData.map(item => item.count);
+
+        // If no data, create placeholder
+        let chartLabels = labels.length > 0 ? labels : [];
+        let chartData = data.length > 0 ? data : [];
+
+        if (chartLabels.length === 0) {
+          chartLabels = ['No Data'];
+          chartData = [0];
+        }
+
+        // Destroy existing chart if it exists
+        if (growthChartInstance) {
+          growthChartInstance.destroy();
+        }
+
+        // Create new chart
+        growthChartInstance = new Chart(growthCtx, {
+          type: 'line',
+          data: {
             labels: chartLabels,
             datasets: [{
-                label: 'New Students',
-                data: chartData,
-                borderColor: '#B80101',
-                backgroundColor: 'rgba(184, 1, 1, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#B80101',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 6,
-                pointHoverRadius: 8,
-                pointHoverBorderWidth: 3,
-                borderJoinStyle: 'round',
-                borderCapStyle: 'round'
+              label: 'New Students',
+              data: chartData,
+              borderColor: '#3a92bd',
+              backgroundColor: 'rgba(58, 146, 189, 0.1)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4,
+              pointBackgroundColor: '#3a92bd',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 2,
+              pointRadius: 6,
+              pointHoverRadius: 8,
+              pointHoverBorderWidth: 3,
+              borderJoinStyle: 'round',
+              borderCapStyle: 'round'
             }]
-        },
-        options: {
+          },
+          options: {
             responsive: true,
             maintainAspectRatio: false,
             interaction: {
-                intersect: false,
-                mode: 'index'
+              intersect: false,
+              mode: 'index'
             },
             plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    borderColor: '#B80101',
-                    borderWidth: 2,
-                    cornerRadius: 8,
-                    displayColors: true,
-                    padding: 12,
-                    titleFont: {
-                        size: 14,
-                        weight: 'bold'
-                    },
-                    bodyFont: {
-                        size: 13
-                    },
-                    callbacks: {
-                        label: function(context) {
-                            return `New Students: ${context.parsed.y}`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)',
-                        drawBorder: false
-                    },
-                    ticks: {
-                        stepSize: 1,
-                        font: {
-                            size: 11
-                        },
-                        color: '#6b7280'
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        font: {
-                            size: 11
-                        },
-                        color: '#6b7280'
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Update Revenue Chart
-function updateRevenueChart(revenueData) {
-    const revenueCtx = document.getElementById('revenueChart');
-    if (!revenueCtx) return;
-    
-    document.getElementById('revenueChartLoading').style.display = 'none';
-    revenueCtx.style.display = 'block';
-    
-    // Prepare data
-    const labels = revenueData.map(item => {
-        const date = new Date(item._id);
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    });
-    const data = revenueData.map(item => item.total);
-    
-    // If no data, create placeholder
-    let chartLabels = labels.length > 0 ? labels : [];
-    let chartData = data.length > 0 ? data : [];
-    
-    if (chartLabels.length === 0) {
-        chartLabels = ['No Data'];
-        chartData = [0];
-    }
-    
-    // Destroy existing chart if it exists
-    if (revenueChartInstance) {
-        revenueChartInstance.destroy();
-    }
-    
-    // Create new chart
-    revenueChartInstance = new Chart(revenueCtx, {
-        type: 'bar',
-        data: {
-            labels: chartLabels,
-            datasets: [{
-                label: 'Revenue (EGP)',
-                data: chartData,
-                backgroundColor: 'rgba(184, 1, 1, 0.8)',
-                borderColor: '#B80101',
+              legend: {
+                display: false
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                borderColor: '#3a92bd',
                 borderWidth: 2,
-                borderRadius: 8,
-                borderSkipped: false,
-                hoverBackgroundColor: 'rgba(184, 1, 1, 1)',
-                hoverBorderColor: '#ffffff',
-                hoverBorderWidth: 3
+                cornerRadius: 8,
+                displayColors: true,
+                padding: 12,
+                titleFont: {
+                  size: 14,
+                  weight: 'bold'
+                },
+                bodyFont: {
+                  size: 13
+                },
+                callbacks: {
+                  label: function (context) {
+                    return `New Students: ${context.parsed.y}`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.05)',
+                  drawBorder: false
+                },
+                ticks: {
+                  stepSize: 1,
+                  font: {
+                    size: 11
+                  },
+                  color: '#6b7280'
+                }
+              },
+              x: {
+                grid: {
+                  display: false
+                },
+                ticks: {
+                  font: {
+                    size: 11
+                  },
+                  color: '#6b7280'
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Update Revenue Chart
+      function updateRevenueChart(revenueData) {
+        const revenueCtx = document.getElementById('revenueChart');
+        if (!revenueCtx) return;
+
+        document.getElementById('revenueChartLoading').style.display = 'none';
+        revenueCtx.style.display = 'block';
+
+        // Prepare data
+        const labels = revenueData.map(item => {
+          const date = new Date(item._id);
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        });
+        const data = revenueData.map(item => item.total);
+
+        // If no data, create placeholder
+        let chartLabels = labels.length > 0 ? labels : [];
+        let chartData = data.length > 0 ? data : [];
+
+        if (chartLabels.length === 0) {
+          chartLabels = ['No Data'];
+          chartData = [0];
+        }
+
+        // Destroy existing chart if it exists
+        if (revenueChartInstance) {
+          revenueChartInstance.destroy();
+        }
+
+        // Create new chart
+        revenueChartInstance = new Chart(revenueCtx, {
+          type: 'bar',
+          data: {
+            labels: chartLabels,
+            datasets: [{
+              label: 'Revenue (EGP)',
+              data: chartData,
+              backgroundColor: 'rgba(58, 146, 189, 0.8)',
+              borderColor: '#3a92bd',
+              borderWidth: 2,
+              borderRadius: 8,
+              borderSkipped: false,
+              hoverBackgroundColor: 'rgba(58, 146, 189, 1)',
+              hoverBorderColor: '#ffffff',
+              hoverBorderWidth: 3
             }]
-        },
-        options: {
+          },
+          options: {
             responsive: true,
             maintainAspectRatio: false,
             interaction: {
-                intersect: false,
-                mode: 'index'
+              intersect: false,
+              mode: 'index'
             },
             plugins: {
-                legend: {
-                    display: false
+              legend: {
+                display: false
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                borderColor: '#3a92bd',
+                borderWidth: 2,
+                cornerRadius: 8,
+                displayColors: true,
+                padding: 12,
+                titleFont: {
+                  size: 14,
+                  weight: 'bold'
                 },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    borderColor: '#B80101',
-                    borderWidth: 2,
-                    cornerRadius: 8,
-                    displayColors: true,
-                    padding: 12,
-                    titleFont: {
-                        size: 14,
-                        weight: 'bold'
-                    },
-                    bodyFont: {
-                        size: 13
-                    },
-                    callbacks: {
-                        label: function(context) {
-                            return `Revenue: EGP ${context.parsed.y.toFixed(2)}`;
-                        }
-                    }
+                bodyFont: {
+                  size: 13
+                },
+                callbacks: {
+                  label: function (context) {
+                    return `Revenue: EGP ${context.parsed.y.toFixed(2)}`;
+                  }
                 }
+              }
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)',
-                        drawBorder: false
-                    },
-                    ticks: {
-                        callback: function(value) {
-                            return 'EGP ' + value.toFixed(0);
-                        },
-                        font: {
-                            size: 11
-                        },
-                        color: '#6b7280'
-                    }
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.05)',
+                  drawBorder: false
                 },
-                x: {
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        font: {
-                            size: 11
-                        },
-                        color: '#6b7280'
-                    }
+                ticks: {
+                  callback: function (value) {
+                    return 'EGP ' + value.toFixed(0);
+                  },
+                  font: {
+                    size: 11
+                  },
+                  color: '#6b7280'
                 }
+              },
+              x: {
+                grid: {
+                  display: false
+                },
+                ticks: {
+                  font: {
+                    size: 11
+                  },
+                  color: '#6b7280'
+                }
+              }
             }
-        }
-    });
-}
+          }
+        });
+      }
 
-// Update Engagement Chart
-function updateEngagementChart(dashboardData) {
-    const engagementCtx = document.getElementById('engagementChart');
-    if (!engagementCtx) return;
-    
-    document.getElementById('engagementChartLoading').style.display = 'none';
-    engagementCtx.style.display = 'block';
-    
-    // Calculate engagement data from real stats
-    const totalStudents = dashboardData.students.total || 0;
-    const activeStudents = dashboardData.students.active || 0;
-    const newStudents = dashboardData.students.newThisMonth || 0;
-    const inactiveStudents = Math.max(0, totalStudents - activeStudents - newStudents);
-    
-    // Destroy existing chart if it exists
-    if (engagementChartInstance) {
-        engagementChartInstance.destroy();
-    }
-    
-    // Create new chart with high DPI support
-    engagementChartInstance = new Chart(engagementCtx, {
-        type: 'doughnut',
-        data: {
+      // Update Engagement Chart
+      function updateEngagementChart(dashboardData) {
+        const engagementCtx = document.getElementById('engagementChart');
+        if (!engagementCtx) return;
+
+        document.getElementById('engagementChartLoading').style.display = 'none';
+        engagementCtx.style.display = 'block';
+
+        // Calculate engagement data from real stats
+        const totalStudents = dashboardData.students.total || 0;
+        const activeStudents = dashboardData.students.active || 0;
+        const newStudents = dashboardData.students.newThisMonth || 0;
+        const inactiveStudents = Math.max(0, totalStudents - activeStudents - newStudents);
+
+        // Destroy existing chart if it exists
+        if (engagementChartInstance) {
+          engagementChartInstance.destroy();
+        }
+
+        // Create new chart with high DPI support
+        engagementChartInstance = new Chart(engagementCtx, {
+          type: 'doughnut',
+          data: {
             labels: ['Active Students', 'Inactive Students', 'New Students'],
             datasets: [{
-                data: [activeStudents, inactiveStudents, newStudents],
-                backgroundColor: [
-                    '#10b981',
-                    '#ef4444',
-                    '#f59e0b'
-                ],
-                borderWidth: 4,
-                borderColor: '#ffffff',
-                hoverOffset: 12,
-                hoverBorderWidth: 6,
-                hoverBackgroundColor: [
-                    '#059669',
-                    '#dc2626',
-                    '#d97706'
-                ]
+              data: [activeStudents, inactiveStudents, newStudents],
+              backgroundColor: [
+                '#10b981',
+                '#ef4444',
+                '#f59e0b'
+              ],
+              borderWidth: 4,
+              borderColor: '#ffffff',
+              hoverOffset: 12,
+              hoverBorderWidth: 6,
+              hoverBackgroundColor: [
+                '#059669',
+                '#dc2626',
+                '#d97706'
+              ]
             }]
-        },
-        options: {
+          },
+          options: {
             responsive: true,
             maintainAspectRatio: false,
             cutout: '50%',
             devicePixelRatio: window.devicePixelRatio || 1,
             animation: {
-                animateRotate: true,
-                animateScale: true,
-                duration: 1000,
-                easing: 'easeOutQuart'
+              animateRotate: true,
+              animateScale: true,
+              duration: 1000,
+              easing: 'easeOutQuart'
             },
             plugins: {
-                legend: {
-                    position: 'bottom',
-                    align: 'center',
-                    labels: {
-                        padding: 15,
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        font: {
-                            size: 12,
-                            weight: '600',
-                            family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-                        },
-                        color: '#1e293b',
-                        generateLabels: function(chart) {
-                            const data = chart.data;
-                            if (data.labels.length && data.datasets.length) {
-                                return data.labels.map((label, i) => {
-                                    const dataset = data.datasets[0];
-                                    const value = dataset.data[i];
-                                    const total = dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
-                                    
-                                    return {
-                                        text: `${label}: ${value} (${percentage}%)`,
-                                        fillStyle: dataset.backgroundColor[i],
-                                        strokeStyle: dataset.borderColor,
-                                        lineWidth: dataset.borderWidth,
-                                        pointStyle: 'circle',
-                                        hidden: false,
-                                        index: i
-                                    };
-                                });
-                            }
-                            return [];
-                        }
+              legend: {
+                position: 'bottom',
+                align: 'center',
+                labels: {
+                  padding: 15,
+                  usePointStyle: true,
+                  pointStyle: 'circle',
+                  font: {
+                    size: 12,
+                    weight: '600',
+                    family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+                  },
+                  color: '#1e293b',
+                  generateLabels: function (chart) {
+                    const data = chart.data;
+                    if (data.labels.length && data.datasets.length) {
+                      return data.labels.map((label, i) => {
+                        const dataset = data.datasets[0];
+                        const value = dataset.data[i];
+                        const total = dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+
+                        return {
+                          text: `${label}: ${value} (${percentage}%)`,
+                          fillStyle: dataset.backgroundColor[i],
+                          strokeStyle: dataset.borderColor,
+                          lineWidth: dataset.borderWidth,
+                          pointStyle: 'circle',
+                          hidden: false,
+                          index: i
+                        };
+                      });
                     }
-                },
-                tooltip: {
-                    enabled: true,
-                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    borderColor: '#B80101',
-                    borderWidth: 2,
-                    cornerRadius: 12,
-                    displayColors: true,
-                    padding: 16,
-                    titleFont: {
-                        size: 16,
-                        weight: 'bold',
-                        family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-                    },
-                    bodyFont: {
-                        size: 14,
-                        weight: '500',
-                        family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-                    },
-                    callbacks: {
-                        title: function(context) {
-                            return context[0].label;
-                        },
-                        label: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = total > 0 ? Math.round((context.parsed / total) * 100) : 0;
-                            return `${context.parsed} students (${percentage}%)`;
-                        }
-                    }
+                    return [];
+                  }
                 }
+              },
+              tooltip: {
+                enabled: true,
+                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                borderColor: '#3a92bd',
+                borderWidth: 2,
+                cornerRadius: 12,
+                displayColors: true,
+                padding: 16,
+                titleFont: {
+                  size: 16,
+                  weight: 'bold',
+                  family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+                },
+                bodyFont: {
+                  size: 14,
+                  weight: '500',
+                  family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+                },
+                callbacks: {
+                  title: function (context) {
+                    return context[0].label;
+                  },
+                  label: function (context) {
+                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    const percentage = total > 0 ? Math.round((context.parsed / total) * 100) : 0;
+                    return `${context.parsed} students (${percentage}%)`;
+                  }
+                }
+              }
             },
             layout: {
-                padding: {
-                    top: 10,
-                    bottom: 10,
-                    left: 10,
-                    right: 10
-                }
+              padding: {
+                top: 10,
+                bottom: 10,
+                left: 10,
+                right: 10
+              }
             },
             elements: {
-                arc: {
-                    borderWidth: 4,
-                    borderColor: '#ffffff'
-                }
+              arc: {
+                borderWidth: 4,
+                borderColor: '#ffffff'
+              }
             }
-        }
-    });
-}
+          }
+        });
+      }
 
-// Chart period controls
-function initializeChartControls() {
-    const periodBtns = document.querySelectorAll('.chart-period-btn');
-    periodBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
+      // Chart period controls
+      function initializeChartControls() {
+        const periodBtns = document.querySelectorAll('.chart-period-btn');
+        periodBtns.forEach(btn => {
+          btn.addEventListener('click', function () {
             // Remove active class from all buttons
             periodBtns.forEach(b => b.classList.remove('active'));
             // Add active class to clicked button
             this.classList.add('active');
-            
+
             // Update charts based on period
             const period = this.dataset.period;
             updateChartsForPeriod(period);
+          });
         });
-    });
-}
+      }
 
-// Update charts for different periods
-function updateChartsForPeriod(period) {
-    // Map period buttons to days
-    const periodDays = {
-        '7d': 7,
-        '30d': 30,
-        '90d': 90
-    };
-    
-    const days = periodDays[period] || 30;
-    
-    // Load chart data for the selected period
-    loadChartData(days);
-}
+      // Update charts for different periods
+      function updateChartsForPeriod(period) {
+        // Map period buttons to days
+        const periodDays = {
+          '7d': 7,
+          '30d': 30,
+          '90d': 90
+        };
 
-// Course filters
-function initializeCourseFilters() {
-    const filterBtns = document.querySelectorAll('.course-filter-btn');
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
+        const days = periodDays[period] || 30;
+
+        // Load chart data for the selected period
+        loadChartData(days);
+      }
+
+      // Course filters
+      function initializeCourseFilters() {
+        const filterBtns = document.querySelectorAll('.course-filter-btn');
+        filterBtns.forEach(btn => {
+          btn.addEventListener('click', function () {
             // Remove active class from all buttons
             filterBtns.forEach(b => b.classList.remove('active'));
             // Add active class to clicked button
             this.classList.add('active');
-            
+
             // Filter courses
             const filter = this.dataset.filter;
             filterCourses(filter);
+          });
         });
-    });
-}
+      }
 
-// Filter courses
-function filterCourses(filter) {
-    const courseCards = document.querySelectorAll('.course-performance-card');
-    courseCards.forEach(card => {
-        const status = card.dataset.status;
-        const isFeatured = card.dataset.featured === 'true';
-        
-        if (filter === 'all') {
+      // Filter courses
+      function filterCourses(filter) {
+        const courseCards = document.querySelectorAll('.course-performance-card');
+        courseCards.forEach(card => {
+          const status = card.dataset.status;
+          const isFeatured = card.dataset.featured === 'true';
+
+          if (filter === 'all') {
             card.style.display = 'block';
-        } else if (filter === 'published') {
+          } else if (filter === 'published') {
             card.style.display = status === 'published' ? 'block' : 'none';
-        } else if (filter === 'draft') {
+          } else if (filter === 'draft') {
             card.style.display = status === 'draft' ? 'block' : 'none';
-        } else if (filter === 'featured') {
+          } else if (filter === 'featured') {
             card.style.display = isFeatured ? 'block' : 'none';
-        } else {
+          } else {
             card.style.display = 'block';
-        }
-    });
-}
+          }
+        });
+      }
 
 
-// Enhanced Notification functions
-let notificationCountdown = null;
-let notificationProgress = null;
+      // Enhanced Notification functions
+      let notificationCountdown = null;
+      let notificationProgress = null;
 
-function viewNewOrders() {
-    // Mark notification as viewed and redirect
-    markNotificationAsViewed();
-    window.location.href = '/admin/orders';
-}
-
-function dismissNotification() {
-    const notification = document.getElementById('newOrdersNotification');
-    if (notification) {
-        // Clear countdown
-        if (notificationCountdown) {
-            clearInterval(notificationCountdown);
-        }
-        if (notificationProgress) {
-            clearInterval(notificationProgress);
-        }
-        
-        // Mark as dismissed
+      function viewNewOrders() {
+        // Mark notification as viewed and redirect
         markNotificationAsViewed();
-        
-        // Animate out
-        notification.style.animation = 'slideOutRight 0.4s ease-in-out forwards';
-        setTimeout(() => {
-            notification.style.display = 'none';
-        }, 400);
-    }
-}
+        window.location.href = '/admin/orders';
+      }
 
-function markNotificationAsViewed() {
-    // Store in localStorage to prevent showing again
-    const notification = document.getElementById('newOrdersNotification');
-    if (notification) {
+      function dismissNotification() {
+        const notification = document.getElementById('newOrdersNotification');
+        if (notification) {
+          // Clear countdown
+          if (notificationCountdown) {
+            clearInterval(notificationCountdown);
+          }
+          if (notificationProgress) {
+            clearInterval(notificationProgress);
+          }
+
+          // Mark as dismissed
+          markNotificationAsViewed();
+
+          // Animate out
+          notification.style.animation = 'slideOutRight 0.4s ease-in-out forwards';
+          setTimeout(() => {
+            notification.style.display = 'none';
+          }, 400);
+        }
+      }
+
+      function markNotificationAsViewed() {
+        // Store in localStorage to prevent showing again
+        const notification = document.getElementById('newOrdersNotification');
+        if (notification) {
+          const orderCount = notification.dataset.orderCount;
+          const viewedKey = `notificationViewed_${orderCount}_${new Date().toDateString()}`;
+          localStorage.setItem(viewedKey, 'true');
+
+          // Also store in sessionStorage for immediate session
+          sessionStorage.setItem('notificationDismissed', 'true');
+        }
+      }
+
+      function shouldShowNotification() {
+        const notification = document.getElementById('newOrdersNotification');
+        if (!notification) return false;
+
         const orderCount = notification.dataset.orderCount;
         const viewedKey = `notificationViewed_${orderCount}_${new Date().toDateString()}`;
-        localStorage.setItem(viewedKey, 'true');
-        
-        // Also store in sessionStorage for immediate session
-        sessionStorage.setItem('notificationDismissed', 'true');
-    }
-}
+        const isViewed = localStorage.getItem(viewedKey) === 'true';
+        const isSessionDismissed = sessionStorage.getItem('notificationDismissed') === 'true';
 
-function shouldShowNotification() {
-    const notification = document.getElementById('newOrdersNotification');
-    if (!notification) return false;
-    
-    const orderCount = notification.dataset.orderCount;
-    const viewedKey = `notificationViewed_${orderCount}_${new Date().toDateString()}`;
-    const isViewed = localStorage.getItem(viewedKey) === 'true';
-    const isSessionDismissed = sessionStorage.getItem('notificationDismissed') === 'true';
-    
-    return !isViewed && !isSessionDismissed;
-}
+        return !isViewed && !isSessionDismissed;
+      }
 
-// Enhanced auto-dismiss with countdown and progress bar
-function initializeNotification() {
-    const notification = document.getElementById('newOrdersNotification');
-    if (!notification || !shouldShowNotification()) {
-        if (notification) {
+      // Enhanced auto-dismiss with countdown and progress bar
+      function initializeNotification() {
+        const notification = document.getElementById('newOrdersNotification');
+        if (!notification || !shouldShowNotification()) {
+          if (notification) {
             notification.style.display = 'none';
+          }
+          return;
         }
-        return;
-    }
-    
-    let countdown = 10;
-    const timerElement = document.getElementById('countdownTimer');
-    const progressElement = document.getElementById('notificationProgress');
-    
-    // Start countdown
-    notificationCountdown = setInterval(() => {
-        countdown--;
-        if (timerElement) {
+
+        let countdown = 10;
+        const timerElement = document.getElementById('countdownTimer');
+        const progressElement = document.getElementById('notificationProgress');
+
+        // Start countdown
+        notificationCountdown = setInterval(() => {
+          countdown--;
+          if (timerElement) {
             timerElement.textContent = countdown;
-        }
-        
-        if (countdown <= 0) {
+          }
+
+          if (countdown <= 0) {
             clearInterval(notificationCountdown);
             dismissNotification();
-        }
-    }, 1000);
-    
-    // Start progress bar animation
-    let progress = 0;
-    notificationProgress = setInterval(() => {
-        progress += 1;
-        if (progressElement) {
+          }
+        }, 1000);
+
+        // Start progress bar animation
+        let progress = 0;
+        notificationProgress = setInterval(() => {
+          progress += 1;
+          if (progressElement) {
             progressElement.style.width = `${progress}%`;
-        }
-        
-        if (progress >= 100) {
+          }
+
+          if (progress >= 100) {
             clearInterval(notificationProgress);
-        }
-    }, 100);
-    
-    // Add pulse animation to primary button
-    const pulseBtn = document.querySelector('.pulse-btn');
-    if (pulseBtn) {
-        setInterval(() => {
+          }
+        }, 100);
+
+        // Add pulse animation to primary button
+        const pulseBtn = document.querySelector('.pulse-btn');
+        if (pulseBtn) {
+          setInterval(() => {
             pulseBtn.style.transform = 'scale(1.05)';
             setTimeout(() => {
-                pulseBtn.style.transform = 'scale(1)';
+              pulseBtn.style.transform = 'scale(1)';
             }, 200);
-        }, 2000);
-    }
-}
+          }, 2000);
+        }
+      }
 
-// Initialize notification when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    initializeNotification();
-});
+      // Initialize notification when DOM is ready
+      document.addEventListener('DOMContentLoaded', function () {
+        initializeNotification();
+      });
 
-// Export dashboard data
-function exportDashboardData() {
-    try {
-        console.log('Exporting comprehensive dashboard data...');
-        
-        // Show loading state
-        const exportBtn = document.querySelector('.dashboard-action-btn.secondary');
-        if (exportBtn) {
+      // Export dashboard data
+      function exportDashboardData() {
+        try {
+          console.log('Exporting comprehensive dashboard data...');
+
+          // Show loading state
+          const exportBtn = document.querySelector('.dashboard-action-btn.secondary');
+          if (exportBtn) {
             const originalText = exportBtn.innerHTML;
             exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
             exportBtn.disabled = true;
 
             // Reset button after a delay
             setTimeout(() => {
-                exportBtn.innerHTML = originalText;
-                exportBtn.disabled = false;
+              exportBtn.innerHTML = originalText;
+              exportBtn.disabled = false;
             }, 5000);
-        }
+          }
 
-        // Create a temporary link to trigger download
-        const link = document.createElement('a');
-        link.href = '/admin/export/comprehensive';
-        link.download = `comprehensive-admin-report-${new Date().toISOString().split('T')[0]}.xlsx`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    } catch (error) {
-        console.error('Error exporting dashboard data:', error);
-        // Reset button on error
-        const exportBtn = document.querySelector('.dashboard-action-btn.secondary');
-        if (exportBtn) {
+          // Create a temporary link to trigger download
+          const link = document.createElement('a');
+          link.href = '/admin/export/comprehensive';
+          link.download = `comprehensive-admin-report-${new Date().toISOString().split('T')[0]}.xlsx`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } catch (error) {
+          console.error('Error exporting dashboard data:', error);
+          // Reset button on error
+          const exportBtn = document.querySelector('.dashboard-action-btn.secondary');
+          if (exportBtn) {
             exportBtn.innerHTML = '<i class="fas fa-file-excel"></i> Export Excel Report';
             exportBtn.disabled = false;
+          }
         }
-    }
-}
+      }
 
-// Add some interactive animations
-document.addEventListener('DOMContentLoaded', function() {
-    // Animate stat cards on scroll
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
+      // Add some interactive animations
+      document.addEventListener('DOMContentLoaded', function () {
+        // Animate stat cards on scroll
+        const observerOptions = {
+          threshold: 0.1,
+          rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
             if (entry.isIntersecting) {
-                entry.target.style.animationDelay = '0.1s';
-                entry.target.classList.add('admin-slide-in');
+              entry.target.style.animationDelay = '0.1s';
+              entry.target.classList.add('admin-slide-in');
             }
+          });
+        }, observerOptions);
+
+        // Observe all stat cards
+        document.querySelectorAll('.admin-stat-card').forEach(card => {
+          observer.observe(card);
         });
-    }, observerOptions);
-    
-    // Observe all stat cards
-    document.querySelectorAll('.admin-stat-card').forEach(card => {
-        observer.observe(card);
-    });
-    
-    // Add hover effects to course cards
-    document.querySelectorAll('.course-performance-card').forEach(card => {
-        card.addEventListener('mouseenter', function() {
+
+        // Add hover effects to course cards
+        document.querySelectorAll('.course-performance-card').forEach(card => {
+          card.addEventListener('mouseenter', function () {
             this.style.transform = 'translateY(-8px) scale(1.02)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
+          });
+
+          card.addEventListener('mouseleave', function () {
             this.style.transform = 'translateY(0) scale(1)';
+          });
         });
-    });
-});
+      });
 
-// Theme-aware chart colors
-function getChartColors() {
-    const isDark = document.body.classList.contains('dark-theme');
-    return {
-        primary: isDark ? '#ff6b6b' : '#B80101',
-        secondary: isDark ? '#ffa726' : '#dc2626',
-        success: isDark ? '#4caf50' : '#10b981',
-        warning: isDark ? '#ff9800' : '#f59e0b',
-        info: isDark ? '#2196f3' : '#3b82f6',
-        background: isDark ? 'rgba(26, 31, 46, 0.5)' : 'rgba(255, 255, 255, 0.5)',
-        grid: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-    };
-}
+      // Theme-aware chart colors
+      function getChartColors() {
+        const isDark = document.body.classList.contains('dark-theme');
+        return {
+          primary: isDark ? '#5ba9d1' : '#3a92bd',
+          secondary: isDark ? '#6ec1e4' : '#0c5374',
+          success: isDark ? '#4caf50' : '#10b981',
+          warning: isDark ? '#ff9800' : '#f59e0b',
+          info: isDark ? '#2196f3' : '#3b82f6',
+          background: isDark ? 'rgba(26, 31, 46, 0.5)' : 'rgba(255, 255, 255, 0.5)',
+          grid: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+        };
+      }
 
-// WhatsApp Status Functions
-function refreshWhatsAppStatus() {
-    showNotification('Refreshing WhatsApp status...', 'info');
-    loadWhatsAppSessionStatus();
-}
+      // WhatsApp Status Functions
+      function refreshWhatsAppStatus() {
+        showNotification('Refreshing WhatsApp status...', 'info');
+        loadWhatsAppSessionStatus();
+      }
 
-function testWhatsAppConnection() {
-    showNotification('Testing WhatsApp connection...', 'info');
-    
-    fetch('/admin/whatsapp/session-status')
-        .then(response => response.json())
-        .then(data => {
+      function testWhatsAppConnection() {
+        showNotification('Testing WhatsApp connection...', 'info');
+
+        fetch('/admin/whatsapp/session-status')
+          .then(response => response.json())
+          .then(data => {
             if (data.success && data.session) {
-                showNotification('✅ WhatsApp connection is active!', 'success');
-                updateWhatsAppSessionDisplay(data.session);
+              showNotification('✅ WhatsApp connection is active!', 'success');
+              updateWhatsAppSessionDisplay(data.session);
             } else {
-                showNotification('❌ WhatsApp connection failed or no active session', 'error');
-                updateWhatsAppSessionDisplay(null);
+              showNotification('❌ WhatsApp connection failed or no active session', 'error');
+              updateWhatsAppSessionDisplay(null);
             }
-        })
-        .catch(error => {
+          })
+          .catch(error => {
             console.error('Error testing WhatsApp connection:', error);
             showNotification('❌ Error testing WhatsApp connection', 'error');
             updateWhatsAppSessionDisplay(null);
-        });
-}
+          });
+      }
 
-function loadWhatsAppSessionStatus() {
-    fetch('/admin/whatsapp/session-status')
-        .then(response => response.json())
-        .then(data => {
+      function loadWhatsAppSessionStatus() {
+        fetch('/admin/whatsapp/session-status')
+          .then(response => response.json())
+          .then(data => {
             if (data.success && data.session) {
-                updateWhatsAppSessionDisplay(data.session);
+              updateWhatsAppSessionDisplay(data.session);
             } else {
-                updateWhatsAppSessionDisplay(null);
+              updateWhatsAppSessionDisplay(null);
             }
-        })
-        .catch(error => {
+          })
+          .catch(error => {
             console.error('Error loading WhatsApp session status:', error);
             updateWhatsAppSessionDisplay(null);
-        });
-}
+          });
+      }
 
-function updateWhatsAppSessionDisplay(session) {
-    const statusElement = document.getElementById('whatsappSessionStatus');
-    const detailsElement = document.getElementById('whatsappSessionDetails');
-    
-    if (session) {
-        const status = session.status || 'DISCONNECTED';
-        let statusText = '';
-        let statusClass = '';
-        
-        switch (status) {
+      function updateWhatsAppSessionDisplay(session) {
+        const statusElement = document.getElementById('whatsappSessionStatus');
+        const detailsElement = document.getElementById('whatsappSessionDetails');
+
+        if (session) {
+          const status = session.status || 'DISCONNECTED';
+          let statusText = '';
+          let statusClass = '';
+
+          switch (status) {
             case 'CONNECTED':
-                statusText = '✓';
-                statusClass = 'text-success';
-                break;
+              statusText = '✓';
+              statusClass = 'text-success';
+              break;
             case 'NEED_SCAN':
-                statusText = '⚠';
-                statusClass = 'text-warning';
-                break;
+              statusText = '⚠';
+              statusClass = 'text-warning';
+              break;
             default:
-                statusText = '✗';
-                statusClass = 'text-danger';
-        }
-        
-        if (statusElement) {
+              statusText = '✗';
+              statusClass = 'text-danger';
+          }
+
+          if (statusElement) {
             statusElement.textContent = statusText;
             statusElement.className = `whatsapp-status-number ${statusClass}`;
-        }
-        
-        if (detailsElement) {
+          }
+
+          if (detailsElement) {
             detailsElement.textContent = `Phone: ${session.phone_number || 'N/A'} | Status: ${status}`;
-        }
-    } else {
-        if (statusElement) {
+          }
+        } else {
+          if (statusElement) {
             statusElement.textContent = '✗';
             statusElement.className = 'whatsapp-status-number text-danger';
-        }
-        
-        if (detailsElement) {
+          }
+
+          if (detailsElement) {
             detailsElement.textContent = 'No active WhatsApp session found';
+          }
         }
-    }
-}
+      }
 
-// Load WhatsApp status on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Load WhatsApp session status after a short delay to ensure page is ready
-    setTimeout(() => {
-        loadWhatsAppSessionStatus();
-        updateWhatsAppStatusInHeader();
-    }, 1000);
-});
+      // Load WhatsApp status on page load
+      document.addEventListener('DOMContentLoaded', function () {
+        // Load WhatsApp session status after a short delay to ensure page is ready
+        setTimeout(() => {
+          loadWhatsAppSessionStatus();
+          updateWhatsAppStatusInHeader();
+        }, 1000);
+      });
 
-// Update WhatsApp status in header
-function updateWhatsAppStatusInHeader() {
-    const statusElement = document.getElementById('whatsappStatusValue');
-    if (!statusElement) return;
-    
-    // Show loading state
-    statusElement.textContent = 'Loading...';
-    statusElement.className = 'meta-card-value status-neutral';
-    
-    fetch('/admin/whatsapp/session-status')
-        .then(response => response.json())
-        .then(data => {
+      // Update WhatsApp status in header
+      function updateWhatsAppStatusInHeader() {
+        const statusElement = document.getElementById('whatsappStatusValue');
+        if (!statusElement) return;
+
+        // Show loading state
+        statusElement.textContent = 'Loading...';
+        statusElement.className = 'meta-card-value status-neutral';
+
+        fetch('/admin/whatsapp/session-status')
+          .then(response => response.json())
+          .then(data => {
             if (data.success && data.session && data.session.status === 'CONNECTED') {
-                statusElement.textContent = 'Connected';
-                statusElement.className = 'meta-card-value status-connected';
+              statusElement.textContent = 'Connected';
+              statusElement.className = 'meta-card-value status-connected';
             } else {
-                statusElement.textContent = 'Disconnected';
-                statusElement.className = 'meta-card-value status-disconnected';
+              statusElement.textContent = 'Disconnected';
+              statusElement.className = 'meta-card-value status-disconnected';
             }
-        })
-        .catch(error => {
+          })
+          .catch(error => {
             console.error('Error loading WhatsApp status:', error);
             statusElement.textContent = 'Disconnected';
             statusElement.className = 'meta-card-value status-disconnected';
-        });
-}
-</script>
+          });
+      }
+    </script>

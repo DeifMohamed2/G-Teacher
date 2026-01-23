@@ -56,7 +56,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, var(--admin-primary), #dc2626);
+    background: #3a92bd;
     transform: scaleX(0);
     transition: transform 0.3s ease;
 }
@@ -68,7 +68,7 @@
 .whatsapp-stat-icon {
     width: 60px;
     height: 60px;
-    background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+    background: #3a92bd;
     border-radius: 16px;
     display: flex;
     align-items: center;
@@ -385,7 +385,7 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--admin-primary), #dc2626);
+    background: #3a92bd;
     transform: scaleX(0);
     transition: transform 0.3s ease;
 }
@@ -565,7 +565,7 @@
 }
 
 .bulk-form-submit {
-    background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+    background: #3a92bd;
     border: none;
     color: #ffffff;
     padding: 12px 24px;
@@ -580,7 +580,7 @@
 }
 
 .bulk-form-submit:hover {
-    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    background: #0c5374;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
@@ -902,7 +902,7 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--admin-primary), #dc2626);
+    background: #3a92bd;
     transform: scaleX(0);
     transition: transform 0.3s ease;
 }
@@ -914,7 +914,7 @@
 .admin-stat-item .admin-stat-icon {
     width: 50px;
     height: 50px;
-    background: linear-gradient(135deg, var(--admin-primary), #dc2626);
+    background: #3a92bd;
     border-radius: 12px;
     display: flex;
     align-items: center;

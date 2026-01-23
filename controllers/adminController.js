@@ -5,10 +5,9 @@ const User = require('../models/User');
 const Admin = require('../models/Admin');
 const Progress = require('../models/Progress');
 const Purchase = require('../models/Purchase');
-const BrilliantStudent = require('../models/BrilliantStudent');
 const ZoomMeeting = require('../models/ZoomMeeting');
 const PromoCode = require('../models/PromoCode');
-const TeamMember = require('../models/TeamMember');
+const ExamPeriod = require('../models/ExamPeriod');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const ExcelExporter = require('../utils/excelExporter');
@@ -43,7 +42,6 @@ const getAdminDashboard = async (req, res) => {
       studentGrowth,
       revenueData,
       progressStats,
-      brilliantStudentsStats,
     ] = await Promise.all([
       // Student statistics - using correct field names from User model
       User.countDocuments({ role: 'student' }),
@@ -107,7 +105,7 @@ const getAdminDashboard = async (req, res) => {
         .populate('teacher', 'firstName lastName teacherCode')
         .sort({ createdAt: -1 })
         .limit(6)
-        .select('title level category status price featured teacher'),
+        .select('title status price featured teacher'),
 
       // Student growth data (last 7 days)
       User.aggregate([
@@ -157,12 +155,6 @@ const getAdminDashboard = async (req, res) => {
           },
         },
       ]),
-
-      // Brilliant students statistics
-      BrilliantStudent.getStatistics().catch((err) => {
-        console.error('Error fetching brilliant students statistics:', err);
-        return {};
-      }),
     ]);
 
     console.log('Data fetched successfully:', {
@@ -287,30 +279,12 @@ const getAdminDashboard = async (req, res) => {
         studentsWithProgress: studentsWithProgress,
       },
       brilliantStudents: {
-        total: Object.values(brilliantStudentsStats || {}).reduce(
-          (sum, stat) => sum + (stat.count || 0),
-          0
-        ),
-        est:
-          brilliantStudentsStats && brilliantStudentsStats.EST
-            ? brilliantStudentsStats.EST.count || 0
-            : 0,
-        dsat:
-          brilliantStudentsStats && brilliantStudentsStats.DSAT
-            ? brilliantStudentsStats.DSAT.count || 0
-            : 0,
-        act:
-          brilliantStudentsStats && brilliantStudentsStats.ACT
-            ? brilliantStudentsStats.ACT.count || 0
-            : 0,
-        avgScore:
-          Object.keys(brilliantStudentsStats || {}).length > 0
-            ? Object.values(brilliantStudentsStats).reduce(
-                (sum, stat) => sum + (stat.avgScore || 0),
-                0
-              ) / Object.keys(brilliantStudentsStats).length
-            : 0,
-        stats: brilliantStudentsStats || {},
+        total: 0,
+        est: 0,
+        dsat: 0,
+        act: 0,
+        avgScore: 0,
+        stats: {},
       },
       recentActivity: [
         // Recent students
@@ -381,8 +355,6 @@ const getAdminDashboard = async (req, res) => {
 
             return {
               title: course.title,
-              level: course.level || 'Beginner',
-              category: course.category || 'General',
               status: course.status,
               featured: course.featured || false,
               enrollments: enrollments,
@@ -393,8 +365,6 @@ const getAdminDashboard = async (req, res) => {
             console.error('Error processing course:', course.title, error);
             return {
               title: course.title,
-              level: course.level || 'Beginner',
-              category: course.category || 'General',
               status: course.status,
               featured: course.featured || false,
               enrollments: 0,
@@ -519,6 +489,7 @@ const getCourses = async (req, res) => {
       courses = await Course.find(filter)
         .populate('topics')
         .populate('teacher', 'firstName lastName teacherCode')
+        .populate('examPeriod', 'name displayName')
         .sort(sort);
     } else {
       // Filters applied: use pagination
@@ -529,6 +500,7 @@ const getCourses = async (req, res) => {
       courses = await Course.find(filter)
         .populate('topics')
         .populate('teacher', 'firstName lastName teacherCode')
+        .populate('examPeriod', 'name displayName')
         .sort(sort)
         .skip(skip)
         .limit(parseInt(limit));
@@ -570,97 +542,89 @@ const createCourse = async (req, res) => {
       title,
       description,
       shortDescription,
-      level,
       year,
-      duration,
       price = 0,
       status = 'draft',
       teacherId,
-      category,
+      teacher,
+      examPeriod,
       thumbnail,
-      order,
-      requiresSequential,
     } = req.body;
 
     console.log('Creating course with data:', {
       title,
       thumbnail,
       teacherId,
-      category,
-      order,
-      requiresSequential,
+      teacher,
+      examPeriod,
     });
 
     // Validate teacher exists if provided
-    let teacher = null;
-    if (teacherId) {
-      teacher = await Teacher.findById(teacherId);
-      if (!teacher) {
+    let teacherObj = null;
+    const teacherIdToUse = teacherId || teacher; // Support both field names
+    if (teacherIdToUse) {
+      teacherObj = await Teacher.findById(teacherIdToUse);
+      if (!teacherObj) {
         req.flash('error_msg', 'Please select a valid teacher');
         return res.redirect('/admin/courses');
       }
     }
 
-    // Determine order - use provided order or auto-assign
-    let courseOrder = 0;
-    if (order && !isNaN(parseInt(order)) && parseInt(order) > 0) {
-      courseOrder = parseInt(order);
-    } else {
-      // Auto-assign next available order
-      const existingCourses = await Course.find()
-        .sort({ order: -1 })
-        .limit(1);
-      courseOrder =
-        existingCourses.length > 0 ? (existingCourses[0].order || 0) + 1 : 1;
+    // Validate exam period exists if provided
+    let examPeriodObj = null;
+    if (examPeriod) {
+      const ExamPeriod = require('../models/ExamPeriod');
+      examPeriodObj = await ExamPeriod.findById(examPeriod);
+      if (!examPeriodObj) {
+        req.flash('error_msg', 'Please select a valid exam period');
+        return res.redirect('/admin/courses');
+      }
     }
-
-    // Handle requiresSequential checkbox (will be 'on' if checked, undefined if not)
-    const requiresSequentialFlag =
-      requiresSequential === 'on' ||
-      requiresSequential === true ||
-      requiresSequential === 'true';
 
     // Create new course
     const course = new Course({
       title: title.trim(),
       description: description ? description.trim() : '',
       shortDescription: shortDescription ? shortDescription.trim() : '',
-      level,
       year, // Use provided year when creating course
-      category: category.trim(),
-      duration: duration && !isNaN(parseInt(duration)) ? parseInt(duration) : 0,
       price: parseFloat(price),
       status,
       createdBy: req.session.user.id,
-      teacher: teacherId || null,
+      teacher: teacherIdToUse || null,
+      examPeriod: examPeriod || null,
       thumbnail: thumbnail || '',
-      order: courseOrder,
-      requiresSequential: requiresSequentialFlag,
     });
 
     console.log('Course object before save:', {
       title: course.title,
       thumbnail: course.thumbnail,
       teacher: course.teacher,
+      examPeriod: course.examPeriod,
     });
 
     await course.save();
 
     console.log('Course saved successfully with ID:', course._id);
 
+    // Update exam period courses count if assigned
+    if (examPeriodObj) {
+      await examPeriodObj.updateCoursesCount();
+    }
+
     // Log admin action
     await createLog(req, {
       action: 'CREATE_COURSE',
       actionCategory: 'COURSE_MANAGEMENT',
-      description: `Created course "${course.title}" (${course.courseCode})${teacher ? ` for teacher "${teacher.firstName} ${teacher.lastName}"` : ''}`,
+      description: `Created course "${course.title}" (${course.courseCode})${teacherObj ? ` for teacher "${teacherObj.firstName} ${teacherObj.lastName}"` : ''}${examPeriodObj ? ` in period "${examPeriodObj.name}"` : ''}`,
       targetModel: 'Course',
       targetId: course._id.toString(),
       targetName: course.title,
       metadata: {
         courseCode: course.courseCode,
-        teacherId: teacher ? teacher._id.toString() : null,
-        teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : null,
-        level: course.level,
+        teacherId: teacherObj ? teacherObj._id.toString() : null,
+        teacherName: teacherObj ? `${teacherObj.firstName} ${teacherObj.lastName}` : null,
+        examPeriodId: examPeriodObj ? examPeriodObj._id.toString() : null,
+        examPeriodName: examPeriodObj ? examPeriodObj.name : null,
         year: course.year,
         price: course.price,
         status: course.status,
@@ -964,6 +928,7 @@ const getCourseData = async (req, res) => {
 
     const course = await Course.findOne({ courseCode })
       .populate('teacher', 'firstName lastName teacherCode _id')
+      .populate('examPeriod', 'name displayName year _id')
       .lean();
 
     if (!course) {
@@ -982,17 +947,12 @@ const getCourseData = async (req, res) => {
         title: course.title,
         description: course.description,
         shortDescription: course.shortDescription,
-        level: course.level,
-        category: course.category,
-        duration: course.duration,
         price: course.price,
         discountPrice: course.discountPrice,
         status: course.status,
         isFeatured: course.isFeatured || false,
         isFullyBooked: course.isFullyBooked || false,
         fullyBookedMessage: course.fullyBookedMessage || 'FULLY BOOKED',
-        requiresSequential: course.requiresSequential !== undefined ? course.requiresSequential : true,
-        order: course.order || 0,
         tags: course.tags || [],
         thumbnail: course.thumbnail || '',
         teacher: course.teacher
@@ -1001,6 +961,14 @@ const getCourseData = async (req, res) => {
               firstName: course.teacher.firstName,
               lastName: course.teacher.lastName,
               teacherCode: course.teacher.teacherCode,
+            }
+          : null,
+        examPeriod: course.examPeriod
+          ? {
+              _id: course.examPeriod._id,
+              name: course.examPeriod.name,
+              displayName: course.examPeriod.displayName,
+              year: course.examPeriod.year,
             }
           : null,
       },
@@ -1030,16 +998,6 @@ const updateCourse = async (req, res) => {
       updateData.shortDescription = updateData.shortDescription
         ? updateData.shortDescription.trim()
         : '';
-    }
-
-    // Handle boolean fields (checkboxes)
-    // Convert string 'true'/'false' or 'on' to boolean, or keep boolean as is
-    if (updateData.requiresSequential !== undefined) {
-      if (typeof updateData.requiresSequential === 'string') {
-        updateData.requiresSequential = updateData.requiresSequential === 'true' || updateData.requiresSequential === 'on';
-      } else {
-        updateData.requiresSequential = Boolean(updateData.requiresSequential);
-      }
     }
 
     // Remove empty fields (but keep description fields as they can be empty strings)
@@ -1358,18 +1316,11 @@ const duplicateCourse = async (req, res) => {
     session.startTransaction();
 
     try {
-      // Determine the new order (count existing courses and assign next sequential order)
-      const existingCoursesCount = await Course.countDocuments().session(session);
-      const newOrder = existingCoursesCount + 1;
-
       // Create new course with copied data
       const newCourseData = {
         title: `${originalCourse.title} (Copy)`,
         description: originalCourse.description || '',
         shortDescription: originalCourse.shortDescription || '',
-        level: originalCourse.level,
-        category: originalCourse.category,
-        duration: originalCourse.duration,
         price: originalCourse.price,
         discountPrice: originalCourse.discountPrice || 0,
         thumbnail: originalCourse.thumbnail || '',
@@ -1377,12 +1328,7 @@ const duplicateCourse = async (req, res) => {
         isActive: true,
         createdBy: req.session.user.id,
         teacher: originalCourse.teacher ? originalCourse.teacher._id : null,
-        order: newOrder,
-        requiresSequential: originalCourse.requiresSequential !== false,
         tags: originalCourse.tags ? [...originalCourse.tags] : [],
-        prerequisites: originalCourse.prerequisites
-          ? [...originalCourse.prerequisites]
-          : [],
       };
 
       const newCourse = new Course(newCourseData);
@@ -1400,14 +1346,11 @@ const duplicateCourse = async (req, res) => {
             description: originalTopic.description || '',
             course: newCourse._id,
             order: originalTopic.order,
-            estimatedTime: originalTopic.estimatedTime || 0,
             isPublished: false, // Always set to unpublished for duplicates
-            difficulty: originalTopic.difficulty || 'beginner',
             learningObjectives: originalTopic.learningObjectives
               ? [...originalTopic.learningObjectives]
               : [],
             tags: originalTopic.tags ? [...originalTopic.tags] : [],
-            unlockConditions: originalTopic.unlockConditions || 'immediate',
             createdBy: req.session.user.id,
             content: [], // Will be populated below
           };
@@ -1688,7 +1631,8 @@ const getCourseContent = async (req, res) => {
           model: 'ZoomMeeting',
         },
       })
-      .populate('teacher', 'firstName lastName teacherCode');
+      .populate('teacher', 'firstName lastName teacherCode')
+      .populate('examPeriod', 'name displayName year months startDate endDate');
 
     if (!course) {
       req.flash('error_msg', 'Course not found');
@@ -1703,12 +1647,6 @@ const getCourseContent = async (req, res) => {
     const totalContentItems = course.topics
       ? course.topics.reduce(
           (total, topic) => total + (topic.content ? topic.content.length : 0),
-          0
-        )
-      : 0;
-    const estimatedDuration = course.topics
-      ? course.topics.reduce(
-          (total, topic) => total + (topic.estimatedTime || 0),
           0
         )
       : 0;
@@ -1737,11 +1675,6 @@ const getCourseContent = async (req, res) => {
       }
     }
 
-    // Get question banks for quiz/homework content
-    const questionBanks = await QuestionBank.find({ status: 'active' })
-      .select('name bankCode description totalQuestions tags')
-      .sort({ name: 1 });
-
     return res.render('admin/course-content', {
       title: `Course Content: ${course.title} | ELKABLY`,
       courseCode,
@@ -1750,12 +1683,10 @@ const getCourseContent = async (req, res) => {
       course,
       allTopics, // For topic prerequisite selection
       allContentItems, // For content prerequisite selection
-      questionBanks, // For quiz/homework content creation
       stats: {
         totalTopics,
         publishedTopics,
         totalContentItems,
-        estimatedDuration: Math.round((estimatedDuration / 60) * 10) / 10, // Convert to hours
         enrolledStudents: course.enrolledStudents
           ? course.enrolledStudents.length
           : 0,
@@ -1775,11 +1706,8 @@ const createTopic = async (req, res) => {
     const {
       title,
       description,
-      estimatedTime,
       isPublished,
-      difficulty,
       tags,
-      unlockConditions,
     } = req.body;
 
     const course = await Course.findOne({ courseCode });
@@ -1801,14 +1729,8 @@ const createTopic = async (req, res) => {
       title: title.trim(),
       description: description ? description.trim() : '',
       order: topicCount + 1,
-      estimatedTime:
-        estimatedTime && !isNaN(parseInt(estimatedTime))
-          ? parseInt(estimatedTime)
-          : 0,
       isPublished: isPublished === 'on',
-      difficulty: difficulty || 'beginner',
       tags: topicTags,
-      unlockConditions: unlockConditions || 'immediate',
       createdBy: req.session.user.id,
     });
 
@@ -1864,12 +1786,9 @@ const updateTopic = async (req, res) => {
     const {
       title,
       description,
-      estimatedTime,
       isPublished,
       order,
-      difficulty,
       tags,
-      unlockConditions,
     } = req.body;
 
     // Validate topicId
@@ -1918,19 +1837,11 @@ const updateTopic = async (req, res) => {
       }
       topic.description = trimmedDescription;
     }
-    if (estimatedTime !== undefined)
-      topic.estimatedTime =
-        estimatedTime && !isNaN(parseInt(estimatedTime))
-          ? parseInt(estimatedTime)
-          : 0;
     if (isPublished !== undefined)
       topic.isPublished = isPublished === 'on' || isPublished === true;
     if (order)
       topic.order =
         order && !isNaN(parseInt(order)) ? parseInt(order) : topic.order;
-
-    if (difficulty) topic.difficulty = difficulty;
-    if (unlockConditions) topic.unlockConditions = unlockConditions;
 
     // Update tags
     if (tags !== undefined) {
@@ -1981,12 +1892,9 @@ const updateTopic = async (req, res) => {
           id: topic._id,
           title: topic.title,
           description: topic.description,
-          estimatedTime: topic.estimatedTime,
           isPublished: topic.isPublished,
           order: topic.order,
-          difficulty: topic.difficulty,
           tags: topic.tags,
-          unlockConditions: topic.unlockConditions,
         },
       });
     }
@@ -3028,7 +2936,6 @@ const duplicateTopic = async (req, res) => {
           ? [...originalTopic.learningObjectives]
           : [],
         tags: originalTopic.tags ? [...originalTopic.tags] : [],
-        unlockConditions: originalTopic.unlockConditions || 'immediate',
         createdBy: req.session.user.id,
         content: [], // Will be populated below
       };
@@ -3325,7 +3232,6 @@ const addTopicContent = async (req, res) => {
       title,
       description,
       content,
-      duration,
       isRequired,
       order,
       prerequisites,
@@ -3334,7 +3240,6 @@ const addTopicContent = async (req, res) => {
       // Video specific fields
       maxWatchCount,
       // Quiz specific fields
-      quizDuration,
       quizPassingScore,
       quizMaxAttempts,
       quizShuffleQuestions,
@@ -3383,7 +3288,6 @@ const addTopicContent = async (req, res) => {
           : content
           ? content.trim()
           : '',
-      duration: duration && !isNaN(parseInt(duration)) ? parseInt(duration) : 0,
       isRequired: isRequired === 'on',
       order:
         order && !isNaN(parseInt(order)) ? parseInt(order) : contentCount + 1,
@@ -3460,10 +3364,6 @@ const addTopicContent = async (req, res) => {
         })
       );
       contentItem.quizSettings = {
-        duration:
-          quizDuration && !isNaN(parseInt(quizDuration))
-            ? parseInt(quizDuration)
-            : 30,
         passingScore:
           quizPassingScore && !isNaN(parseInt(quizPassingScore))
             ? parseInt(quizPassingScore)
@@ -3478,10 +3378,6 @@ const addTopicContent = async (req, res) => {
         showResults: quizShowResults === 'on',
         instructions: quizInstructions ? quizInstructions.trim() : '',
       };
-      contentItem.duration =
-        quizDuration && !isNaN(parseInt(quizDuration))
-          ? parseInt(quizDuration)
-          : 30;
       contentItem.completionCriteria = 'pass_quiz';
     }
 
@@ -3544,7 +3440,6 @@ const addTopicContent = async (req, res) => {
         showCorrectAnswers: homeworkShowCorrectAnswers === 'on',
         instructions: homeworkInstructions ? homeworkInstructions.trim() : '',
       };
-      contentItem.duration = 0; // No duration for homework
       contentItem.completionCriteria = 'pass_quiz';
     }
 
@@ -3642,7 +3537,6 @@ const updateTopicContent = async (req, res) => {
       questionBank,
       questionBanks,
       selectedQuestions,
-      quizDuration,
       quizPassingScore,
       quizMaxAttempts,
       quizShuffleQuestions,
@@ -3702,15 +3596,6 @@ const updateTopicContent = async (req, res) => {
       contentItem.content = content ? content.trim() : '';
     }
 
-    // Only update duration if it's explicitly provided (not empty string)
-    if (duration !== undefined && duration !== null && duration !== '') {
-      const parsedDuration = parseInt(duration);
-      if (!isNaN(parsedDuration)) {
-        contentItem.duration = parsedDuration;
-      }
-      // If duration is provided but invalid, keep existing value (don't change it)
-    }
-    // If duration is not provided (undefined/null/empty), keep the existing value
     contentItem.isRequired = isRequired === 'on' || isRequired === true;
     contentItem.difficulty = difficulty || 'beginner';
     contentItem.order = order ? parseInt(order) : contentItem.order;
@@ -3829,11 +3714,6 @@ const updateTopicContent = async (req, res) => {
 
       // Update quiz settings
       contentItem.quizSettings = {
-        duration: quizDuration
-          ? parseInt(quizDuration)
-          : quizData?.duration
-          ? parseInt(quizData.duration)
-          : contentItem.quizSettings?.duration || 30,
         passingScore: (quizPassingScore !== null && quizPassingScore !== undefined && quizPassingScore !== '')
           ? parseInt(quizPassingScore)
           : (quizData?.passingScore !== null && quizData?.passingScore !== undefined && quizData?.passingScore !== '')
@@ -4072,14 +3952,6 @@ const getContentDetailsForEdit = async (req, res) => {
 
     const topic = await Topic.findById(topicId)
       .populate({
-        path: 'content.questionBank',
-        select: 'name bankCode description tags totalQuestions',
-      })
-      .populate({
-        path: 'content.selectedQuestions.question',
-        select: 'questionText difficulty type correctAnswer points',
-      })
-      .populate({
         path: 'content.zoomMeeting',
         select:
           'meetingName meetingTopic meetingId scheduledStartTime duration timezone password joinUrl startUrl status settings',
@@ -4106,98 +3978,12 @@ const getContentDetailsForEdit = async (req, res) => {
       type: contentItem.type,
       description: contentItem.description || '',
       content: contentItem.content || '',
-      duration: contentItem.duration || 0,
       order: contentItem.order || 1,
-      difficulty: contentItem.difficulty || 'beginner',
       isRequired: contentItem.isRequired !== false,
-      tags: contentItem.tags ? contentItem.tags.join(', ') : '',
+      maxWatchCount: contentItem.maxWatchCount !== undefined && contentItem.maxWatchCount !== null ? contentItem.maxWatchCount : null,
+      tags: contentItem.tags || [],
       prerequisites: contentItem.prerequisites || [],
     };
-
-    // Add Quiz/Homework specific data with populated question banks and questions
-    if (contentItem.type === 'quiz' || contentItem.type === 'homework') {
-      const settingsKey =
-        contentItem.type === 'quiz' ? 'quizSettings' : 'homeworkSettings';
-      const settings = contentItem[settingsKey];
-
-      // Support multiple banks - get all banks
-      const bankIds =
-        contentItem.questionBanks && contentItem.questionBanks.length > 0
-          ? contentItem.questionBanks
-          : contentItem.questionBank
-          ? [contentItem.questionBank]
-          : [];
-
-      // Populate all question banks
-      if (bankIds.length > 0) {
-        const banks = await QuestionBank.find({ _id: { $in: bankIds } }).select(
-          'name bankCode description tags totalQuestions'
-        );
-
-        contentData.questionBanks = banks.map((bank) => ({
-          _id: bank._id,
-          name: bank.name,
-          bankCode: bank.bankCode,
-          description: bank.description,
-          totalQuestions: bank.totalQuestions,
-        }));
-
-        // Backward compatibility - keep single questionBank
-        contentData.questionBank = banks[0]
-          ? {
-              _id: banks[0]._id,
-              name: banks[0].name,
-              bankCode: banks[0].bankCode,
-              description: banks[0].description,
-              totalQuestions: banks[0].totalQuestions,
-            }
-          : null;
-      } else {
-        contentData.questionBanks = [];
-        contentData.questionBank = null;
-      }
-
-      // Get selected questions with sourceBank info
-      contentData.selectedQuestions = contentItem.selectedQuestions
-        ? contentItem.selectedQuestions.map((sq) => ({
-            question: sq.question
-              ? {
-                  _id: sq.question._id,
-                  questionText: sq.question.questionText,
-                  difficulty: sq.question.difficulty,
-                  type: sq.question.type,
-                  correctAnswer: sq.question.correctAnswer,
-                  points: sq.question.points || 1,
-                }
-              : null,
-            sourceBank: sq.sourceBank || bankIds[0] || null,
-            points: sq.points || 1,
-            order: sq.order || 0,
-          }))
-        : [];
-
-      if (contentItem.type === 'quiz') {
-        contentData.quizSettings = {
-          duration: settings?.duration || 30,
-          passingScore: settings?.passingScore !== undefined ? settings.passingScore : 50,
-          maxAttempts: settings?.maxAttempts || 3,
-          shuffleQuestions: settings?.shuffleQuestions || false,
-          shuffleOptions: settings?.shuffleOptions || false,
-          showCorrectAnswers: settings?.showCorrectAnswers !== false,
-          showResults: settings?.showResults !== false,
-          instructions: settings?.instructions || '',
-        };
-      } else {
-        contentData.homeworkSettings = {
-          passingScore: settings?.passingScore !== undefined ? settings.passingScore : 0,
-          maxAttempts: settings?.maxAttempts || 1,
-          shuffleQuestions: settings?.shuffleQuestions || false,
-          shuffleOptions: settings?.shuffleOptions || false,
-          showCorrectAnswers: settings?.showCorrectAnswers || false,
-          instructions: settings?.instructions || '',
-        };
-      }
-    }
 
     // Add Zoom specific data with populated meeting details
     if (contentItem.type === 'zoom' && contentItem.zoomMeeting) {
@@ -4208,7 +3994,6 @@ const getContentDetailsForEdit = async (req, res) => {
         meetingTopic: meeting.meetingTopic || '',
         meetingId: meeting.meetingId || '',
         scheduledStartTime: meeting.scheduledStartTime || '',
-        duration: meeting.duration || 60,
         timezone: meeting.timezone || 'Africa/Cairo',
         password: meeting.password || '',
         joinUrl: meeting.joinUrl || '',
@@ -4519,13 +4304,8 @@ const getOrderDetails = async (req, res) => {
       return res.redirect('/admin/orders');
     }
 
-    // Fetch book orders related to this purchase (before creating itemsSummary)
-    const BookOrder = require('../models/BookOrder');
-    const bookOrders = await BookOrder.find({ purchase: order._id })
-      .populate('user', 'firstName lastName studentEmail studentCode')
-      .populate('teacher', 'firstName lastName teacherCode')
-      .sort({ createdAt: -1 })
-      .lean();
+    // Book orders feature removed - return empty array
+    const bookOrders = [];
 
     // If we need to populate courses for bundle items, do it separately
     if (order.items && order.items.length > 0) {
@@ -5297,598 +5077,7 @@ const completeFailedPayment = async (req, res) => {
   }
 };
 
-// ==================== QUIZ/HOMEWORK CONTENT CONTROLLERS ====================
-
-// Get question banks for quiz/homework content creation
-const getQuestionBanksForContent = async (req, res) => {
-  try {
-    const { courseCode, topicId } = req.params;
-
-    // Verify topic exists
-    const topic = await Topic.findById(topicId);
-    if (!topic) {
-      return res.status(404).json({
-        success: false,
-        message: 'Topic not found',
-      });
-    }
-
-    // Get all active question banks
-    const questionBanks = await QuestionBank.find({ status: 'active' })
-      .select('name bankCode description totalQuestions tags')
-      .sort({ name: 1 });
-
-    return res.json({
-      success: true,
-      questionBanks,
-    });
-  } catch (error) {
-    console.error('Error fetching question banks for content:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch question banks',
-    });
-  }
-};
-
-// Get questions from a specific question bank for content creation
-const getQuestionsFromBankForContent = async (req, res) => {
-  try {
-    const { courseCode, topicId, bankId } = req.params;
-    const {
-      page = 1,
-      limit = 50,
-      difficulty,
-      type,
-      search,
-      all = false,
-    } = req.query;
-
-    // Verify topic exists
-    const topic = await Topic.findById(topicId);
-    if (!topic) {
-      return res.status(404).json({
-        success: false,
-        message: 'Topic not found',
-      });
-    }
-
-    // Build filter
-    const filter = { bank: bankId };
-    if (difficulty && difficulty !== 'all') filter.difficulty = difficulty;
-    if (type && type !== 'all') filter.questionType = type;
-    if (search) {
-      filter.$or = [
-        { questionText: { $regex: search, $options: 'i' } },
-        { explanation: { $regex: search, $options: 'i' } },
-      ];
-    }
-
-    let questions;
-    let total;
-
-    if (all === 'true') {
-      // Get all questions for the bank
-      questions = await Question.find(filter)
-        .select(
-          'questionText questionType difficulty options correctAnswers explanation questionImage points tags'
-        )
-        .sort({ createdAt: -1 });
-      total = questions.length;
-    } else {
-      // Get paginated questions
-      const skip = (parseInt(page) - 1) * parseInt(limit);
-      questions = await Question.find(filter)
-        .select(
-          'questionText questionType difficulty options correctAnswers explanation questionImage points tags'
-        )
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(parseInt(limit));
-      total = await Question.countDocuments(filter);
-    }
-
-    const totalPages = Math.ceil(total / parseInt(limit));
-
-    return res.json({
-      success: true,
-      questions,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages,
-        total,
-        hasNext: parseInt(page) < totalPages,
-        hasPrev: parseInt(page) > 1,
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching questions for content:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch questions',
-    });
-  }
-};
-
-// Get questions from multiple banks for content creation
-const getQuestionsFromMultipleBanksForContent = async (req, res) => {
-  try {
-    const { courseCode, topicId } = req.params;
-    const { bankIds } = req.body; // Array of bank IDs
-    const { difficulty, type, search } = req.query;
-
-    // Verify topic exists
-    const topic = await Topic.findById(topicId);
-    if (!topic) {
-      return res.status(404).json({
-        success: false,
-        message: 'Topic not found',
-      });
-    }
-
-    if (!Array.isArray(bankIds) || bankIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide at least one question bank',
-      });
-    }
-
-    // Build filter
-    const filter = { bank: { $in: bankIds } };
-    if (difficulty && difficulty !== 'all') filter.difficulty = difficulty;
-    if (type && type !== 'all') filter.questionType = type;
-    if (search) {
-      filter.$or = [
-        { questionText: { $regex: search, $options: 'i' } },
-        { explanation: { $regex: search, $options: 'i' } },
-      ];
-    }
-
-    // Get all questions from selected banks
-    const questions = await Question.find(filter)
-      .populate('bank', 'name bankCode')
-      .select(
-        'questionText questionType difficulty options correctAnswers explanation questionImage points tags bank'
-      )
-      .sort({ bank: 1, createdAt: -1 })
-      .lean();
-
-    // Group questions by bank for better organization
-    const questionsByBank = {};
-    questions.forEach((q) => {
-      const bankId = q.bank._id.toString();
-      if (!questionsByBank[bankId]) {
-        questionsByBank[bankId] = {
-          bankInfo: {
-            _id: q.bank._id,
-            name: q.bank.name,
-            bankCode: q.bank.bankCode,
-          },
-          questions: [],
-        };
-      }
-      questionsByBank[bankId].questions.push(q);
-    });
-
-    return res.json({
-      success: true,
-      questionsByBank,
-      totalQuestions: questions.length,
-    });
-  } catch (error) {
-    console.error(
-      'Error fetching questions from multiple banks for content:',
-      error
-    );
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch questions from multiple banks',
-    });
-  }
-};
-
-// Get question preview for content creation
-const getQuestionPreviewForContent = async (req, res) => {
-  try {
-    const { courseCode, topicId, questionId } = req.params;
-
-    // Verify topic exists
-    const topic = await Topic.findById(topicId);
-    if (!topic) {
-      return res.status(404).json({
-        success: false,
-        message: 'Topic not found',
-      });
-    }
-
-    const question = await Question.findById(questionId)
-      .populate('bank', 'name bankCode')
-      .lean();
-
-    if (!question) {
-      return res.status(404).json({
-        success: false,
-        message: 'Question not found',
-      });
-    }
-
-    return res.json({
-      success: true,
-      question,
-    });
-  } catch (error) {
-    console.error('Error fetching question preview for content:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch question preview',
-    });
-  }
-};
-
-// Add quiz content to topic
-const addQuizContent = async (req, res) => {
-  try {
-    const { courseCode, topicId } = req.params;
-    const {
-      title,
-      description,
-      questionBank,
-      questionBanks, // NEW: Support for multiple banks
-      selectedQuestions,
-      duration,
-      passingScore,
-      maxAttempts,
-      shuffleQuestions,
-      shuffleOptions,
-      showCorrectAnswers,
-      showResults,
-      instructions,
-      difficulty,
-      tags,
-      prerequisites,
-      isRequired,
-      order,
-    } = req.body;
-
-    console.log('Adding quiz content:', {
-      title,
-      questionBank,
-      questionBanks,
-      selectedQuestions,
-    });
-
-    const topic = await Topic.findById(topicId);
-    if (!topic) {
-      return res.status(404).json({
-        success: false,
-        message: 'Topic not found',
-      });
-    }
-
-    // Determine which banks to use
-    let selectedBankIds = [];
-    if (questionBanks) {
-      // Multiple banks selected
-      selectedBankIds = Array.isArray(questionBanks)
-        ? questionBanks
-        : [questionBanks];
-    } else if (questionBank) {
-      // Single bank selected (backward compatibility)
-      selectedBankIds = [questionBank];
-    }
-
-    if (selectedBankIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'At least one question bank must be selected',
-      });
-    }
-
-    // Validate question banks exist
-    const banks = await QuestionBank.find({ _id: { $in: selectedBankIds } });
-    if (banks.length !== selectedBankIds.length) {
-      return res.status(400).json({
-        success: false,
-        message: 'One or more question banks not found',
-      });
-    }
-
-    // Parse selected questions
-    let parsedQuestions = [];
-    if (selectedQuestions) {
-      try {
-        parsedQuestions =
-          typeof selectedQuestions === 'string'
-            ? JSON.parse(selectedQuestions)
-            : selectedQuestions;
-      } catch (e) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid selected questions format',
-        });
-      }
-    }
-
-    if (!parsedQuestions || parsedQuestions.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'At least one question must be selected',
-      });
-    }
-
-    // Validate that selected questions exist in the selected banks
-    const questionIds = parsedQuestions.map((q) => q.question);
-    const existingQuestions = await Question.find({
-      _id: { $in: questionIds },
-      bank: { $in: selectedBankIds },
-    }).select('_id bank');
-
-    if (existingQuestions.length !== questionIds.length) {
-      return res.status(400).json({
-        success: false,
-        message:
-          'Some selected questions do not exist in the chosen question banks',
-      });
-    }
-
-    // Add sourceBank to each question if not present
-    parsedQuestions = parsedQuestions.map((q) => {
-      if (!q.sourceBank) {
-        const questionDoc = existingQuestions.find(
-          (eq) => eq._id.toString() === q.question.toString()
-        );
-        if (questionDoc) {
-          q.sourceBank = questionDoc.bank;
-        }
-      }
-      return q;
-    });
-
-    // Get the next order number for content
-    const contentCount = topic.content ? topic.content.length : 0;
-
-    // Process tags
-    const contentTags = tags
-      ? (Array.isArray(tags) ? tags : [tags]).filter((tag) => tag.trim())
-      : [];
-
-    const quizContent = {
-      type: 'quiz',
-      title: title.trim(),
-      description: description ? description.trim() : '',
-      questionBank: selectedBankIds[0], // For backward compatibility
-      questionBanks: selectedBankIds, // Store all selected banks
-      selectedQuestions: parsedQuestions.map((q, index) => ({
-        question: q.question,
-        sourceBank: q.sourceBank,
-        points: q.points || 1,
-        order: index + 1,
-      })),
-      quizSettings: {
-        duration: parseInt(duration) || 30,
-        passingScore: passingScore !== null && passingScore !== undefined && passingScore !== '' ? parseInt(passingScore) : 50,
-        maxAttempts: parseInt(maxAttempts) || 3,
-        shuffleQuestions:
-          shuffleQuestions === 'on' || shuffleQuestions === true,
-        shuffleOptions: shuffleOptions === 'on' || shuffleOptions === true,
-        showCorrectAnswers:
-          showCorrectAnswers === 'on' || showCorrectAnswers === true,
-        showResults: showResults === 'on' || showResults === true,
-        instructions: instructions || '',
-      },
-      duration: parseInt(duration) || 30,
-      isRequired: isRequired === 'on' || isRequired === true,
-      order: order ? parseInt(order) : contentCount + 1,
-      difficulty: difficulty || 'beginner',
-      tags: contentTags,
-      prerequisites: prerequisites
-        ? Array.isArray(prerequisites)
-          ? prerequisites
-          : [prerequisites]
-        : [],
-    };
-
-    if (!topic.content) {
-      topic.content = [];
-    }
-
-    topic.content.push(quizContent);
-    await topic.save();
-
-    return res.json({
-      success: true,
-      message: 'Quiz content added successfully',
-      contentId: topic.content[topic.content.length - 1]._id,
-    });
-  } catch (error) {
-    console.error('Error adding quiz content:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to add quiz content',
-    });
-  }
-};
-
-// Add homework content to topic
-const addHomeworkContent = async (req, res) => {
-  try {
-    const { courseCode, topicId } = req.params;
-    const {
-      title,
-      description,
-      questionBank,
-      questionBanks, // NEW: Support for multiple banks
-      selectedQuestions,
-      passingScore,
-      maxAttempts,
-      shuffleQuestions,
-      shuffleOptions,
-      showCorrectAnswers,
-      instructions,
-      difficulty,
-      tags,
-      prerequisites,
-      isRequired,
-      order,
-    } = req.body;
-
-    console.log('Adding homework content:', {
-      title,
-      questionBank,
-      questionBanks,
-      selectedQuestions,
-    });
-
-    const topic = await Topic.findById(topicId);
-    if (!topic) {
-      return res.status(404).json({
-        success: false,
-        message: 'Topic not found',
-      });
-    }
-
-    // Determine which banks to use
-    let selectedBankIds = [];
-    if (questionBanks) {
-      // Multiple banks selected
-      selectedBankIds = Array.isArray(questionBanks)
-        ? questionBanks
-        : [questionBanks];
-    } else if (questionBank) {
-      // Single bank selected (backward compatibility)
-      selectedBankIds = [questionBank];
-    }
-
-    if (selectedBankIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'At least one question bank must be selected',
-      });
-    }
-
-    // Validate question banks exist
-    const banks = await QuestionBank.find({ _id: { $in: selectedBankIds } });
-    if (banks.length !== selectedBankIds.length) {
-      return res.status(400).json({
-        success: false,
-        message: 'One or more question banks not found',
-      });
-    }
-
-    // Parse selected questions
-    let parsedQuestions = [];
-    if (selectedQuestions) {
-      try {
-        parsedQuestions =
-          typeof selectedQuestions === 'string'
-            ? JSON.parse(selectedQuestions)
-            : selectedQuestions;
-      } catch (e) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid selected questions format',
-        });
-      }
-    }
-
-    if (!parsedQuestions || parsedQuestions.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'At least one question must be selected',
-      });
-    }
-
-    // Validate that selected questions exist in the selected banks
-    const questionIds = parsedQuestions.map((q) => q.question);
-    const existingQuestions = await Question.find({
-      _id: { $in: questionIds },
-      bank: { $in: selectedBankIds },
-    }).select('_id bank');
-
-    if (existingQuestions.length !== questionIds.length) {
-      return res.status(400).json({
-        success: false,
-        message:
-          'Some selected questions do not exist in the chosen question banks',
-      });
-    }
-
-    // Add sourceBank to each question if not present
-    parsedQuestions = parsedQuestions.map((q) => {
-      if (!q.sourceBank) {
-        const questionDoc = existingQuestions.find(
-          (eq) => eq._id.toString() === q.question.toString()
-        );
-        if (questionDoc) {
-          q.sourceBank = questionDoc.bank;
-        }
-      }
-      return q;
-    });
-
-    // Get the next order number for content
-    const contentCount = topic.content ? topic.content.length : 0;
-
-    // Process tags
-    const contentTags = tags
-      ? (Array.isArray(tags) ? tags : [tags]).filter((tag) => tag.trim())
-      : [];
-
-    const homeworkContent = {
-      type: 'homework',
-      title: title.trim(),
-      description: description ? description.trim() : '',
-      questionBank: selectedBankIds[0], // For backward compatibility
-      questionBanks: selectedBankIds, // Store all selected banks
-      selectedQuestions: parsedQuestions.map((q, index) => ({
-        question: q.question,
-        sourceBank: q.sourceBank,
-        points: q.points || 1,
-        order: index + 1,
-      })),
-      homeworkSettings: {
-        passingCriteria: 'pass',
-        passingScore: passingScore !== null && passingScore !== undefined && passingScore !== '' ? parseInt(passingScore) : 0,
-        maxAttempts: parseInt(maxAttempts) || 1,
-        shuffleQuestions:
-          shuffleQuestions === 'on' || shuffleQuestions === true,
-        shuffleOptions: shuffleOptions === 'on' || shuffleOptions === true,
-        showCorrectAnswers:
-          showCorrectAnswers === 'on' || showCorrectAnswers === true,
-        instructions: instructions || '',
-      },
-      duration: 0, // No time limit for homework
-      isRequired: isRequired === 'on' || isRequired === true,
-      order: order ? parseInt(order) : contentCount + 1,
-      difficulty: difficulty || 'beginner',
-      tags: contentTags,
-      prerequisites: prerequisites
-        ? Array.isArray(prerequisites)
-          ? prerequisites
-          : [prerequisites]
-        : [],
-    };
-
-    if (!topic.content) {
-      topic.content = [];
-    }
-
-    topic.content.push(homeworkContent);
-    await topic.save();
-
-    return res.json({
-      success: true,
-      message: 'Homework content added successfully',
-      contentId: topic.content[topic.content.length - 1]._id,
-    });
-  } catch (error) {
-    console.error('Error adding homework content:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to add homework content',
-    });
-  }
-};
+// ==================== STUDENT MANAGEMENT CONTROLLERS ====================
 
 // Bundle Course Management
 const getBundles = async (req, res) => {
@@ -6402,11 +5591,13 @@ const getBundleStats = async () => {
 const getFilterOptions = async () => {
   const years = []; // year removed from Course
   const levels = await Course.distinct('level');
-  const bundles = await BundleCourse.find({ status: { $ne: 'archived' } })
-    .select('_id title bundleCode')
-    .sort({ title: 1 });
+  // Note: BundleCourse model doesn't exist, so we return empty array for bundles
+  const bundles = [];
+  const teachers = await Teacher.find({ isActive: true })
+    .select('_id firstName lastName teacherCode')
+    .sort({ firstName: 1 });
 
-  return { years, levels, bundles };
+  return { years, levels, bundles, teachers };
 };
 
 // Update bundle
@@ -7027,7 +6218,6 @@ const getStudents = async (req, res) => {
       status,
       grade,
       school,
-      bundle,
       course,
       search,
       sortBy = 'createdAt',
@@ -7080,13 +6270,6 @@ const getStudents = async (req, res) => {
       if (lastActivityEnd) filter.lastLogin.$lte = new Date(lastActivityEnd);
     }
 
-    // Bundle filter
-    if (bundle && bundle !== 'all') {
-      filter.purchasedBundles = {
-        $elemMatch: { bundle: new mongoose.Types.ObjectId(bundle) },
-      };
-    }
-
     // Course filter
     if (course && course !== 'all') {
       filter.enrolledCourses = {
@@ -7106,10 +6289,6 @@ const getStudents = async (req, res) => {
       .populate({
         path: 'enrolledCourses.course',
         select: 'title courseCode status',
-      })
-      .populate({
-        path: 'purchasedBundles.bundle',
-        select: 'title bundleCode status',
       })
       .select('-password')
       .sort(sort)
@@ -7139,9 +6318,6 @@ const getStudents = async (req, res) => {
         ? student.enrolledCourses.filter((ec) => ec.status === 'completed')
             .length
         : 0;
-      const totalBundles = student.purchasedBundles
-        ? student.purchasedBundles.length
-        : 0;
 
       // Calculate overall progress (this would need actual progress data)
       const overallProgress =
@@ -7167,7 +6343,6 @@ const getStudents = async (req, res) => {
           totalCourses,
           activeCourses,
           completedCourses,
-          totalBundles,
           overallProgress,
           daysSinceEnrollment,
           daysSinceLastActivity,
@@ -7186,7 +6361,6 @@ const getStudents = async (req, res) => {
         status,
         grade,
         school,
-        bundle,
         course,
         search,
         sortBy,
@@ -7225,17 +6399,6 @@ const getStudentDetails = async (req, res) => {
           path: 'topics',
           model: 'Topic',
         },
-      })
-      .populate({
-        path: 'purchasedBundles.bundle',
-        populate: {
-          path: 'courses',
-          model: 'Course',
-        },
-      })
-      .populate({
-        path: 'quizAttempts.quiz',
-        model: 'Quiz',
       })
       .select('-password')
       .lean();
@@ -8957,9 +8120,8 @@ const getStudentFilterOptions = async () => {
   try {
     const grades = await User.distinct('grade');
     const schools = await User.distinct('schoolName');
-    const bundles = await BundleCourse.find({ status: { $ne: 'archived' } })
-      .select('_id title bundleCode')
-      .sort({ title: 1 });
+    // Note: BundleCourse model doesn't exist, so we return empty array for bundles
+    const bundles = [];
     const courses = await Course.find({ status: { $ne: 'archived' } })
       .select('_id title courseCode')
       .sort({ title: 1 });
@@ -9020,11 +8182,6 @@ const calculateStudentDetailedAnalytics = async (studentId, student) => {
         }
       });
     }
-
-    // Bundle statistics
-    const totalBundles = student.purchasedBundles
-      ? student.purchasedBundles.length
-      : 0;
 
     // Progress statistics - use contentProgress for accurate measurement
     let totalProgress = 0;
@@ -9117,9 +8274,6 @@ const calculateStudentDetailedAnalytics = async (studentId, student) => {
         paused: pausedCourses,
         averageProgress,
       },
-      bundles: {
-        total: totalBundles,
-      },
       content: {
         total: totalContentCount,
         completed: completedContentCount,
@@ -9143,7 +8297,6 @@ const calculateStudentDetailedAnalytics = async (studentId, student) => {
         paused: 0,
         averageProgress: 0,
       },
-      bundles: { total: 0 },
       content: { total: 0, completed: 0, inProgress: 0, completionRate: 0 },
       timeMetrics: { daysSinceEnrollment: 0, daysSinceLastActivity: null },
     };
@@ -16116,6 +15269,470 @@ const revokeMasterOTP = async (req, res) => {
   }
 };
 
+// ==================== TEACHER MANAGEMENT ====================
+
+// Get Teachers Management Page
+const getTeachersPage = async (req, res) => {
+  try {
+    const teachers = await Teacher.find({}).sort({ createdAt: -1 });
+    
+    res.render('admin/teachers', {
+      title: 'Teachers Management | G-Teacher Admin',
+      user: req.user,
+      admin: req.user,
+      theme: req.user?.preferences?.theme === 'dark' ? 'dark-theme' : 'light-theme',
+      currentPage: 'teachers',
+      teachers,
+      success: req.query.success || null,
+      error: req.query.error || null,
+    });
+  } catch (error) {
+    console.error('Error fetching teachers:', error);
+    res.status(500).render('admin/teachers', {
+      title: 'Teachers Management | G-Teacher Admin',
+      user: req.user,
+      admin: req.user,
+      theme: req.user?.preferences?.theme === 'dark' ? 'dark-theme' : 'light-theme',
+      currentPage: 'teachers',
+      teachers: [],
+      success: null,
+      error: 'Error loading teachers: ' + error.message,
+    });
+  }
+};
+
+// Get Teacher Data (for edit/view)
+const getTeacherData = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    const teacher = await Teacher.findById(teacherId);
+    
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found',
+      });
+    }
+    
+    res.json({
+      success: true,
+      teacher,
+    });
+  } catch (error) {
+    console.error('Error fetching teacher data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching teacher data: ' + error.message,
+    });
+  }
+};
+
+// Create New Teacher
+const createTeacher = async (req, res) => {
+  try {
+    const {
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      countryCode,
+      subject,
+      bio,
+      isActive,
+      croppedImage,
+    } = req.body;
+    
+    // Validate required fields
+    if (!firstName || !lastName || !email || !subject) {
+      return res.redirect('/admin/teachers?error=Please fill in all required fields (First Name, Last Name, Email, Subject)');
+    }
+    
+    // Check for existing email
+    const existingTeacher = await Teacher.findOne({
+      email: email.toLowerCase(),
+    });
+    
+    if (existingTeacher) {
+      return res.redirect('/admin/teachers?error=A teacher with this email already exists');
+    }
+    
+    // Handle profile picture (base64 cropped image)
+    let profilePicture = '';
+    if (croppedImage && croppedImage.startsWith('data:image')) {
+      profilePicture = croppedImage;
+    }
+    
+    // Create new teacher
+    const newTeacher = new Teacher({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.trim().toLowerCase(),
+      phoneNumber: phoneNumber ? phoneNumber.trim() : '',
+      countryCode: countryCode || '+20',
+      subject: subject.trim(),
+      bio: bio ? bio.trim() : '',
+      isActive: isActive === 'on' || isActive === true,
+      profilePicture: profilePicture,
+    });
+    
+    await newTeacher.save();
+    
+    // Log the action
+    await createLog(req, 'create', 'Teacher', {
+      targetId: newTeacher._id,
+      targetName: `${newTeacher.firstName} ${newTeacher.lastName}`,
+      details: {
+        teacherCode: newTeacher.teacherCode,
+        email: newTeacher.email,
+        subject: newTeacher.subject,
+      },
+    });
+    
+    res.redirect('/admin/teachers?success=Teacher created successfully');
+  } catch (error) {
+    console.error('Error creating teacher:', error);
+    res.redirect('/admin/teachers?error=Error creating teacher: ' + error.message);
+  }
+};
+
+// Update Teacher
+const updateTeacher = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    const {
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      countryCode,
+      subject,
+      bio,
+      isActive,
+      croppedImage,
+    } = req.body;
+    
+    const teacher = await Teacher.findById(teacherId);
+    
+    if (!teacher) {
+      return res.redirect('/admin/teachers?error=Teacher not found');
+    }
+    
+    // Check if email is taken by another teacher
+    const existingTeacher = await Teacher.findOne({
+      _id: { $ne: teacherId },
+      email: email.toLowerCase(),
+    });
+    
+    if (existingTeacher) {
+      return res.redirect('/admin/teachers?error=Email is already taken by another teacher');
+    }
+    
+    // Update teacher fields
+    teacher.firstName = firstName.trim();
+    teacher.lastName = lastName.trim();
+    teacher.email = email.trim().toLowerCase();
+    teacher.phoneNumber = phoneNumber ? phoneNumber.trim() : teacher.phoneNumber;
+    teacher.countryCode = countryCode || teacher.countryCode;
+    teacher.subject = subject ? subject.trim() : teacher.subject;
+    teacher.bio = bio ? bio.trim() : teacher.bio;
+    teacher.isActive = isActive === 'on' || isActive === true;
+    
+    // Handle profile picture update (base64 cropped image)
+    if (croppedImage && croppedImage.startsWith('data:image')) {
+      teacher.profilePicture = croppedImage;
+    }
+    
+    await teacher.save();
+    
+    // Log the action
+    await createLog(req, 'update', 'Teacher', {
+      targetId: teacher._id,
+      targetName: `${teacher.firstName} ${teacher.lastName}`,
+      details: {
+        teacherCode: teacher.teacherCode,
+        email: teacher.email,
+        subject: teacher.subject,
+      },
+    });
+    
+    res.redirect('/admin/teachers?success=Teacher updated successfully');
+  } catch (error) {
+    console.error('Error updating teacher:', error);
+    res.redirect('/admin/teachers?error=Error updating teacher: ' + error.message);
+  }
+};
+
+// Toggle Teacher Status
+const toggleTeacherStatus = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    
+    const teacher = await Teacher.findById(teacherId);
+    
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found',
+      });
+    }
+    
+    teacher.isActive = !teacher.isActive;
+    await teacher.save();
+    
+    // Log the action
+    await createLog(req, 'update', 'Teacher', {
+      targetId: teacher._id,
+      targetName: `${teacher.firstName} ${teacher.lastName}`,
+      details: {
+        action: teacher.isActive ? 'activated' : 'deactivated',
+        teacherCode: teacher.teacherCode,
+      },
+    });
+    
+    res.json({
+      success: true,
+      message: `Teacher ${teacher.isActive ? 'activated' : 'deactivated'} successfully`,
+      isActive: teacher.isActive,
+    });
+  } catch (error) {
+    console.error('Error toggling teacher status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating teacher status: ' + error.message,
+    });
+  }
+};
+
+// Delete Teacher
+const deleteTeacher = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    
+    const teacher = await Teacher.findById(teacherId);
+    
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found',
+      });
+    }
+    
+    // Check if teacher has any courses
+    const coursesCount = await Course.countDocuments({ teacher: teacherId });
+    
+    if (coursesCount > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete teacher. They have ${coursesCount} course(s) assigned. Please reassign or delete the courses first.`,
+      });
+    }
+    
+    // Log the action before deletion
+    await createLog(req, {
+      action: 'DELETE_TEACHER',
+      actionCategory: 'TEACHER_MANAGEMENT',
+      description: `Deleted teacher: ${teacher.firstName} ${teacher.lastName} (${teacher.teacherCode})`,
+      targetModel: 'Teacher',
+      targetId: teacher._id.toString(),
+      targetName: `${teacher.firstName} ${teacher.lastName}`,
+      metadata: {
+        teacherCode: teacher.teacherCode,
+        email: teacher.email,
+      },
+    });
+    
+    await Teacher.findByIdAndDelete(teacherId);
+    
+    res.json({
+      success: true,
+      message: 'Teacher deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting teacher:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting teacher: ' + error.message,
+    });
+  }
+};
+
+// ==================== EXAM PERIOD MANAGEMENT ====================
+
+// Get all exam periods
+const getExamPeriods = async (req, res) => {
+  try {
+    const ExamPeriod = require('../models/ExamPeriod');
+    const periods = await ExamPeriod.find({})
+      .sort({ order: 1, startDate: 1 });
+    
+    res.json(periods);
+  } catch (error) {
+    console.error('Error fetching exam periods:', error);
+    res.status(500).json({ success: false, message: 'Error fetching exam periods' });
+  }
+};
+
+// Create exam period
+const createExamPeriod = async (req, res) => {
+  try {
+    const ExamPeriod = require('../models/ExamPeriod');
+    const { name, displayName, year, months, startDate, endDate, icon, color, description } = req.body;
+
+    const period = new ExamPeriod({
+      name,
+      displayName,
+      year,
+      months: Array.isArray(months) ? months : [months],
+      startDate,
+      endDate,
+      icon: icon || 'calendar',
+      color: color || '#3a92bd',
+      description: description || '',
+    });
+
+    await period.save();
+
+    await createLog(req, {
+      action: 'CREATE_EXAM_PERIOD',
+      actionCategory: 'SYSTEM',
+      description: `Created exam period: ${name}`,
+      targetModel: 'ExamPeriod',
+      targetId: period._id.toString(),
+      targetName: name,
+    });
+
+    res.json({ success: true, message: 'Exam period created successfully', period });
+  } catch (error) {
+    console.error('Error creating exam period:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.code === 11000 ? 'An exam period with this name already exists' : 'Error creating exam period' 
+    });
+  }
+};
+
+// Update exam period
+const updateExamPeriod = async (req, res) => {
+  try {
+    const ExamPeriod = require('../models/ExamPeriod');
+    const { periodId } = req.params;
+    const { name, displayName, year, months, startDate, endDate, description, isCurrent, isActive } = req.body;
+
+    const period = await ExamPeriod.findById(periodId);
+    if (!period) {
+      return res.status(404).json({ success: false, message: 'Exam period not found' });
+    }
+
+    // Update fields
+    if (name !== undefined) period.name = name;
+    if (displayName !== undefined) period.displayName = displayName;
+    if (year !== undefined) period.year = year;
+    if (months !== undefined) period.months = Array.isArray(months) ? months : [months];
+    if (startDate !== undefined) period.startDate = startDate;
+    if (endDate !== undefined) period.endDate = endDate;
+    if (description !== undefined) period.description = description;
+    if (isCurrent !== undefined) period.isCurrent = isCurrent;
+    if (isActive !== undefined) period.isActive = isActive;
+
+    await period.save();
+
+    await createLog(req, {
+      action: 'UPDATE_EXAM_PERIOD',
+      actionCategory: 'SYSTEM',
+      description: `Updated exam period: ${period.name}`,
+      targetModel: 'ExamPeriod',
+      targetId: period._id.toString(),
+      targetName: period.name,
+    });
+
+    res.json({ success: true, message: 'Exam period updated successfully', period });
+  } catch (error) {
+    console.error('Error updating exam period:', error);
+    res.status(500).json({ success: false, message: 'Error updating exam period' });
+  }
+};
+
+// Toggle exam period as current
+const toggleExamPeriodCurrent = async (req, res) => {
+  try {
+    const ExamPeriod = require('../models/ExamPeriod');
+    const { periodId } = req.params;
+    const { isCurrent } = req.body;
+
+    const period = await ExamPeriod.findById(periodId);
+    if (!period) {
+      return res.status(404).json({ success: false, message: 'Exam period not found' });
+    }
+
+    period.isCurrent = isCurrent;
+    await period.save(); // Pre-save hook will handle unsetting other periods
+
+    res.json({ success: true, message: 'Exam period updated successfully', period });
+  } catch (error) {
+    console.error('Error updating exam period:', error);
+    res.status(500).json({ success: false, message: 'Error updating exam period' });
+  }
+};
+
+// Delete exam period
+const deleteExamPeriod = async (req, res) => {
+  try {
+    const ExamPeriod = require('../models/ExamPeriod');
+    const { periodId } = req.params;
+
+    const period = await ExamPeriod.findById(periodId);
+    if (!period) {
+      return res.status(404).json({ success: false, message: 'Exam period not found' });
+    }
+
+    // Check if there are courses associated with this period
+    const Course = require('../models/Course');
+    const coursesCount = await Course.countDocuments({ examPeriod: periodId });
+
+    if (coursesCount > 0) {
+      // Unassign the period from courses instead of preventing deletion
+      await Course.updateMany(
+        { examPeriod: periodId },
+        { $unset: { examPeriod: 1 } }
+      );
+    }
+
+    await createLog(req, {
+      action: 'DELETE_EXAM_PERIOD',
+      actionCategory: 'SYSTEM',
+      description: `Deleted exam period: ${period.name}${coursesCount > 0 ? ` (unassigned from ${coursesCount} courses)` : ''}`,
+      targetModel: 'ExamPeriod',
+      targetId: period._id.toString(),
+      targetName: period.name,
+    });
+
+    await ExamPeriod.findByIdAndDelete(periodId);
+
+    res.json({ 
+      success: true, 
+      message: `Exam period deleted successfully${coursesCount > 0 ? `. ${coursesCount} courses were unassigned from this period.` : ''}` 
+    });
+  } catch (error) {
+    console.error('Error deleting exam period:', error);
+    res.status(500).json({ success: false, message: 'Error deleting exam period' });
+  }
+};
+
+// Get all teachers (API endpoint)
+const getTeachersAPI = async (req, res) => {
+  try {
+    const Teacher = require('../models/Teacher');
+    const teachers = await Teacher.find({})
+      .select('firstName lastName teacherCode email phoneNumber isActive')
+      .sort({ firstName: 1, lastName: 1 });
+    
+    res.json(teachers);
+  } catch (error) {
+    console.error('Error fetching teachers:', error);
+    res.status(500).json({ success: false, message: 'Error fetching teachers' });
+  }
+};
+
 // ==================== MODULE EXPORTS ====================
 
 module.exports = {
@@ -16160,19 +15777,6 @@ module.exports = {
   generateInvoice,
   refundOrder,
   completeFailedPayment,
-  getBookOrders,
-  updateBookOrderStatus,
-  bulkUpdateBookOrdersStatus,
-  exportBookOrders,
-  // Brilliant Students Management
-  getBrilliantStudents,
-  getBrilliantStudentDetails,
-  createBrilliantStudent,
-  updateBrilliantStudent,
-  deleteBrilliantStudent,
-  reorderBrilliantStudents,
-  getBrilliantStudentsStats,
-  exportBrilliantStudents,
   // Admin Management
   getCreateAdminForm,
   createNewAdmin,
@@ -16216,14 +15820,6 @@ module.exports = {
   exportBulkCollection,
   deleteBulkCollection,
   toggleBulkCollectionStatus,
-  // Team Management
-  getTeamManagementPage,
-  getTeamMember,
-  createTeamMember,
-  updateTeamMember,
-  deleteTeamMember,
-  reorderTeamMembers,
-  exportTeamMembers,
   // Bulk SMS Messaging
   getBulkSMSPage,
   getStudentsForSMS,
@@ -16238,4 +15834,18 @@ module.exports = {
   validateMasterOTP,
   getActiveMasterOTPs,
   revokeMasterOTP,
+  // Teacher Management
+  getTeachersPage,
+  getTeacherData,
+  createTeacher,
+  updateTeacher,
+  toggleTeacherStatus,
+  deleteTeacher,
+  getTeachersAPI,
+  // Exam Period Management
+  getExamPeriods,
+  createExamPeriod,
+  updateExamPeriod,
+  toggleExamPeriodCurrent,
+  deleteExamPeriod,
 };

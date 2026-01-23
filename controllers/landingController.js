@@ -1,8 +1,6 @@
 const Course = require('../models/Course');
 const Teacher = require('../models/Teacher');
 const User = require('../models/User');
-const BrilliantStudent = require('../models/BrilliantStudent');
-const TeamMember = require('../models/TeamMember');
 
 // Get landing page data
 const getLandingPage = async (req, res) => {
@@ -14,8 +12,6 @@ const getLandingPage = async (req, res) => {
       recordedCourses,
       recoveryCourses,
       stats,
-      brilliantStudents,
-      teamMembers,
       user
     ] = await Promise.all([
       // Get featured courses with minimal data
@@ -98,16 +94,6 @@ const getLandingPage = async (req, res) => {
         totalStudents: totalStudents[0]?.total || 0,
       })),
 
-      // Get brilliant students for each test type in parallel (load all active students)
-      Promise.all([
-        BrilliantStudent.getByTestType('EST'),
-        BrilliantStudent.getByTestType('DSAT'),
-        BrilliantStudent.getByTestType('ACT'),
-      ]).then(([est, dsat, act]) => ({ est, dsat, act })),
-
-      // Get team members
-      TeamMember.getActiveMembers(),
-
       // Get user data if logged in (minimal data)
       req.session.user ? User.findById(req.session.user.id) : null
     ]);
@@ -126,8 +112,6 @@ const getLandingPage = async (req, res) => {
       recoveryBundles: recoveryCourses,
       user,
       cart: req.session.cart || [],
-      brilliantStudents,
-      teamMembers,
       stats: {
         onlineCourses: stats.onlineCourses,
         ongroundCourses: stats.ongroundCourses,
@@ -156,12 +140,6 @@ const getLandingPage = async (req, res) => {
       featuredGameRooms: [],
       cart: req.session.cart || [],
       testCounts: { EST: 0, SAT: 0, ACT: 0 },
-      brilliantStudents: {
-        est: [],
-        dsat: [],
-        act: [],
-      },
-      teamMembers: [],
       stats: {
         onlineCourses: 0,
         ongroundCourses: 0,
