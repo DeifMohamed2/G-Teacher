@@ -996,14 +996,6 @@
                                         <div class="stat-number"><%= student.completedCourses || 0 %></div>
                                         <div class="stat-label">Completed</div>
                                     </div>
-                                    <div class="stat-item">
-                                        <div class="stat-number"><%= student.totalQuizAttempts || 0 %></div>
-                                        <div class="stat-label">Quizzes</div>
-                                    </div>
-                                    <div class="stat-item">
-                                        <div class="stat-number"><%= student.averageQuizScore || 0 %>%</div>
-                                        <div class="stat-label">Avg Score</div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1032,17 +1024,6 @@
                                     </div>
                                     <div class="achievement-label">Completed</div>
                                 </div>
-                                <div class="achievement-card">
-                                    <div class="achievement-number" style="color: var(--warning-color);">
-                                        <%= student.totalQuizAttempts || 0 %>
-                                    </div>
-                                    <div class="achievement-label">Quiz Attempts</div>
-                                </div>
-                                <div class="achievement-card">
-                                    <div class="achievement-number" style="color: var(--info-color);">
-                                        <%= student.averageQuizScore || 0 %>%
-                                    </div>
-                                    <div class="achievement-label">Average Score</div>
                                 </div>
                             </div>
                         </div>

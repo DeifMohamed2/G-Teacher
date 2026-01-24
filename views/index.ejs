@@ -2753,7 +2753,7 @@
                 <i class="fas fa-chalkboard-teacher"></i>
               </div>
               <div class="gt-stat-info">
-                <span class="gt-stat-num">50+</span>
+                <span class="gt-stat-num"><%= stats.totalTeachers || 0 %>+</span>
                 <span class="gt-stat-label">Expert Teachers</span>
               </div>
             </div>
@@ -2762,7 +2762,7 @@
                 <i class="fas fa-user-graduate"></i>
               </div>
               <div class="gt-stat-info">
-                <span class="gt-stat-num">10K+</span>
+                <span class="gt-stat-num"><%= stats.totalStudents > 1000 ? Math.floor(stats.totalStudents / 1000) + 'K+' : (stats.totalStudents || 0) + '+' %></span>
                 <span class="gt-stat-label">Students</span>
               </div>
             </div>
@@ -2852,30 +2852,23 @@
     <div class="ig-date-selector-premium">
       <div class="ig-date-slider" id="examDateTabs">
         <div class="slider-track"></div>
-        <button class="ig-date-pill active" data-date="jan-2026">
-          <div class="pill-icon"><i class="fas fa-snowflake"></i></div>
-          <div class="pill-content">
-            <span class="pill-month">January</span>
-            <span class="pill-year">2026</span>
+        <% if (examPeriods && examPeriods.length > 0) { %>
+          <% examPeriods.forEach((period, index) => { %>
+            <button class="ig-date-pill<%= index === 0 ? ' active' : '' %>" data-date="<%= period.id %>" data-slug="<%= period.slug %>">
+              <div class="pill-icon"><i class="fas <%= period.icon %>"></i></div>
+              <div class="pill-content">
+                <span class="pill-month"><%= period.displayName %></span>
+                <span class="pill-year"><%= period.year %></span>
+              </div>
+              <div class="pill-glow"></div>
+            </button>
+          <% }); %>
+        <% } else { %>
+          <!-- Fallback when no exam periods exist -->
+          <div class="no-periods-message">
+            <p>No exam periods available. Please check back later.</p>
           </div>
-          <div class="pill-glow"></div>
-        </button>
-        <button class="ig-date-pill" data-date="may-june-2026">
-          <div class="pill-icon"><i class="fas fa-sun"></i></div>
-          <div class="pill-content">
-            <span class="pill-month">May/June</span>
-            <span class="pill-year">2026</span>
-          </div>
-          <div class="pill-glow"></div>
-        </button>
-        <button class="ig-date-pill" data-date="oct-nov-2026">
-          <div class="pill-icon"><i class="fas fa-leaf"></i></div>
-          <div class="pill-content">
-            <span class="pill-month">Oct/Nov</span>
-            <span class="pill-year">2026</span>
-          </div>
-          <div class="pill-glow"></div>
-        </button>
+        <% } %>
       </div>
     </div>
 
@@ -3801,120 +3794,19 @@
 </style>
 
 <script>
-  // IG Courses Section Data and Functions
-  const igCoursesData = {
-    'jan-2026': {
-      subjects: [
-        { id: 'physics', name: 'Physics', icon: 'fa-atom', iconClass: 'physics' },
-        { id: 'biology', name: 'Biology', icon: 'fa-dna', iconClass: 'biology' },
-        { id: 'math', name: 'Math', icon: 'fa-calculator', iconClass: 'math' },
-        { id: 'chemistry', name: 'Chemistry', icon: 'fa-flask', iconClass: 'chemistry' }
-      ]
-    },
-    'may-june-2026': {
-      subjects: [
-        { id: 'math-american', name: 'Math American', icon: 'fa-square-root-alt', iconClass: 'math' },
-        { id: 'physics', name: 'Physics', icon: 'fa-atom', iconClass: 'physics' },
-        { id: 'math', name: 'Math', icon: 'fa-calculator', iconClass: 'math' },
-        { id: 'english', name: 'English', icon: 'fa-language', iconClass: 'english' },
-        { id: 'ict', name: 'ICT', icon: 'fa-laptop-code', iconClass: 'ict' },
-        { id: 'economics', name: 'Economics', icon: 'fa-chart-line', iconClass: 'economics' },
-        { id: 'accounting', name: 'Accounting', icon: 'fa-file-invoice-dollar', iconClass: 'accounting' },
-        { id: 'sociology', name: 'Sociology', icon: 'fa-users', iconClass: 'sociology' },
-        { id: 'arabic', name: 'Arabic', icon: 'fa-language', iconClass: 'arabic' },
-        { id: 'biology', name: 'Biology', icon: 'fa-dna', iconClass: 'biology' },
-        { id: 'chemistry', name: 'Chemistry', icon: 'fa-flask', iconClass: 'chemistry' }
-      ]
-    },
-    'oct-nov-2026': {
-      subjects: [
-        { id: 'math-american', name: 'Math American', icon: 'fa-square-root-alt', iconClass: 'math' },
-        { id: 'physics', name: 'Physics', icon: 'fa-atom', iconClass: 'physics' },
-        { id: 'math', name: 'Math', icon: 'fa-calculator', iconClass: 'math' },
-        { id: 'english', name: 'English', icon: 'fa-language', iconClass: 'english' },
-        { id: 'ict', name: 'ICT', icon: 'fa-laptop-code', iconClass: 'ict' },
-        { id: 'economics', name: 'Economics', icon: 'fa-chart-line', iconClass: 'economics' },
-        { id: 'accounting', name: 'Accounting', icon: 'fa-file-invoice-dollar', iconClass: 'accounting' },
-        { id: 'sociology', name: 'Sociology', icon: 'fa-users', iconClass: 'sociology' },
-        { id: 'arabic', name: 'Arabic', icon: 'fa-language', iconClass: 'arabic' },
-        { id: 'biology', name: 'Biology', icon: 'fa-dna', iconClass: 'biology' },
-        { id: 'chemistry', name: 'Chemistry', icon: 'fa-flask', iconClass: 'chemistry' },
-        { id: 'business', name: 'Business', icon: 'fa-briefcase', iconClass: 'business' },
-        { id: 'computer-science', name: 'Computer Science', icon: 'fa-code', iconClass: 'computer' },
-        { id: 'geography', name: 'Geography', icon: 'fa-globe-americas', iconClass: 'geography' },
-        { id: 'environmental', name: 'Environmental Management', icon: 'fa-leaf', iconClass: 'environmental' },
-        { id: 'german', name: 'German', icon: 'fa-language', iconClass: 'german' },
-        { id: 'checkpoint', name: 'Checkpoint', icon: 'fa-check-circle', iconClass: 'combined' },
-        { id: 'combined-science', name: 'Combined Science', icon: 'fa-microscope', iconClass: 'combined' }
-      ]
-    }
-  };
-
-  // Teacher data for each subject (temporary mock data)
-  const teachersData = {
-    'math': [
-      { id: 'dr-marwa-diab', name: 'Dr. Marwa Diab', image: '/images/place.png', subject: 'Mathematics - Unit 1', courses: 8, students: 450, rating: 4.9, price: 675 },
-      { id: 'dr-ahmed-hassan', name: 'Dr. Ahmed Hassan', image: '/images/place.png', subject: 'Mathematics - Unit 4', courses: 6, students: 380, rating: 4.8, price: 740 }
-    ],
-    'physics': [
-      { id: 'dr-yassmin-rakha', name: 'Dr. Yassmin Rakha', image: '/images/place.png', subject: 'OL Edexcel Unit 1', courses: 5, students: 320, rating: 4.9, price: 655 }
-    ],
-    'chemistry': [
-      { id: 'dr-samia-elnawagy', name: 'Dr. Samia El Nawagy', image: '/images/place.png', subject: 'A2 Edexcel Unit 6', courses: 7, students: 290, rating: 4.7, price: 510 }
-    ],
-    'biology': [
-      { id: 'dr-sarah-ibrahim', name: 'Dr. Sarah Ibrahim', image: '/images/place.png', subject: 'Biology IGCSE', courses: 6, students: 410, rating: 4.8, price: 620 }
-    ],
-    'english': [
-      { id: 'ms-nadia-farouk', name: 'Ms. Nadia Farouk', image: '/images/place.png', subject: 'English First Language', courses: 5, students: 350, rating: 4.9, price: 580 }
-    ],
-    'ict': [
-      { id: 'mr-omar-khaled', name: 'Mr. Omar Khaled', image: '/images/place.png', subject: 'ICT IGCSE', courses: 4, students: 280, rating: 4.7, price: 520 }
-    ],
-    'economics': [
-      { id: 'dr-hany-mostafa', name: 'Dr. Hany Mostafa', image: '/images/place.png', subject: 'Economics AS/A2', courses: 6, students: 310, rating: 4.8, price: 590 }
-    ],
-    'accounting': [
-      { id: 'mr-khaled-hassan', name: 'Mr. Khaled Hassan', image: '/images/place.png', subject: 'Accounting IGCSE', courses: 5, students: 260, rating: 4.6, price: 540 }
-    ],
-    'sociology': [
-      { id: 'dr-mona-salem', name: 'Dr. Mona Salem', image: '/images/place.png', subject: 'Sociology AS/A2', courses: 4, students: 180, rating: 4.7, price: 500 }
-    ],
-    'arabic': [
-      { id: 'mr-ahmed-elbadawy', name: 'Mr. Ahmed El Badawy', image: '/images/place.png', subject: 'Arabic First Language', courses: 5, students: 340, rating: 4.8, price: 480 }
-    ],
-    'business': [
-      { id: 'dr-tarek-mahmoud', name: 'Dr. Tarek Mahmoud', image: '/images/place.png', subject: 'Business Studies IGCSE', courses: 5, students: 290, rating: 4.7, price: 560 }
-    ],
-    'computer-science': [
-      { id: 'eng-mohamed-ali', name: 'Eng. Mohamed Ali', image: '/images/place.png', subject: 'Computer Science IGCSE', courses: 6, students: 320, rating: 4.9, price: 600 }
-    ],
-    'geography': [
-      { id: 'dr-laila-hassan', name: 'Dr. Laila Hassan', image: '/images/place.png', subject: 'Geography IGCSE', courses: 4, students: 220, rating: 4.6, price: 490 }
-    ],
-    'environmental': [
-      { id: 'dr-amira-soliman', name: 'Dr. Amira Soliman', image: '/images/place.png', subject: 'Environmental Management', courses: 3, students: 150, rating: 4.7, price: 470 }
-    ],
-    'german': [
-      { id: 'mr-peter-schmidt', name: 'Mr. Peter Schmidt', image: '/images/place.png', subject: 'German IGCSE', courses: 4, students: 120, rating: 4.8, price: 550 }
-    ],
-    'checkpoint': [
-      { id: 'ms-fatma-zakaria', name: 'Ms. Fatma Zakaria', image: '/images/place.png', subject: 'Checkpoint Preparation', courses: 5, students: 380, rating: 4.9, price: 520 }
-    ],
-    'combined-science': [
-      { id: 'dr-hossam-kamel', name: 'Dr. Hossam Kamel', image: '/images/place.png', subject: 'Combined Science', courses: 6, students: 340, rating: 4.8, price: 580 }
-    ],
-    'math-american': [
-      { id: 'dr-karim-sobhy', name: 'Dr. Karim Sobhy', image: '/images/place.png', subject: 'Math American SAT', courses: 5, students: 300, rating: 4.9, price: 650 }
-    ]
-  };
-
-  let currentExamDate = 'jan-2026';
+  // IG Courses Section - Using Real Data from API
+  let currentExamPeriodId = null;
   let currentSubject = null;
+  let isLoading = false;
 
   // Initialize on page load
   document.addEventListener('DOMContentLoaded', function() {
-    renderSubjects(currentExamDate);
+    // Get the first exam period ID from the tabs
+    const firstTab = document.querySelector('.ig-date-pill');
+    if (firstTab) {
+      currentExamPeriodId = firstTab.dataset.date;
+      loadSubjects(currentExamPeriodId);
+    }
     setupExamDateTabs();
   });
 
@@ -3922,38 +3814,65 @@
     const tabs = document.querySelectorAll('.ig-date-pill');
     tabs.forEach(tab => {
       tab.addEventListener('click', function() {
+        if (isLoading) return;
+        
         // Remove active from all tabs
         tabs.forEach(t => t.classList.remove('active'));
         // Add active to clicked tab
         this.classList.add('active');
-        // Update current date and render subjects
-        currentExamDate = this.dataset.date;
+        // Update current period and load subjects
+        currentExamPeriodId = this.dataset.date;
         goBackToSubjects();
-        renderSubjects(currentExamDate);
+        loadSubjects(currentExamPeriodId);
       });
     });
   }
 
-  function renderSubjects(examDate) {
+  async function loadSubjects(examPeriodId) {
     const subjectsGrid = document.getElementById('subjectsGrid');
-    const subjects = igCoursesData[examDate]?.subjects || [];
+    if (!subjectsGrid) return;
     
-    subjectsGrid.innerHTML = subjects.map(subject => `
-      <div class="ig-subject-card" onclick="showTeachers('${subject.id}', '${subject.name}')">
-        <div class="ig-subject-info">
-          <div class="ig-subject-icon ${subject.iconClass}">
-            <i class="fas ${subject.icon}"></i>
-          </div>
-          <h4 class="ig-subject-name">${subject.name}</h4>
-        </div>
-        <div class="ig-subject-arrow">
-          <i class="fas fa-arrow-right"></i>
-        </div>
-      </div>
-    `).join('');
+    isLoading = true;
+    subjectsGrid.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading subjects...</div>';
+    
+    try {
+      const response = await fetch('/api/subjects-by-period?examPeriodId=' + encodeURIComponent(examPeriodId));
+      const data = await response.json();
+      
+      if (data.success && data.subjects.length > 0) {
+        renderSubjects(data.subjects);
+      } else {
+        subjectsGrid.innerHTML = '<div class="no-subjects-message"><i class="fas fa-info-circle"></i> No subjects available for this exam period.</div>';
+      }
+    } catch (error) {
+      console.error('Error loading subjects:', error);
+      subjectsGrid.innerHTML = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> Error loading subjects. Please try again.</div>';
+    } finally {
+      isLoading = false;
+    }
   }
 
-  function showTeachers(subjectId, subjectName) {
+  function renderSubjects(subjects) {
+    const subjectsGrid = document.getElementById('subjectsGrid');
+    
+    subjectsGrid.innerHTML = subjects.map(subject => 
+      '<div class="ig-subject-card" onclick="showTeachers(\'' + subject.id + '\', \'' + subject.name.replace(/'/g, "\\'") + '\')">' +
+        '<div class="ig-subject-info">' +
+          '<div class="ig-subject-icon ' + subject.iconClass + '">' +
+            '<i class="fas ' + subject.icon + '"></i>' +
+          '</div>' +
+          '<h4 class="ig-subject-name">' + subject.name + '</h4>' +
+        '</div>' +
+        '<div class="ig-subject-arrow">' +
+          '<i class="fas fa-arrow-right"></i>' +
+        '</div>' +
+      '</div>'
+    ).join('');
+  }
+
+  async function showTeachers(subjectId, subjectName) {
+    if (isLoading) return;
+    
     currentSubject = subjectId;
     
     // Hide subjects, show teachers
@@ -3961,50 +3880,68 @@
     document.getElementById('teachersContainer').style.display = 'block';
     document.getElementById('selectedSubjectName').textContent = subjectName;
     
-    // Get teachers for this subject (use math as fallback)
-    const teachers = teachersData[subjectId] || teachersData['math'];
-    
-    // Update teacher count
-    const teacherCountEl = document.getElementById('teacherCount');
-    if (teacherCountEl) {
-      teacherCountEl.textContent = `${teachers.length} Teacher${teachers.length !== 1 ? 's' : ''}`;
-    }
-    
     const teachersGrid = document.getElementById('teachersGrid');
-    teachersGrid.innerHTML = teachers.map(teacher => `
-      <a href="/ig/teacher/${teacher.id}?subject=${subjectId}&examDate=${currentExamDate}" class="ig-teacher-card">
-        <div class="ig-teacher-image">
-          <img src="${teacher.image}" alt="${teacher.name}" onerror="this.onerror=null; this.src='/images/place.png'">
-          <span class="ig-teacher-badge">Top Rated</span>
-        </div>
-        <div class="ig-teacher-content">
-          <h4 class="ig-teacher-name">${teacher.name}</h4>
-          <p class="ig-teacher-subject">${teacher.subject}</p>
-          <div class="ig-teacher-stats">
-            <span class="ig-teacher-stat">
-              <i class="fas fa-book"></i>
-              ${teacher.courses} Courses
-            </span>
-            <span class="ig-teacher-stat">
-              <i class="fas fa-users"></i>
-              ${teacher.students}+ Students
-            </span>
-            <span class="ig-teacher-stat">
-              <i class="fas fa-star"></i>
-              ${teacher.rating}
-            </span>
-          </div>
-          <div class="ig-teacher-price">
-            <span class="ig-price-label">Starting from</span>
-            <span class="ig-price-value">${teacher.price} EGP</span>
-          </div>
-        </div>
-        <div class="ig-teacher-cta">
-          <span>View Courses</span>
-          <i class="fas fa-arrow-right"></i>
-        </div>
-      </a>
-    `).join('');
+    const teacherCountEl = document.getElementById('teacherCount');
+    
+    isLoading = true;
+    teachersGrid.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading teachers...</div>';
+    
+    try {
+      const response = await fetch('/api/teachers-by-subject?subject=' + encodeURIComponent(subjectId) + '&examPeriodId=' + encodeURIComponent(currentExamPeriodId));
+      const data = await response.json();
+      
+      if (data.success && data.teachers.length > 0) {
+        if (teacherCountEl) {
+          teacherCountEl.textContent = data.count + ' Teacher' + (data.count !== 1 ? 's' : '');
+        }
+        renderTeachers(data.teachers, subjectId);
+      } else {
+        if (teacherCountEl) {
+          teacherCountEl.textContent = '0 Teachers';
+        }
+        teachersGrid.innerHTML = '<div class="no-teachers-message"><i class="fas fa-user-slash"></i> No teachers available for this subject yet.</div>';
+      }
+    } catch (error) {
+      console.error('Error loading teachers:', error);
+      teachersGrid.innerHTML = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> Error loading teachers. Please try again.</div>';
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  function renderTeachers(teachers, subjectId) {
+    const teachersGrid = document.getElementById('teachersGrid');
+    
+    teachersGrid.innerHTML = teachers.map(teacher => 
+      '<a href="/ig/teacher/' + (teacher.teacherCode || teacher.id) + '?subject=' + subjectId + '&examDate=' + currentExamPeriodId + '" class="ig-teacher-card">' +
+        '<div class="ig-teacher-image">' +
+          '<img src="' + teacher.image + '" alt="' + teacher.name + '" onerror="this.onerror=null; this.src=\'/images/place.png\'">' +
+        '</div>' +
+        '<div class="ig-teacher-content">' +
+          '<h4 class="ig-teacher-name">' + teacher.name + '</h4>' +
+          '<p class="ig-teacher-subject">' + teacher.subject + '</p>' +
+          '<div class="ig-teacher-stats">' +
+            '<span class="ig-teacher-stat">' +
+              '<i class="fas fa-book"></i> ' + teacher.courses + ' Courses' +
+            '</span>' +
+            '<span class="ig-teacher-stat">' +
+              '<i class="fas fa-users"></i> ' + teacher.students + '+ Students' +
+            '</span>' +
+            '<span class="ig-teacher-stat">' +
+              '<i class="fas fa-star"></i> ' + teacher.rating +
+            '</span>' +
+          '</div>' +
+          '<div class="ig-teacher-price">' +
+            '<span class="ig-price-label">Starting from</span>' +
+            '<span class="ig-price-value">' + teacher.price + ' EGP</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="ig-teacher-cta">' +
+          '<span>View Courses</span>' +
+          '<i class="fas fa-arrow-right"></i>' +
+        '</div>' +
+      '</a>'
+    ).join('');
   }
 
   function goBackToSubjects() {
@@ -4013,6 +3950,30 @@
     currentSubject = null;
   }
 </script>
+
+<style>
+  .loading-spinner {
+    text-align: center;
+    padding: 40px;
+    color: #3a92bd;
+    font-size: 1.1rem;
+  }
+  .loading-spinner i {
+    margin-right: 10px;
+  }
+  .no-subjects-message, .no-teachers-message, .error-message {
+    text-align: center;
+    padding: 40px;
+    color: #64748b;
+    font-size: 1.1rem;
+  }
+  .error-message {
+    color: #ef4444;
+  }
+  .dark-theme .no-subjects-message, .dark-theme .no-teachers-message {
+    color: #94a3b8;
+  }
+</style>
 
 <!-- University Score Calculators Section - Premium Clean Design -->
 <section class="score-calculator-section" id="score-calculator" data-aos="fade-up" style="position: relative; overflow: hidden;">

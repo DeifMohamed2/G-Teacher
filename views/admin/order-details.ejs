@@ -97,23 +97,23 @@
                   <tr>
                     <td>
                       <div class="d-flex align-items-center">
-                        <img src="<%= item.thumbnail || (item.type === 'book' ? '/images/book-placeholder.jpg' : (item.type === 'bundle' ? '/images/bundle-placeholder.png' : (item.type === 'course' ? '/images/course-placeholder.png' : '/images/quiz-placeholder.png'))) %>" alt="<%= item.title %>" class="product-thumbnail me-3" onerror="this.src='https://via.placeholder.com/60x60?text=<%= item.type %>'">
+                        <img src="<%= item.thumbnail || '/images/course-placeholder.png' %>" alt="<%= item.title %>" class="product-thumbnail me-3" onerror="this.src='https://via.placeholder.com/60x60?text=<%= item.type %>'">
                         <div class="product-details">
                           <h6 class="mb-1"><%= item.title %></h6>
-                          <% if (item.type === 'book' && item.description) { %>
+                          <% if (item.description) { %>
                           <small class="text-muted"><%= item.description %></small>
                           <% } %>
-                          <% if (item.courseCode || item.bundleCode) { %>
-                          <br><small class="text-muted">Code: <%= item.courseCode || item.bundleCode %></small>
+                          <% if (item.courseCode) { %>
+                          <br><small class="text-muted">Code: <%= item.courseCode %></small>
                           <% } %>
                         </div>
                       </div>
                     </td>
                     <td>
                       <span class="product-type <%= item.type.toLowerCase() %>">
-                        <%= item.type === 'book' ? 'Physical Book' : item.type.charAt(0).toUpperCase() + item.type.slice(1) %>
+                        <%= item.type ? item.type.charAt(0).toUpperCase() + item.type.slice(1) : 'Item' %>
                       </span>
-                      <% if (item.type === 'book' && item.description) { %>
+                      <% if (item.description) { %>
                       <br><small class="text-muted"><%= item.description %></small>
                       <% } %>
                     </td>
@@ -138,60 +138,11 @@
         <!-- Order Summary -->
         <div class="card shadow-sm admin-card mb-4 order-summary-card">
           <div class="card-header order-summary-header">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-              <h5 class="mb-0">
-                <i class="fas fa-calculator me-2"></i> Order Summary
-              </h5>
-              <% if (bookOrders && bookOrders.length > 0) { %>
-              <span class="badge book-count-badge">
-                <i class="fas fa-book me-1"></i><%= bookOrders.length %> Book<%= bookOrders.length !== 1 ? 's' : '' %>
-              </span>
-              <% } %>
-            </div>
+            <h5 class="mb-0">
+              <i class="fas fa-calculator me-2"></i> Order Summary
+            </h5>
           </div>
           <div class="card-body">
-      
-            <% if (bookOrders && bookOrders.length > 0) { %>
-            <div class="book-orders-section">
-              <div class="book-orders-header">
-                <div class="book-orders-title">
-                  <i class="fas fa-book"></i>
-                  <span>Physical Books</span>
-                </div>
-                <a href="/admin/book-orders?search=<%= order.orderNumber %>" class="book-orders-link">
-                  View Details <i class="fas fa-arrow-right"></i>
-                </a>
-              </div>
-              <div class="book-orders-grid">
-                <% bookOrders.forEach(bookOrder => { %>
-                <div class="book-order-card">
-                  <div class="book-order-header">
-                    <div class="book-order-info">
-                      <div class="book-order-number">
-                        <a href="/admin/book-orders" class="order-number-link">#<%= bookOrder.orderNumber %></a>
-                      </div>
-                      <div class="book-order-name"><%= bookOrder.bookName %></div>
-                      <% if (bookOrder.bundle) { %>
-                      <span class="badge bundle-badge"><%= bookOrder.bundle.bundleCode %></span>
-                      <% } %>
-                    </div>
-                  </div>
-                  <div class="book-order-footer">
-                
-                    <span class="book-order-price">EGP <%= bookOrder.bookPrice.toFixed(2) %></span>
-                  </div>
-                  <% if (bookOrder.trackingNumber) { %>
-                  <div class="book-order-tracking">
-                    <div class="tracking-label">Tracking:</div>
-                    <code class="tracking-code"><%= bookOrder.trackingNumber %></code>
-                  </div>
-                  <% } %>
-                </div>
-                <% }); %>
-              </div>
-            </div>
-            <% } %>
-
             <hr class="summary-divider">
             <div class="summary-row total-row">
               <span class="summary-label">Total</span>

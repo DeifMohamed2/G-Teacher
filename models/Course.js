@@ -116,35 +116,12 @@ const CourseSchema = new mongoose.Schema(
         trim: true,
       },
     ],
-    prerequisites: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
     features: [
       {
         type: String,
         trim: true,
       },
     ],
-
-    // Book fields
-    hasBook: {
-      type: Boolean,
-      default: false,
-    },
-    bookName: {
-      type: String,
-      trim: true,
-      maxlength: 200,
-      default: '',
-    },
-    bookPrice: {
-      type: Number,
-      min: 0,
-      default: 0,
-    },
   },
   {
     timestamps: true,
@@ -228,7 +205,7 @@ CourseSchema.pre('save', async function (next) {
   next();
 });
 
-// Static method to get all courses by a teacher with unlock status for a student
+// Static method to get all courses by a teacher
 CourseSchema.statics.getTeacherCoursesWithStatus = async function (teacherId, studentId) {
   const Course = mongoose.model('Course');
   const courses = await Course.find({ teacher: teacherId })

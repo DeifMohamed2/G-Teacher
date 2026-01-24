@@ -207,12 +207,6 @@
             border: 1px solid rgba(59, 130, 246, 0.2);
         }
 
-        .product-type.bundle {
-            background: rgba(16, 185, 129, 0.1);
-            color: #059669;
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
         .product-type.quiz {
             background: rgba(245, 158, 11, 0.1);
             color: #d97706;
@@ -443,7 +437,7 @@
                     <tr>
                         <td>
                             <div class="product-info">
-                                <img src="<%= item.thumbnail || (item.type === 'bundle' ? '/images/bundle-placeholder.png' : (item.type === 'course' ? '/images/course-placeholder.png' : '/images/quiz-placeholder.png')) %>" 
+                                <img src="<%= item.thumbnail || '/images/course-placeholder.png' %>" 
                                      alt="<%= item.title %>" 
                                      class="product-thumbnail"
                                      onerror="this.src='https://via.placeholder.com/60x60?text=<%= item.type %>'">
@@ -452,8 +446,8 @@
                                     <% if (item.courseCode) { %>
                                     <p>Code: <%= item.courseCode %></p>
                                     <% } %>
-                                    <% if (item.bundleCode) { %>
-                                    <p>Code: <%= item.bundleCode %></p>
+                                    <% if (item.courseCode) { %>
+                                    <p>Code: <%= item.courseCode %></p>
                                     <% } %>
                                 </div>
                             </div>

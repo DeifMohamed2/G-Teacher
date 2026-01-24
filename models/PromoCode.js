@@ -67,7 +67,7 @@ const promoCodeSchema = new mongoose.Schema({
   },
   applicableTo: {
     type: String,
-    enum: ['all', 'bundles', 'courses'],
+    enum: ['all', 'courses'],
     default: 'all'
   },
   specificItems: [{
@@ -76,7 +76,7 @@ const promoCodeSchema = new mongoose.Schema({
   }],
   specificItemsModel: {
     type: String,
-    enum: ['BundleCourse', 'Course'],
+    enum: ['Course'],
     default: null
   },
   restrictToStudents: {
@@ -167,58 +167,58 @@ promoCodeSchema.index({ bulkCollectionName: 1 });
 promoCodeSchema.index({ isSingleUseOnly: 1, usedByStudent: 1 });
 
 // Virtual for checking if promo code is valid
-promoCodeSchema.virtual('isValid').get(function() {
+promoCodeSchema.virtual('isValid').get(function () {
   const now = new Date();
-  return this.isActive && 
-         this.validFrom <= now && 
-         this.validUntil >= now && 
-         (this.maxUses === null || this.currentUses < this.maxUses);
+  return this.isActive &&
+    this.validFrom <= now &&
+    this.validUntil >= now &&
+    (this.maxUses === null || this.currentUses < this.maxUses);
 });
 
 // Virtual for remaining uses
-promoCodeSchema.virtual('remainingUses').get(function() {
+promoCodeSchema.virtual('remainingUses').get(function () {
   if (this.maxUses === null) return 'Unlimited';
   return Math.max(0, this.maxUses - this.currentUses);
 });
 
 // Method to check if user can use this promo code
-promoCodeSchema.methods.canUserUse = function(userId, userEmail = null) {
+promoCodeSchema.methods.canUserUse = function (userId, userEmail = null) {
   // Check if this is a single-use bulk code that has already been used
   if (this.isSingleUseOnly && this.usedByStudent) {
     return false; // Code has already been used by someone
   }
-  
+
   // Check if promo code is restricted to specific students
   if (this.restrictToStudents) {
     // Check if user is in allowed students list (by ID or email)
-    const isAllowedById = this.allowedStudents.some(allowedId => 
+    const isAllowedById = this.allowedStudents.some(allowedId =>
       allowedId.toString() === userId.toString()
     );
-    
-    const isAllowedByEmail = userEmail && this.allowedStudentEmails.some(email => 
+
+    const isAllowedByEmail = userEmail && this.allowedStudentEmails.some(email =>
       email.toLowerCase() === userEmail.toLowerCase()
     );
-    
+
     if (!isAllowedById && !isAllowedByEmail) {
       return false; // User is not in the allowed list
     }
   }
-  
+
   // If allowMultipleUses is true, user can use it multiple times
   if (this.allowMultipleUses) {
     return this.isValid;
   }
-  
+
   // If allowMultipleUses is false, check if user has already used this promo code
-  const hasUsed = this.usageHistory.some(usage => 
+  const hasUsed = this.usageHistory.some(usage =>
     usage.user.toString() === userId.toString()
   );
-  
+
   return !hasUsed && this.isValid;
 };
 
 // Method to calculate discount amount
-promoCodeSchema.methods.calculateDiscount = function(orderAmount, items = []) {
+promoCodeSchema.methods.calculateDiscount = function (orderAmount, items = []) {
   if (!this.isValid) {
     throw new Error('Promo code is not valid');
   }
@@ -230,7 +230,6 @@ promoCodeSchema.methods.calculateDiscount = function(orderAmount, items = []) {
   // Check if applicable to items
   if (this.applicableTo !== 'all') {
     const hasApplicableItems = items.some(item => {
-      if (this.applicableTo === 'bundles' && item.type === 'bundle') return true;
       if (this.applicableTo === 'courses' && item.type === 'course') return true;
       return false;
     });
@@ -242,8 +241,8 @@ promoCodeSchema.methods.calculateDiscount = function(orderAmount, items = []) {
 
   // Check specific items if any
   if (this.specificItems && this.specificItems.length > 0) {
-    const hasSpecificItems = items.some(item => 
-      this.specificItems.some(specificId => 
+    const hasSpecificItems = items.some(item =>
+      this.specificItems.some(specificId =>
         specificId.toString() === item.id.toString()
       )
     );
@@ -257,7 +256,7 @@ promoCodeSchema.methods.calculateDiscount = function(orderAmount, items = []) {
 
   if (this.discountType === 'percentage') {
     discountAmount = (orderAmount * this.discountValue) / 100;
-    
+
     // Apply maximum discount limit if set
     if (this.maxDiscountAmount && discountAmount > this.maxDiscountAmount) {
       discountAmount = this.maxDiscountAmount;
@@ -271,7 +270,7 @@ promoCodeSchema.methods.calculateDiscount = function(orderAmount, items = []) {
 };
 
 // Method to apply promo code
-promoCodeSchema.methods.applyPromoCode = function(userId, purchaseId, orderAmount, items = [], userEmail = null) {
+promoCodeSchema.methods.applyPromoCode = function (userId, purchaseId, orderAmount, items = [], userEmail = null) {
   if (!this.canUserUse(userId, userEmail)) {
     throw new Error('User cannot use this promo code');
   }
@@ -290,7 +289,7 @@ promoCodeSchema.methods.applyPromoCode = function(userId, purchaseId, orderAmoun
 
   // Increment current uses
   this.currentUses += 1;
-  
+
   // If this is a single-use bulk code, mark it as used
   if (this.isSingleUseOnly) {
     this.usedByStudent = userId;
@@ -307,22 +306,22 @@ promoCodeSchema.methods.applyPromoCode = function(userId, purchaseId, orderAmoun
 };
 
 // Static method to generate random promo code
-promoCodeSchema.statics.generateRandomCode = function(length = 8) {
+promoCodeSchema.statics.generateRandomCode = function (length = 8) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
-  
+
   for (let i = 0; i < length; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  
+
   return result;
 };
 
 // Static method to find valid promo code
-promoCodeSchema.statics.findValidPromoCode = async function(code, userId, userEmail = null) {
-  const promoCode = await this.findOne({ 
+promoCodeSchema.statics.findValidPromoCode = async function (code, userId, userEmail = null) {
+  const promoCode = await this.findOne({
     code: code.toUpperCase(),
-    isActive: true 
+    isActive: true
   });
 
   if (!promoCode) {
@@ -343,35 +342,35 @@ promoCodeSchema.statics.findValidPromoCode = async function(code, userId, userEm
 };
 
 // Static method to generate bulk promo codes
-promoCodeSchema.statics.generateBulkCodes = async function(count, prefix = '', length = 8) {
+promoCodeSchema.statics.generateBulkCodes = async function (count, prefix = '', length = 8) {
   const codes = new Set();
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  
+
   while (codes.size < count) {
     let code = prefix;
     for (let i = 0; i < length; i++) {
       code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    
+
     // Check if code already exists in database
     const exists = await this.findOne({ code: code.toUpperCase() });
     if (!exists) {
       codes.add(code.toUpperCase());
     }
   }
-  
+
   return Array.from(codes);
 };
 
 // Static method to get bulk collection statistics
-promoCodeSchema.statics.getBulkCollectionStats = async function(bulkCollectionId) {
+promoCodeSchema.statics.getBulkCollectionStats = async function (bulkCollectionId) {
   const codes = await this.find({ bulkCollectionId });
-  
+
   const totalCodes = codes.length;
   const usedCodes = codes.filter(code => code.usedByStudent).length;
   const unusedCodes = totalCodes - usedCodes;
   const activeCodes = codes.filter(code => code.isActive).length;
-  
+
   return {
     totalCodes,
     usedCodes,
@@ -382,7 +381,7 @@ promoCodeSchema.statics.getBulkCollectionStats = async function(bulkCollectionId
 };
 
 // Pre-save middleware to ensure code is uppercase
-promoCodeSchema.pre('save', function(next) {
+promoCodeSchema.pre('save', function (next) {
   if (this.isModified('code')) {
     this.code = this.code.toUpperCase();
   }
@@ -390,7 +389,7 @@ promoCodeSchema.pre('save', function(next) {
 });
 
 // Pre-save middleware to validate discount value
-promoCodeSchema.pre('save', function(next) {
+promoCodeSchema.pre('save', function (next) {
   if (this.discountType === 'percentage' && this.discountValue > 100) {
     return next(new Error('Percentage discount cannot exceed 100%'));
   }

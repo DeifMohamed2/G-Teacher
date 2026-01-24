@@ -66,6 +66,37 @@ const uploadPDFMiddleware = multer({
   },
 });
 
+// Configure multer for image uploads (for submission assignments)
+const imageStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadsDir = path.join(__dirname, '../public/uploads/assignments');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, 'assignment-' + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const uploadImageMiddleware = multer({
+  storage: imageStorage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit for images
+  fileFilter: function (req, file, cb) {
+    // Allow image files
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    const allowedExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    if (allowedTypes.includes(file.mimetype) || allowedExts.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files (JPG, PNG, GIF, WebP) are allowed'));
+    }
+  },
+});
+
 const {
   getAdminDashboard,
   getDashboardChartData,
@@ -174,9 +205,11 @@ const {
   getTeachersAPI,
   // Exam Period Management
   getExamPeriods,
+  getExamPeriod,
   createExamPeriod,
   updateExamPeriod,
   toggleExamPeriodCurrent,
+  toggleExamPeriodStatus,
   deleteExamPeriod,
 } = require('../controllers/adminController');
 
@@ -197,15 +230,6 @@ const {
   getSessionDetails,
   testInvoiceGeneration,
 } = require('../controllers/whatsappController');
-
-// Import Admin Log Controllers
-const {
-  getAdminLogs,
-  getLogDetails,
-  getLogsStats,
-  exportLogs,
-  deleteOldLogs,
-} = require('../controllers/adminLogController');
 
 // Admin Dashboard
 router.get('/dashboard', isAdmin, getAdminDashboard);
@@ -427,6 +451,55 @@ router.post('/upload/pdf', isAdmin, uploadPDFMiddleware.single('pdf'), (err, req
   next();
 }, uploadPDF);
 
+// Image Upload Route (for submission assignments)
+router.post('/upload/image', isAdmin, uploadImageMiddleware.single('image'), (err, req, res, next) => {
+  // Handle multer errors
+  if (err) {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({
+          success: false,
+          message: 'File too large. Maximum file size is 50MB.',
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        message: 'File upload error: ' + err.message,
+      });
+    }
+    return res.status(400).json({
+      success: false,
+      message: err.message || 'File upload error',
+    });
+  }
+  next();
+}, (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded',
+      });
+    }
+
+    const fileUrl = '/uploads/assignments/' + req.file.filename;
+    
+    res.json({
+      success: true,
+      message: 'Image uploaded successfully',
+      fileName: req.file.originalname,
+      fileUrl: fileUrl,
+      fileSize: req.file.size,
+    });
+  } catch (error) {
+    console.error('Image upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error uploading image',
+    });
+  }
+});
+
 router.get('/whatsapp/session-details', isAdmin, getSessionDetails);
 
 // Duplicate cleanup routes
@@ -438,13 +511,6 @@ router.post('/otp-master/generate', isAdmin, generateMasterOTP);
 router.post('/otp-master/validate', isAdmin, validateMasterOTP);
 router.get('/otp-master/active', isAdmin, getActiveMasterOTPs);
 router.delete('/otp-master/:otpId/revoke', isAdmin, revokeMasterOTP);
-
-// Admin Logs Routes (Super Admin Only)
-router.get('/logs', isAdmin, isSuperAdmin, getAdminLogs);
-router.get('/logs/export', isAdmin, isSuperAdmin, exportLogs);
-router.get('/logs/stats', isAdmin, isSuperAdmin, getLogsStats);
-router.get('/logs/:logId', isAdmin, isSuperAdmin, getLogDetails);
-router.post('/logs/cleanup', isAdmin, isSuperAdmin, deleteOldLogs);
 
 // Teacher Management Routes
 router.get('/teachers', isAdmin, getTeachersPage);
@@ -460,8 +526,10 @@ router.get('/api/teachers', isAdmin, getTeachersAPI);
 
 // Exam Period Management Routes
 router.get('/api/exam-periods', isAdmin, getExamPeriods);
+router.get('/api/exam-periods/:periodId', isAdmin, getExamPeriod);
 router.post('/api/exam-periods', isAdmin, createExamPeriod);
 router.put('/api/exam-periods/:periodId', isAdmin, updateExamPeriod);
+router.put('/api/exam-periods/:periodId/toggle-status', isAdmin, toggleExamPeriodStatus);
 router.patch('/api/exam-periods/:periodId/toggle-current', isAdmin, toggleExamPeriodCurrent);
 router.delete('/api/exam-periods/:periodId', isAdmin, deleteExamPeriod);
 

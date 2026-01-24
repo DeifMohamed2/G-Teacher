@@ -388,147 +388,6 @@
   font-size: 1.5rem;
 }
 
-/* Book Orders Section */
-.book-orders-section {
-  margin: 1rem 0;
-  padding: 1rem;
-  background: rgba(var(--admin-primary-rgb), 0.05);
-  border-radius: 12px;
-  border-left: 4px solid var(--admin-primary);
-}
-
-.book-orders-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.book-orders-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--admin-text-light);
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
-.book-orders-title i {
-  color: var(--admin-primary);
-}
-
-.dark-theme .book-orders-title {
-  color: var(--admin-text-dark);
-}
-
-.book-orders-link {
-  color: var(--admin-primary);
-  text-decoration: none;
-  font-size: 0.75rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.book-orders-link:hover {
-  text-decoration: underline;
-}
-
-.book-orders-link i {
-  font-size: 0.625rem;
-}
-
-.book-orders-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.75rem;
-}
-
-.book-order-card {
-  background: white;
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--admin-border-light);
-}
-
-.dark-theme .book-order-card {
-  background: var(--admin-card-dark);
-  border-color: var(--admin-border-dark);
-}
-
-.book-order-header {
-  margin-bottom: 0.5rem;
-}
-
-.book-order-info {
-  flex: 1;
-}
-
-.book-order-number {
-  font-weight: 600;
-  font-size: 0.8125rem;
-  color: var(--admin-text-light);
-  margin-bottom: 0.25rem;
-}
-
-.dark-theme .book-order-number {
-  color: var(--admin-text-dark);
-}
-
-.book-order-name {
-  font-size: 0.75rem;
-  color: #64748b;
-  margin-bottom: 0.25rem;
-}
-
-.bundle-badge {
-  background: rgba(23, 162, 184, 0.1);
-  color: #17a2b8;
-  border: 1px solid rgba(23, 162, 184, 0.2);
-  padding: 0.125rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.625rem;
-  font-weight: 600;
-}
-
-.book-order-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--admin-border-light);
-}
-
-.book-order-price {
-  color: var(--admin-primary);
-  font-weight: 700;
-  font-size: 0.8125rem;
-}
-
-.book-order-tracking {
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--admin-border-light);
-}
-
-.tracking-label {
-  font-size: 0.6875rem;
-  color: #64748b;
-  margin-bottom: 0.25rem;
-}
-
-.tracking-code {
-  background: rgba(var(--admin-primary-rgb), 0.1);
-  color: var(--admin-primary);
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  font-family: 'Courier New', monospace;
-}
-
 /* Order Items Table */
 .order-items-table th {
   font-weight: 600;
@@ -558,11 +417,6 @@
   border-radius: 4px;
   text-transform: uppercase;
   font-weight: 600;
-}
-
-.product-type.bundle {
-  background-color: rgba(255, 193, 7, 0.1);
-  color: #ffc107;
 }
 
 .product-type.course {
@@ -958,12 +812,6 @@
 }
 
 /* Responsive Design */
-@media (max-width: 1200px) {
-  .book-orders-grid {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  }
-}
-
 @media (max-width: 992px) {
   .order-header-card {
     padding: 1.5rem;
@@ -1021,10 +869,6 @@
 
   .order-summary-header {
     padding: 1rem 1.25rem;
-  }
-
-  .book-orders-grid {
-    grid-template-columns: 1fr;
   }
 
   .product-thumbnail {
@@ -1140,15 +984,6 @@
     font-size: 1.25rem;
   }
 
-  .book-orders-section {
-    padding: 0.75rem;
-  }
-
-  .book-orders-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
   .product-thumbnail {
     width: 40px;
     height: 40px;
@@ -1211,10 +1046,6 @@
 
   .total-amount {
     font-size: 1.125rem;
-  }
-
-  .book-order-card {
-    padding: 0.625rem;
   }
 }
 

@@ -105,6 +105,10 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false, // New users must be approved before access
     },
+    isParentPhoneChecked: {
+      type: Boolean,
+      default: false, // Track if parent phone number has been verified
+    },
     profilePicture: {
       type: String,
       default: '',
@@ -277,7 +281,6 @@ const UserSchema = new mongoose.Schema(
       },
       notifications: {
         email: { type: Boolean, default: true },
-        quizReminders: { type: Boolean, default: true },
         courseUpdates: { type: Boolean, default: true },
       },
       language: {
@@ -477,7 +480,7 @@ UserSchema.methods.addPurchasedCourse = async function (courseId, price, orderNu
   const existingPurchase = this.purchasedCourses.find(
     (p) => p.course && p.course.toString() === courseId.toString()
   );
-  
+
   if (!existingPurchase) {
     this.purchasedCourses.push({
       course: courseId,
@@ -488,7 +491,7 @@ UserSchema.methods.addPurchasedCourse = async function (courseId, price, orderNu
       status: 'active',
     });
   }
-  
+
   return await this.save();
 };
 
@@ -500,7 +503,7 @@ UserSchema.methods.enrollInCourseById = async function (courseId, teacherId = nu
 // Get user's purchased courses grouped by teacher
 UserSchema.methods.getPurchasedByTeacher = function () {
   const teacherMap = new Map();
-  
+
   for (const purchase of this.purchasedCourses) {
     const teacherId = purchase.teacher ? purchase.teacher.toString() : 'no-teacher';
     if (!teacherMap.has(teacherId)) {
@@ -513,7 +516,7 @@ UserSchema.methods.getPurchasedByTeacher = function () {
     teacherMap.get(teacherId).courses.push(purchase);
     teacherMap.get(teacherId).totalPrice += purchase.price || 0;
   }
-  
+
   return Array.from(teacherMap.values());
 };
 
@@ -525,20 +528,129 @@ UserSchema.methods.hasPurchasedCourse = function (courseId) {
   );
 };
 
-// Alias for backwards compatibility with views using bundle terminology
-UserSchema.methods.hasPurchasedBundle = function (courseId) {
-  return this.hasPurchasedCourse(courseId);
-};
-
 // Check if course is in wishlist
 UserSchema.methods.isCourseInWishlist = function (courseId) {
   if (!courseId || !this.wishlist) return false;
   return this.wishlist.some((id) => id.toString() === courseId.toString());
 };
 
-// Alias for backwards compatibility with views using bundle terminology
-UserSchema.methods.isBundleInWishlist = function (courseId) {
-  return this.isCourseInWishlist(courseId);
+// Get completed content IDs for a course (from enrollment.contentProgress)
+UserSchema.methods.getCompletedContentIds = function (courseId) {
+  const enrollment = this.enrolledCourses.find(
+    (e) => e.course && e.course.toString() === courseId.toString()
+  );
+  if (!enrollment || !enrollment.contentProgress) return [];
+  return enrollment.contentProgress
+    .filter((cp) => cp.completionStatus === 'completed' && cp.contentId)
+    .map((cp) => cp.contentId.toString());
+};
+
+// Get content progress details for a specific content item
+UserSchema.methods.getContentProgressDetails = function (courseId, contentId) {
+  const enrollment = this.enrolledCourses.find(
+    (e) => e.course && e.course.toString() === courseId.toString()
+  );
+  if (!enrollment || !enrollment.contentProgress) return null;
+  const cp = enrollment.contentProgress.find(
+    (p) => p.contentId && p.contentId.toString() === contentId.toString()
+  );
+  if (!cp) return null;
+  return {
+    progressPercentage: cp.progressPercentage ?? 0,
+    watchCount: cp.watchCount ?? 0,
+    completionStatus: cp.completionStatus ?? 'not_started',
+    lastAccessed: cp.lastAccessed,
+    completedAt: cp.completedAt,
+    score: cp.score,
+    timeSpent: cp.timeSpent ?? 0,
+    attempts: cp.attempts ?? 0,
+    lastPosition: cp.lastPosition ?? 0,
+    bestScore: cp.bestScore ?? 0,
+  };
+};
+
+// Calculate topic progress (percentage of completed content in topic)
+// topicContentCount optional; if omitted, uses count of contentProgress entries for topic
+UserSchema.methods.calculateTopicProgress = function (courseId, topicId, topicContentCount) {
+  const enrollment = this.enrolledCourses.find(
+    (e) => e.course && e.course.toString() === courseId.toString()
+  );
+  if (!enrollment || !enrollment.contentProgress) return 0;
+  const forTopic = enrollment.contentProgress.filter(
+    (p) => p.topicId && p.topicId.toString() === topicId.toString()
+  );
+  const completed = forTopic.filter((p) => p.completionStatus === 'completed').length;
+  const total = topicContentCount != null && topicContentCount > 0
+    ? topicContentCount
+    : forTopic.length;
+  if (total === 0) return 0;
+  return Math.min(100, Math.round((completed / total) * 100));
+};
+
+// Check if content is unlocked (delegates to Progress model)
+UserSchema.methods.isContentUnlocked = async function (courseId, contentId, contentData) {
+  const Progress = mongoose.model('Progress');
+  return Progress.isContentUnlocked(this._id, courseId, contentId, contentData);
+};
+
+// Update content progress for a course/topic/content
+UserSchema.methods.updateContentProgress = async function (
+  courseId,
+  topicId,
+  contentId,
+  contentType,
+  progressData
+) {
+  const enrollment = this.enrolledCourses.find(
+    (e) => e.course && e.course.toString() === courseId.toString()
+  );
+  if (!enrollment) return null;
+
+  if (!enrollment.contentProgress) {
+    enrollment.contentProgress = [];
+  }
+
+  let cp = enrollment.contentProgress.find(
+    (p) =>
+      p.contentId && p.contentId.toString() === contentId.toString() &&
+      p.topicId && p.topicId.toString() === topicId.toString()
+  );
+
+  if (!cp) {
+    cp = {
+      topicId,
+      contentId,
+      contentType,
+      completionStatus: 'not_started',
+      progressPercentage: 0,
+      lastAccessed: new Date(),
+      timeSpent: 0,
+      attempts: 0,
+      lastPosition: 0,
+      watchCount: 0,
+      bestScore: 0,
+    };
+    enrollment.contentProgress.push(cp);
+  }
+
+  if (progressData) {
+    if (progressData.completionStatus != null) cp.completionStatus = progressData.completionStatus;
+    if (progressData.progressPercentage != null) cp.progressPercentage = progressData.progressPercentage;
+    if (progressData.lastAccessed != null) cp.lastAccessed = progressData.lastAccessed;
+    if (progressData.completedAt != null) cp.completedAt = progressData.completedAt;
+    if (progressData.score != null) cp.score = progressData.score;
+    if (progressData.timeSpent != null) cp.timeSpent = progressData.timeSpent;
+    if (progressData.attempts != null) cp.attempts = progressData.attempts;
+    if (progressData.lastPosition != null) cp.lastPosition = progressData.lastPosition;
+    if (progressData.bestScore != null) cp.bestScore = progressData.bestScore;
+    if (progressData.watchCount != null) cp.watchCount = progressData.watchCount;
+    if (progressData.watchData && typeof progressData.watchData.watchCount === 'number') {
+      cp.watchCount = progressData.watchData.watchCount;
+    }
+  }
+
+  this.markModified('enrolledCourses');
+  return this.save();
 };
 
 // Indexes for better query performance (excluding fields with unique: true which auto-create indexes)

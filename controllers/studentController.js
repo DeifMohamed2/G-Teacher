@@ -12,6 +12,7 @@ const whatsappSMSNotificationService = require('../utils/whatsappSMSNotification
 const dashboard = async (req, res) => {
   try {
     const studentId = req.session.user.id;
+    const selectedTeacherId = req.query.teacher || req.session.selectedTeacher || null;
 
     // Get student with populated data
     const student = await User.findById(studentId)
@@ -24,52 +25,85 @@ const dashboard = async (req, res) => {
           },
           {
             path: 'teacher',
-            select: 'firstName lastName teacherCode profilePicture',
+            select: 'firstName lastName teacherCode profilePicture subject',
             model: 'Teacher',
           },
         ],
       })
-      .populate('wishlist')
-      .populate({
-        path: 'quizAttempts.quiz',
-        model: 'Quiz',
-      });
+      .populate('wishlist');
 
     if (!student) {
       req.flash('error_msg', 'Student not found');
       return res.redirect('/auth/login');
     }
 
-    // Get recent progress
-    const recentProgress = await Progress.find({ student: studentId })
-      .populate('course', 'title thumbnail')
+    // Extract unique teachers from enrolled courses
+    const teachersMap = new Map();
+    student.enrolledCourses.forEach((enrollment) => {
+      if (enrollment.course && enrollment.course.teacher) {
+        const teacher = enrollment.course.teacher;
+        if (!teachersMap.has(teacher._id.toString())) {
+          // Count courses for this teacher
+          const teacherCourses = student.enrolledCourses.filter(
+            (e) => e.course && e.course.teacher && e.course.teacher._id.toString() === teacher._id.toString()
+          );
+          teachersMap.set(teacher._id.toString(), {
+            _id: teacher._id,
+            firstName: teacher.firstName,
+            lastName: teacher.lastName,
+            teacherCode: teacher.teacherCode,
+            profilePicture: teacher.profilePicture,
+            subject: teacher.subject,
+            courseCount: teacherCourses.length,
+          });
+        }
+      }
+    });
+    const availableTeachers = Array.from(teachersMap.values());
+
+    // Store selected teacher in session
+    if (req.query.teacher) {
+      req.session.selectedTeacher = req.query.teacher;
+    }
+
+    // Filter courses by selected teacher
+    let filteredEnrollments = student.enrolledCourses.filter(
+      (enrollment) => enrollment.status === 'active' && enrollment.course
+    );
+
+    if (selectedTeacherId && selectedTeacherId !== 'all') {
+      filteredEnrollments = filteredEnrollments.filter(
+        (enrollment) =>
+          enrollment.course.teacher &&
+          enrollment.course.teacher._id.toString() === selectedTeacherId
+      );
+    }
+
+    // Get recent progress (filtered by teacher if selected)
+    let progressFilter = { student: studentId };
+    if (selectedTeacherId && selectedTeacherId !== 'all') {
+      // Get course IDs for this teacher
+      const teacherCourseIds = filteredEnrollments.map((e) => e.course._id);
+      progressFilter.course = { $in: teacherCourseIds };
+    }
+
+    const recentProgress = await Progress.find(progressFilter)
+      .populate('course', 'title thumbnail teacher')
       .populate('topic', 'title')
       .sort({ timestamp: -1 })
       .limit(10);
 
-    // Get statistics
+    // Get statistics (filtered by teacher if selected)
+    const filteredCoursesList = filteredEnrollments.map((e) => e.course);
     const stats = {
-      totalCourses: student.enrolledCourses.length,
-      completedCourses: student.completedCourses,
-      totalQuizAttempts: student.totalQuizAttempts,
-      averageScore: student.averageQuizScore,
-      totalPoints: student.quizAttempts.reduce(
-        (total, quiz) =>
-          total +
-          quiz.attempts.reduce(
-            (quizTotal, attempt) => quizTotal + (attempt.score || 0),
-            0
-          ),
-        0
-      ),
-      wishlistCount: student.wishlist.length,
+      totalCourses: filteredEnrollments.length,
+      completedCourses: filteredEnrollments.filter((e) => e.progress === 100).length,
+      totalPoints: 0,
+      wishlistCount: student.wishlist ? student.wishlist.length : 0,
     };
 
-    // Get active courses (recently accessed)
-    const activeCourses = student.enrolledCourses
-      .filter(
-        (enrollment) => enrollment.status === 'active' && enrollment.course
-      )
+    // Get active courses (recently accessed, filtered by teacher)
+    const activeCourses = filteredEnrollments
       .sort((a, b) => new Date(b.lastAccessed) - new Date(a.lastAccessed))
       .slice(0, 6)
       .map((enrollment) => ({
@@ -79,12 +113,22 @@ const dashboard = async (req, res) => {
         status: enrollment.status,
       }));
 
+    // Get selected teacher info
+    const selectedTeacher = selectedTeacherId && selectedTeacherId !== 'all'
+      ? availableTeachers.find((t) => t._id.toString() === selectedTeacherId)
+      : null;
+
     res.render('student/dashboard', {
-      title: 'Student Dashboard | ELKABLY',
+      title: selectedTeacher
+        ? `${selectedTeacher.firstName} ${selectedTeacher.lastName} - Dashboard | ELKABLY`
+        : 'Student Dashboard | ELKABLY',
       student,
       stats,
       recentProgress,
       activeCourses,
+      availableTeachers,
+      selectedTeacherId: selectedTeacherId || 'all',
+      selectedTeacher,
       theme: req.cookies.theme || student.preferences?.theme || 'light',
     });
   } catch (error) {
@@ -102,8 +146,13 @@ const enrolledCourses = async (req, res) => {
     // Get filter parameters
     const searchQuery = req.query.search || '';
     const progressFilter = req.query.progress || 'all';
-    const bundleFilter = req.query.bundle || 'all';
+    const teacherFilter = req.query.teacher || req.session.selectedTeacher || 'all';
     const sortBy = req.query.sort || 'lastAccessed';
+
+    // Store selected teacher in session
+    if (req.query.teacher) {
+      req.session.selectedTeacher = req.query.teacher;
+    }
 
     const student = await User.findById(studentId).populate({
       path: 'enrolledCourses.course',
@@ -113,9 +162,11 @@ const enrolledCourses = async (req, res) => {
           model: 'Topic',
         },
         {
-          path: 'bundle',
-          select: 'title bundleCode thumbnail',
+          path: 'teacher',
+          select: 'firstName lastName teacherCode profilePicture subject',
+          model: 'Teacher',
         },
+
       ],
     });
 
@@ -124,23 +175,51 @@ const enrolledCourses = async (req, res) => {
       return res.redirect('/auth/login');
     }
 
-    // Filter out enrollments with null/deleted courses and recalculate progress
+    // Filter out enrollments with null/deleted courses
     const validEnrollments = student.enrolledCourses.filter(
       (enrollment) => enrollment.course
     );
 
-    await Promise.all(
-      validEnrollments.map(async (enrollment) => {
-        await student.calculateCourseProgress(enrollment.course);
-      })
-    );
+    // Update the student's enrolled courses to only include valid ones if needed
+    if (validEnrollments.length !== student.enrolledCourses.length) {
+      student.enrolledCourses = validEnrollments;
+      await student.save();
+    }
 
-    // Update the student's enrolled courses to only include valid ones
-    student.enrolledCourses = validEnrollments;
-    await student.save();
+    // Extract unique teachers from enrolled courses
+    const teachersMap = new Map();
+    validEnrollments.forEach((enrollment) => {
+      if (enrollment.course && enrollment.course.teacher) {
+        const teacher = enrollment.course.teacher;
+        if (!teachersMap.has(teacher._id.toString())) {
+          const teacherCourses = validEnrollments.filter(
+            (e) => e.course && e.course.teacher && e.course.teacher._id.toString() === teacher._id.toString()
+          );
+          teachersMap.set(teacher._id.toString(), {
+            _id: teacher._id,
+            firstName: teacher.firstName,
+            lastName: teacher.lastName,
+            teacherCode: teacher.teacherCode,
+            profilePicture: teacher.profilePicture,
+            subject: teacher.subject,
+            courseCount: teacherCourses.length,
+          });
+        }
+      }
+    });
+    const availableTeachers = Array.from(teachersMap.values());
 
     // Apply filters
     let filteredCourses = validEnrollments;
+
+    // Filter by teacher
+    if (teacherFilter !== 'all') {
+      filteredCourses = filteredCourses.filter(
+        (enrollment) =>
+          enrollment.course.teacher &&
+          enrollment.course.teacher._id.toString() === teacherFilter
+      );
+    }
 
     // Search by course name
     if (searchQuery) {
@@ -148,15 +227,6 @@ const enrolledCourses = async (req, res) => {
         enrollment.course.title
           .toLowerCase()
           .includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Filter by bundle
-    if (bundleFilter !== 'all') {
-      filteredCourses = filteredCourses.filter(
-        (enrollment) =>
-          enrollment.course.bundle &&
-          enrollment.course.bundle._id.toString() === bundleFilter
       );
     }
 
@@ -204,53 +274,29 @@ const enrolledCourses = async (req, res) => {
         break;
     }
 
-    // Get unlock status for each course
-    const Course = require('../models/Course');
-    const coursesWithUnlockStatus = await Promise.all(
-      filteredCourses.map(async (enrollment) => {
-        const unlockStatus = await Course.isCourseUnlocked(
-          studentId,
-          enrollment.course._id
-        );
-        return {
-          ...enrollment.toObject(),
-          isUnlocked: unlockStatus.unlocked,
-          unlockReason: unlockStatus.reason,
-          previousCourse: unlockStatus.previousCourse,
-        };
-      })
-    );
-
     // Display all results without pagination
-    const totalCourses = coursesWithUnlockStatus.length;
-    const enrolledCourses = coursesWithUnlockStatus;
+    const totalCourses = filteredCourses.length;
+    const enrolledCoursesData = filteredCourses.map((e) => e.toObject());
 
-    // Get available teachers for filter dropdown (replaces bundles)
-    const teacherIds = validEnrollments
-      .map((e) => e.course.teacher?._id)
-      .filter(Boolean)
-      .filter((id, index, arr) => arr.findIndex(i => i?.toString() === id?.toString()) === index);
-
-    const availableTeachers = await Teacher.find({
-      _id: { $in: teacherIds },
-    }).select('_id firstName lastName teacherCode');
-
-    // Book orders feature removed - courseBookInfo is now empty
-    const courseBookInfo = {};
+    // Get selected teacher info
+    const selectedTeacher = teacherFilter && teacherFilter !== 'all'
+      ? availableTeachers.find((t) => t._id.toString() === teacherFilter)
+      : null;
 
     res.render('student/enrolled-courses', {
-      title: 'My Enrolled Weeks | ELKABLY',
+      title: selectedTeacher
+        ? `${selectedTeacher.firstName} ${selectedTeacher.lastName} - My Weeks | ELKABLY`
+        : 'My Enrolled Weeks | ELKABLY',
       student,
-      enrolledCourses,
+      enrolledCourses: enrolledCoursesData,
       totalCourses: totalCourses,
-      availableBundles: availableTeachers, // For backward compatibility
       availableTeachers,
-      bundleBookInfo: courseBookInfo, // For backward compatibility
-      courseBookInfo,
+      selectedTeacherId: teacherFilter,
+      selectedTeacher,
       filters: {
         search: searchQuery,
         progress: progressFilter,
-        bundle: bundleFilter,
+        teacher: teacherFilter,
         sort: sortBy,
       },
       pagination: {
@@ -288,9 +334,7 @@ const courseDetails = async (req, res) => {
     }
 
     const course = await Course.findById(courseId)
-      .populate('topics')
-      .populate('bundle', 'name')
-      .populate('createdBy', 'name');
+      .populate('topics');
 
     if (!course) {
       req.flash('error_msg', 'Course not found');
@@ -304,22 +348,18 @@ const courseDetails = async (req, res) => {
     }).sort({ timestamp: -1 });
 
     // Calculate topic progress based on actual completion percentages
-    const topicsWithProgress = await Promise.all(
-      course.topics.map(async (topic) => {
-        const topicProgress = await student.calculateTopicProgress(
-          courseId,
-          topic._id
-        );
-        return {
-          ...topic.toObject(),
-          completed: enrollment.completedTopics.includes(topic._id),
-          progress: topicProgress,
-        };
-      })
-    );
-
-    // Book orders feature removed
-    let bookPurchaseInfo = null;
+    const topicsWithProgress = course.topics.map((topic) => {
+      const topicProgress = student.calculateTopicProgress(
+        courseId,
+        topic._id,
+        topic.content?.length ?? 0
+      );
+      return {
+        ...topic.toObject(),
+        completed: enrollment.completedTopics.includes(topic._id),
+        progress: topicProgress,
+      };
+    });
 
     res.render('student/course-details', {
       title: `${course.title} - Course Details | ELKABLY`,
@@ -328,7 +368,6 @@ const courseDetails = async (req, res) => {
       enrollment,
       topicsWithProgress,
       courseProgress,
-      bookPurchaseInfo, // Pass book purchase info to view
       theme: req.cookies.theme || student.preferences?.theme || 'light',
     });
   } catch (error) {
@@ -343,12 +382,10 @@ const getContentIcon = (type) => {
   const icons = {
     video: 'play-circle',
     pdf: 'file-pdf',
-    quiz: 'question-circle',
-    homework: 'tasks',
     assignment: 'clipboard-list',
     reading: 'book-open',
     link: 'external-link-alt',
-    zoom: 'video', // Add Zoom meeting icon
+    zoom: 'video',
   };
   return icons[type] || 'file';
 };
@@ -359,9 +396,17 @@ const courseContent = async (req, res) => {
     const studentId = req.session.user.id;
     const courseId = req.params.id;
 
-    const student = await User.findById(studentId);
+    const student = await User.findById(studentId).populate({
+      path: 'enrolledCourses.course',
+      populate: {
+        path: 'teacher',
+        select: 'firstName lastName teacherCode profilePicture subject',
+        model: 'Teacher',
+      },
+    });
+
     const enrollment = student.enrolledCourses.find(
-      (e) => e.course.toString() === courseId
+      (e) => e.course && e.course._id.toString() === courseId
     );
 
     if (!enrollment) {
@@ -384,22 +429,10 @@ const courseContent = async (req, res) => {
           },
         ],
       })
-      .populate('bundle', 'name')
-      .populate('createdBy', 'name');
+      .populate('teacher', 'firstName lastName teacherCode profilePicture subject');
 
     if (!course) {
       req.flash('error_msg', 'Course not found');
-      return res.redirect('/student/enrolled-courses');
-    }
-
-    // Check if course is unlocked
-    const unlockStatus = await Course.isCourseUnlocked(studentId, courseId);
-    if (!unlockStatus.unlocked) {
-      req.flash(
-        'error_msg',
-        unlockStatus.reason ||
-          'This course is locked. Please complete the previous courses first.'
-      );
       return res.redirect('/student/enrolled-courses');
     }
 
@@ -417,70 +450,76 @@ const courseContent = async (req, res) => {
       publishedTopics.map(async (topic) => {
         const topicCompleted = enrollment.completedTopics.includes(topic._id);
 
-        // Calculate topic progress based on actual completion percentages
-        const topicProgress = await student.calculateTopicProgress(
-          courseId,
-          topic._id
+        // Process content items (exclude quiz/homework - removed)
+        const contentItems = (topic.content || []).filter(
+          (ci) => ci.type !== 'quiz' && ci.type !== 'homework'
         );
 
-        // Process content items with enhanced unlock/completion status
-        const contentWithStatus = topic.content.map((contentItem, index) => {
-          const isCompleted = completedContentIds.includes(
-            contentItem._id.toString()
-          );
-          const unlockStatus = student.isContentUnlocked(
-            courseId,
-            contentItem._id,
-            contentItem
-          );
+        // Calculate topic progress based on filtered content
+        const topicProgress = student.calculateTopicProgress(
+          courseId,
+          topic._id,
+          contentItems.length
+        );
+        const contentWithStatus = await Promise.all(
+          contentItems.map(async (contentItem, index) => {
+            const isCompleted = completedContentIds.includes(
+              contentItem._id.toString()
+            );
+            const unlockStatus = await student.isContentUnlocked(
+              courseId,
+              contentItem._id,
+              contentItem
+            );
 
-          // Get content progress details for more accurate completion status
-          const contentProgressDetails = student.getContentProgressDetails(
-            courseId,
-            contentItem._id
-          );
-          const actualProgress = contentProgressDetails
-            ? contentProgressDetails.progressPercentage
-            : 0;
+            // Get content progress details for more accurate completion status
+            const contentProgressDetails = student.getContentProgressDetails(
+              courseId,
+              contentItem._id
+            );
+            const actualProgress = contentProgressDetails
+              ? contentProgressDetails.progressPercentage
+              : 0;
 
-          // Get watch count for video content
-          const watchCount = contentProgressDetails?.watchCount || 0;
+            // Get watch count for video content
+            const watchCount = contentProgressDetails?.watchCount || 0;
 
-          // Get prerequisite names and IDs for better user experience
-          let prerequisiteNames = [];
-          let prerequisiteData = [];
-          if (
-            contentItem.prerequisites &&
-            contentItem.prerequisites.length > 0
-          ) {
-            // Find prerequisite content names and IDs
-            const allContent = course.topics.flatMap((t) => t.content);
-            prerequisiteData = contentItem.prerequisites.map((prereqId) => {
-              const prereqContent = allContent.find(
-                (c) => c._id.toString() === prereqId.toString()
-              );
-              return {
-                id: prereqId.toString(),
-                title: prereqContent ? prereqContent.title : 'Unknown Content',
-              };
-            });
-            prerequisiteNames = prerequisiteData.map((p) => p.title);
-          }
+            // Get prerequisite names and IDs for better user experience
+            let prerequisiteNames = [];
+            let prerequisiteData = [];
+            if (
+              contentItem.prerequisites &&
+              contentItem.prerequisites.length > 0
+            ) {
+              // Find prerequisite content names and IDs
+              const allContent = course.topics.flatMap((t) => t.content || []);
+              prerequisiteData = contentItem.prerequisites.map((prereqId) => {
+                const prereqContent = allContent.find(
+                  (c) => c._id.toString() === prereqId.toString()
+                );
+                return {
+                  id: prereqId.toString(),
+                  title: prereqContent ? prereqContent.title : 'Unknown Content',
+                };
+              });
+              prerequisiteNames = prerequisiteData.map((p) => p.title);
+            }
 
-          return {
-            ...contentItem.toObject(),
-            isUnlocked: unlockStatus.unlocked,
-            isCompleted: isCompleted,
-            actualProgress: actualProgress,
-            watchCount: watchCount,
-            unlockReason: unlockStatus.reason,
-            canAccess: unlockStatus.unlocked || isCompleted,
-            prerequisiteNames: prerequisiteNames,
-            prerequisiteData: prerequisiteData,
-            contentIndex: index,
-            topicId: topic._id,
-          };
-        });
+            return {
+              ...contentItem.toObject(),
+              isUnlocked: unlockStatus.unlocked,
+              isCompleted: isCompleted,
+              actualProgress: actualProgress,
+              watchCount: watchCount,
+              unlockReason: unlockStatus.reason,
+              canAccess: unlockStatus.unlocked || isCompleted,
+              prerequisiteNames: prerequisiteNames,
+              prerequisiteData: prerequisiteData,
+              contentIndex: index,
+              topicId: topic._id,
+            };
+          })
+        );
 
         return {
           ...topic.toObject(),
@@ -491,12 +530,34 @@ const courseContent = async (req, res) => {
       })
     );
 
-    // Check if course has book info (now directly on course instead of bundle)
-    // Book orders feature removed
-    let bookPurchaseInfo = null;
-
     // Get locked content ID from query parameter (if redirected from locked content)
     const lockedContentId = req.query.lockedContent || null;
+
+    // Extract unique teachers from enrolled courses for the header
+    const teachersMap = new Map();
+    student.enrolledCourses.forEach((enroll) => {
+      if (enroll.course && enroll.course.teacher) {
+        const teacher = enroll.course.teacher;
+        if (!teachersMap.has(teacher._id.toString())) {
+          const teacherCourses = student.enrolledCourses.filter(
+            (e) => e.course && e.course.teacher && e.course.teacher._id.toString() === teacher._id.toString()
+          );
+          teachersMap.set(teacher._id.toString(), {
+            _id: teacher._id,
+            firstName: teacher.firstName,
+            lastName: teacher.lastName,
+            teacherCode: teacher.teacherCode,
+            profilePicture: teacher.profilePicture,
+            subject: teacher.subject,
+            courseCount: teacherCourses.length,
+          });
+        }
+      }
+    });
+    const availableTeachers = Array.from(teachersMap.values());
+
+    // Get current course's teacher ID for selection
+    const selectedTeacherId = course.teacher ? course.teacher._id.toString() : 'all';
 
     res.render('student/course-content', {
       title: `${course.title} - Course Content | ELKABLY`,
@@ -507,7 +568,8 @@ const courseContent = async (req, res) => {
       lockedContentId, // Pass locked content ID to highlight it
       user: req.session.user, // Pass user session for admin checks
       getContentIcon, // Pass the helper function to the template
-      bookPurchaseInfo, // Pass book purchase info to view
+      availableTeachers,
+      selectedTeacherId,
       theme: req.cookies.theme || student.preferences?.theme || 'light',
     });
   } catch (error) {
@@ -569,8 +631,13 @@ const contentDetails = async (req, res) => {
       return res.redirect('/student/enrolled-courses');
     }
 
+    if (contentItem.type === 'quiz' || contentItem.type === 'homework') {
+      req.flash('info_msg', 'Quiz and homework content have been removed.');
+      return res.redirect(`/student/course/${course._id}/content`);
+    }
+
     // Check if content is unlocked
-    const unlockStatus = student.isContentUnlocked(
+    const unlockStatus = await student.isContentUnlocked(
       course._id,
       contentId,
       contentItem
@@ -692,9 +759,11 @@ const contentDetails = async (req, res) => {
       bestScore = contentProgress.bestScore || 0;
     }
 
-    // Get navigation data (previous and next content)
+    // Get navigation data (previous and next content; exclude quiz/homework)
     const allContent = course.topics.flatMap((t) =>
-      t.content.map((c) => ({ ...c.toObject(), topicId: t._id }))
+      (t.content || [])
+        .filter((c) => c.type !== 'quiz' && c.type !== 'homework')
+        .map((c) => ({ ...c.toObject(), topicId: t._id }))
     );
     const currentIndex = allContent.findIndex(
       (c) => c._id.toString() === contentId
@@ -740,69 +809,8 @@ const contentDetails = async (req, res) => {
     }
 
 
-    // Compute server timing for quiz/homework to reflect resume and remaining time
     let serverTiming = null;
     let attemptPolicy = null;
-    if (['quiz', 'homework'].includes(contentItem.type)) {
-      const durationMinutes =
-        contentItem.type === 'quiz'
-          ? contentItem.quizSettings && contentItem.quizSettings.duration
-            ? contentItem.quizSettings.duration
-            : 0
-          : contentItem.homeworkSettings &&
-            contentItem.homeworkSettings.duration
-          ? contentItem.homeworkSettings.duration
-          : contentItem.duration || 0;
-      const passingScore =
-        contentItem.type === 'quiz'
-          ? contentItem.quizSettings &&
-            typeof contentItem.quizSettings.passingScore === 'number'
-            ? contentItem.quizSettings.passingScore
-            : 60
-          : contentItem.homeworkSettings &&
-            typeof contentItem.homeworkSettings.passingScore === 'number'
-          ? contentItem.homeworkSettings.passingScore
-          : 60;
-
-      let remainingSeconds = 0;
-      let isExpired = false;
-      if (
-        contentProgress &&
-        contentProgress.expectedEnd &&
-        durationMinutes > 0
-      ) {
-        remainingSeconds = Math.max(
-          0,
-          Math.floor(
-            (new Date(contentProgress.expectedEnd).getTime() - Date.now()) /
-              1000
-          )
-        );
-        isExpired = remainingSeconds === 0;
-      }
-      serverTiming = {
-        durationMinutes,
-        passingScore,
-        remainingSeconds,
-        isExpired,
-      };
-
-      // Attempts policy
-      const maxAttempts =
-        contentItem.type === 'quiz'
-          ? contentItem.quizSettings && contentItem.quizSettings.maxAttempts
-            ? contentItem.quizSettings.maxAttempts
-            : 0
-          : contentItem.homeworkSettings &&
-            contentItem.homeworkSettings.maxAttempts
-          ? contentItem.homeworkSettings.maxAttempts
-          : 0;
-      const totalAttemptsUsed = attempts;
-      const remainingAttempts =
-        maxAttempts > 0 ? Math.max(0, maxAttempts - totalAttemptsUsed) : null;
-      const outOfAttempts = maxAttempts > 0 && remainingAttempts === 0;
-      attemptPolicy = { maxAttempts, remainingAttempts, outOfAttempts };
-    }
 
     // Video watch limit info
     let watchLimitInfo = null;
@@ -822,6 +830,42 @@ const contentDetails = async (req, res) => {
         canWatch: !limitReached,
       };
     }
+
+    // Get available teachers from student's enrolled courses for header
+    const studentWithTeachers = await User.findById(studentId).populate({
+      path: 'enrolledCourses.course',
+      populate: {
+        path: 'teacher',
+        select: 'firstName lastName teacherCode profilePicture subject',
+        model: 'Teacher',
+      },
+    });
+
+    const teachersMap = new Map();
+    studentWithTeachers.enrolledCourses.forEach((enroll) => {
+      if (enroll.course && enroll.course.teacher) {
+        const teacher = enroll.course.teacher;
+        if (!teachersMap.has(teacher._id.toString())) {
+          const teacherCourses = studentWithTeachers.enrolledCourses.filter(
+            (e) => e.course && e.course.teacher && e.course.teacher._id.toString() === teacher._id.toString()
+          );
+          teachersMap.set(teacher._id.toString(), {
+            _id: teacher._id,
+            firstName: teacher.firstName,
+            lastName: teacher.lastName,
+            teacherCode: teacher.teacherCode,
+            profilePicture: teacher.profilePicture,
+            subject: teacher.subject,
+            courseCount: teacherCourses.length,
+          });
+        }
+      }
+    });
+    const availableTeachers = Array.from(teachersMap.values());
+
+    // Get current course's teacher ID
+    const courseWithTeacher = await Course.findById(course._id).populate('teacher', 'firstName lastName');
+    const selectedTeacherId = courseWithTeacher && courseWithTeacher.teacher ? courseWithTeacher.teacher._id.toString() : 'all';
 
     res.render('student/content-details', {
       title: `${contentItem.title} - Content | ELKABLY`,
@@ -855,6 +899,8 @@ const contentDetails = async (req, res) => {
         currentIndex: currentIndex,
         totalContent: allContent.length,
       },
+      availableTeachers,
+      selectedTeacherId,
       getContentIcon, // Pass the helper function to the template
       theme: req.cookies.theme || student.preferences?.theme || 'light',
     });
@@ -896,10 +942,10 @@ const updateContentProgress = async (req, res) => {
     const existingProgress = enrollment.contentProgress.find(
       (cp) => cp.contentId.toString() === contentId.toString()
     );
-    const wasAlreadyCompleted = existingProgress && 
+    const wasAlreadyCompleted = existingProgress &&
       existingProgress.completionStatus === 'completed';
-    const isNewCompletion = progressData && 
-      progressData.completionStatus === 'completed' && 
+    const isNewCompletion = progressData &&
+      progressData.completionStatus === 'completed' &&
       !wasAlreadyCompleted;
 
     // Get course and topic data for notification (before update)
@@ -907,7 +953,7 @@ const updateContentProgress = async (req, res) => {
     let isZoomContent = false;
     let shouldSendNotification = false;
     let contentItem = null;
-    
+
     // Fetch content item for validation
     try {
       const course = await Course.findById(courseId);
@@ -933,11 +979,11 @@ const updateContentProgress = async (req, res) => {
     // Check on EVERY completion attempt (not just new completions) to enforce limits
     if (contentItem && contentItem.type === 'video' && progressData && progressData.completionStatus === 'completed') {
       const maxWatchCount = contentItem.maxWatchCount;
-      
+
       // If maxWatchCount is set (not null/undefined/-1), enforce the limit
       if (maxWatchCount !== null && maxWatchCount !== undefined && maxWatchCount !== -1 && maxWatchCount > 0) {
         const currentWatchCount = existingProgress?.watchCount || 0;
-        
+
         // Check if student has reached the watch limit BEFORE allowing this completion
         // Since watch count will increment after this check, we check if current count >= max
         if (currentWatchCount >= maxWatchCount) {
@@ -950,7 +996,7 @@ const updateContentProgress = async (req, res) => {
           });
         }
       }
-      
+
       // ==================== ANTI-SKIP VALIDATION ====================
       // Validate that student actually watched 90% of the video (not just skipped to the end)
       // NOTE: We use a slightly lower threshold (85%) on backend to account for:
@@ -962,22 +1008,22 @@ const updateContentProgress = async (req, res) => {
         const watchData = progressData.watchData;
         const REQUIRED_WATCH_PERCENTAGE = 85; // Backend threshold (frontend uses 90%)
         const FRONTEND_REPORTED_PERCENTAGE = watchData.watchPercentage || 0;
-        
+
         // Backend validation: Calculate actual watched time from segments
         let totalWatchedTime = 0;
-        
+
         if (watchData.watchedSegments && Array.isArray(watchData.watchedSegments)) {
           // Merge and validate segments
           const segments = watchData.watchedSegments
             .filter(seg => seg.start >= 0 && seg.end > seg.start) // Valid segments only
             .sort((a, b) => a.start - b.start);
-          
+
           // Merge overlapping segments to get accurate total
           // Use larger tolerance for mobile compatibility
           const mergedSegments = [];
           for (const segment of segments) {
             if (mergedSegments.length === 0) {
-              mergedSegments.push({start: segment.start, end: segment.end});
+              mergedSegments.push({ start: segment.start, end: segment.end });
             } else {
               const last = mergedSegments[mergedSegments.length - 1];
               if (segment.start <= last.end + 2) { // Increased tolerance from 0.5 to 2 seconds
@@ -985,35 +1031,35 @@ const updateContentProgress = async (req, res) => {
                 last.end = Math.max(last.end, segment.end);
               } else {
                 // New separate segment
-                mergedSegments.push({start: segment.start, end: segment.end});
+                mergedSegments.push({ start: segment.start, end: segment.end });
               }
             }
           }
-          
+
           // Calculate total watched time
           for (const segment of mergedSegments) {
             totalWatchedTime += (segment.end - segment.start);
           }
         }
-        
+
         // Validate against video duration
         const videoDuration = watchData.videoDuration || 0;
-        
+
         if (videoDuration > 0) {
           const actualWatchPercentage = (totalWatchedTime / videoDuration) * 100;
-          
+
           // Log for debugging
           console.log(`Video Watch Validation - Student: ${studentId}, Content: ${contentId}`);
           console.log(`  Duration: ${videoDuration}s, Watched: ${totalWatchedTime.toFixed(2)}s (${actualWatchPercentage.toFixed(2)}%)`);
           console.log(`  Frontend reported: ${FRONTEND_REPORTED_PERCENTAGE.toFixed(2)}%`);
           console.log(`  Backend threshold: ${REQUIRED_WATCH_PERCENTAGE}%, Result: ${actualWatchPercentage >= REQUIRED_WATCH_PERCENTAGE ? 'PASS' : 'FAIL'}`);
-          
+
           // Accept if either:
           // 1. Backend calculation shows enough watched (85%+)
           // 2. Frontend reported 90%+ AND backend shows at least 75% (accounts for tracking gaps)
           const backendPass = actualWatchPercentage >= REQUIRED_WATCH_PERCENTAGE;
           const frontendReportedEnough = FRONTEND_REPORTED_PERCENTAGE >= 90 && actualWatchPercentage >= 75;
-          
+
           if (!backendPass && !frontendReportedEnough) {
             return res.status(400).json({
               success: false,
@@ -1022,7 +1068,7 @@ const updateContentProgress = async (req, res) => {
               requiredPercentage: 90,
             });
           }
-          
+
           if (frontendReportedEnough && !backendPass) {
             console.log(`  NOTE: Accepted based on frontend report (mobile compatibility)`);
           }
@@ -1060,26 +1106,26 @@ const updateContentProgress = async (req, res) => {
       // Skip zoom content - zoom meeting end will send detailed SMS
       if (progressData && progressData.completionStatus === 'completed' && !isZoomContent && isNewCompletion) {
         // Get course and topic data for notification (only if we need to send)
-      const course = await Course.findById(courseId);
-      const topic = await Topic.findById(topicId);
+        const course = await Course.findById(courseId);
+        const topic = await Topic.findById(topicId);
 
-      // Find the actual content item to get its title
-      let contentTitle = 'Content';
-      if (topic && topic.content) {
-        const contentItem = topic.content.find(
-          (c) => c._id.toString() === contentId
-        );
-        if (contentItem) {
-          contentTitle = contentItem.title;
+        // Find the actual content item to get its title
+        let contentTitle = 'Content';
+        if (topic && topic.content) {
+          const contentItem = topic.content.find(
+            (c) => c._id.toString() === contentId
+          );
+          if (contentItem) {
+            contentTitle = contentItem.title;
+          }
         }
-      }
 
         // Send notification for NEW completion
-          await whatsappSMSNotificationService.sendContentCompletionNotification(
-            studentId,
-            { title: contentTitle, type: contentType },
-            course
-          );
+        await whatsappSMSNotificationService.sendContentCompletionNotification(
+          studentId,
+          { title: contentTitle, type: contentType },
+          course
+        );
       }
     } catch (whatsappError) {
       console.error('WhatsApp notification error:', whatsappError);
@@ -1094,7 +1140,7 @@ const updateContentProgress = async (req, res) => {
       totalContentProgress: updatedEnrollment.contentProgress.length,
       message: 'Progress updated successfully',
     };
-    
+
     // Add watch count info for video content
     if (contentItem && contentItem.type === 'video') {
       const finalProgress = updatedEnrollment.contentProgress.find(
@@ -1103,7 +1149,7 @@ const updateContentProgress = async (req, res) => {
       response.watchCount = finalProgress?.watchCount || 0;
       response.maxWatchCount = contentItem.maxWatchCount;
     }
-    
+
     res.json(response);
   } catch (error) {
     console.error('Update content progress error:', error);
@@ -1111,265 +1157,6 @@ const updateContentProgress = async (req, res) => {
       success: false,
       message: 'Error updating progress',
     });
-  }
-};
-
-// Quizzes - View all available quizzes
-const quizzes = async (req, res) => {
-  try {
-    const studentId = req.session.user.id;
-    const page = parseInt(req.query.page) || 1;
-    const limit = 12;
-    const skip = (page - 1) * limit;
-
-    const student = await User.findById(studentId);
-    const enrolledCourseIds = student.enrolledCourses
-      .filter((e) => e.course)
-      .map((e) => e.course);
-
-    // Get all active quizzes with enhanced data (no pagination for grouping)
-    const allQuizzes = await Quiz.find({
-      status: 'active',
-    })
-      .populate('questionBank', 'name description totalQuestions')
-      .populate('createdBy', 'name email')
-      .sort({ createdAt: -1 })
-      .lean({ virtuals: true }); // Include virtual fields like totalQuestions
-
-    // Group quizzes by testType
-    const groupedQuizzes = {
-      EST: [],
-      SAT: [],
-      ACT: []
-    };
-
-    allQuizzes.forEach(quiz => {
-      if (quiz.testType && groupedQuizzes[quiz.testType]) {
-        groupedQuizzes[quiz.testType].push(quiz);
-      }
-    });
-
-    // Get counts for each test type
-    const testTypeCounts = {
-      EST: groupedQuizzes.EST.length,
-      SAT: groupedQuizzes.SAT.length,
-      ACT: groupedQuizzes.ACT.length
-    };
-
-    const totalQuizzes = allQuizzes.length;
-
-    // Get student's quiz attempts
-    const studentQuizAttempts = student.quizAttempts || [];
-
-    res.render('student/quizzes', {
-      title: 'Available Quizzes | ELKABLY',
-      student,
-      quizzes: allQuizzes, // Keep for backward compatibility if needed
-      groupedQuizzes, // New grouped structure
-      testTypeCounts, // Counts for each test type
-      studentQuizAttempts,
-      pagination: {
-        currentPage: page,
-        totalPages: 1, // No pagination when grouped
-        hasNext: false,
-        hasPrev: false,
-        nextPage: null,
-        prevPage: null,
-      },
-      theme: req.cookies.theme || student.preferences?.theme || 'light',
-    });
-  } catch (error) {
-    console.error('Quizzes error:', error);
-    req.flash('error_msg', 'Error loading quizzes');
-    res.redirect('/student/dashboard');
-  }
-};
-
-// Take Quiz - Start a quiz
-const takeQuiz = async (req, res) => {
-  try {
-    const studentId = req.session.user.id;
-    const quizId = req.params.id;
-
-    const student = await User.findById(studentId);
-    const quiz = await Quiz.findById(quizId)
-      .populate('selectedQuestions.question')
-      .populate('questionBank');
-
-    if (!quiz) {
-      req.flash('error_msg', 'Quiz not found');
-      return res.redirect('/student/quizzes');
-    }
-
-    // Check if quiz is active
-    if (quiz.status !== 'active') {
-      req.flash('error_msg', 'This quiz is not currently available');
-      return res.redirect('/student/quizzes');
-    }
-
-    // Check attempt limit
-    const studentQuizAttempt = student.quizAttempts.find(
-      (attempt) => attempt.quiz.toString() === quizId
-    );
-
-    if (
-      studentQuizAttempt &&
-      studentQuizAttempt.attempts.length >= quiz.maxAttempts
-    ) {
-      req.flash(
-        'error_msg',
-        `You have reached the maximum number of attempts (${quiz.maxAttempts}) for this quiz`
-      );
-      return res.redirect('/student/quizzes');
-    }
-
-    // Note: Shuffling is now handled in getSecureStandaloneQuizQuestions
-    // We just pass the original questions here, frontend will load shuffled version
-    res.render('student/take-quiz', {
-      title: `${quiz.title} - Quiz | ELKABLY`,
-      student,
-      quiz: {
-        ...quiz.toObject(),
-        selectedQuestions: quiz.selectedQuestions,
-      },
-      attemptNumber: studentQuizAttempt
-        ? studentQuizAttempt.attempts.length + 1
-        : 1,
-      settings: {
-        shuffleQuestions: quiz.shuffleQuestions || false,
-        shuffleOptions: quiz.shuffleOptions || false,
-        showCorrectAnswers: quiz.showCorrectAnswers !== false,
-        showResults: quiz.showResults !== false,
-        instructions: quiz.instructions || '',
-      },
-      theme: req.cookies.theme || student.preferences?.theme || 'light',
-    });
-  } catch (error) {
-    console.error('Take quiz error:', error);
-    req.flash('error_msg', 'Error starting quiz');
-    res.redirect('/student/quizzes');
-  }
-};
-
-// Submit Quiz - Submit quiz answers
-const submitQuiz = async (req, res) => {
-  try {
-    const studentId = req.session.user.id;
-    const quizId = req.params.id;
-    const answers = req.body.answers || {};
-
-    const student = await User.findById(studentId);
-    const quiz = await Quiz.findById(quizId).populate(
-      'selectedQuestions.question'
-    );
-
-    if (!quiz) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'Quiz not found' });
-    }
-
-    // Calculate score
-    let correctAnswers = 0;
-    let totalPoints = 0;
-    const detailedAnswers = [];
-
-    quiz.selectedQuestions.forEach((selectedQ) => {
-      const question = selectedQ.question;
-      const userAnswer = answers[question._id.toString()];
-      let isCorrect = false;
-      let points = 0;
-
-      if (question.questionType === 'Written') {
-        // Handle written questions with multiple correct answers using helper method
-        isCorrect = question.isCorrectWrittenAnswer(userAnswer);
-      } else {
-        // Handle MCQ and True/False questions using the improved method
-        // This now supports both text-based (shuffle-safe) and index-based (backward compatible) answers
-        isCorrect = question.isCorrectMCQAnswer(userAnswer);
-      }
-
-      if (isCorrect) {
-        correctAnswers++;
-        totalPoints += selectedQ.points || 1;
-        points = selectedQ.points || 1;
-      }
-
-      detailedAnswers.push({
-        questionId: question._id,
-        selectedAnswer: userAnswer,
-        correctAnswer:
-          question.questionType === 'Written'
-            ? question.getAllCorrectAnswers()
-            : Array.isArray(question.correctAnswer)
-            ? question.correctAnswer[0]
-            : question.correctAnswer,
-        isCorrect,
-        points,
-        questionType: question.questionType,
-      });
-    });
-
-    const score =
-      quiz.selectedQuestions.length > 0
-        ? Math.round((correctAnswers / quiz.selectedQuestions.length) * 100)
-        : 0;
-
-    const attemptData = {
-      score,
-      totalQuestions: quiz.selectedQuestions.length,
-      correctAnswers,
-      timeSpent: parseInt(req.body.timeSpent) || 0,
-      startedAt: new Date(req.body.startedAt),
-      completedAt: new Date(),
-      status: 'completed',
-      answers: detailedAnswers,
-    };
-
-    // Save quiz attempt
-    await student.addQuizAttempt(quizId, attemptData);
-
-    // Record progress
-    const progress = new Progress({
-      student: studentId,
-      course: null, // Would need to be determined based on quiz-course relationship
-      activity: score >= quiz.passingScore ? 'quiz_passed' : 'quiz_failed',
-      details: {
-        score,
-        timeSpent: attemptData.timeSpent,
-        points: totalPoints,
-        quizTitle: quiz.title,
-      },
-      points: totalPoints,
-      experience: totalPoints * 10, // Convert points to experience
-    });
-    await progress.save();
-
-    // Send WhatsApp notification to parent
-    try {
-      await whatsappSMSNotificationService.sendQuizCompletionNotification(
-        studentId,
-        quiz,
-        correctAnswers,
-        quiz.selectedQuestions.length
-      );
-    } catch (whatsappError) {
-      console.error('WhatsApp notification error:', whatsappError);
-      // Don't fail the quiz submission if WhatsApp fails
-    }
-
-    res.json({
-      success: true,
-      score,
-      correctAnswers,
-      totalQuestions: quiz.selectedQuestions.length,
-      passed: score >= quiz.passingScore,
-      passingScore: quiz.passingScore,
-      points: totalPoints,
-    });
-  } catch (error) {
-    console.error('Submit quiz error:', error);
-    res.status(500).json({ success: false, message: 'Error submitting quiz' });
   }
 };
 
@@ -1414,7 +1201,6 @@ const wishlist = async (req, res) => {
       title: 'My Wishlist | ELKABLY',
       student,
       wishlistCourses: paginatedItems.filter((item) => item.type === 'course'),
-      wishlistBundles: [], // Empty for backward compatibility
       pagination: {
         currentPage: page,
         totalPages,
@@ -1437,16 +1223,13 @@ const addToWishlist = async (req, res) => {
   try {
     const studentId = req.session.user.id;
     const itemId = req.params.id;
-    const itemType = req.query.type || 'course'; // 'course' or 'bundle'
+    const itemType = req.query.type || 'course';
 
     const student = await User.findById(studentId);
 
     if (itemType === 'course') {
       await student.addCourseToWishlist(itemId);
       req.flash('success_msg', 'Course added to wishlist');
-    } else if (itemType === 'bundle') {
-      await student.addBundleToWishlist(itemId);
-      req.flash('success_msg', 'Bundle added to wishlist');
     }
 
     res.redirect('back');
@@ -1462,16 +1245,13 @@ const removeFromWishlist = async (req, res) => {
   try {
     const studentId = req.session.user.id;
     const itemId = req.params.id;
-    const itemType = req.query.type || 'course'; // 'course' or 'bundle'
+    const itemType = req.query.type || 'course';
 
     const student = await User.findById(studentId);
 
     if (itemType === 'course') {
       await student.removeCourseFromWishlist(itemId);
       req.flash('success_msg', 'Course removed from wishlist');
-    } else if (itemType === 'bundle') {
-      await student.removeBundleFromWishlist(itemId);
-      req.flash('success_msg', 'Bundle removed from wishlist');
     }
 
     res.redirect('back');
@@ -1614,7 +1394,6 @@ const orderDetails = async (req, res) => {
       item: item,
       type: itemType,
       course: courseId,
-      bundle: null, // No more bundles
       price:
         order.price ||
         (order.items && order.items[0] ? order.items[0].price : 0),
@@ -1643,54 +1422,6 @@ const orderDetails = async (req, res) => {
     console.error('Order details error:', error);
     req.flash('error_msg', 'Error loading order details');
     res.redirect('/student/order-history');
-  }
-};
-
-// My HW Attempts - View homework attempts
-const homeworkAttempts = async (req, res) => {
-  try {
-    const studentId = req.session.user.id;
-    const page = parseInt(req.query.page) || 1;
-    const limit = 10;
-    const skip = (page - 1) * limit;
-
-    const student = await User.findById(studentId);
-
-    // Get homework-related progress
-    const homeworkProgress = await Progress.find({
-      student: studentId,
-      activity: { $in: ['homework_submitted', 'homework_graded'] },
-    })
-      .populate('course', 'title')
-      .populate('topic', 'title')
-      .sort({ timestamp: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    const totalAttempts = await Progress.countDocuments({
-      student: studentId,
-      activity: { $in: ['homework_submitted', 'homework_graded'] },
-    });
-    const totalPages = Math.ceil(totalAttempts / limit);
-
-    res.render('student/homework-attempts', {
-      title: 'My Homework Attempts | ELKABLY',
-      student,
-      homeworkProgress,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-        nextPage: page + 1,
-        prevPage: page - 1,
-      },
-      theme: req.cookies.theme || student.preferences?.theme || 'light',
-    });
-  } catch (error) {
-    console.error('Homework attempts error:', error);
-    req.flash('error_msg', 'Error loading homework attempts');
-    res.redirect('/student/dashboard');
   }
 };
 
@@ -1822,7 +1553,7 @@ const sendProfileOTP = async (req, res) => {
         // Send via WhatsApp for non-Egyptian numbers
         const wasender = require('../utils/wasender');
         const SESSION_API_KEY = process.env.WASENDER_SESSION_API_KEY || process.env.WHATSAPP_SESSION_API_KEY || '';
-        
+
         if (!SESSION_API_KEY) {
           throw new Error('WhatsApp session API key not configured');
         }
@@ -1830,24 +1561,24 @@ const sendProfileOTP = async (req, res) => {
         // Format phone number for WhatsApp (remove + and ensure proper format)
         const cleanPhone = fullPhoneNumber.replace(/^\+/, '').replace(/\D/g, '');
         const whatsappJid = `${cleanPhone}@s.whatsapp.net`;
-        
+
         const result = await wasender.sendTextMessage(SESSION_API_KEY, whatsappJid, message);
-        
+
         if (!result.success) {
           // Check if the error is about JID not existing on WhatsApp
           const errorMessage = result.message || '';
-          const hasJidError = errorMessage.toLowerCase().includes('jid does not exist') || 
-                             errorMessage.toLowerCase().includes('does not exist on whatsapp') ||
-                             (result.errors && result.errors.to && 
-                              result.errors.to.some(err => err.toLowerCase().includes('does not exist')));
-          
+          const hasJidError = errorMessage.toLowerCase().includes('jid does not exist') ||
+            errorMessage.toLowerCase().includes('does not exist on whatsapp') ||
+            (result.errors && result.errors.to &&
+              result.errors.to.some(err => err.toLowerCase().includes('does not exist')));
+
           if (hasJidError) {
             throw new Error('This phone number does not have WhatsApp or WhatsApp is not available for this number. Please use an Egyptian phone number (+20) to receive OTP via SMS, or ensure your phone number is registered on WhatsApp.');
           }
-          
+
           throw new Error(result.message || 'Failed to send WhatsApp message');
         }
-        
+
         console.log(`Profile OTP sent via WhatsApp to ${fullPhoneNumber}`);
       }
 
@@ -1968,7 +1699,7 @@ const updateProfile = async (req, res) => {
     delete updates.studentCode;
     delete updates.email; // Email should not be editable
     delete updates.username; // Username should not be editable
-    
+
     // Block phone number changes - students cannot change their phone numbers
     delete updates.studentNumber;
     delete updates.parentNumber;
@@ -2253,8 +1984,7 @@ const exportData = async (req, res) => {
 
     const student = await User.findById(studentId)
       .populate('enrolledCourses.course')
-      .populate('purchasedCourses.course')
-      .populate('purchasedBundles.bundle');
+      .populate('purchasedCourses.course');
 
     if (!student) {
       return res.status(404).json({
@@ -2295,13 +2025,6 @@ const exportData = async (req, res) => {
           purchasedAt: purchase.purchasedAt,
           status: purchase.status,
         })),
-        bundles: student.purchasedBundles.map((purchase) => ({
-          bundleName: purchase.bundle?.name || 'Unknown Bundle',
-          price: purchase.price,
-          orderNumber: purchase.orderNumber,
-          purchasedAt: purchase.purchasedAt,
-          status: purchase.status,
-        })),
       },
       preferences: student.preferences,
       exportedAt: new Date().toISOString(),
@@ -2311,8 +2034,7 @@ const exportData = async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename="elkably-learning-data-${student.studentCode}-${
-        new Date().toISOString().split('T')[0]
+      `attachment; filename="elkably-learning-data-${student.studentCode}-${new Date().toISOString().split('T')[0]
       }.json"`
     );
 
@@ -2341,1175 +2063,6 @@ const deleteAccount = async (req, res) => {
       message: 'Error deleting account',
     });
   }
-};
-
-// Take Content Quiz - Start taking quiz/homework
-const takeContentQuiz = async (req, res) => {
-  try {
-    const studentId = req.session.user.id;
-    const contentId = req.params.id;
-
-    const student = await User.findById(studentId);
-
-    // Find the content across all enrolled courses
-    let contentItem = null;
-    let course = null;
-    let topic = null;
-
-    for (const enrollment of student.enrolledCourses) {
-      const courseData = await Course.findById(enrollment.course).populate({
-        path: 'topics',
-        populate: {
-          path: 'content',
-          model: 'ContentItem',
-        },
-      });
-
-      if (courseData) {
-        for (const topicData of courseData.topics) {
-          const foundContent = topicData.content.find(
-            (c) => c._id.toString() === contentId
-          );
-          if (foundContent) {
-            contentItem = foundContent;
-            course = courseData;
-            topic = topicData;
-            break;
-          }
-        }
-        if (contentItem) break;
-      }
-    }
-
-    if (!contentItem) {
-      req.flash(
-        'error_msg',
-        'Content not found or you are not enrolled in this course'
-      );
-      return res.redirect('/student/enrolled-courses');
-    }
-
-    // Check if content is quiz or homework
-    if (!['quiz', 'homework'].includes(contentItem.type)) {
-      req.flash('error_msg', 'This content is not a quiz or homework');
-      return res.redirect(`/student/content/${contentId}`);
-    }
-
-    // Check if content is unlocked
-    const unlockStatus = student.isContentUnlocked(
-      course._id,
-      contentId,
-      contentItem
-    );
-    if (!unlockStatus.unlocked) {
-      req.flash('error_msg', `Content is locked: ${unlockStatus.reason}`);
-      return res.redirect(`/student/course/${course._id}/content?lockedContent=${contentId}`);
-    }
-
-    // Check attempt limits
-    const maxAttempts =
-      contentItem.type === 'quiz'
-        ? contentItem.quizSettings?.maxAttempts || 3
-        : contentItem.homeworkSettings?.maxAttempts || 1;
-
-    const canAttempt = student.canAttemptQuiz(
-      course._id,
-      contentId,
-      maxAttempts
-    );
-    if (!canAttempt.canAttempt) {
-      req.flash('error_msg', `Cannot attempt: ${canAttempt.reason}`);
-      return res.redirect(`/student/content/${contentId}`);
-    }
-
-    // Check existing content progress and persistent timing
-    let contentProgress = student.getContentProgressDetails(
-      course._id,
-      contentId
-    );
-
-    if (contentProgress && contentProgress.completionStatus === 'completed') {
-      req.flash(
-        'info_msg',
-        'You have already completed this quiz successfully!'
-      );
-      return res.redirect(`/student/content/${contentId}/results`);
-    }
-
-    // Determine duration in minutes and passing score for quiz/homework
-    const durationMinutes =
-      contentItem.type === 'quiz'
-        ? contentItem.quizSettings && contentItem.quizSettings.duration
-          ? contentItem.quizSettings.duration
-          : 0
-        : contentItem.homeworkSettings && contentItem.homeworkSettings.duration
-        ? contentItem.homeworkSettings.duration
-        : contentItem.duration || 0;
-    const passingScore =
-      contentItem.type === 'quiz'
-        ? contentItem.quizSettings &&
-          typeof contentItem.quizSettings.passingScore === 'number'
-          ? contentItem.quizSettings.passingScore
-          : 60
-        : contentItem.homeworkSettings &&
-          typeof contentItem.homeworkSettings.passingScore === 'number'
-        ? contentItem.homeworkSettings.passingScore
-        : 60;
-
-    // If no progress, create with in_progress and expectedEnd; if exists and no expectedEnd, set it
-    if (!contentProgress) {
-      const expectedEnd =
-        durationMinutes > 0
-          ? new Date(Date.now() + durationMinutes * 60 * 1000)
-          : null;
-      await student.updateContentProgress(
-        course._id.toString(),
-        topic._id.toString(),
-        contentId,
-        contentItem.type,
-        {
-          completionStatus: 'in_progress',
-          progressPercentage: 0,
-          lastAccessed: new Date(),
-          expectedEnd: expectedEnd,
-        }
-      );
-      // refresh contentProgress after update
-      const refreshed = await User.findById(studentId);
-      contentProgress = refreshed.getContentProgressDetails(
-        course._id,
-        contentId
-      );
-    } else if (!contentProgress.expectedEnd && durationMinutes > 0) {
-      // Set expectedEnd if missing
-      const expectedEnd = new Date(Date.now() + durationMinutes * 60 * 1000);
-      await student.updateContentProgress(
-        course._id.toString(),
-        topic._id.toString(),
-        contentId,
-        contentItem.type,
-        {
-          completionStatus:
-            contentProgress.completionStatus === 'not_started'
-              ? 'in_progress'
-              : contentProgress.completionStatus,
-          expectedEnd: expectedEnd,
-          lastAccessed: new Date(),
-        }
-      );
-      const refreshed = await User.findById(studentId);
-      contentProgress = refreshed.getContentProgressDetails(
-        course._id,
-        contentId
-      );
-    }
-
-    // Calculate remaining time in seconds based on expectedEnd
-    let remainingSeconds = 0;
-    let isExpired = false;
-    if (contentProgress && contentProgress.expectedEnd && durationMinutes > 0) {
-      remainingSeconds = Math.max(
-        0,
-        Math.floor(
-          (new Date(contentProgress.expectedEnd).getTime() - Date.now()) / 1000
-        )
-      );
-      isExpired = remainingSeconds === 0;
-      // If expired and still not completed/failed, mark as failed progress-wise (attempt will be created on client auto-submit)
-      if (
-        isExpired &&
-        contentProgress.completionStatus !== 'completed' &&
-        contentProgress.completionStatus !== 'failed'
-      ) {
-        await student.updateContentProgress(
-          course._id.toString(),
-          topic._id.toString(),
-          contentId,
-          contentItem.type,
-          {
-            completionStatus: 'failed',
-            progressPercentage: contentProgress.progressPercentage || 0,
-            lastAccessed: new Date(),
-          }
-        );
-      }
-    }
-
-    // Get content progress to determine attempt number
-    const attemptNumber = contentProgress
-      ? (contentProgress.attempts || 0) + 1
-      : 1;
-
-    // Populate questions for the quiz/homework
-    const populatedContent = await Topic.findById(topic._id).populate({
-      path: 'content',
-      match: { _id: contentId },
-      populate: {
-        path: 'selectedQuestions.question',
-        model: 'Question',
-      },
-    });
-
-    const populatedContentItem = populatedContent.content.find(
-      (c) => c._id.toString() === contentId
-    );
-    // Get quiz settings
-    const settings = populatedContentItem.type === 'quiz' 
-      ? populatedContentItem.quizSettings 
-      : populatedContentItem.homeworkSettings;
-
-    res.render('student/take-content-quiz', {
-      title: `Taking ${contentItem.title} | ELKABLY`,
-      student,
-      course,
-      topic,
-      contentItem: populatedContentItem,
-      attemptNumber,
-      timing: {
-        durationMinutes: durationMinutes,
-        remainingSeconds: remainingSeconds,
-        isExpired: isExpired,
-        passingScore: passingScore,
-      },
-      settings: {
-        shuffleQuestions: settings?.shuffleQuestions || false,
-        shuffleOptions: settings?.shuffleOptions || false,
-        showCorrectAnswers: settings?.showCorrectAnswers !== false,
-        showResults: settings?.showResults !== false,
-        instructions: settings?.instructions || '',
-      },
-      theme: req.cookies.theme || student.preferences?.theme || 'light',
-    });
-  } catch (error) {
-    console.error('Take content quiz error:', error);
-    req.flash('error_msg', 'Error starting quiz');
-    res.redirect('/student/enrolled-courses');
-  }
-};
-
-// Submit Content Quiz - Submit quiz/homework answers
-const submitContentQuiz = async (req, res) => {
-  try {
-    const studentId = req.session.user.id;
-    const {
-      contentId,
-      courseId,
-      topicId,
-      contentType,
-      answers,
-      timeSpent,
-      startedAt,
-      completedAt,
-      attemptNumber,
-    } = req.body;
-
-    const student = await User.findById(studentId);
-
-    // Find the content to get questions and settings
-    let contentItem = null;
-    let course = null;
-    let topic = null;
-
-    for (const enrollment of student.enrolledCourses) {
-      const courseData = await Course.findById(enrollment.course).populate({
-        path: 'topics',
-        populate: {
-          path: 'content',
-          model: 'ContentItem',
-        },
-      });
-
-      if (courseData) {
-        for (const topicData of courseData.topics) {
-          const foundContent = topicData.content.find(
-            (c) => c._id.toString() === contentId
-          );
-          if (foundContent) {
-            contentItem = foundContent;
-            course = courseData;
-            topic = topicData;
-            break;
-          }
-        }
-        if (contentItem) break;
-      }
-    }
-
-    if (!contentItem) {
-      return res.status(404).json({
-        success: false,
-        message: 'Content not found',
-      });
-    }
-
-    // Validate enrollment
-    const enrollment = student.enrolledCourses.find(
-      (e) => e.course.toString() === courseId
-    );
-
-    if (!enrollment) {
-      return res.status(403).json({
-        success: false,
-        message: 'You are not enrolled in this course',
-      });
-    }
-
-    // Get questions with populated data
-    const populatedContent = await Topic.findById(topic._id).populate({
-      path: 'content',
-      match: { _id: contentId },
-      populate: {
-        path: 'selectedQuestions.question',
-        model: 'Question',
-      },
-    });
-
-    const populatedContentItem = populatedContent.content.find(
-      (c) => c._id.toString() === contentId
-    );
-
-    if (!populatedContentItem || !populatedContentItem.selectedQuestions) {
-      return res.status(400).json({
-        success: false,
-        message: 'No questions found for this content',
-      });
-    }
-
-    // Calculate score and prepare answers
-    let correctAnswers = 0;
-    let totalQuestions = populatedContentItem.selectedQuestions.length;
-    let totalPoints = 0;
-    const detailedAnswers = [];
-
-    populatedContentItem.selectedQuestions.forEach((selectedQ, index) => {
-      const question = selectedQ.question;
-      const userAnswer = answers[question._id.toString()];
-      let isCorrect = false;
-      let points = 0;
-
-      if (question.questionType === 'Written') {
-        // Handle written questions with multiple correct answers using helper method
-        isCorrect = question.isCorrectWrittenAnswer(userAnswer);
-      } else {
-        // Handle MCQ and True/False questions using the improved method
-        // This now supports both text-based (shuffle-safe) and index-based (backward compatible) answers
-        isCorrect = question.isCorrectMCQAnswer(userAnswer);
-      }
-
-      if (isCorrect) {
-        correctAnswers++;
-        totalPoints += selectedQ.points || 1;
-        points = selectedQ.points || 1;
-      }
-
-      // Only include answered questions or provide a default value for unanswered ones
-      const answerValue =
-        userAnswer ||
-        (question.questionType === 'Written' ? 'No answer provided' : '0');
-
-      detailedAnswers.push({
-        questionId: question._id,
-        selectedAnswer: answerValue,
-        correctAnswer:
-          question.questionType === 'Written'
-            ? question.getAllCorrectAnswers()
-            : Array.isArray(question.correctAnswer)
-            ? question.correctAnswer[0]
-            : question.correctAnswer,
-        isCorrect,
-        points,
-        questionType: question.questionType,
-        timeSpent: 0, // Could be calculated per question if needed
-      });
-    });
-
-    const score =
-      totalQuestions > 0
-        ? Math.round((correctAnswers / totalQuestions) * 100)
-        : 0;
-
-    // Get passing score (default: Quiz 50%, Homework 0% - students just need to submit)
-    const passingScore =
-      contentType === 'quiz'
-        ? (contentItem.quizSettings?.passingScore !== undefined ? contentItem.quizSettings.passingScore : 50)
-        : (contentItem.homeworkSettings?.passingScore !== undefined ? contentItem.homeworkSettings.passingScore : 0);
-
-    const passed = score >= passingScore;
-
-    // Prepare attempt data
-    const attemptData = {
-      score,
-      totalQuestions,
-      correctAnswers,
-      timeSpent: parseInt(timeSpent) || 0,
-      startedAt: new Date(startedAt),
-      completedAt: new Date(completedAt),
-      status: 'completed',
-      answers: detailedAnswers,
-      passed,
-      passingScore,
-    };
-
-    // Save quiz attempt
-    await student.addQuizAttempt(
-      courseId,
-      topicId,
-      contentId,
-      contentType,
-      attemptData
-    );
-
-    // Send WhatsApp notification to parent for content quiz completion
-    try {
-      await whatsappSMSNotificationService.sendQuizCompletionNotification(
-        studentId,
-        {
-          title: contentItem.title || 'Content Quiz',
-          type: contentType,
-        },
-        correctAnswers,
-        totalQuestions
-      );
-    } catch (whatsappError) {
-      console.error('WhatsApp notification error:', whatsappError);
-      // Don't fail the quiz submission if WhatsApp fails
-    }
-
-    // Get next content for navigation
-    const allContent = course.topics.flatMap((t) =>
-      t.content.map((c) => ({ ...c.toObject(), topicId: t._id }))
-    );
-    const currentIndex = allContent.findIndex(
-      (c) => c._id.toString() === contentId
-    );
-    let nextContentId = null;
-
-    if (currentIndex < allContent.length - 1) {
-      const nextContent = allContent[currentIndex + 1];
-      const nextUnlockStatus = student.isContentUnlocked(
-        courseId,
-        nextContent._id,
-        nextContent
-      );
-      if (nextUnlockStatus.unlocked) {
-        nextContentId = nextContent._id;
-      }
-    }
-
-    res.json({
-      success: true,
-      score,
-      correctAnswers,
-      totalQuestions,
-      passed,
-      passingScore,
-      points: totalPoints,
-      nextContentId,
-      message: passed
-        ? 'Congratulations! You passed!'
-        : 'Keep trying! You can do better next time.',
-      clearLocalCache: true,
-    });
-  } catch (error) {
-    console.error('Submit content quiz error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error submitting quiz',
-    });
-  }
-};
-
-// Quiz Results - View quiz results and answers
-const quizResults = async (req, res) => {
-  try {
-    const studentId = req.session.user.id;
-    const contentId = req.params.id;
-
-    const student = await User.findById(studentId);
-
-    // Find the content across all enrolled courses
-    let contentItem = null;
-    let course = null;
-    let topic = null;
-
-    for (const enrollment of student.enrolledCourses) {
-      const courseData = await Course.findById(enrollment.course).populate({
-        path: 'topics',
-        populate: {
-          path: 'content',
-          model: 'ContentItem',
-        },
-      });
-
-      if (courseData) {
-        for (const topicData of courseData.topics) {
-          const foundContent = topicData.content.find(
-            (c) => c._id.toString() === contentId
-          );
-          if (foundContent) {
-            contentItem = foundContent;
-            course = courseData;
-            topic = topicData;
-            break;
-          }
-        }
-        if (contentItem) break;
-      }
-    }
-
-    if (!contentItem) {
-      req.flash(
-        'error_msg',
-        'Content not found or you are not enrolled in this course'
-      );
-      return res.redirect('/student/enrolled-courses');
-    }
-
-    // Check if content is quiz or homework
-    if (!['quiz', 'homework'].includes(contentItem.type)) {
-      req.flash('error_msg', 'This content is not a quiz or homework');
-      return res.redirect(`/student/content/${contentId}`);
-    }
-
-    // Get content progress
-    const contentProgress = student.getContentProgressDetails(
-      course._id,
-      contentId
-    );
-
-    if (!contentProgress || contentProgress.quizAttempts.length === 0) {
-      req.flash('error_msg', 'No quiz attempts found');
-      return res.redirect(`/student/content/${contentId}`);
-    }
-
-    // Get the latest attempt
-    const latestAttempt =
-      contentProgress.quizAttempts[contentProgress.quizAttempts.length - 1];
-
-    // Get questions with populated data for answer review
-    const populatedContent = await Topic.findById(topic._id).populate({
-      path: 'content',
-      match: { _id: contentId },
-      populate: {
-        path: 'selectedQuestions.question',
-        model: 'Question',
-      },
-    });
-
-    const populatedContentItem = populatedContent.content.find(
-      (c) => c._id.toString() === contentId
-    );
-
-    // Check if answers can be shown; also require last attempt to be passed
-    let canShowAnswers =
-      contentItem.type === 'quiz'
-        ? contentItem.quizSettings?.showCorrectAnswers !== false
-        : contentItem.homeworkSettings?.showCorrectAnswers !== false;
-    const lastPassed = !!latestAttempt?.passed;
-    if (!lastPassed) {
-      canShowAnswers = false;
-    }
-
-    res.render('student/quiz-results', {
-      title: `${contentItem.title} - Results | ELKABLY`,
-      student,
-      course,
-      topic,
-      contentItem: populatedContentItem,
-      contentProgress,
-      latestAttempt,
-      canShowAnswers,
-      lastPassed,
-      theme: req.cookies.theme || student.preferences?.theme || 'light',
-    });
-  } catch (error) {
-    console.error('Quiz results error:', error);
-    req.flash('error_msg', 'Error loading quiz results');
-    res.redirect('/student/enrolled-courses');
-  }
-};
-
-// Debug endpoint to view progress data
-const debugProgress = async (req, res) => {
-  try {
-    const studentId = req.session.user.id;
-    const courseId = req.params.courseId;
-
-    const student = await User.findById(studentId);
-    const enrollment = student.enrolledCourses.find(
-      (e) => e.course.toString() === courseId
-    );
-
-    if (!enrollment) {
-      return res.status(404).json({
-        success: false,
-        message: 'Course enrollment not found',
-      });
-    }
-
-    // Recalculate progress for this course
-    await student.calculateCourseProgress(courseId);
-    await student.save();
-
-    // Get course structure for comparison
-    const course = await Course.findById(courseId).populate('topics');
-
-    res.json({
-      success: true,
-      studentId: studentId,
-      courseId: courseId,
-      enrollment: {
-        course: enrollment.course,
-        progress: enrollment.progress,
-        lastAccessed: enrollment.lastAccessed,
-        completedTopics: enrollment.completedTopics,
-        contentProgress: enrollment.contentProgress,
-        contentProgressCount: enrollment.contentProgress.length,
-      },
-      course: {
-        title: course.title,
-        topics: course.topics.map((topic) => ({
-          id: topic._id,
-          title: topic.title,
-          contentCount: topic.content.length,
-          content: topic.content.map((content) => ({
-            id: content._id,
-            title: content.title,
-            type: content.type,
-          })),
-        })),
-      },
-      allEnrollments: student.enrolledCourses
-        .filter((e) => e.course)
-        .map((e) => ({
-          course: e.course,
-          progress: e.progress,
-          contentProgressCount: e.contentProgress
-            ? e.contentProgress.length
-            : 0,
-        })),
-    });
-  } catch (error) {
-    console.error('Debug progress error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching progress data',
-    });
-  }
-};
-
-// Logout function removed - using centralized auth logout
-
-// Get quiz details for student
-const getQuizDetails = async (req, res) => {
-  try {
-    const { id: quizId } = req.params;
-    console.log('Quiz ID:', quizId);
-    // Check if user is authenticated
-    if (!req.session.user || !req.session.user.id) {
-      req.flash('error_msg', 'Authentication required');
-      return res.redirect('/auth/login');
-    }
-
-    const student = await User.findById(req.session.user.id);
-
-    if (!student) {
-      req.flash('error_msg', 'Student not found');
-      return res.redirect('/auth/login');
-    }
-
-    const quiz = await Quiz.findById(quizId)
-      .populate('selectedQuestions.question')
-      .populate('createdBy', 'name');
-
-    if (!quiz) {
-      req.flash('error_msg', 'Quiz not found');
-      return res.redirect('/student/quizzes');
-    }
-
-    if (quiz.status !== 'active') {
-      req.flash('error_msg', 'This quiz is not currently available');
-      return res.redirect('/student/quizzes');
-    }
-
-    // Check if user can attempt the quiz
-    const canAttempt = quiz.canUserAttempt(student.quizAttempts);
-    const bestScore = quiz.getUserBestScore(student.quizAttempts);
-    const attemptHistory = quiz.getUserAttemptHistory(student.quizAttempts);
-    const activeAttempt = quiz.getActiveAttempt(student.quizAttempts);
-
-    // Calculate timing information if there's an active attempt
-    let timing = null;
-    if (activeAttempt) {
-      const now = new Date();
-      const expectedEnd = new Date(activeAttempt.expectedEnd);
-      const remainingSeconds = Math.max(
-        0,
-        Math.floor((expectedEnd - now) / 1000)
-      );
-      const isExpired = remainingSeconds <= 0;
-
-      timing = {
-        durationMinutes: quiz.duration,
-        remainingSeconds,
-        isExpired,
-        startedAt: activeAttempt.startedAt,
-        expectedEnd: activeAttempt.expectedEnd,
-      };
-    }
-
-    res.render('student/quiz-details', {
-      title: `${quiz.title} - Quiz Details`,
-      quiz,
-      student,
-      canAttempt,
-      bestScore,
-      attemptHistory,
-      activeAttempt,
-      timing,
-      theme: student.preferences?.theme || 'light',
-    });
-  } catch (error) {
-    console.error('Get quiz details error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error loading quiz details',
-    });
-  }
-};
-
-// Start quiz attempt - Simplified to just redirect to take page
-const startQuizAttempt = async (req, res) => {
-  try {
-    const { id: quizId } = req.params;
-
-    // Check if user is authenticated
-    if (!req.session.user || !req.session.user.id) {
-      req.flash('error_msg', 'Authentication required');
-      return res.redirect('/auth/login');
-    }
-
-    const student = await User.findById(req.session.user.id);
-
-    if (!student) {
-      req.flash('error_msg', 'Student not found');
-      return res.redirect('/auth/login');
-    }
-
-    const quiz = await Quiz.findById(quizId);
-
-    if (!quiz) {
-      req.flash('error_msg', 'Quiz not found');
-      return res.redirect('/student/quizzes');
-    }
-
-    if (quiz.status !== 'active') {
-      req.flash('error_msg', 'This quiz is not currently available');
-      return res.redirect('/student/quizzes');
-    }
-
-    // Check if user can attempt the quiz
-    const canAttempt = quiz.canUserAttempt(student.quizAttempts);
-    if (!canAttempt.canAttempt) {
-      req.flash('error_msg', canAttempt.reason);
-      return res.redirect(`/student/quiz/${quizId}/details`);
-    }
-
-    // Check for active attempt
-    const activeAttempt = quiz.getActiveAttempt(student.quizAttempts);
-    if (activeAttempt) {
-      // Redirect to existing attempt
-      return res.redirect(`/student/quiz/${quizId}/take`);
-    }
-
-    // Start new attempt and redirect to take page
-    await student.startQuizAttempt(quizId, quiz.duration);
-
-    // Redirect to take quiz page
-    return res.redirect(`/student/quiz/${quizId}/take`);
-  } catch (error) {
-    console.error('Start quiz error:', error);
-    req.flash('error_msg', 'Error starting quiz');
-    res.redirect(`/student/quiz/${req.params.id}/details`);
-  }
-};
-
-// Take quiz page (resume existing attempt or create new one)
-const takeQuizPage = async (req, res) => {
-  try {
-    const { id: quizId } = req.params;
-
-    // Check if user is authenticated
-    if (!req.session.user || !req.session.user.id) {
-      req.flash('error_msg', 'Authentication required');
-      return res.redirect('/auth/login');
-    }
-
-    let student = await User.findById(req.session.user.id);
-
-    if (!student) {
-      req.flash('error_msg', 'Student not found');
-      return res.redirect('/auth/login');
-    }
-
-    const quiz = await Quiz.findById(quizId).populate(
-      'selectedQuestions.question'
-    );
-
-    if (!quiz) {
-      req.flash('error_msg', 'Quiz not found');
-      return res.redirect('/student/quizzes');
-    }
-
-    if (quiz.status !== 'active') {
-      req.flash('error_msg', 'This quiz is not currently available');
-      return res.redirect('/student/quizzes');
-    }
-
-    // Check if user can attempt the quiz
-    const canAttempt = quiz.canUserAttempt(student.quizAttempts);
-    if (!canAttempt.canAttempt) {
-      req.flash('error_msg', canAttempt.reason);
-      return res.redirect(`/student/quiz/${quizId}/details`);
-    }
-
-    // Check for active attempt
-    let activeAttempt = quiz.getActiveAttempt(student.quizAttempts);
-
-    // If no active attempt, create one
-    if (!activeAttempt) {
-      const attemptResult = await student.startQuizAttempt(
-        quizId,
-        quiz.duration
-      );
-      // Use the returned attempt data directly
-      activeAttempt = attemptResult.newAttempt;
-      // Refresh student data to get the updated quiz attempts
-      student = await User.findById(req.session.user.id);
-    }
-
-    if (!activeAttempt) {
-      req.flash('error_msg', 'Failed to start quiz attempt');
-      return res.redirect(`/student/quiz/${quizId}/details`);
-    }
-
-    // Note: Shuffling is now handled in getSecureStandaloneQuizQuestions
-    // We just pass the original questions here, frontend will load shuffled version
-    let questions = quiz.selectedQuestions;
-
-    // Calculate timing
-    const now = new Date();
-    const expectedEnd = new Date(activeAttempt.expectedEnd);
-    const remainingSeconds = Math.max(
-      0,
-      Math.floor((expectedEnd - now) / 1000)
-    );
-    const isExpired = remainingSeconds <= 0;
-
-    const timing = {
-      durationMinutes: quiz.duration,
-      remainingSeconds,
-      isExpired,
-      startedAt: activeAttempt.startedAt,
-      expectedEnd: activeAttempt.expectedEnd,
-      passingScore: quiz.passingScore,
-    };
-
-    res.render('student/take-quiz', {
-      title: `Taking ${quiz.title}`,
-      quiz: {
-        ...quiz.toObject(),
-        selectedQuestions: questions,
-      },
-      student,
-      attemptNumber: activeAttempt.attemptNumber,
-      timing,
-      settings: {
-        shuffleQuestions: quiz.shuffleQuestions || false,
-        shuffleOptions: quiz.shuffleOptions || false,
-        showCorrectAnswers: quiz.showCorrectAnswers !== false,
-        showResults: quiz.showResults !== false,
-        instructions: quiz.instructions || '',
-      },
-      theme: student.preferences?.theme || 'light',
-    });
-  } catch (error) {
-    console.error('Take quiz error:', error);
-    req.flash('error_msg', 'Error loading quiz');
-    res.redirect(`/student/quiz/${req.params.id}/details`);
-  }
-};
-
-// Submit standalone quiz
-const submitStandaloneQuiz = async (req, res) => {
-  try {
-    const { id: quizId } = req.params;
-    const { answers, timeSpent } = req.body;
-
-    // Check if user is authenticated
-    if (!req.session.user || !req.session.user.id) {
-      return res
-        .status(401)
-        .json({ success: false, message: 'Authentication required' });
-    }
-
-    const student = await User.findById(req.session.user.id);
-
-    if (!student) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'Student not found' });
-    }
-
-    const quiz = await Quiz.findById(quizId).populate(
-      'selectedQuestions.question'
-    );
-
-    if (!quiz) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'Quiz not found' });
-    }
-
-    // Check for active attempt
-    const activeAttempt = quiz.getActiveAttempt(student.quizAttempts);
-    if (!activeAttempt) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'No active attempt found' });
-    }
-
-    // Calculate score
-    let correctAnswers = 0;
-    let totalPoints = 0;
-    const detailedAnswers = [];
-
-    quiz.selectedQuestions.forEach((selectedQ, index) => {
-      const question = selectedQ.question;
-      const userAnswer = answers[question._id.toString()];
-      let isCorrect = false;
-      let points = 0;
-
-      if (question.questionType === 'Written') {
-        // Handle written questions with multiple correct answers
-        if (question.correctAnswers && question.correctAnswers.length > 0) {
-          // Normalize user answer for comparison
-          const normalizedUserAnswer = userAnswer
-            ? userAnswer.trim().toLowerCase()
-            : '';
-
-          // Check against all correct answers
-          for (const correctAnswerObj of question.correctAnswers) {
-            const correctAnswer = correctAnswerObj.text
-              ? correctAnswerObj.text.trim().toLowerCase()
-              : '';
-
-            // Check for exact match or if user answer contains any of the comma-separated answers
-            if (correctAnswer.includes(',')) {
-              // Handle multiple answers separated by commas (e.g., "x+2,x+1")
-              const correctAnswers = correctAnswer
-                .split(',')
-                .map((a) => a.trim().toLowerCase());
-              if (
-                correctAnswers.some(
-                  (answer) =>
-                    answer === normalizedUserAnswer ||
-                    normalizedUserAnswer.includes(answer)
-                )
-              ) {
-                isCorrect = true;
-                break;
-              }
-            } else {
-              // Single correct answer
-              if (
-                normalizedUserAnswer === correctAnswer ||
-                normalizedUserAnswer.includes(correctAnswer)
-              ) {
-                isCorrect = true;
-                break;
-              }
-            }
-          }
-        }
-      } else {
-        // Handle MCQ and True/False questions
-        isCorrect = userAnswer === question.correctAnswer;
-      }
-
-      points = isCorrect ? selectedQ.points || 1 : 0;
-
-      if (isCorrect) {
-        correctAnswers++;
-      }
-      totalPoints += points;
-
-      // Only include answered questions or provide a default value for unanswered ones
-      const answerValue =
-        userAnswer ||
-        (question.questionType === 'Written' ? 'No answer provided' : '0');
-
-      detailedAnswers.push({
-        questionId: question._id,
-        selectedAnswer: answerValue,
-        correctAnswer:
-          question.questionType === 'Written'
-            ? question.correctAnswers
-              ? question.correctAnswers.map((a) => a.text).join(', ')
-              : ''
-            : question.correctAnswer,
-        isCorrect,
-        points,
-        questionType: question.questionType,
-      });
-    });
-
-    const score = Math.round(
-      (correctAnswers / quiz.selectedQuestions.length) * 100
-    );
-    const passed = score >= quiz.passingScore;
-
-    // Complete the attempt
-    await student.completeQuizAttempt(quizId, activeAttempt.attemptNumber, {
-      score,
-      totalQuestions: quiz.selectedQuestions.length,
-      correctAnswers,
-      timeSpent: timeSpent || 0,
-      answers: detailedAnswers,
-      passed,
-      passingScore: quiz.passingScore,
-    });
-
-    // Send WhatsApp notification to parent for standalone quiz completion
-    try {
-      await whatsappSMSNotificationService.sendQuizCompletionNotification(
-        req.session.user.id,
-        quiz,
-        correctAnswers,
-        quiz.selectedQuestions.length
-      );
-    } catch (whatsappError) {
-      console.error('WhatsApp notification error:', whatsappError);
-      // Don't fail the quiz submission if WhatsApp fails
-    }
-
-    res.json({
-      success: true,
-      data: {
-        score,
-        correctAnswers,
-        totalQuestions: quiz.selectedQuestions.length,
-        passed,
-        passingScore: quiz.passingScore,
-        timeSpent: timeSpent || 0,
-      },
-    });
-  } catch (error) {
-    console.error('Submit quiz error:', error);
-    res.status(500).json({ success: false, message: 'Error submitting quiz' });
-  }
-};
-
-// Get standalone quiz results
-const getStandaloneQuizResults = async (req, res) => {
-  try {
-    const { id: quizId } = req.params;
-
-    // Check if user is authenticated
-    if (!req.session.user || !req.session.user.id) {
-      req.flash('error_msg', 'Authentication required');
-      return res.redirect('/auth/login');
-    }
-
-    const student = await User.findById(req.session.user.id);
-
-    if (!student) {
-      req.flash('error_msg', 'Student not found');
-      return res.redirect('/auth/login');
-    }
-
-    const quiz = await Quiz.findById(quizId)
-      .populate('selectedQuestions.question')
-      .populate('createdBy', 'name');
-
-    if (!quiz) {
-      req.flash('error_msg', 'Quiz not found');
-      return res.redirect('/student/quizzes');
-    }
-
-    const attemptHistory = quiz.getUserAttemptHistory(student.quizAttempts);
-    const bestScore = quiz.getUserBestScore(student.quizAttempts);
-
-    // Get the latest attempt for the score display
-    const latestAttempt =
-      attemptHistory && attemptHistory.length > 0
-        ? attemptHistory[attemptHistory.length - 1]
-        : null;
-
-    // Check if answers can be shown
-    let canShowAnswers = quiz.showCorrectAnswers !== false;
-    const lastPassed = !!latestAttempt?.passed;
-    if (!lastPassed) {
-      canShowAnswers = false;
-    }
-
-    res.render('student/standalone-quiz-results', {
-      title: `${quiz.title} - Results`,
-      quiz,
-      student,
-      attemptHistory,
-      bestScore,
-      latestAttempt,
-      canShowAnswers,
-      lastPassed,
-      theme: student.preferences?.theme || 'light',
-    });
-  } catch (error) {
-    console.error('Get quiz results error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error loading quiz results',
-    });
-  }
-};
-
-module.exports = {
-  dashboard,
-  enrolledCourses,
-  courseDetails,
-  courseContent,
-  contentDetails,
-  updateContentProgress,
-  takeContentQuiz,
-  submitContentQuiz,
-  quizResults,
-  debugProgress,
-  quizzes,
-  takeQuiz,
-  submitQuiz,
-  wishlist,
-  addToWishlist,
-  removeFromWishlist,
-  orderHistory,
-  orderDetails,
-  homeworkAttempts,
-  profile,
-  updateProfile,
-  sendProfileOTP,
-  verifyProfileOTP,
-  settings,
-  updateSettings,
-  // New profile and settings functions
-  updateProfilePicture,
-  changePassword,
-  exportData,
-  deleteAccount,
-  // New standalone quiz functions
-  getQuizDetails,
-  startQuizAttempt,
-  takeQuizPage,
-  submitStandaloneQuiz,
-  getStandaloneQuizResults,
 };
 
 // ==================== ZOOM MEETING FUNCTIONALITY ====================
@@ -3608,7 +2161,7 @@ const joinZoomMeeting = async (req, res) => {
       studentId,
       'join_attempt'
     );
-    
+
     // Auto-mark content as completed when student joins live session
     // This ensures progress is updated immediately when they join
     try {
@@ -3616,24 +2169,24 @@ const joinZoomMeeting = async (req, res) => {
       const topicId = zoomMeeting.topic._id || zoomMeeting.topic;
       const Topic = require('../models/Topic');
       const topic = await Topic.findById(topicId);
-      
+
       if (topic && topic.content) {
         const zoomContentItem = topic.content.find(
-          (item) => item.type === 'zoom' && 
-          item.zoomMeeting && 
-          item.zoomMeeting.toString() === zoomMeeting._id.toString()
+          (item) => item.type === 'zoom' &&
+            item.zoomMeeting &&
+            item.zoomMeeting.toString() === zoomMeeting._id.toString()
         );
 
         if (zoomContentItem) {
           // Refresh student to get latest data before updating
           const freshStudent = await User.findById(studentId);
-          
+
           // Check if already completed to avoid duplicate updates
           const existingProgress = freshStudent.enrolledCourses
             .find(e => e.course.toString() === courseId.toString())
             ?.contentProgress
             ?.find(cp => cp.contentId.toString() === zoomContentItem._id.toString());
-          
+
           if (!existingProgress || existingProgress.completionStatus !== 'completed') {
             // Update content progress to mark as completed
             await freshStudent.updateContentProgress(
@@ -3728,7 +2281,6 @@ const leaveZoomMeeting = async (req, res) => {
       'leave'
     );
 
-
     res.json({
       success: true,
       message: 'Successfully recorded your participation',
@@ -3801,719 +2353,6 @@ const getZoomMeetingHistory = async (req, res) => {
   }
 };
 
-// Secure endpoint to get a single question
-const getSecureQuestion = async (req, res) => {
-  try {
-    const { contentId, questionIndex, attemptNumber } = req.body;
-    const studentId = req.session.user.id;
-
-    console.log('Secure Question Request:', {
-      contentId,
-      questionIndex,
-      attemptNumber,
-    });
-
-    // Validate required fields
-    if (!contentId || questionIndex === undefined || !attemptNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields for question request',
-      });
-    }
-
-    const student = await User.findById(studentId);
-
-    // Find the content item
-    let contentItem = null;
-    for (const enrollment of student.enrolledCourses) {
-      const courseData = await Course.findById(enrollment.course).populate({
-        path: 'topics',
-        populate: {
-          path: 'content',
-          model: 'ContentItem',
-          populate: {
-            path: 'selectedQuestions.question',
-            populate: {
-              path: 'options',
-            },
-          },
-        },
-      });
-
-      if (courseData) {
-        for (const topicData of courseData.topics) {
-          contentItem = topicData.content.find(
-            (c) => c._id.toString() === contentId
-          );
-          if (contentItem) break;
-        }
-        if (contentItem) break;
-      }
-    }
-
-    if (!contentItem) {
-      return res.status(404).json({
-        success: false,
-        message: 'Content item not found',
-      });
-    }
-
-    // Validate question index
-    if (
-      questionIndex < 0 ||
-      questionIndex >= contentItem.selectedQuestions.length
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid question index',
-      });
-    }
-
-    // Get the specific question (without correct answers)
-    const selectedQuestion = contentItem.selectedQuestions[questionIndex];
-    const question = selectedQuestion.question;
-
-    // Create secure question object (no correct answers)
-    const secureQuestion = {
-      _id: question._id,
-      questionText: question.questionText,
-      questionType: question.questionType,
-      questionImage: question.questionImage,
-      points: selectedQuestion.points || 1,
-      options:
-        question.questionType !== 'Written'
-          ? question.options.map((option) => ({
-              _id: option._id,
-              text: option.text,
-              image: option.image,
-              // NO correctAnswer field for security
-            }))
-          : [],
-    };
-
-    res.json({
-      success: true,
-      question: secureQuestion,
-      totalQuestions: contentItem.selectedQuestions.length,
-      questionIndex: questionIndex,
-    });
-  } catch (error) {
-    console.error('Error getting secure question:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error loading question. Please try again.',
-    });
-  }
-};
-
-// Secure endpoint to load all questions at once (without correct answers)
-const getSecureAllQuestions = async (req, res) => {
-  try {
-    const { contentId, attemptNumber } = req.body;
-    const studentId = req.session.user.id;
-
-    console.log('Secure All Questions Request:', { contentId, attemptNumber });
-
-    // Validate required fields
-    if (!contentId || !attemptNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields for questions request',
-      });
-    }
-
-    const student = await User.findById(studentId);
-
-    // Find the content item and course
-    let contentItem = null;
-    let course = null;
-    let topic = null;
-    for (const enrollment of student.enrolledCourses) {
-      const courseData = await Course.findById(enrollment.course).populate({
-        path: 'topics',
-        populate: {
-          path: 'content',
-          model: 'ContentItem',
-          populate: {
-            path: 'selectedQuestions.question',
-            populate: {
-              path: 'options',
-            },
-          },
-        },
-      });
-
-      if (courseData) {
-        for (const topicData of courseData.topics) {
-          contentItem = topicData.content.find(
-            (c) => c._id.toString() === contentId
-          );
-          if (contentItem) {
-            course = courseData;
-            topic = topicData;
-            break;
-          }
-        }
-        if (contentItem) break;
-      }
-    }
-
-    if (!contentItem) {
-      return res.status(404).json({
-        success: false,
-        message: 'Content item not found',
-      });
-    }
-
-    // Get quiz settings
-    const settings = contentItem.type === 'quiz' 
-      ? contentItem.quizSettings 
-      : contentItem.homeworkSettings;
-
-    // Get content progress to check for existing shuffled order
-    const contentProgress = student.getContentProgressDetails(
-      course._id,
-      contentId
-    );
-
-    // Get or create shuffled order for this attempt
-    let shuffledQuestionOrder = [];
-    let shuffledOptionOrders = new Map();
-
-    if (contentProgress && contentProgress.quizAttempts) {
-      const attempt = contentProgress.quizAttempts.find(
-        (a) => a.attemptNumber === parseInt(attemptNumber)
-      );
-
-      if (attempt && attempt.shuffledQuestionOrder && attempt.shuffledQuestionOrder.length > 0) {
-        // Use existing shuffled order
-        shuffledQuestionOrder = attempt.shuffledQuestionOrder;
-        if (attempt.shuffledOptionOrders) {
-          shuffledOptionOrders = new Map(Object.entries(attempt.shuffledOptionOrders));
-        }
-      } else if (settings?.shuffleQuestions || settings?.shuffleOptions) {
-        // Create new shuffled order and save it
-        const originalQuestions = contentItem.selectedQuestions.map((_, idx) => idx);
-        // Define seed for deterministic shuffling (used for both questions and options)
-        const seed = `${studentId}-${contentId}-${attemptNumber}`;
-        
-        if (settings.shuffleQuestions) {
-          // Fisher-Yates shuffle for deterministic but random order
-          shuffledQuestionOrder = [...originalQuestions];
-          let seedValue = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-          for (let i = shuffledQuestionOrder.length - 1; i > 0; i--) {
-            seedValue = (seedValue * 9301 + 49297) % 233280; // Simple PRNG
-            const j = seedValue % (i + 1);
-            [shuffledQuestionOrder[i], shuffledQuestionOrder[j]] = [shuffledQuestionOrder[j], shuffledQuestionOrder[i]];
-          }
-        } else {
-          shuffledQuestionOrder = originalQuestions;
-        }
-
-        // Shuffle options for each question if needed
-        if (settings.shuffleOptions) {
-          contentItem.selectedQuestions.forEach((selectedQuestion, qIdx) => {
-            const question = selectedQuestion.question;
-            if (question.questionType !== 'Written' && question.options && question.options.length > 0) {
-              const originalOptionIndices = question.options.map((_, idx) => idx);
-              const shuffledOptions = [...originalOptionIndices];
-              const optionSeed = `${seed}-${question._id}`;
-              let optionSeedValue = optionSeed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-              for (let i = shuffledOptions.length - 1; i > 0; i--) {
-                optionSeedValue = (optionSeedValue * 9301 + 49297) % 233280;
-                const j = optionSeedValue % (i + 1);
-                [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
-              }
-              shuffledOptionOrders.set(question._id.toString(), shuffledOptions);
-            }
-          });
-        }
-
-        // Save shuffled order to attempt
-        if (attempt) {
-          attempt.shuffledQuestionOrder = shuffledQuestionOrder;
-          attempt.shuffledOptionOrders = Object.fromEntries(shuffledOptionOrders);
-          await student.save();
-        } else {
-          // Create attempt entry if it doesn't exist
-          if (!contentProgress) {
-            await student.updateContentProgress(
-              course._id.toString(),
-              topic._id.toString(),
-              contentId,
-              contentItem.type,
-              {
-                completionStatus: 'in_progress',
-                progressPercentage: 0,
-                lastAccessed: new Date(),
-              }
-            );
-            const refreshed = await User.findById(studentId);
-            const refreshedProgress = refreshed.getContentProgressDetails(course._id, contentId);
-            if (refreshedProgress && !refreshedProgress.quizAttempts) {
-              refreshedProgress.quizAttempts = [];
-            }
-            if (refreshedProgress && refreshedProgress.quizAttempts) {
-              refreshedProgress.quizAttempts.push({
-                attemptNumber: parseInt(attemptNumber),
-                shuffledQuestionOrder: shuffledQuestionOrder,
-                shuffledOptionOrders: Object.fromEntries(shuffledOptionOrders),
-                totalQuestions: contentItem.selectedQuestions.length,
-                correctAnswers: 0,
-                timeSpent: 0,
-                startedAt: new Date(),
-                completedAt: new Date(),
-                status: 'completed',
-                answers: [],
-                passed: false,
-                passingScore: settings?.passingScore || 60,
-              });
-              await refreshed.save();
-            }
-          }
-        }
-      } else {
-        // No shuffling needed
-        shuffledQuestionOrder = contentItem.selectedQuestions.map((_, idx) => idx);
-      }
-    } else {
-      // No progress yet, create shuffled order if needed
-      if (settings?.shuffleQuestions || settings?.shuffleOptions) {
-        const originalQuestions = contentItem.selectedQuestions.map((_, idx) => idx);
-        // Define seed for deterministic shuffling (used for both questions and options)
-        const seed = `${studentId}-${contentId}-${attemptNumber}`;
-        
-        if (settings.shuffleQuestions) {
-          shuffledQuestionOrder = [...originalQuestions];
-          let seedValue = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-          for (let i = shuffledQuestionOrder.length - 1; i > 0; i--) {
-            seedValue = (seedValue * 9301 + 49297) % 233280;
-            const j = seedValue % (i + 1);
-            [shuffledQuestionOrder[i], shuffledQuestionOrder[j]] = [shuffledQuestionOrder[j], shuffledQuestionOrder[i]];
-          }
-        } else {
-          shuffledQuestionOrder = originalQuestions;
-        }
-
-        if (settings.shuffleOptions) {
-          contentItem.selectedQuestions.forEach((selectedQuestion) => {
-            const question = selectedQuestion.question;
-            if (question.questionType !== 'Written' && question.options && question.options.length > 0) {
-              const originalOptionIndices = question.options.map((_, idx) => idx);
-              const shuffledOptions = [...originalOptionIndices];
-              const optionSeed = `${seed}-${question._id}`;
-              let optionSeedValue = optionSeed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-              for (let i = shuffledOptions.length - 1; i > 0; i--) {
-                optionSeedValue = (optionSeedValue * 9301 + 49297) % 233280;
-                const j = optionSeedValue % (i + 1);
-                [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
-              }
-              shuffledOptionOrders.set(question._id.toString(), shuffledOptions);
-            }
-          });
-        }
-      } else {
-        shuffledQuestionOrder = contentItem.selectedQuestions.map((_, idx) => idx);
-      }
-    }
-
-    // Create secure questions array in shuffled order
-    const secureQuestions = shuffledQuestionOrder.map((originalIndex, displayIndex) => {
-      const selectedQuestion = contentItem.selectedQuestions[originalIndex];
-      const question = selectedQuestion.question;
-      
-      let options = [];
-      if (question.questionType !== 'Written' && question.options && question.options.length > 0) {
-        const optionOrder = shuffledOptionOrders.get(question._id.toString());
-        if (optionOrder && optionOrder.length > 0) {
-          // Use shuffled option order
-          options = optionOrder.map((optIdx) => ({
-            _id: question.options[optIdx]._id,
-            text: question.options[optIdx].text,
-            image: question.options[optIdx].image,
-          }));
-        } else {
-          // No shuffling or order not found, use original order
-          options = question.options.map((option) => ({
-            _id: option._id,
-            text: option.text,
-            image: option.image,
-          }));
-        }
-      }
-
-      return {
-        _id: question._id,
-        questionText: question.questionText,
-        questionType: question.questionType,
-        questionImage: question.questionImage,
-        points: selectedQuestion.points || 1,
-        index: displayIndex, // Display index (0-based in shuffled order)
-        originalIndex: originalIndex, // Original index for reference
-        options: options,
-      };
-    });
-
-    res.json({
-      success: true,
-      questions: secureQuestions,
-      totalQuestions: secureQuestions.length,
-      settings: {
-        shuffleQuestions: settings?.shuffleQuestions || false,
-        shuffleOptions: settings?.shuffleOptions || false,
-        showCorrectAnswers: settings?.showCorrectAnswers !== false,
-        showResults: settings?.showResults !== false,
-        instructions: settings?.instructions || '',
-      },
-    });
-  } catch (error) {
-    console.error('Error getting secure questions:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error loading questions. Please try again.',
-    });
-  }
-};
-
-// Secure endpoint to check if a question is answered
-const checkQuestionAnswered = async (req, res) => {
-  try {
-    const { contentId, questionIndex, attemptNumber } = req.body;
-    const studentId = req.session.user.id;
-
-    // Find existing progress for this attempt
-    const progress = await Progress.findOne({
-      student: studentId,
-      content: contentId,
-      attemptNumber: attemptNumber,
-    });
-
-    if (!progress || !progress.answers) {
-      return res.json({
-        success: true,
-        answered: false,
-      });
-    }
-
-    const student = await User.findById(studentId);
-
-    // Find the content item to get question ID
-    let contentItem = null;
-    for (const enrollment of student.enrolledCourses) {
-      const courseData = await Course.findById(enrollment.course).populate({
-        path: 'topics',
-        populate: {
-          path: 'content',
-          model: 'ContentItem',
-          populate: {
-            path: 'selectedQuestions.question',
-          },
-        },
-      });
-
-      if (courseData) {
-        for (const topicData of courseData.topics) {
-          contentItem = topicData.content.find(
-            (c) => c._id.toString() === contentId
-          );
-          if (contentItem) break;
-        }
-        if (contentItem) break;
-      }
-    }
-
-    if (!contentItem || questionIndex >= contentItem.selectedQuestions.length) {
-      return res.json({
-        success: true,
-        answered: false,
-      });
-    }
-
-    const questionId =
-      contentItem.selectedQuestions[questionIndex].question._id.toString();
-    const answered = progress.answers[questionId] !== undefined;
-
-    res.json({
-      success: true,
-      answered: answered,
-    });
-  } catch (error) {
-    console.error('Error checking question answered status:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error checking answer status',
-    });
-  }
-};
-
-// Secure endpoint to get standalone quiz questions (without correct answers)
-const getSecureStandaloneQuizQuestions = async (req, res) => {
-  try {
-    const { quizId, attemptNumber } = req.body;
-    const studentId = req.session.user.id;
-
-    // Validate required fields
-    if (!quizId || !attemptNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields for quiz questions request',
-      });
-    }
-
-    // Find the quiz
-    const quiz = await Quiz.findById(quizId).populate({
-      path: 'selectedQuestions.question',
-      populate: {
-        path: 'options',
-      },
-    });
-
-    if (!quiz) {
-      return res.status(404).json({
-        success: false,
-        message: 'Quiz not found',
-      });
-    }
-
-    const student = await User.findById(studentId);
-    if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: 'Student not found',
-      });
-    }
-
-    // Get quiz attempt to check for existing shuffled order
-    const quizAttempt = student.quizAttempts.find(
-      (attempt) => attempt.quiz.toString() === quizId
-    );
-
-    let shuffledQuestionOrder = [];
-    let shuffledOptionOrders = new Map();
-
-    if (quizAttempt && quizAttempt.attempts) {
-      const attempt = quizAttempt.attempts.find(
-        (a) => a.attemptNumber === parseInt(attemptNumber)
-      );
-
-      if (attempt && attempt.shuffledQuestionOrder && attempt.shuffledQuestionOrder.length > 0) {
-        // Use existing shuffled order
-        shuffledQuestionOrder = attempt.shuffledQuestionOrder;
-        if (attempt.shuffledOptionOrders) {
-          shuffledOptionOrders = new Map(Object.entries(attempt.shuffledOptionOrders));
-        }
-      } else if (quiz.shuffleQuestions || quiz.shuffleOptions) {
-        // Create new shuffled order
-        const originalQuestions = quiz.selectedQuestions.map((_, idx) => idx);
-        // Define seed for deterministic shuffling (used for both questions and options)
-        const seed = `${studentId}-${quizId}-${attemptNumber}`;
-        
-        if (quiz.shuffleQuestions) {
-          shuffledQuestionOrder = [...originalQuestions];
-          let seedValue = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-          for (let i = shuffledQuestionOrder.length - 1; i > 0; i--) {
-            seedValue = (seedValue * 9301 + 49297) % 233280;
-            const j = seedValue % (i + 1);
-            [shuffledQuestionOrder[i], shuffledQuestionOrder[j]] = [shuffledQuestionOrder[j], shuffledQuestionOrder[i]];
-          }
-        } else {
-          shuffledQuestionOrder = originalQuestions;
-        }
-
-        if (quiz.shuffleOptions) {
-          quiz.selectedQuestions.forEach((selectedQuestion) => {
-            const question = selectedQuestion.question;
-            if (question.questionType !== 'Written' && question.options && question.options.length > 0) {
-              const originalOptionIndices = question.options.map((_, idx) => idx);
-              const shuffledOptions = [...originalOptionIndices];
-              const optionSeed = `${seed}-${question._id}`;
-              let optionSeedValue = optionSeed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-              for (let i = shuffledOptions.length - 1; i > 0; i--) {
-                optionSeedValue = (optionSeedValue * 9301 + 49297) % 233280;
-                const j = optionSeedValue % (i + 1);
-                [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
-              }
-              shuffledOptionOrders.set(question._id.toString(), shuffledOptions);
-            }
-          });
-        }
-
-        // Save shuffled order to attempt
-        if (attempt) {
-          attempt.shuffledQuestionOrder = shuffledQuestionOrder;
-          attempt.shuffledOptionOrders = Object.fromEntries(shuffledOptionOrders);
-          await student.save();
-        } else {
-          // Create attempt entry if it doesn't exist
-          if (!quizAttempt.attempts) {
-            quizAttempt.attempts = [];
-          }
-          quizAttempt.attempts.push({
-            attemptNumber: parseInt(attemptNumber),
-            shuffledQuestionOrder: shuffledQuestionOrder,
-            shuffledOptionOrders: Object.fromEntries(shuffledOptionOrders),
-            totalQuestions: quiz.selectedQuestions.length,
-            correctAnswers: 0,
-            timeSpent: 0,
-            startedAt: new Date(),
-            completedAt: null,
-            status: 'in_progress',
-            answers: [],
-            passed: false,
-            passingScore: quiz.passingScore || 60,
-          });
-          await student.save();
-        }
-      } else {
-        // No shuffling needed
-        shuffledQuestionOrder = quiz.selectedQuestions.map((_, idx) => idx);
-      }
-    } else if (quiz.shuffleQuestions || quiz.shuffleOptions) {
-      // No attempt yet, create shuffled order
-      const originalQuestions = quiz.selectedQuestions.map((_, idx) => idx);
-      // Define seed for deterministic shuffling (used for both questions and options)
-      const seed = `${studentId}-${quizId}-${attemptNumber}`;
-      
-      if (quiz.shuffleQuestions) {
-        shuffledQuestionOrder = [...originalQuestions];
-        let seedValue = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        for (let i = shuffledQuestionOrder.length - 1; i > 0; i--) {
-          seedValue = (seedValue * 9301 + 49297) % 233280;
-          const j = seedValue % (i + 1);
-          [shuffledQuestionOrder[i], shuffledQuestionOrder[j]] = [shuffledQuestionOrder[j], shuffledQuestionOrder[i]];
-        }
-      } else {
-        shuffledQuestionOrder = originalQuestions;
-      }
-
-      if (quiz.shuffleOptions) {
-        quiz.selectedQuestions.forEach((selectedQuestion) => {
-          const question = selectedQuestion.question;
-          if (question.questionType !== 'Written' && question.options && question.options.length > 0) {
-            const originalOptionIndices = question.options.map((_, idx) => idx);
-            const shuffledOptions = [...originalOptionIndices];
-            const optionSeed = `${seed}-${question._id}`;
-            let optionSeedValue = optionSeed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-            for (let i = shuffledOptions.length - 1; i > 0; i--) {
-              optionSeedValue = (optionSeedValue * 9301 + 49297) % 233280;
-              const j = optionSeedValue % (i + 1);
-              [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
-            }
-            shuffledOptionOrders.set(question._id.toString(), shuffledOptions);
-          }
-        });
-      }
-
-      // Create quizAttempt and attempt entry if they don't exist
-      if (!quizAttempt) {
-        student.quizAttempts.push({
-          quiz: quizId,
-          attempts: [],
-        });
-        await student.save();
-        // Refresh to get the newly created quizAttempt
-        const refreshed = await User.findById(studentId);
-        const refreshedQuizAttempt = refreshed.quizAttempts.find(
-          (attempt) => attempt.quiz.toString() === quizId
-        );
-        if (refreshedQuizAttempt) {
-          refreshedQuizAttempt.attempts.push({
-            attemptNumber: parseInt(attemptNumber),
-            shuffledQuestionOrder: shuffledQuestionOrder,
-            shuffledOptionOrders: Object.fromEntries(shuffledOptionOrders),
-            totalQuestions: quiz.selectedQuestions.length,
-            correctAnswers: 0,
-            timeSpent: 0,
-            startedAt: new Date(),
-            completedAt: null,
-            status: 'in_progress',
-            answers: [],
-            passed: false,
-            passingScore: quiz.passingScore || 60,
-          });
-          await refreshed.save();
-        }
-      } else {
-        // quizAttempt exists but no attempts array or no attempt for this attemptNumber
-        if (!quizAttempt.attempts) {
-          quizAttempt.attempts = [];
-        }
-        quizAttempt.attempts.push({
-          attemptNumber: parseInt(attemptNumber),
-          shuffledQuestionOrder: shuffledQuestionOrder,
-          shuffledOptionOrders: Object.fromEntries(shuffledOptionOrders),
-          totalQuestions: quiz.selectedQuestions.length,
-          correctAnswers: 0,
-          timeSpent: 0,
-          startedAt: new Date(),
-          completedAt: null,
-          status: 'in_progress',
-          answers: [],
-          passed: false,
-          passingScore: quiz.passingScore || 60,
-        });
-        await student.save();
-      }
-    } else {
-      shuffledQuestionOrder = quiz.selectedQuestions.map((_, idx) => idx);
-    }
-
-    // Create secure questions array in shuffled order
-    const secureQuestions = shuffledQuestionOrder.map((originalIndex, displayIndex) => {
-      const selectedQuestion = quiz.selectedQuestions[originalIndex];
-      const question = selectedQuestion.question;
-      
-      let options = [];
-      if (question.questionType !== 'Written' && question.options && question.options.length > 0) {
-        const optionOrder = shuffledOptionOrders.get(question._id.toString());
-        if (optionOrder && optionOrder.length > 0) {
-          options = optionOrder.map((optIdx) => ({
-            _id: question.options[optIdx]._id,
-            text: question.options[optIdx].text,
-            image: question.options[optIdx].image,
-          }));
-        } else {
-          options = question.options.map((option) => ({
-            _id: option._id,
-            text: option.text,
-            image: option.image,
-          }));
-        }
-      }
-
-      return {
-        _id: question._id,
-        questionText: question.questionText,
-        questionType: question.questionType,
-        questionImage: question.questionImage,
-        points: selectedQuestion.points || 1,
-        index: displayIndex,
-        originalIndex: originalIndex,
-        options: options,
-      };
-    });
-
-    res.json({
-      success: true,
-      questions: secureQuestions,
-      totalQuestions: secureQuestions.length,
-      settings: {
-        shuffleQuestions: quiz.shuffleQuestions || false,
-        shuffleOptions: quiz.shuffleOptions || false,
-        showCorrectAnswers: quiz.showCorrectAnswers !== false,
-        showResults: quiz.showResults !== false,
-        instructions: quiz.instructions || '',
-      },
-    });
-  } catch (error) {
-    console.error('Error getting secure standalone quiz questions:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error loading quiz questions. Please try again.',
-    });
-  }
-};
-
 module.exports = {
   dashboard,
   enrolledCourses,
@@ -4521,7 +2360,6 @@ module.exports = {
   courseContent,
   contentDetails,
   updateContentProgress,
-  debugProgress,
   wishlist,
   addToWishlist,
   removeFromWishlist,

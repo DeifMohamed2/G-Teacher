@@ -254,9 +254,7 @@ class LocalUploader {
     // Try to determine from form context
     const form = previewElement.closest('form');
     if (form) {
-      if (form.id.includes('bundle') || form.id.includes('Bundle')) {
-        return 'bundle-thumbnails';
-      } else if (form.id.includes('course') || form.id.includes('Course')) {
+      if (form.id.includes('course') || form.id.includes('Course')) {
         return 'course-thumbnails';
       } else if (form.id.includes('quiz') || form.id.includes('Quiz')) {
         return 'quiz-thumbnails';
@@ -344,24 +342,5 @@ document.addEventListener('DOMContentLoaded', function() {
     );
   }
 
-  // Initialize for bundle creation modal (only if elements exist)
-  if (document.querySelector('#createBundleForm')) {
-    uploader.init(
-      '#createBundleForm',
-      '#bundleThumbnail',
-      '#bundleThumbnailPreview',
-      '#bundleThumbnailProgress'
-    );
-  }
-
-  // Initialize for edit bundle modal (only if elements exist)
-  if (document.querySelector('#editBundleForm')) {
-    uploader.init(
-      '#editBundleForm',
-      '#editBundleThumbnail',
-      '#editBundleThumbnailPreview',
-      '#editBundleThumbnailProgress'
-    );
-  }
 });
 

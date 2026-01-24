@@ -4,7 +4,7 @@ const ContentItemSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ['video', 'pdf', 'reading', 'link', 'zoom'],
+      enum: ['video', 'pdf', 'reading', 'link', 'zoom', 'submission'],
       required: true,
     },
     title: {
@@ -19,7 +19,7 @@ const ContentItemSchema = new mongoose.Schema(
     content: {
       type: String, // URL or file path
       required: function () {
-        return this.type !== 'zoom';
+        return this.type !== 'zoom' && this.type !== 'submission';
       },
     },
 
@@ -29,6 +29,56 @@ const ContentItemSchema = new mongoose.Schema(
       ref: 'ZoomMeeting',
       required: function () {
         return this.type === 'zoom';
+      },
+    },
+
+    // HW/Quiz Submission specific fields
+    submissionConfig: {
+      // The assignment file(s) that students will download
+      assignmentFiles: [
+        {
+          fileName: {
+            type: String,
+            trim: true,
+          },
+          fileUrl: {
+            type: String,
+            trim: true,
+          },
+          fileType: {
+            type: String,
+            enum: ['pdf', 'image', 'document', 'other'],
+            default: 'pdf',
+          },
+        },
+      ],
+      // Instructions for the submission
+      instructions: {
+        type: String,
+        trim: true,
+        maxlength: 5000,
+      },
+      // Due date for submission
+      dueDate: {
+        type: Date,
+      },
+      // Maximum score for grading
+      maxScore: {
+        type: Number,
+        default: 100,
+        min: 1,
+      },
+      // Allow late submissions
+      allowLateSubmission: {
+        type: Boolean,
+        default: false,
+      },
+      // Late submission penalty (percentage deduction)
+      latePenalty: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100,
       },
     },
 
@@ -84,12 +134,12 @@ const ContentItemSchema = new mongoose.Schema(
     ],
     completionCriteria: {
       type: String,
-      enum: ['view', 'complete'],
+      enum: ['view', 'complete', 'submit_assignment'],
       default: 'view',
     },
     unlockConditions: {
       type: String,
-      enum: ['immediate', 'previous_completed', 'quiz_passed'],
+      enum: ['immediate', 'previous_completed'],
       default: 'immediate',
     },
   },

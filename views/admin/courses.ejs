@@ -1,493 +1,446 @@
 <%- include('./partials/admin-header', { pageCSS: 'courses' }) %>
 
-<!-- SweetAlert2 for beautiful modals -->
+<!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- Admin Layout -->
 <div class="admin-layout">
-
-  <!-- Sidebar -->
   <%- include('./partials/admin-sidebar', { currentPage: 'courses' }) %>
 
-  <!-- Main Content -->
   <main class="admin-main">
-
-    <!-- Top Bar -->
     <%- include('./partials/admin-topbar', { 
         breadcrumb: 'Courses',
-        breadcrumbSubtitle: 'Manage Your Course Library',
+        breadcrumbSubtitle: 'Manage Your Courses',
         showSearch: true
     }) %>
 
-    <!-- Content Area -->
     <div class="admin-content">
-      <div class="admin-dashboard admin-fade-in">
+      <div class="courses-container">
 
         <!-- Page Header -->
-        <div class="admin-dashboard-header">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <h1 class="admin-dashboard-title">Course Management</h1>
-              <p class="admin-dashboard-subtitle">Create and manage your educational courses</p>
-            </div>
-            <div class="d-flex gap-2">
-              <button class="btn exam-period-btn" data-bs-toggle="modal" data-bs-target="#examPeriodModal">
-                <span class="btn-icon-wrapper">
-                  <i class="fas fa-calendar-alt"></i>
-                </span>
-                <span class="btn-text">Manage Exam Periods</span>
-                <span class="btn-shine"></span>
-              </button>
-              <button class="btn btn-primary admin-btn-primary" data-bs-toggle="modal" data-bs-target="#createCourseModal">
-                <i class="fas fa-plus me-2"></i>
-                Create New Course
-              </button>
-            </div>
+        <div class="page-header">
+          <div class="header-left">
+            <h1 class="page-title">
+              <i class="fas fa-graduation-cap"></i>
+              Course Management
+            </h1>
+            <p class="page-subtitle">Organize and manage all your courses</p>
           </div>
-        </div>
-
-        <!-- Course Stats -->
-        <div class="admin-stats-grid">
-          <div class="admin-stat-card admin-slide-in">
-            <div class="admin-stat-header">
-              <div class="admin-stat-icon">
-                <i class="fas fa-book"></i>
-              </div>
-              <div class="admin-stat-trend positive">
-                <i class="fas fa-arrow-up"></i>
-                +5
-              </div>
-            </div>
-            <h3 class="admin-stat-number"><%= stats.totalCourses %></h3>
-            <p class="admin-stat-label">Total Courses</p>
-          </div>
-
-          <div class="admin-stat-card admin-slide-in">
-            <div class="admin-stat-header">
-              <div class="admin-stat-icon">
-                <i class="fas fa-eye"></i>
-              </div>
-              <div class="admin-stat-trend positive">
-                <i class="fas fa-arrow-up"></i>
-                <%= stats.totalCourses > 0 ? Math.round((stats.publishedCourses / stats.totalCourses) * 100) : 0 %>%
-              </div>
-            </div>
-            <h3 class="admin-stat-number"><%= stats.publishedCourses %></h3>
-            <p class="admin-stat-label">Published Courses</p>
-          </div>
-
-          <div class="admin-stat-card admin-slide-in">
-            <div class="admin-stat-header">
-              <div class="admin-stat-icon">
-                <i class="fas fa-edit"></i>
-              </div>
-              <div class="admin-stat-trend neutral">
-                <i class="fas fa-minus"></i>
-                <%= stats.totalCourses > 0 ? Math.round((stats.draftCourses / stats.totalCourses) * 100) : 0 %>%
-              </div>
-            </div>
-            <h3 class="admin-stat-number"><%= stats.draftCourses %></h3>
-            <p class="admin-stat-label">Draft Courses</p>
-          </div>
-
-          <div class="admin-stat-card admin-slide-in">
-            <div class="admin-stat-header">
-              <div class="admin-stat-icon">
-                <i class="fas fa-users"></i>
-              </div>
-              <div class="admin-stat-trend positive">
-                <i class="fas fa-arrow-up"></i>
-                +8%
-              </div>
-            </div>
-            <h3 class="admin-stat-number"><%= stats.totalEnrollments %></h3>
-            <p class="admin-stat-label">Total Enrollments</p>
-          </div>
-        </div>
-
-        <!-- Enhanced Filters - Simplified Design -->
-        <div class="admin-filters-section" style="margin-bottom: 25px;">
-          <div class="admin-filters-card">
-            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-              <h5 class="admin-filters-title mb-0">
-                <i class="fas fa-filter me-2 filter-icon"></i>Course Filters
-              </h5>
-              <% if (currentFilters.status !== 'all' || currentFilters.search) { %>
-              <span class="badge filter-active-badge">
-                <i class="fas fa-check-circle me-1"></i>Active Filters
-              </span>
-              <% } %>
-            </div>
-            <form method="GET" action="/admin/courses" class="admin-filters-form">
-              <div class="row g-3">
-                <div class="col-12 col-sm-6 col-md-3">
-                  <label class="form-label filter-label">
-                    <i class="fas fa-box me-1 filter-icon"></i>Bundle
-                  </label>
-                  <select name="bundle" class="form-select filter-select">
-                    <option value="">All Bundles</option>
-                    <% if (filterOptions && filterOptions.bundles) { %>
-                    <% filterOptions.bundles.forEach(bundle => { %>
-                    <option value="<%= bundle._id %>" <%= currentFilters.bundle === bundle._id.toString() ? 'selected' : '' %>>
-                      <%= bundle.title %> (<%= bundle.bundleCode %>)
-                    </option>
-                    <% }); %>
-                    <% } %>
-                  </select>
-                </div>
-                <div class="col-12 col-sm-6 col-md-2">
-                  <label class="form-label filter-label">
-                    <i class="fas fa-toggle-on me-1 filter-icon"></i>Status
-                  </label>
-                  <select name="status" class="form-select filter-select">
-                    <option value="all" <%= currentFilters.status === 'all' ? 'selected' : '' %>>All Status</option>
-                    <option value="published" <%= currentFilters.status === 'published' ? 'selected' : '' %>>Published</option>
-                    <option value="draft" <%= currentFilters.status === 'draft' ? 'selected' : '' %>>Draft</option>
-                    <option value="archived" <%= currentFilters.status === 'archived' ? 'selected' : '' %>>Archived</option>
-                  </select>
-                </div>
-                <div class="col-12 col-sm-6 col-md-3">
-                  <label class="form-label filter-label">
-                    <i class="fas fa-search me-1 filter-icon"></i>Search
-                  </label>
-                  <input type="text" name="search" class="form-control filter-input" placeholder="Search courses..." value="<%= currentFilters.search || '' %>">
-                </div>
-                <div class="col-12 col-md-2 d-flex align-items-end">
-                  <div class="w-100">
-                    <label class="form-label filter-label">
-                      <i class="fas fa-sort me-1 filter-icon"></i>Sort
-                    </label>
-                    <select name="sortBy" class="form-select filter-select mb-2">
-                      <option value="createdAt" <%= currentFilters.sortBy === 'createdAt' ? 'selected' : '' %>>Date</option>
-                      <option value="title" <%= currentFilters.sortBy === 'title' ? 'selected' : '' %>>Title</option>
-                      <option value="price" <%= currentFilters.sortBy === 'price' ? 'selected' : '' %>>Price</option>
-                    </select>
-                    <select name="sortOrder" class="form-select filter-select">
-                      <option value="desc" <%= currentFilters.sortOrder === 'desc' ? 'selected' : '' %>>Desc</option>
-                      <option value="asc" <%= currentFilters.sortOrder === 'asc' ? 'selected' : '' %>>Asc</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div class="row mt-3">
-                <div class="col-12">
-                  <div class="d-flex gap-2 flex-wrap">
-                    <button type="submit" class="btn filter-apply-btn">
-                      <i class="fas fa-search me-1"></i>Apply Filters
-                    </button>
-                    <a href="/admin/courses" class="btn filter-clear-btn">
-                      <i class="fas fa-times me-1"></i>Clear All
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <!-- Courses Grid -->
-        <div class="admin-courses-section">
-          <div class="admin-section-header">
-            <h3>Your Courses</h3>
-            <div class="admin-results-info">
-              <span class="text-muted">
-                Showing <%= courses ? courses.length : 0 %> of <%= pagination ? pagination.totalCourses : 0 %> courses
-              </span>
-            </div>
-          </div>
-
-          <!-- Bulk Actions Toolbar -->
-          <% if (courses && courses.length > 0) { %>
-          <div class="bulk-actions-toolbar" id="bulkActionsToolbar" style="display: none;">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-              <div class="d-flex align-items-center gap-4">
-                <div class="bulk-selected-count">
-                  <i class="fas fa-check-circle"></i>
-                  <span id="selectedCount">
-                    <strong>0</strong> course(s) selected
-                  </span>
-                </div>
-                <div class="btn-group bulk-select-buttons">
-                  <button type="button" class="btn btn-sm bulk-select-btn" onclick="selectAllCourses()">
-                    <i class="fas fa-check-double me-1"></i>Select All
-                  </button>
-                  <button type="button" class="btn btn-sm bulk-deselect-btn" onclick="deselectAllCourses()">
-                    <i class="fas fa-times me-1"></i>Deselect All
-                  </button>
-                </div>
-              </div>
-              <div class="d-flex align-items-center gap-3">
-                <label class="form-label mb-0 bulk-action-label">
-                  <i class="fas fa-tasks me-1"></i>Bulk Action:
-                </label>
-                <select class="form-select form-select-sm bulk-status-select" id="bulkStatusSelect">
-                  <option value="">Choose action...</option>
-                  <option value="published">
-                    <i class="fas fa-eye"></i> Publish Selected
-                  </option>
-                  <option value="draft">Move to Draft</option>
-                  <option value="archived">Archive Selected</option>
-                </select>
-                <button type="button" class="btn btn-sm bulk-apply-btn" onclick="applyBulkStatus()" id="applyBulkBtn" disabled>
-                  <i class="fas fa-check-circle me-1"></i>Apply
-                </button>
-              </div>
-            </div>
-          </div>
-          <% } %>
-
-          <% if (courses && courses.length > 0) { %>
-          <%
-            // Sort courses by order
-            const sortedCourses = courses.sort((a, b) => {
-              const orderA = a.order || 0;
-              const orderB = b.order || 0;
-              return orderA - orderB;
-            });
-          %>
-          
-          <div class="admin-courses-grid">
-            <% sortedCourses.forEach(course => { %>
-              <div class="admin-course-card" data-status="<%= course.status %>" data-course-code="<%= course.courseCode %>" data-course-id="<%= course._id %>" style="position: relative;">
-                <div class="admin-course-thumbnail" style="position: relative;">
-                  <img src="<%= course.thumbnail || '/images/course-placeholder.jpg' %>" alt="Course Thumbnail">
-                  <div class="admin-course-badges">
-                    <div class="admin-course-status <%= course.status %>"><%= course.status.charAt(0).toUpperCase() + course.status.slice(1) %></div>
-                  </div>
-                </div>
-
-                <div class="admin-course-content" style="position: relative;">
-                  <!-- Bulk Selection Checkbox - Positioned to avoid course ID overlap -->
-                  <div class="course-checkbox-wrapper" style="position: absolute; top: 8px; left: 12px; z-index: 15;" onclick="event.stopPropagation();">
-                    <label class="custom-checkbox-label" style="cursor: pointer; margin: 0; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: white; border: 2px solid #dc2626; border-radius: 6px; transition: all 0.3s ease; box-shadow: 0 2px 6px rgba(0,0,0,0.1); position: relative;">
-                      <input type="checkbox" class="course-checkbox" 
-                             data-course-code="<%= course.courseCode %>" 
-                             onchange="updateBulkActionsToolbar(); event.stopPropagation(); toggleCheckboxIcon(this);"
-                             onclick="event.stopPropagation();"
-                             style="position: absolute; opacity: 0; width: 0; height: 0; margin: 0;">
-                      <i class="fas fa-check checkbox-icon" style="color: white; font-size: 14px; opacity: 0; transition: opacity 0.2s ease; pointer-events: none; position: absolute; z-index: 1;"></i>
-                    </label>
-                  </div>
-                  <div class="admin-course-header" style="padding-left: 48px; padding-right: 12px;">
-                    <h4 class="admin-course-title"><%= course.title %></h4>
-                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                      <span class="admin-course-code"><%= course.courseCode %></span>
-                    </div>
-                    </div>
-                  </div>
-
-                  <p class="admin-course-description"><%= course.shortDescription %></p>
-
-                  <div class="admin-course-meta">
-                    <% if (course.teacher) { %>
-                    <div class="admin-course-meta-item">
-                      <i class="fas fa-chalkboard-teacher"></i>
-                      <span><%= course.teacher.firstName %> <%= course.teacher.lastName %></span>
-                    </div>
-                    <% } %>
-                    <% if (course.examPeriod) { %>
-                    <div class="admin-course-meta-item">
-                      <i class="fas fa-calendar-alt"></i>
-                      <span><%= course.examPeriod.name %></span>
-                    </div>
-                    <% } %>
-                    <div class="admin-course-meta-item">
-                      <i class="fas fa-coins"></i>
-                      <% if (course.discountPrice) { %>
-                      <span class="text-decoration-line-through">EGP <%= course.price %></span>
-                      <span class="text-success fw-bold">EGP <%= course.finalPrice.toFixed(2) %></span>
-                      <small class="text-muted">(<%= course.savingsPercentage %>% off)</small>
-                      <% } else { %>
-                      <span>EGP <%= course.price %></span>
-                      <% } %>
-                    </div>
-                  </div>
-
-                  <div class="admin-course-actions">
-                    <a href="/admin/courses/<%= course.courseCode %>/details" class="btn btn-sm btn-info admin-course-action-btn">
-                      <i class="fas fa-chart-line me-1"></i>
-                      <span class="btn-text">Details</span>
-                    </a>
-                    <a href="/admin/courses/<%= course.courseCode %>/content" class="btn btn-sm btn-primary admin-course-action-btn">
-                      <i class="fas fa-edit me-1"></i>
-                      <span class="btn-text">Manage</span>
-                    </a>
-                    <button class="btn btn-sm btn-success admin-course-action-btn" onclick="shareCourseLink('<%= course.courseCode %>', '<%= course.title %>', event)" title="Share Course">
-                      <i class="fas fa-share-alt"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-success admin-course-action-btn" onclick="duplicateCourse('<%= course.courseCode %>', event)" title="Duplicate Course">
-                      <i class="fas fa-copy"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger admin-course-action-btn" onclick="deleteCourse('<%= course.courseCode %>', event)" title="Delete Course">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            <% }); %>
-          </div>
-          <% } else { %>
-          <div class="admin-empty-state">
-            <div class="admin-empty-icon">
-              <i class="fas fa-book"></i>
-            </div>
-            <h4>No courses found</h4>
-            <p>Create your first course to get started</p>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCourseModal">
-              <i class="fas fa-plus me-2"></i>
-              Create Course
+          <div class="header-actions">
+            <button class="btn-secondary" data-bs-toggle="modal" data-bs-target="#examPeriodModal">
+              <i class="fas fa-calendar-alt"></i>
+              <span>Exam Periods</span>
+            </button>
+            <button class="btn-primary" data-bs-toggle="modal" data-bs-target="#createCourseModal">
+              <i class="fas fa-plus"></i>
+              <span>New Course</span>
             </button>
           </div>
-          <% } %>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue"><i class="fas fa-book-open"></i></div>
+            <div class="stat-info">
+              <span class="stat-value"><%= stats.totalCourses %></span>
+              <span class="stat-label">Total Courses</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-info">
+              <span class="stat-value"><%= stats.publishedCourses %></span>
+              <span class="stat-label">Published</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange"><i class="fas fa-edit"></i></div>
+            <div class="stat-info">
+              <span class="stat-value"><%= stats.draftCourses %></span>
+              <span class="stat-label">Draft</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+            <div class="stat-info">
+              <span class="stat-value"><%= stats.totalEnrollments %></span>
+              <span class="stat-label">Enrollments</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Section - Collapsible -->
+        <div class="filter-section">
+          <div class="filter-header" onclick="toggleFilterSection()">
+            <div class="filter-title">
+              <i class="fas fa-filter"></i>
+              <span>Filter Courses</span>
+              <span class="filter-badge" id="activeFiltersCount" style="display: none;">0</span>
+            </div>
+            <div class="filter-toggle">
+              <span id="filterStatus">Click to filter by Exam Period & Teacher</span>
+              <i class="fas fa-chevron-down" id="filterIcon"></i>
+            </div>
+          </div>
+
+          <div class="filter-content" id="filterContent" style="display: none;">
+            <!-- Step 1: Exam Period Selection -->
+            <div class="filter-step">
+              <h4 class="step-title">
+                <span class="step-number">1</span>
+                Select Exam Period
+              </h4>
+              <div class="exam-period-pills" id="examPeriodPills">
+                <button class="period-pill active" data-period="all" onclick="selectExamPeriod('all')">
+                  <i class="fas fa-globe"></i>
+                  <span>All Periods</span>
+                  <span class="pill-count"><%= stats.totalCourses %></span>
+                </button>
+                <% 
+                  const periodCounts = {};
+                  if (courses && courses.length > 0) {
+                    courses.forEach(course => {
+                      const periodId = course.examPeriod ? course.examPeriod._id : 'none';
+                      const periodName = course.examPeriod ? course.examPeriod.name : 'No Period';
+                      if (!periodCounts[periodId]) {
+                        periodCounts[periodId] = { name: periodName, count: 0 };
+                      }
+                      periodCounts[periodId].count++;
+                    });
+                  }
+                %>
+                <% Object.keys(periodCounts).forEach(periodId => { %>
+                <button class="period-pill" data-period="<%= periodId %>" onclick="selectExamPeriod('<%= periodId %>')">
+                  <i class="fas fa-calendar"></i>
+                  <span><%= periodCounts[periodId].name %></span>
+                  <span class="pill-count"><%= periodCounts[periodId].count %></span>
+                </button>
+                <% }); %>
+              </div>
+            </div>
+
+            <!-- Step 2: Teacher Selection (Shows after selecting period) -->
+            <div class="filter-step" id="teacherFilterStep" style="display: none;">
+              <h4 class="step-title">
+                <span class="step-number">2</span>
+                Select Teacher
+                <button class="clear-step-btn" onclick="clearTeacherFilter()">
+                  <i class="fas fa-times"></i> Clear
+                </button>
+              </h4>
+              <div class="teacher-cards-row" id="teacherCardsRow">
+                <!-- Teachers will be populated dynamically -->
+              </div>
+            </div>
+
+            <!-- Active Filters Display -->
+            <div class="active-filters" id="activeFilters" style="display: none;">
+              <span class="active-filters-label">Active Filters:</span>
+              <div class="filter-tags" id="filterTags"></div>
+              <button class="clear-all-btn" onclick="clearAllFilters()">
+                <i class="fas fa-times-circle"></i> Clear All
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Courses Section -->
+        <div class="courses-section">
+          <div class="section-header">
+            <div class="section-title">
+              <h3 id="coursesTitle">All Courses</h3>
+              <span class="courses-count" id="coursesCount"><%= courses ? courses.length : 0 %> courses</span>
+            </div>
+            <div class="section-controls">
+              <div class="view-toggle">
+                <button class="view-btn active" data-view="grid" onclick="setView('grid')">
+                  <i class="fas fa-th-large"></i>
+                </button>
+                <button class="view-btn" data-view="list" onclick="setView('list')">
+                  <i class="fas fa-list"></i>
+                </button>
+              </div>
+              <select class="sort-select" id="sortSelect" onchange="sortCourses()">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="title">Title A-Z</option>
+                <option value="price-high">Price High-Low</option>
+                <option value="price-low">Price Low-High</option>
+              </select>
+              <select class="status-filter" id="statusSelect" onchange="filterByStatus()">
+                <option value="all">All Status</option>
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+                <option value="archived">Archived</option>
+              </select>
+              <select class="subject-filter" id="subjectSelect" onchange="filterBySubject()">
+                <option value="all">All Subjects</option>
+              </select>
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search courses..." oninput="searchCourses()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Bulk Actions -->
+          <div class="bulk-actions" id="bulkActions" style="display: none;">
+            <div class="bulk-info">
+              <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+              <span id="selectedCount">0 selected</span>
+            </div>
+            <div class="bulk-buttons">
+              <select id="bulkActionSelect">
+                <option value="">Choose action...</option>
+                <option value="published">Publish</option>
+                <option value="draft">Set to Draft</option>
+                <option value="archived">Archive</option>
+              </select>
+              <button class="bulk-apply" onclick="applyBulkAction()">
+                <i class="fas fa-check"></i> Apply
+              </button>
+            </div>
+          </div>
+
+          <!-- Courses Grid -->
+          <div class="courses-grid" id="coursesGrid">
+            <% if (courses && courses.length > 0) { %>
+              <% courses.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(course => { %>
+              <div class="course-card" 
+                   data-id="<%= course._id %>"
+                   data-code="<%= course.courseCode %>"
+                   data-status="<%= course.status %>"
+                   data-teacher="<%= course.teacher ? course.teacher._id : '' %>"
+                   data-subject="<%= course.teacher && course.teacher.subject ? course.teacher.subject.toLowerCase() : '' %>"
+                   data-period="<%= course.examPeriod ? course.examPeriod._id : '' %>"
+                   data-title="<%= course.title.toLowerCase() %>"
+                   data-price="<%= course.price %>"
+                   data-created="<%= course.createdAt %>">
+                <div class="card-checkbox">
+                  <input type="checkbox" class="course-checkbox" onchange="updateBulkSelection()">
+                </div>
+                <div class="card-thumbnail">
+                  <img src="<%= course.thumbnail || '/images/course-placeholder.jpg' %>" alt="<%= course.title %>" loading="lazy">
+                  <div class="card-overlay">
+                    <a href="/admin/courses/<%= course.courseCode %>/content" class="overlay-btn primary">
+                      <i class="fas fa-edit"></i> Manage Content
+                    </a>
+                  </div>
+                  <div class="card-badges">
+                    <span class="status-badge <%= course.status %>">
+                      <i class="fas fa-<%= course.status === 'published' ? 'check-circle' : course.status === 'draft' ? 'pencil-alt' : 'archive' %>"></i>
+                      <%= course.status %>
+                    </span>
+                    <% if (course.discountPrice && course.discountPrice > 0) { %>
+                    <span class="discount-badge">
+                      <i class="fas fa-percent"></i> <%= course.discountPrice %>% OFF
+                    </span>
+                    <% } %>
+                  </div>
+                  <% if (course.enrolledStudents && course.enrolledStudents.length > 0) { %>
+                  <div class="enrolled-badge">
+                    <i class="fas fa-users"></i> <%= course.enrolledStudents.length %>
+                  </div>
+                  <% } %>
+                </div>
+                <div class="card-body">
+                  <h4 class="card-title"><%= course.title %></h4>
+                  <div class="card-info">
+                    <% if (course.teacher) { %>
+                    <div class="teacher-info">
+                      <% if (course.teacher.profilePicture) { %>
+                      <img src="<%= course.teacher.profilePicture %>" alt="<%= course.teacher.firstName %>" class="teacher-avatar-img">
+                      <% } else { %>
+                      <div class="teacher-avatar">
+                        <%= course.teacher.firstName.charAt(0) %><%= course.teacher.lastName.charAt(0) %>
+                      </div>
+                      <% } %>
+                      <div class="teacher-details">
+                        <span class="teacher-name"><%= course.teacher.firstName %> <%= course.teacher.lastName %></span>
+                        <% if (course.teacher.subject) { %>
+                        <span class="teacher-subject"><i class="fas fa-book-reader"></i> <%= course.teacher.subject %></span>
+                        <% } %>
+                      </div>
+                    </div>
+                    <% } else { %>
+                    <div class="no-teacher">
+                      <i class="fas fa-user-slash"></i> No teacher assigned
+                    </div>
+                    <% } %>
+                  </div>
+                  <div class="card-meta">
+                    <span class="meta-code"><i class="fas fa-hashtag"></i> <%= course.courseCode %></span>
+                    <% if (course.examPeriod) { %>
+                    <span class="meta-period"><i class="fas fa-calendar"></i> <%= course.examPeriod.displayName || course.examPeriod.name %></span>
+                    <% } %>
+                    <span class="meta-topics"><i class="fas fa-layer-group"></i> <%= course.topics ? course.topics.length : 0 %> Topics</span>
+                  </div>
+                  <div class="card-footer">
+                    <div class="price-section">
+                      <% if (course.discountPrice && course.discountPrice > 0) { %>
+                      <span class="original-price">EGP <%= course.price %></span>
+                      <span class="card-price">EGP <%= Math.round(course.price * (1 - course.discountPrice / 100)) %></span>
+                      <% } else { %>
+                      <span class="card-price">EGP <%= course.price %></span>
+                      <% } %>
+                    </div>
+                    <div class="card-actions">
+                      <a href="/admin/courses/<%= course.courseCode %>/details" class="action-icon analytics" title="Analytics">
+                        <i class="fas fa-chart-line"></i>
+                      </a>
+                      <button class="action-icon share" onclick="shareCourse('<%= course.courseCode %>', '<%= course.title.replace(/'/g, "\\'") %>', '<%= course._id %>')" title="Share">
+                        <i class="fas fa-share-alt"></i>
+                      </button>
+                      <button class="action-icon duplicate" onclick="duplicateCourse('<%= course.courseCode %>')" title="Duplicate">
+                        <i class="fas fa-copy"></i>
+                      </button>
+                      <button class="action-icon danger" onclick="deleteCourse('<%= course.courseCode %>', '<%= course.status %>')" title="Delete">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <% }); %>
+            <% } else { %>
+              <div class="empty-state">
+                <i class="fas fa-book-open"></i>
+                <h3>No courses yet</h3>
+                <p>Create your first course to get started</p>
+                <button class="btn-primary" data-bs-toggle="modal" data-bs-target="#createCourseModal">
+                  <i class="fas fa-plus"></i> Create Course
+                </button>
+              </div>
+            <% } %>
+          </div>
         </div>
 
       </div>
     </div>
-
   </main>
 </div>
 
-<!-- Create Course Modal -->
+<!-- Create Course Modal (Matching Edit Course Style) -->
 <div class="modal fade" id="createCourseModal" tabindex="-1" aria-labelledby="createCourseModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content admin-modal-content admin-modal-wide">
       <div class="modal-header admin-modal-header">
         <h5 class="modal-title" id="createCourseModalLabel">
           <i class="fas fa-plus-circle me-2"></i>
           Create New Course
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-          <i class="fas fa-times"></i>
-        </button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-
       <form id="createCourseForm" method="POST" action="/admin/courses/create">
         <div class="modal-body admin-modal-body">
-          <!-- Course Thumbnail Upload Section -->
-          <div class="admin-form-section">
-            <h6 class="admin-form-section-title">
-              <i class="fas fa-image me-2"></i>
-              Course Thumbnail
-            </h6>
-            <div class="upload-section">
-              <input type="file" id="courseThumbnail" class="upload-input" accept="image/*">
-              <label for="courseThumbnail" class="upload-label">
-                <i class="fas fa-cloud-upload-alt"></i>
-                Choose Thumbnail Image
-              </label>
-              <div id="courseThumbnailPreview" class="upload-preview">
-                <div class="preview-overlay">
-                  <i class="fas fa-cloud-upload-alt"></i>
-                  <p>Click or drag to upload</p>
-                  <small>JPEG, PNG, JPG, WebP (max 10MB)</small>
-                </div>
-              </div>
-              <div id="courseThumbnailProgress" class="progress-container" style="display: none;"></div>
-            </div>
-            <input type="hidden" name="thumbnail" id="courseThumbnailUrl">
-          </div>
-
-          <!-- Course Details Section -->
           <div class="row">
+            <!-- Basic Information -->
             <div class="col-md-8">
-              <div class="admin-form-section">
+              <div class="admin-form-section mb-4">
                 <h6 class="admin-form-section-title">
-                  <i class="fas fa-info-circle me-2"></i>
-                  Course Information
+                  <i class="fas fa-info-circle me-2"></i>Basic Information
                 </h6>
-
-                <div class="admin-form-group">
-                  <label for="courseTitle" class="admin-form-label">
-                    <i class="fas fa-heading me-2"></i>
-                    Course Title
-                  </label>
-                  <input type="text" class="admin-form-control" id="courseTitle" name="title" minlength="3" maxlength="100" required>
-                  <small class="admin-form-text">Title must be between 3 and 100 characters</small>
-                  <div class="invalid-feedback" id="courseTitleError"></div>
+                
+                <div class="mb-3">
+                  <label for="courseTitle" class="form-label">Course Title <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="courseTitle" name="title" required minlength="3" maxlength="100" placeholder="Enter course title">
                 </div>
 
-                <div class="admin-form-group">
-                  <label for="courseDescription" class="admin-form-label">
-                    <i class="fas fa-align-left me-2"></i>
-                    Course Description (Optional)
-                  </label>
-                  <textarea class="admin-form-control" id="courseDescription" name="description" rows="4" maxlength="500"></textarea>
-                  <small class="admin-form-text">Description is optional (max 500 characters)</small>
-                  <div class="invalid-feedback" id="courseDescriptionError"></div>
+                <div class="mb-3">
+                  <label for="courseDescription" class="form-label">Description</label>
+                  <textarea class="form-control" id="courseDescription" name="description" rows="3" maxlength="500" placeholder="Course description"></textarea>
                 </div>
 
-                <div class="admin-form-group">
-                  <label for="shortDescription" class="admin-form-label">
-                    <i class="fas fa-text-width me-2"></i>
-                    Short Description (Optional)
-                  </label>
-                  <input type="text" class="admin-form-control" id="shortDescription" name="shortDescription" maxlength="150">
-                  <small class="admin-form-text">Short description is optional (max 150 characters)</small>
-                  <div class="invalid-feedback" id="shortDescriptionError"></div>
+                <div class="mb-3">
+                  <label for="courseShortDescription" class="form-label">Short Description</label>
+                  <input type="text" class="form-control" id="courseShortDescription" name="shortDescription" maxlength="150" placeholder="Brief summary for listings">
                 </div>
               </div>
             </div>
 
+            <!-- Thumbnail -->
             <div class="col-md-4">
-              <div class="admin-form-section">
+              <div class="admin-form-section mb-4">
                 <h6 class="admin-form-section-title">
-                  <i class="fas fa-cog me-2"></i>
-                  Course Settings
+                  <i class="fas fa-image me-2"></i>Thumbnail
                 </h6>
-
-                <div class="admin-form-group">
-                  <label for="courseTeacher" class="admin-form-label">
-                    <i class="fas fa-chalkboard-teacher me-2"></i>
-                    Select Teacher
-                  </label>
-                  <select class="admin-form-control" id="courseTeacher" name="teacher">
-                    <option value="">No Teacher Assigned</option>
-                    <!-- Teachers will be loaded dynamically -->
-                  </select>
-                  <small class="admin-form-text">Optional: Assign a teacher to this course</small>
+                
+                <div class="thumbnail-upload-box" id="thumbnailUploadBox" onclick="document.getElementById('courseThumbnail').click()">
+                  <div class="thumbnail-placeholder" id="thumbnailPlaceholder">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>Click to upload</span>
+                    <small>800×450px recommended</small>
+                  </div>
+                  <img id="thumbnailPreviewImg" src="" alt="Preview" style="display: none;">
                 </div>
+                <input type="file" id="courseThumbnail" accept="image/*" style="display: none;">
+                <input type="hidden" name="thumbnail" id="thumbnailUrl">
+              </div>
+            </div>
 
-                <div class="admin-form-group">
-                  <label for="courseExamPeriod" class="admin-form-label">
-                    <i class="fas fa-calendar-alt me-2"></i>
-                    Exam Period
-                  </label>
-                  <select class="admin-form-control" id="courseExamPeriod" name="examPeriod">
-                    <option value="">No Exam Period</option>
-                    <!-- Exam periods will be loaded dynamically -->
-                  </select>
-                  <small class="admin-form-text">Optional: Associate course with an exam period</small>
-                </div>
+            <!-- Teacher and Exam Period -->
+            <div class="col-md-6">
+              <div class="admin-form-section mb-4">
+                <h6 class="admin-form-section-title">
+                  <i class="fas fa-user-tie me-2"></i>Teacher
+                </h6>
+                <select class="form-select" id="courseTeacher" name="teacher">
+                  <option value="">No Teacher</option>
+                </select>
+              </div>
+            </div>
 
-                <div class="admin-form-group">
-                  <label for="coursePrice" class="admin-form-label">
-                    <i class="fas fa-coins me-2"></i>
-                    Price (EGP)
-                  </label>
-                  <input type="number" class="admin-form-control" id="coursePrice" name="price" min="0" step="0.01" required>
-                  <small class="admin-form-text">Individual course price</small>
-                  <div class="invalid-feedback" id="coursePriceError"></div>
-                </div>
+            <div class="col-md-6">
+              <div class="admin-form-section mb-4">
+                <h6 class="admin-form-section-title">
+                  <i class="fas fa-calendar me-2"></i>Exam Period
+                </h6>
+                <select class="form-select" id="courseExamPeriod" name="examPeriod">
+                  <option value="">No Period</option>
+                </select>
+              </div>
+            </div>
 
-                <div class="admin-form-group">
-                  <label for="courseDiscountPrice" class="admin-form-label">
-                    <i class="fas fa-percentage me-2"></i>
-                    Discount Percentage (%)
-                  </label>
-                  <input type="number" class="admin-form-control" id="courseDiscountPrice" name="discountPrice" min="0" max="100" step="1" value="0">
-                  <small class="admin-form-text">Optional: Set a discount percentage (0-100)</small>
-                  <div class="invalid-feedback" id="courseDiscountPriceError"></div>
+            <!-- Pricing -->
+            <div class="col-md-6">
+              <div class="admin-form-section mb-4">
+                <h6 class="admin-form-section-title">
+                  <i class="fas fa-dollar-sign me-2"></i>Pricing
+                </h6>
+                
+                <div class="row g-3">
+                  <div class="col-6">
+                    <label for="coursePrice" class="form-label">Price (EGP) <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="coursePrice" name="price" min="0" step="0.01" required placeholder="0.00">
+                  </div>
+                  <div class="col-6">
+                    <label for="courseDiscount" class="form-label">Discount %</label>
+                    <input type="number" class="form-control" id="courseDiscount" name="discountPrice" min="0" max="100" value="0">
+                  </div>
                 </div>
+              </div>
+            </div>
+
+            <!-- Status -->
+            <div class="col-md-6">
+              <div class="admin-form-section mb-4">
+                <h6 class="admin-form-section-title">
+                  <i class="fas fa-cog me-2"></i>Status
+                </h6>
+                <select class="form-select" id="courseStatus" name="status">
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                </select>
               </div>
             </div>
           </div>
         </div>
-
         <div class="modal-footer admin-modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary admin-btn-primary">
-            <i class="fas fa-plus me-2"></i>
-            Create Course
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-1"></i>Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Create Course
           </button>
         </div>
       </form>
@@ -495,107 +448,66 @@
   </div>
 </div>
 
-<!-- Exam Period Management Modal -->
+<!-- Exam Period Modal -->
 <div class="modal fade" id="examPeriodModal" tabindex="-1" aria-labelledby="examPeriodModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content admin-modal-content">
-      <div class="modal-header admin-modal-header">
+      <div class="modal-header admin-modal-header" style="background: linear-gradient(135deg, #3a92bd 0%, #0c5374 100%);">
         <h5 class="modal-title" id="examPeriodModalLabel">
           <i class="fas fa-calendar-alt me-2"></i>
           Manage Exam Periods
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-          <i class="fas fa-times"></i>
-        </button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      
-      <div class="modal-body">
-        <!-- Add New Period Form -->
+      <div class="modal-body admin-modal-body">
+        <!-- Add Period Form -->
         <div class="admin-form-section mb-4">
           <h6 class="admin-form-section-title">
-            <i class="fas fa-plus-circle me-2"></i>
-            Add New Exam Period
+            <i class="fas fa-plus-circle me-2"></i>Add New Period
           </h6>
-          <form id="addExamPeriodForm">
-            <div class="row">
-              <div class="col-md-6">
-                <div class="admin-form-group">
-                  <label class="admin-form-label">
-                    <i class="fas fa-tag me-2"></i>
-                    Period Name
-                  </label>
-                  <input type="text" class="admin-form-control" id="periodName" name="name" placeholder="e.g., January 2026" required>
-                  <small class="admin-form-text">Full period name with year</small>
-                </div>
+          <form id="addPeriodForm">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">Period Name</label>
+                <input type="text" id="periodName" class="form-control" placeholder="e.g., January 2026" required>
               </div>
-              <div class="col-md-6">
-                <div class="admin-form-group">
-                  <label class="admin-form-label">
-                    <i class="fas fa-text-width me-2"></i>
-                    Display Name
-                  </label>
-                  <input type="text" class="admin-form-control" id="periodDisplayName" name="displayName" placeholder="e.g., January" required>
-                  <small class="admin-form-text">Short name for display</small>
-                </div>
+              <div class="col-md-2">
+                <label class="form-label">Display</label>
+                <input type="text" id="periodDisplayName" class="form-control" placeholder="Jan '26" required>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Year</label>
+                <input type="number" id="periodYear" class="form-control" value="2026" required>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Start</label>
+                <input type="date" id="periodStartDate" class="form-control" required>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">End</label>
+                <input type="date" id="periodEndDate" class="form-control" required>
               </div>
             </div>
-            
-            <div class="row">
-              <div class="col-md-4">
-                <div class="admin-form-group">
-                  <label class="admin-form-label">
-                    <i class="fas fa-calendar me-2"></i>
-                    Year
-                  </label>
-                  <input type="number" class="admin-form-control" id="periodYear" name="year" min="2024" max="2030" value="2026" required>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="admin-form-group">
-                  <label class="admin-form-label">
-                    <i class="fas fa-calendar-day me-2"></i>
-                    Start Date
-                  </label>
-                  <input type="date" class="admin-form-control" id="periodStartDate" name="startDate" required>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="admin-form-group">
-                  <label class="admin-form-label">
-                    <i class="fas fa-calendar-check me-2"></i>
-                    End Date
-                  </label>
-                  <input type="date" class="admin-form-control" id="periodEndDate" name="endDate" required>
-                </div>
-              </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary admin-btn-primary">
-              <i class="fas fa-plus me-2"></i>
-              Add Period
+            <button type="submit" class="btn btn-primary mt-3">
+              <i class="fas fa-plus me-1"></i>Add Period
             </button>
           </form>
         </div>
 
-        <!-- Existing Periods List -->
+        <!-- Existing Periods -->
         <div class="admin-form-section">
           <h6 class="admin-form-section-title">
-            <i class="fas fa-list me-2"></i>
-            Existing Exam Periods
+            <i class="fas fa-list me-2"></i>Existing Periods
           </h6>
-          <div id="examPeriodsList" class="exam-periods-list">
-            <!-- Will be populated dynamically -->
-            <div class="text-center py-4">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
+          <div id="periodsList" class="periods-list">
+            <div class="text-center text-muted py-4">
+              <i class="fas fa-spinner fa-spin me-2"></i>Loading...
             </div>
           </div>
         </div>
       </div>
-
       <div class="modal-footer admin-modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -603,2039 +515,2207 @@
 
 <%- include('./partials/admin-footer') %>
 
-<!-- Toast Container -->
-<div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
-
-<!-- Bundle Header Styles to Match Student View -->
 <style>
-  /* Enhanced Exam Period Button */
-  .exam-period-btn {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 24px;
-    background: linear-gradient(135deg, #3a92bd 0%, #2d7a9f 100%);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(58, 146, 189, 0.3);
-  }
-
-  .exam-period-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.6s ease;
-  }
-
-  .exam-period-btn:hover::before {
-    left: 100%;
-  }
-
-  .exam-period-btn::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 12px;
-    padding: 2px;
-    background: linear-gradient(135deg, #5ba8cc, #3a92bd, #2d7a9f);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
-
-  .exam-period-btn:hover::after {
-    opacity: 1;
-  }
-
-  .exam-period-btn .btn-icon-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .exam-period-btn:hover .btn-icon-wrapper {
-    background: rgba(255, 255, 255, 0.3);
-    transform: rotate(360deg) scale(1.1);
-  }
-
-  .exam-period-btn .btn-icon-wrapper i {
-    font-size: 1.1rem;
-    transition: all 0.4s ease;
-  }
-
-  .exam-period-btn:hover .btn-icon-wrapper i {
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-  }
-
-  .exam-period-btn .btn-text {
-    position: relative;
-    z-index: 1;
-    transition: all 0.3s ease;
-  }
-
-  .exam-period-btn:hover .btn-text {
-    color: white;
-    letter-spacing: 0.5px;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  }
-
-  .exam-period-btn:hover {
-    color: white;
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 25px rgba(58, 146, 189, 0.5), 
-                0 0 30px rgba(58, 146, 189, 0.3);
-  }
-
-  .exam-period-btn:active {
-    transform: translateY(0) scale(0.98);
-    box-shadow: 0 3px 10px rgba(58, 146, 189, 0.4);
-  }
-
-  .exam-period-btn .btn-shine {
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.6s ease;
-  }
-
-  .exam-period-btn:hover .btn-shine {
-    opacity: 1;
-    animation: shine 1.5s ease-in-out infinite;
-  }
-
-  @keyframes shine {
-    0% {
-      transform: translate(-50%, -50%) scale(0);
-      opacity: 0.8;
-    }
-    50% {
-      opacity: 0.4;
-    }
-    100% {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 0;
-    }
-  }
-
-  /* Dark theme adjustments */
-  .dark-theme .exam-period-btn {
-    background: linear-gradient(135deg, #5ba8cc 0%, #3a92bd 100%);
-    box-shadow: 0 4px 15px rgba(91, 168, 204, 0.4);
-  }
-
-  .dark-theme .exam-period-btn:hover {
-    box-shadow: 0 8px 25px rgba(91, 168, 204, 0.6), 
-                0 0 30px rgba(91, 168, 204, 0.4);
-  }
-
-  /* CSS Variables for Bundle Headers - Matching Student View */
-  :root {
-    --primary-color: #dc2626;
-    --bg-secondary: #f8fafc;
-    --bg-primary: #ffffff;
-    --text-primary: #1f2937;
-    --text-muted: #9ca3af;
-    --spacing-xs: 0.25rem;
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 1.5rem;
-    --spacing-xl: 2rem;
-    /* Admin CSS Variables for Filters */
-    --admin-card-light: #ffffff;
-    --admin-card-dark: #2d3748;
-    --admin-text-light: #1f2937;
-    --admin-text-dark: #f7fafc;
-    --admin-border-light: #e5e7eb;
-    --admin-border-dark: #4a5568;
-    --admin-bg-light: #f3f4f6;
-    --admin-bg-dark: #374151;
-  }
-  
-  .dark-theme {
-    --bg-secondary: #1e293b;
-    --bg-primary: #2d3748;
-    --text-primary: #f7fafc;
-    --text-muted: #9ca3af;
-    /* Admin CSS Variables for Filters - Dark Mode */
-    --admin-card-light: #2d3748;
-    --admin-card-dark: #1e293b;
-    --admin-text-light: #f7fafc;
-    --admin-text-dark: #e2e8f0;
-    --admin-border-light: #4a5568;
-    --admin-border-dark: #2d3748;
-    --admin-bg-light: #374151;
-    --admin-bg-dark: #1f2937;
-  }
-
-  /* Course Filters Styles */
-  .admin-filters-card {
-    background: var(--admin-card-light);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    border: 1px solid var(--admin-border-light);
-    transition: all 0.3s ease;
-  }
-
-  .dark-theme .admin-filters-card {
-    background: var(--admin-card-dark);
-    border-color: var(--admin-border-dark);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  }
-
-  .admin-filters-title {
-    font-weight: 600;
-    color: var(--admin-text-light);
-  }
-
-  .dark-theme .admin-filters-title {
-    color: var(--admin-text-dark);
-  }
-
-  .filter-icon {
-    color: #dc2626;
-  }
-
-  .filter-active-badge {
-    background: linear-gradient(135deg, #3a92bd, #0c5374);
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-weight: 500;
-  }
-
-  .filter-label {
-    font-weight: 500;
-    color: var(--admin-text-light);
-    font-size: 0.875rem;
-    margin-bottom: 6px;
-  }
-
-  .dark-theme .filter-label {
-    color: var(--admin-text-dark);
-  }
-
-  .filter-select,
-  .filter-input {
-    border: 1.5px solid var(--admin-border-light);
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-    background: var(--admin-card-light);
-    color: var(--admin-text-light);
-  }
-
-  .dark-theme .filter-select,
-  .dark-theme .filter-input {
-    border-color: var(--admin-border-dark);
-    background: var(--admin-card-dark);
-    color: var(--admin-text-dark);
-  }
-
-  .filter-select:hover,
-  .filter-input:hover {
-    border-color: #dc2626;
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-  }
-
-  .filter-select:focus,
-  .filter-input:focus {
-    border-color: #dc2626;
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-    outline: none;
-    background: var(--admin-card-light);
-    color: var(--admin-text-light);
-  }
-
-  .dark-theme .filter-select:focus,
-  .dark-theme .filter-input:focus {
-    background: var(--admin-card-dark);
-    color: var(--admin-text-dark);
-  }
-
-  .filter-select option {
-    background: var(--admin-card-light);
-    color: var(--admin-text-light);
-  }
-
-  .dark-theme .filter-select option {
-    background: var(--admin-card-dark);
-    color: var(--admin-text-dark);
-  }
-
-  .filter-apply-btn {
-    background: linear-gradient(135deg, #3a92bd, #0c5374);
-    color: white;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-  }
-
-  .filter-apply-btn:hover {
-    background: linear-gradient(135deg, #b91c1c, #991b1b);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-    color: white;
-  }
-
-  .filter-clear-btn {
-    background: var(--admin-bg-light);
-    color: var(--admin-text-light);
-    border: 1px solid var(--admin-border-light);
-    padding: 8px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    text-decoration: none;
-  }
-
-  .dark-theme .filter-clear-btn {
-    background: var(--admin-bg-dark);
-    color: var(--admin-text-dark);
-    border-color: var(--admin-border-dark);
-  }
-
-  .filter-clear-btn:hover {
-    background: var(--admin-border-light);
-    border-color: var(--admin-border-light);
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    color: var(--admin-text-light);
-  }
-
-  .dark-theme .filter-clear-btn:hover {
-    background: var(--admin-border-dark);
-    border-color: var(--admin-border-dark);
-    color: var(--admin-text-dark);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  }
-
-  /* Bulk Actions Toolbar Styles */
-  .bulk-actions-toolbar {
-    margin-bottom: 25px;
-    padding: 20px;
-    background: linear-gradient(135deg, var(--admin-card-light) 0%, var(--admin-bg-light) 100%);
-    border-radius: 12px;
-    border: 2px solid #dc2626;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
-  }
-
-  .dark-theme .bulk-actions-toolbar {
-    background: linear-gradient(135deg, var(--admin-card-dark) 0%, var(--admin-bg-dark) 100%);
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-  }
-
-  .bulk-selected-count {
-    padding: 8px 16px;
-    background: #dc2626;
-    border-radius: 8px;
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .bulk-selected-count i {
-    font-size: 1.1rem;
-  }
-
-  .bulk-selected-count span {
-    font-weight: 600;
-    font-size: 0.95rem;
-  }
-
-  .bulk-select-buttons {
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .dark-theme .bulk-select-buttons {
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  }
-
-  .bulk-select-btn {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    border-radius: 0;
-  }
-
-  .bulk-deselect-btn {
-    background: linear-gradient(135deg, #6b7280, #4b5563);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    border-radius: 0;
-  }
-
-  .bulk-action-label {
-    font-weight: 600;
-    color: var(--admin-text-light);
-  }
-
-  .dark-theme .bulk-action-label {
-    color: var(--admin-text-dark);
-  }
-
-  .bulk-status-select {
-    width: 180px;
-    border: 2px solid var(--admin-border-light);
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    background: var(--admin-card-light);
-    color: var(--admin-text-light);
-  }
-
-  .dark-theme .bulk-status-select {
-    border-color: var(--admin-border-dark);
-    background: var(--admin-card-dark);
-    color: var(--admin-text-dark);
-  }
-
-  .bulk-status-select:hover {
-    border-color: #dc2626;
-  }
-
-  .bulk-status-select:focus {
-    border-color: #dc2626;
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-    outline: none;
-    background: var(--admin-card-light);
-    color: var(--admin-text-light);
-  }
-
-  .dark-theme .bulk-status-select:focus {
-    background: var(--admin-card-dark);
-    color: var(--admin-text-dark);
-  }
-
-  .bulk-status-select option {
-    background: var(--admin-card-light);
-    color: var(--admin-text-light);
-  }
-
-  .dark-theme .bulk-status-select option {
-    background: var(--admin-card-dark);
-    color: var(--admin-text-dark);
-  }
-
-  .bulk-apply-btn {
-    background: linear-gradient(135deg, #3a92bd, #0c5374);
-    color: white;
-    border: none;
-    padding: 8px 20px;
-    font-weight: 600;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
-  }
-
-  .bulk-apply-btn:disabled {
-    background: #9ca3af;
-    cursor: not-allowed;
-    opacity: 0.6;
-    box-shadow: none;
-  }
-
-  .bulk-apply-btn:not(:disabled):hover {
-    background: linear-gradient(135deg, #b91c1c, #991b1b);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
-  }
-  
-  /* Bundle Header Hover Effect - Matching Student View */
-  .bundle-name-display:hover {
-    background: var(--bg-primary) !important;
-  }
-  
-  /* Responsive Styles for Bundle Header */
-  @media (max-width: 768px) {
-    .bundle-name-display {
-      padding: var(--spacing-md) !important;
-    }
-    
-    .bundle-name-display > div > div:first-child {
-      flex-direction: column;
-      align-items: flex-start !important;
-      gap: var(--spacing-md) !important;
-    }
-    
-    .bundle-name-display > div > div:first-child > div:first-child {
-      width: 60px !important;
-      height: 60px !important;
-    }
-    
-    .bundle-name-display h3 {
-      font-size: 1.1rem !important;
-    }
-    
-    .bundle-name-display > div > div:first-child > div:last-child {
-      width: 100%;
-    }
-  }
-
-  /* Enhanced Checkbox Styling */
-  .course-checkbox-wrapper {
-    transition: transform 0.2s ease;
-  }
-
-  .course-checkbox-wrapper:hover {
-    transform: scale(1.1);
-  }
-
-  .custom-checkbox-label {
-    position: relative;
-  }
-
-  .custom-checkbox-label:hover {
-    background: #fee2e2 !important;
-    border-color: #dc2626 !important;
-    box-shadow: 0 4px 8px rgba(220, 38, 38, 0.2) !important;
-  }
-
-  /* Checkbox checked state */
-  .course-checkbox:checked ~ .checkbox-icon {
-    opacity: 1 !important;
-  }
-
-  .custom-checkbox-label:has(.course-checkbox:checked) {
-    background: linear-gradient(135deg, #3a92bd, #0c5374) !important;
-    border-color: #dc2626 !important;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3) !important;
-  }
-
-  .custom-checkbox-label:has(.course-checkbox:checked) .checkbox-icon {
-    opacity: 1 !important;
-    color: white !important;
-  }
-
-  /* Fallback for browsers that don't support :has() */
-  .course-checkbox-wrapper input[type="checkbox"]:checked + .checkbox-icon {
-    opacity: 1 !important;
-  }
-
-  /* Bulk Actions Toolbar Enhancements */
-  .bulk-actions-toolbar button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-  }
-
-  .bulk-select-buttons .bulk-select-btn:hover {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
-  }
-
-  .bulk-select-buttons .bulk-deselect-btn:hover {
-    background: linear-gradient(135deg, #4b5563, #374151) !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3) !important;
-  }
-
-  .bulk-actions-toolbar #applyBulkBtn:disabled {
-    background: #9ca3af !important;
-    cursor: not-allowed;
-    opacity: 0.6;
-    box-shadow: none !important;
-  }
-
-  .bulk-actions-toolbar #applyBulkBtn:not(:disabled):hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4) !important;
-  }
-
-  .bulk-actions-toolbar select:hover {
-    border-color: #dc2626 !important;
-  }
-
-  .bulk-actions-toolbar select:focus {
-    border-color: #dc2626 !important;
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
-    outline: none;
-  }
-
-  /* Responsive Bulk Actions */
-  @media (max-width: 768px) {
-    .bulk-actions-toolbar > div {
-      flex-direction: column !important;
-      align-items: stretch !important;
-    }
-
-    .bulk-actions-toolbar > div > div {
-      width: 100%;
-      justify-content: center;
-    }
-
-    .bulk-actions-toolbar select {
-      width: 100% !important;
-    }
-  }
-
-  /* Enhanced Filter Styles - Removed duplicates, using CSS variables above */
-
-  /* Mobile Responsive Filters */
-  @media (max-width: 768px) {
-    .admin-filters-card {
-      padding: 15px !important;
-    }
-
-    .admin-filters-card h5 {
-      font-size: 1rem !important;
-    }
-
-    .filter-select,
-    .filter-input {
-      font-size: 0.875rem;
-      padding: 10px 12px;
-    }
-
-    .filter-apply-btn,
-    .filter-clear-btn {
-      flex: 1;
-      min-width: 120px;
-    }
-
-    .admin-filters-form .row > div {
-      margin-bottom: 0;
-    }
-  }
-
-  @media (max-width: 576px) {
-    .admin-filters-card {
-      padding: 12px !important;
-      border-radius: 8px !important;
-    }
-
-    .filter-apply-btn,
-    .filter-clear-btn {
-      width: 100%;
-      margin-bottom: 8px;
-    }
-
-    .filter-apply-btn:last-child,
-    .filter-clear-btn:last-child {
-      margin-bottom: 0;
-    }
-  }
-
-  /* Enhanced Course Actions - Keep all buttons in one row */
-  .admin-course-actions {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    gap: 6px !important;
+/* ============================================ */
+/* Courses Page - Clean Professional Design    */
+/* ============================================ */
+
+:root {
+  --primary: #3a92bd;
+  --primary-dark: #0c5374;
+  --primary-light: #5ba9d1;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --bg-page: #f1f5f9;
+  --bg-card: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --border: #e2e8f0;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 25px rgba(0,0,0,0.12);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+.dark-theme {
+  --bg-page: #0f172a;
+  --bg-card: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border: #334155;
+}
+
+.courses-container {
+  padding: 0;
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+}
+
+.page-title i {
+  color: var(--primary);
+}
+
+.page-subtitle {
+  color: var(--text-secondary);
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-primary, .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 4px 15px rgba(58, 146, 189, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+
+.btn-secondary:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.stat-icon.blue { background: rgba(58, 146, 189, 0.15); color: var(--primary); }
+.stat-icon.green { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+.stat-icon.orange { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+.stat-icon.purple { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* Filter Section */
+.filter-section {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.filter-header:hover {
+  background: rgba(58, 146, 189, 0.05);
+}
+
+.filter-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.filter-title i {
+  color: var(--primary);
+}
+
+.filter-badge {
+  background: var(--primary);
+  color: white;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.filter-toggle i {
+  transition: transform 0.3s;
+}
+
+.filter-toggle i.rotated {
+  transform: rotate(180deg);
+}
+
+.filter-content {
+  padding: 0 20px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.filter-step {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.filter-step:last-of-type {
+  border-bottom: none;
+}
+
+.step-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+.step-number {
+  width: 24px;
+  height: 24px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.clear-step-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.clear-step-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+/* Exam Period Pills */
+.exam-period-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.period-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg-page);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.period-pill:hover {
+  border-color: var(--primary);
+  background: rgba(58, 146, 189, 0.05);
+}
+
+.period-pill.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.period-pill i {
+  font-size: 14px;
+}
+
+.pill-count {
+  background: rgba(0,0,0,0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.period-pill.active .pill-count {
+  background: rgba(255,255,255,0.2);
+}
+
+/* Teacher Cards Row */
+.teacher-cards-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.teacher-card-mini {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--bg-page);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.teacher-card-mini:hover {
+  border-color: var(--primary);
+  background: rgba(58, 146, 189, 0.05);
+}
+
+.teacher-card-mini.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.teacher-avatar-mini {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.teacher-card-mini.active .teacher-avatar-mini {
+  background: rgba(255,255,255,0.2);
+}
+
+.teacher-name-mini {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.teacher-count-mini {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+/* Active Filters */
+.active-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  flex-wrap: wrap;
+}
+
+.active-filters-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.filter-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(58, 146, 189, 0.15);
+  color: var(--primary-dark);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.filter-tag i {
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.filter-tag i:hover {
+  opacity: 1;
+}
+
+.clear-all-btn {
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+
+.clear-all-btn:hover {
+  text-decoration: underline;
+}
+
+/* Courses Section */
+.courses-section {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-title h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.courses-count {
+  background: var(--bg-page);
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.section-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.view-toggle {
+  display: flex;
+  background: var(--bg-page);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+}
+
+.view-btn {
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.view-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+.sort-select, .status-filter, .subject-filter {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.subject-filter {
+  min-width: 140px;
+}
+
+.search-box {
+  position: relative;
+}
+
+.search-box i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.search-box input {
+  padding: 8px 12px 8px 36px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 13px;
+  width: 200px;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Bulk Actions */
+.bulk-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(58, 146, 189, 0.1);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+}
+
+.bulk-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.bulk-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.bulk-apply {
+  padding: 6px 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Courses Grid */
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.courses-grid.list-view {
+  grid-template-columns: 1fr;
+}
+
+.courses-grid.list-view .course-card {
+  display: flex;
+  flex-direction: row;
+}
+
+.courses-grid.list-view .card-thumbnail {
+  width: 200px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.courses-grid.list-view .card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.course-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.course-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-5px);
+  border-color: var(--primary);
+}
+
+.card-checkbox {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+}
+
+.course-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--primary);
+  background: white;
+  border-radius: 4px;
+}
+
+.card-thumbnail {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.course-card:hover .card-thumbnail img {
+  transform: scale(1.08);
+}
+
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(58, 146, 189, 0.9), rgba(12, 83, 116, 0.9));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.course-card:hover .card-overlay {
+  opacity: 1;
+}
+
+.overlay-btn {
+  padding: 12px 24px;
+  background: white;
+  color: var(--primary);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.overlay-btn:hover {
+  transform: scale(1.05);
+  color: var(--primary-dark);
+}
+
+/* Card Badges Container */
+.card-badges {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.status-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.status-badge i {
+  font-size: 10px;
+}
+
+.status-badge.published { 
+  background: linear-gradient(135deg, #22c55e, #16a34a); 
+}
+.status-badge.draft { 
+  background: linear-gradient(135deg, #f59e0b, #d97706); 
+}
+.status-badge.archived { 
+  background: linear-gradient(135deg, #94a3b8, #64748b); 
+}
+
+.discount-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.enrolled-badge {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(10px);
+}
+
+.card-body {
+  padding: 18px;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.8em;
+}
+
+/* Teacher Info Section */
+.card-info {
+  margin-bottom: 12px;
+}
+
+.teacher-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.teacher-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+}
+
+.teacher-avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid var(--primary);
+  box-shadow: 0 2px 8px rgba(58, 146, 189, 0.3);
+}
+
+.teacher-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.teacher-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.teacher-subject {
+  font-size: 11px;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.no-teacher {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.card-meta span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-page);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.card-meta span i {
+  color: var(--primary);
+  font-size: 10px;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.price-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.original-price {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.card-price {
+  font-weight: 800;
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+.card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.action-icon {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: var(--bg-page);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.action-icon:hover {
+  transform: translateY(-2px);
+}
+
+.action-icon.analytics:hover {
+  background: rgba(99, 102, 241, 0.15);
+  color: #6366f1;
+}
+
+.action-icon.share:hover {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.action-icon.duplicate:hover {
+  background: rgba(58, 146, 189, 0.15);
+  color: var(--primary);
+}
+
+.action-icon.danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+}
+
+/* Empty State */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-state i {
+  font-size: 48px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.empty-state h3 {
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  margin-bottom: 20px;
+}
+
+/* Periods List */
+.periods-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.period-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-page);
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+}
+
+.period-item h6 {
+  font-size: 14px;
+  margin: 0 0 4px;
+  color: var(--text-primary);
+}
+
+.period-item small {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.period-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.period-actions button {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.period-actions button:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.period-actions button.danger:hover {
+  background: var(--danger);
+}
+
+/* Thumbnail Upload */
+.thumbnail-upload {
+  position: relative;
+}
+
+.upload-area {
+  padding: 40px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.upload-area:hover {
+  border-color: var(--primary);
+  background: rgba(58, 146, 189, 0.05);
+}
+
+.upload-area i {
+  font-size: 32px;
+  color: var(--primary);
+  display: block;
+  margin-bottom: 10px;
+}
+
+.upload-area span {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.thumbnail-preview {
+  margin-top: 12px;
+}
+
+.thumbnail-preview img {
+  max-width: 150px;
+  border-radius: var(--radius-sm);
+}
+
+/* Add Period Form */
+.add-period-form {
+  padding: 16px;
+  background: var(--bg-page);
+  border-radius: var(--radius-sm);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
     align-items: stretch;
+  }
+
+  .header-actions {
+    justify-content: stretch;
+  }
+
+  .header-actions button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .section-controls {
+    width: 100%;
     justify-content: space-between;
-    width: 100%;
-    padding: 4px 0;
   }
 
-  .admin-course-action-btn {
-    flex: 1 1 0;
-    white-space: nowrap;
-    min-width: 0;
-    padding: 6px 8px !important;
-    font-size: 12px !important;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
+  .search-box input {
     width: 100%;
   }
 
-  .admin-course-action-btn .btn-text {
-    display: inline;
-  }
-
-  /* Hide text on smaller screens, show only icons */
-  @media (max-width: 1400px) {
-    .admin-course-action-btn .btn-text {
-      display: none;
-    }
-    
-    .admin-course-action-btn {
-      padding: 6px 4px !important;
-      flex: 1 1 0;
-    }
-  }
-
-  /* Ensure buttons don't wrap */
-  .admin-course-card .admin-course-actions {
-    flex-wrap: nowrap !important;
-  }
-
-  /* Scrollbar styling for overflow */
-  .admin-course-actions::-webkit-scrollbar {
-    height: 4px;
-  }
-
-  .admin-course-actions::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .admin-course-actions::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 2px;
-  }
-
-  .dark-theme .admin-course-actions::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-  }
-
-  /* ==========================================
-     SHARE MODAL STYLES
-     ========================================== */
-  
-  .share-modal-popup {
-    border-radius: 20px !important;
-    padding: 0 !important;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
-  }
-
-  .share-modal-popup .swal2-title {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 1.5rem;
-    padding: 1.5rem 2rem 0;
-  }
-
-  .share-modal-popup .swal2-html-container {
-    padding: 0 2rem 2rem;
-    margin: 0;
-  }
-
-  .share-modal-close {
-    font-size: 1.5rem !important;
-    color: #6b7280 !important;
-    transition: all 0.3s ease !important;
-  }
-
-  .share-modal-close:hover {
-    color: #dc2626 !important;
-    transform: rotate(90deg);
-  }
-
-  .share-modal-content {
-    display: flex;
+  .courses-grid.list-view .course-card {
     flex-direction: column;
-    gap: 1.5rem;
   }
 
-  .share-item-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.25rem;
-    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-    border-radius: 12px;
-    border-left: 4px solid #dc2626;
-  }
-
-  .share-item-icon {
-    width: 50px;
-    height: 50px;
-    background: linear-gradient(135deg, #3a92bd 0%, #0c5374 100%);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.5rem;
-    flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-  }
-
-  .share-item-details {
-    flex: 1;
-    text-align: left;
-  }
-
-  .share-item-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin: 0 0 0.25rem 0;
-  }
-
-  .share-item-description {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin: 0;
-    line-height: 1.4;
-  }
-
-  .share-link-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .share-link-label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #374151;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .share-link-label i {
-    color: #dc2626;
-  }
-
-  .share-link-input-wrapper {
-    display: flex;
-    gap: 0.5rem;
-    align-items: stretch;
-  }
-
-  .share-link-input {
-    flex: 1;
-    padding: 0.875rem 1rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 10px;
-    font-size: 0.875rem;
-    color: #1f2937;
-    background: #f9fafb;
-    transition: all 0.3s ease;
-    font-family: 'Courier New', monospace;
-  }
-
-  .share-link-input:focus {
-    outline: none;
-    border-color: #dc2626;
-    background: white;
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-  }
-
-  .share-copy-btn {
-    padding: 0.875rem 1.5rem;
-    background: linear-gradient(135deg, #3a92bd 0%, #0c5374 100%);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-  }
-
-  .share-copy-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
-  }
-
-  .share-copy-btn.copied {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-  }
-
-  .share-actions {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-  }
-
-  .share-action-btn {
-    padding: 0.875rem 1rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 10px;
-    background: white;
-    color: #374151;
-    font-weight: 600;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-
-  .share-action-btn.whatsapp {
-    border-color: #25D366;
-    color: #25D366;
-  }
-
-  .share-action-btn.whatsapp:hover {
-    background: #25D366;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
-  }
-
-  .share-action-btn.email {
-    border-color: #3b82f6;
-    color: #3b82f6;
-  }
-
-  .share-action-btn.email:hover {
-    background: #3b82f6;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-  }
-
-  .share-action-btn.telegram {
-    border-color: #0088cc;
-    color: #0088cc;
-  }
-
-  .share-action-btn.telegram:hover {
-    background: #0088cc;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);
-  }
-
-  .share-qr-section {
-    padding-top: 0.5rem;
-    border-top: 1px solid #e5e7eb;
-  }
-
-  .share-qr-btn {
+  .courses-grid.list-view .card-thumbnail {
     width: 100%;
-    padding: 0.875rem 1.5rem;
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    height: 160px;
   }
+}
 
-  .share-qr-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
-  }
+/* ============================================ */
+/* Admin Form Section Styles                   */
+/* ============================================ */
 
-  .qr-modal-popup {
-    border-radius: 20px !important;
-    padding: 2rem !important;
-  }
+.admin-form-section {
+  background: var(--bg-page);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
 
-  .qr-code-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-  }
+.admin-form-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
 
-  .qr-code-description {
-    font-size: 1rem;
-    color: #6b7280;
-    margin: 0;
-  }
+.admin-form-section-title i {
+  color: var(--primary);
+}
 
-  .qr-code-display {
-    padding: 1.5rem;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  }
+/* Thumbnail Upload Box */
+.thumbnail-upload-box {
+  width: 100%;
+  height: 180px;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
 
-  .qr-code-url {
-    font-size: 0.75rem;
-    color: #9ca3af;
-    margin: 0;
-    word-break: break-all;
-    text-align: center;
-    font-family: 'Courier New', monospace;
-  }
+.thumbnail-upload-box:hover {
+  border-color: var(--primary);
+  background: rgba(58, 146, 189, 0.05);
+}
 
-  .qr-download-btn {
-    width: 100%;
-    padding: 0.875rem 1.5rem;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-  }
+.thumbnail-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+}
 
-  .qr-download-btn:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
-  }
+.thumbnail-placeholder i {
+  font-size: 40px;
+  color: var(--primary);
+  opacity: 0.6;
+}
 
-  .qr-download-btn:active {
-    transform: translateY(0);
-  }
+.thumbnail-placeholder span {
+  font-weight: 600;
+  font-size: 14px;
+}
 
-  @media (max-width: 640px) {
-    .share-modal-popup {
-      width: 95% !important;
-    }
+.thumbnail-placeholder small {
+  font-size: 11px;
+  opacity: 0.7;
+}
 
-    .share-actions {
-      grid-template-columns: 1fr;
-    }
+.thumbnail-upload-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
-    .share-link-input-wrapper {
-      flex-direction: column;
-    }
+.dark-theme .thumbnail-upload-box {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
 
-    .share-copy-btn {
-      width: 100%;
-      justify-content: center;
-    }
-  }
+/* Periods List Styles */
+.periods-list {
+  max-height: 250px;
+  overflow-y: auto;
+}
 
-  /* Exam Period Styles */
-  .exam-periods-list {
-    max-height: 400px;
-    overflow-y: auto;
-  }
+.period-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--bg-page);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
 
-  .exam-period-item {
-    padding: 1rem;
-    background: var(--admin-card-light);
-    border: 1px solid var(--admin-border-light);
-    border-radius: 8px;
-    margin-bottom: 0.75rem;
-    transition: all 0.3s ease;
-  }
+.period-item:hover {
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
 
-  .exam-period-item.opacity-50 {
-    opacity: 0.6;
-    filter: grayscale(0.3);
-  }
+.period-item h6 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: var(--text-primary);
+}
 
-  .dark-theme .exam-period-item {
-    background: var(--admin-card-dark);
-    border-color: var(--admin-border-dark);
-  }
+.period-item small {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
 
-  .exam-period-item:hover {
-    border-color: #3a92bd;
-    box-shadow: 0 2px 8px rgba(58, 146, 189, 0.1);
-    transform: translateY(-1px);
-  }
+.period-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
 
-  .exam-period-item h6 {
-    color: var(--admin-text-light);
-    font-weight: 600;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
+/* Enhanced Period Item Styles */
+.period-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  transition: all 0.2s;
+}
 
-  .dark-theme .exam-period-item h6 {
-    color: var(--admin-text-dark);
-  }
+.period-item:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
 
-  .exam-period-item small {
-    color: var(--text-muted);
-  }
+.period-item.inactive {
+  opacity: 0.7;
+  background: #f8f9fa;
+}
 
-  .exam-period-item .btn-group {
-    gap: 0.25rem;
-    display: flex;
-  }
+.dark-theme .period-item.inactive {
+  background: rgba(0,0,0,0.2);
+}
 
-  .exam-period-item .btn-sm {
-    padding: 0.35rem 0.6rem;
-    font-size: 0.875rem;
-  }
+.period-info {
+  flex: 1;
+}
 
-  .exam-period-item .badge {
-    font-size: 0.75rem;
-    padding: 0.35rem 0.6rem;
-    font-weight: 500;
-  }
+.period-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
 
+.period-name strong {
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.period-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.period-status-badge.active {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.period-status-badge.inactive {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.period-dates {
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.period-year {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.period-action-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.period-action-btn.toggle {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.period-action-btn.toggle.inactive {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.period-action-btn.toggle:hover {
+  background: #22c55e;
+  color: white;
+}
+
+.period-action-btn.toggle.inactive:hover {
+  background: #f59e0b;
+  color: white;
+}
+
+.period-action-btn.edit {
+  background: rgba(58, 146, 189, 0.1);
+  color: var(--primary);
+}
+
+.period-action-btn.edit:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.period-action-btn.delete {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.period-action-btn.delete:hover {
+  background: #ef4444;
+  color: white;
+}
 </style>
 
-<!-- Local Upload Script -->
-<script src="/js/local-upload.js"></script>
-
 <script>
-  // Toast notification system
-  function showToast(message, type = 'info') {
-    const toastContainer = document.getElementById('toast-container');
+// Store all courses data
+const allCourses = <%- JSON.stringify(courses || []) %>;
+let selectedPeriod = null;
+let selectedTeacher = null;
+let currentView = 'grid';
 
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} border-0`;
-    toast.setAttribute('role', 'alert');
-    toast.setAttribute('aria-live', 'assertive');
-    toast.setAttribute('aria-atomic', 'true');
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+  loadTeachersSelect();
+  loadExamPeriodsSelect();
+  loadExamPeriodsList();
+  loadSubjectsSelect();
+  setupPeriodForm();
+  setupThumbnailUpload();
+});
 
-    // Toast content
-    toast.innerHTML = `
-    <div class="d-flex">
-      <div class="toast-body d-flex align-items-center">
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} me-2"></i>
-        ${message}
-      </div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-    </div>
-  `;
-
-    // Add to container
-    toastContainer.appendChild(toast);
-
-    // Initialize and show toast
-    const bsToast = new bootstrap.Toast(toast, {
-      autohide: true,
-      delay: type === 'error' ? 5000 : 3000
-    });
-
-    bsToast.show();
-
-    // Remove from DOM after hiding
-    toast.addEventListener('hidden.bs.toast', () => {
-      toast.remove();
-    });
+// Toggle Filter Section
+function toggleFilterSection() {
+  const content = document.getElementById('filterContent');
+  const icon = document.getElementById('filterIcon');
+  const status = document.getElementById('filterStatus');
+  
+  if (content.style.display === 'none') {
+    content.style.display = 'block';
+    icon.classList.add('rotated');
+    status.textContent = 'Collapse filter options';
+  } else {
+    content.style.display = 'none';
+    icon.classList.remove('rotated');
+    status.textContent = 'Click to filter by Exam Period & Teacher';
   }
+}
 
-  // Load available teachers and exam periods on page load
-  document.addEventListener('DOMContentLoaded', function() {
-    loadAvailableTeachers();
-    loadExamPeriods();
-    setupFormValidation();
-    setupExamPeriodForm();
+// Select Exam Period
+function selectExamPeriod(periodId) {
+  selectedPeriod = periodId === 'all' ? null : periodId;
+  
+  // Update pills
+  document.querySelectorAll('.period-pill').forEach(pill => {
+    pill.classList.toggle('active', pill.dataset.period === periodId);
   });
-
-  // Load available teachers
-  function loadAvailableTeachers() {
-    fetch('/admin/api/teachers')
-      .then(response => response.json())
-      .then(teachers => {
-        // Filter only active teachers for the dropdown
-        const activeTeachers = teachers.filter(t => t.isActive);
-        
-        const teacherSelect = document.getElementById('courseTeacher');
-        teacherSelect.innerHTML = '<option value="">No Teacher Assigned</option>';
-
-        activeTeachers.forEach(teacher => {
-          const option = document.createElement('option');
-          option.value = teacher._id;
-          option.textContent = `${teacher.firstName} ${teacher.lastName} (${teacher.teacherCode || 'No Code'})`;
-          teacherSelect.appendChild(option);
-        });
-      })
-      .catch(error => {
-        console.error('Error loading teachers:', error);
-        const teacherSelect = document.getElementById('courseTeacher');
-        teacherSelect.innerHTML = '<option value="">Error loading teachers</option>';
-      });
-  }
-
-  // Load exam periods
-  function loadExamPeriods() {
-    fetch('/admin/api/exam-periods')
-      .then(response => response.json())
-      .then(periods => {
-        // Filter only active periods for the dropdown
-        const activePeriods = periods.filter(p => p.isActive);
-        
-        const periodSelect = document.getElementById('courseExamPeriod');
-        periodSelect.innerHTML = '<option value="">No Exam Period</option>';
-
-        activePeriods.forEach(period => {
-          const option = document.createElement('option');
-          option.value = period._id;
-          option.textContent = `${period.name}`;
-          periodSelect.appendChild(option);
-        });
-
-        // Update the periods list in the modal with ALL periods (for management)
-        updateExamPeriodsList(periods);
-      })
-      .catch(error => {
-        console.error('Error loading exam periods:', error);
-        const periodSelect = document.getElementById('courseExamPeriod');
-        periodSelect.innerHTML = '<option value="">Error loading periods</option>';
-      });
-  }
-
-  // Update exam periods list in modal
-  function updateExamPeriodsList(periods) {
-    const listContainer = document.getElementById('examPeriodsList');
+  
+  // Get teachers for this period
+  const teacherStep = document.getElementById('teacherFilterStep');
+  const teacherRow = document.getElementById('teacherCardsRow');
+  
+  // Filter courses by period
+  let filteredCourses = selectedPeriod 
+    ? allCourses.filter(c => (c.examPeriod?._id || '') === selectedPeriod)
+    : allCourses;
+  
+  // Get unique teachers
+  const teachers = {};
+  filteredCourses.forEach(course => {
+    if (course.teacher && course.teacher._id) {
+      const tid = course.teacher._id;
+      if (!teachers[tid]) {
+        teachers[tid] = {
+          id: tid,
+          name: `${course.teacher.firstName} ${course.teacher.lastName}`,
+          firstName: course.teacher.firstName,
+          count: 0
+        };
+      }
+      teachers[tid].count++;
+    }
+  });
+  
+  if (Object.keys(teachers).length > 0) {
+    teacherStep.style.display = 'block';
     
-    if (!periods || periods.length === 0) {
-      listContainer.innerHTML = `
-        <div class="text-center py-4 text-muted">
-          <i class="fas fa-calendar-times fa-3x mb-3"></i>
-          <p>No exam periods created yet</p>
+    let html = `
+      <div class="teacher-card-mini active" data-teacher="all" onclick="selectTeacher('all')">
+        <div class="teacher-avatar-mini"><i class="fas fa-users"></i></div>
+        <div>
+          <div class="teacher-name-mini">All Teachers</div>
+          <div class="teacher-count-mini">${filteredCourses.length} courses</div>
+        </div>
+      </div>
+    `;
+    
+    Object.values(teachers).forEach(t => {
+      html += `
+        <div class="teacher-card-mini" data-teacher="${t.id}" onclick="selectTeacher('${t.id}')">
+          <div class="teacher-avatar-mini">${t.firstName.charAt(0)}</div>
+          <div>
+            <div class="teacher-name-mini">${t.name}</div>
+            <div class="teacher-count-mini">${t.count} courses</div>
+          </div>
         </div>
       `;
-      return;
-    }
+    });
+    
+    teacherRow.innerHTML = html;
+  } else {
+    teacherStep.style.display = 'none';
+  }
+  
+  selectedTeacher = null;
+  applyFilters();
+  updateActiveFiltersDisplay();
+}
 
-    const now = new Date();
-    listContainer.innerHTML = periods.map(period => {
-      const startDate = new Date(period.startDate);
-      const endDate = new Date(period.endDate);
-      const isUpcoming = startDate > now;
-      const isPast = endDate < now;
-      const isCurrent = startDate <= now && endDate >= now;
+// Select Teacher
+function selectTeacher(teacherId) {
+  selectedTeacher = teacherId === 'all' ? null : teacherId;
+  
+  document.querySelectorAll('.teacher-card-mini').forEach(card => {
+    card.classList.toggle('active', card.dataset.teacher === teacherId);
+  });
+  
+  applyFilters();
+  updateActiveFiltersDisplay();
+}
+
+// Clear Teacher Filter
+function clearTeacherFilter() {
+  selectedTeacher = null;
+  document.querySelectorAll('.teacher-card-mini').forEach(card => {
+    card.classList.toggle('active', card.dataset.teacher === 'all');
+  });
+  applyFilters();
+  updateActiveFiltersDisplay();
+}
+
+// Clear All Filters
+function clearAllFilters() {
+  selectedPeriod = null;
+  selectedTeacher = null;
+  
+  document.querySelectorAll('.period-pill').forEach(pill => {
+    pill.classList.toggle('active', pill.dataset.period === 'all');
+  });
+  
+  document.getElementById('teacherFilterStep').style.display = 'none';
+  document.getElementById('statusSelect').value = 'all';
+  document.getElementById('subjectSelect').value = 'all';
+  document.getElementById('searchInput').value = '';
+  
+  applyFilters();
+  updateActiveFiltersDisplay();
+}
+
+// Apply All Filters
+function applyFilters() {
+  const statusFilter = document.getElementById('statusSelect').value;
+  const subjectFilter = document.getElementById('subjectSelect').value.toLowerCase();
+  const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+  
+  let visibleCount = 0;
+  
+  document.querySelectorAll('.course-card').forEach(card => {
+    let show = true;
+    
+    // Period filter
+    if (selectedPeriod && card.dataset.period !== selectedPeriod) {
+      show = false;
+    }
+    
+    // Teacher filter
+    if (selectedTeacher && card.dataset.teacher !== selectedTeacher) {
+      show = false;
+    }
+    
+    // Subject filter
+    if (subjectFilter !== 'all' && card.dataset.subject !== subjectFilter) {
+      show = false;
+    }
+    
+    // Status filter
+    if (statusFilter !== 'all' && card.dataset.status !== statusFilter) {
+      show = false;
+    }
+    
+    // Search filter
+    if (searchQuery && !card.dataset.title.includes(searchQuery)) {
+      show = false;
+    }
+    
+    card.style.display = show ? '' : 'none';
+    if (show) visibleCount++;
+  });
+  
+  // Update courses count
+  document.getElementById('coursesCount').textContent = `${visibleCount} courses`;
+  
+  // Update title
+  let title = 'All Courses';
+  if (selectedPeriod || selectedTeacher) {
+    const periodName = selectedPeriod 
+      ? document.querySelector(`[data-period="${selectedPeriod}"] span:first-of-type`)?.textContent || 'Selected Period'
+      : '';
+    const teacherName = selectedTeacher
+      ? document.querySelector(`[data-teacher="${selectedTeacher}"] .teacher-name-mini`)?.textContent || ''
+      : '';
+    
+    if (periodName && teacherName) {
+      title = `${teacherName} - ${periodName}`;
+    } else if (periodName) {
+      title = periodName;
+    } else if (teacherName) {
+      title = `${teacherName}'s Courses`;
+    }
+  }
+  document.getElementById('coursesTitle').textContent = title;
+}
+
+// Update Active Filters Display
+function updateActiveFiltersDisplay() {
+  const container = document.getElementById('activeFilters');
+  const tags = document.getElementById('filterTags');
+  const badge = document.getElementById('activeFiltersCount');
+  
+  let activeCount = 0;
+  let tagsHtml = '';
+  
+  if (selectedPeriod) {
+    const periodName = document.querySelector(`[data-period="${selectedPeriod}"] span:first-of-type`)?.textContent || 'Period';
+    tagsHtml += `<span class="filter-tag"><i class="fas fa-calendar"></i> ${periodName} <i class="fas fa-times" onclick="clearPeriodFilter()"></i></span>`;
+    activeCount++;
+  }
+  
+  if (selectedTeacher) {
+    const teacherName = document.querySelector(`[data-teacher="${selectedTeacher}"] .teacher-name-mini`)?.textContent || 'Teacher';
+    tagsHtml += `<span class="filter-tag"><i class="fas fa-user"></i> ${teacherName} <i class="fas fa-times" onclick="clearTeacherFilter()"></i></span>`;
+    activeCount++;
+  }
+  
+  tags.innerHTML = tagsHtml;
+  container.style.display = activeCount > 0 ? 'flex' : 'none';
+  badge.style.display = activeCount > 0 ? 'inline' : 'none';
+  badge.textContent = activeCount;
+}
+
+function clearPeriodFilter() {
+  selectedPeriod = null;
+  selectedTeacher = null;
+  document.querySelectorAll('.period-pill').forEach(p => p.classList.toggle('active', p.dataset.period === 'all'));
+  document.getElementById('teacherFilterStep').style.display = 'none';
+  applyFilters();
+  updateActiveFiltersDisplay();
+}
+
+// Search
+function searchCourses() {
+  applyFilters();
+}
+
+// Filter by Status
+function filterByStatus() {
+  applyFilters();
+}
+
+// Sort Courses
+function sortCourses() {
+  const sortBy = document.getElementById('sortSelect').value;
+  const grid = document.getElementById('coursesGrid');
+  const cards = Array.from(grid.querySelectorAll('.course-card'));
+  
+  cards.sort((a, b) => {
+    switch(sortBy) {
+      case 'newest':
+        return new Date(b.dataset.created) - new Date(a.dataset.created);
+      case 'oldest':
+        return new Date(a.dataset.created) - new Date(b.dataset.created);
+      case 'title':
+        return a.dataset.title.localeCompare(b.dataset.title);
+      case 'price-high':
+        return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+      case 'price-low':
+        return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+      default:
+        return 0;
+    }
+  });
+  
+  cards.forEach(card => grid.appendChild(card));
+}
+
+// Set View
+function setView(view) {
+  currentView = view;
+  const grid = document.getElementById('coursesGrid');
+  const btns = document.querySelectorAll('.view-btn');
+  
+  btns.forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
+  grid.classList.toggle('list-view', view === 'list');
+}
+
+// Bulk Selection
+function updateBulkSelection() {
+  const checked = document.querySelectorAll('.course-checkbox:checked').length;
+  const bulkBar = document.getElementById('bulkActions');
+  const countEl = document.getElementById('selectedCount');
+  const selectAll = document.getElementById('selectAll');
+  
+  bulkBar.style.display = checked > 0 ? 'flex' : 'none';
+  countEl.textContent = `${checked} selected`;
+  selectAll.checked = checked === document.querySelectorAll('.course-checkbox').length;
+}
+
+function toggleSelectAll() {
+  const isChecked = document.getElementById('selectAll').checked;
+  document.querySelectorAll('.course-checkbox').forEach(cb => {
+    if (cb.closest('.course-card').style.display !== 'none') {
+      cb.checked = isChecked;
+    }
+  });
+  updateBulkSelection();
+}
+
+function applyBulkAction() {
+  const action = document.getElementById('bulkActionSelect').value;
+  if (!action) {
+    Swal.fire('Error', 'Please select an action', 'error');
+    return;
+  }
+  
+  const codes = Array.from(document.querySelectorAll('.course-checkbox:checked'))
+    .map(cb => cb.closest('.course-card').dataset.code);
+  
+  if (codes.length === 0) return;
+  
+  Swal.fire({
+    title: 'Confirm Action',
+    text: `Apply "${action}" to ${codes.length} course(s)?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3a92bd',
+  }).then(result => {
+    if (result.isConfirmed) {
+      fetch('/admin/courses/bulk-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseCodes: codes, status: action })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          Swal.fire('Success', data.message, 'success').then(() => location.reload());
+        } else {
+          Swal.fire('Error', data.message, 'error');
+        }
+      });
+    }
+  });
+}
+
+// Load Teachers for Select
+function loadTeachersSelect() {
+  fetch('/admin/api/teachers')
+    .then(res => res.json())
+    .then(teachers => {
+      const select = document.getElementById('courseTeacher');
+      teachers.filter(t => t.isActive).forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t._id;
+        // Show teacher code if available, otherwise show last 6 chars of ID
+        const identifier = t.teacherCode || `ID: ${t._id.slice(-6)}`;
+        opt.textContent = `${t.firstName} ${t.lastName} (${identifier})`;
+        select.appendChild(opt);
+      });
+    });
+}
+
+// Load Subjects for Filter
+function loadSubjectsSelect() {
+  const select = document.getElementById('subjectSelect');
+  if (!select) return;
+  
+  // First, try to get subjects from allCourses data (already loaded)
+  const subjects = new Set();
+  allCourses.forEach(course => {
+    if (course.teacher && course.teacher.subject) {
+      subjects.add(course.teacher.subject.trim());
+    }
+  });
+  
+  // If we found subjects from courses, use them
+  if (subjects.size > 0) {
+    Array.from(subjects).sort().forEach(subject => {
+      const opt = document.createElement('option');
+      opt.value = subject.toLowerCase();
+      opt.textContent = subject;
+      select.appendChild(opt);
+    });
+  } else {
+    // Fallback: fetch from teachers API
+    fetch('/admin/api/teachers')
+      .then(res => res.json())
+      .then(teachers => {
+        if (Array.isArray(teachers)) {
+          teachers.filter(t => t.isActive && t.subject).forEach(t => {
+            subjects.add(t.subject.trim());
+          });
+          
+          Array.from(subjects).sort().forEach(subject => {
+            const opt = document.createElement('option');
+            opt.value = subject.toLowerCase();
+            opt.textContent = subject;
+            select.appendChild(opt);
+          });
+        }
+      })
+      .catch(err => console.error('Error loading subjects:', err));
+  }
+}
+
+// Filter by Subject
+function filterBySubject() {
+  applyFilters();
+}
+
+// Load Exam Periods for Select
+function loadExamPeriodsSelect() {
+  fetch('/admin/api/exam-periods')
+    .then(res => res.json())
+    .then(periods => {
+      const select = document.getElementById('courseExamPeriod');
+      // Clear existing options except the first "No Period" option
+      while (select.options.length > 1) {
+        select.remove(1);
+      }
+      // Use a Set to track unique period IDs to prevent duplicates
+      const addedPeriods = new Set();
+      periods.filter(p => p.isActive).forEach(p => {
+        if (!addedPeriods.has(p._id)) {
+          addedPeriods.add(p._id);
+          const opt = document.createElement('option');
+          opt.value = p._id;
+          opt.textContent = p.name;
+          select.appendChild(opt);
+        }
+      });
+    });
+}
+
+// Load Exam Periods List
+function loadExamPeriodsList() {
+  fetch('/admin/api/exam-periods')
+    .then(res => res.json())
+    .then(periods => {
+      const list = document.getElementById('periodsList');
       
-      let statusBadge = '';
-      if (period.isCurrent) {
-        statusBadge = '<span class="badge bg-success ms-2"><i class="fas fa-star me-1"></i>Current</span>';
-      } else if (isUpcoming) {
-        statusBadge = '<span class="badge bg-info ms-2"><i class="fas fa-clock me-1"></i>Soon</span>';
-      } else if (isPast) {
-        statusBadge = '<span class="badge bg-secondary ms-2"><i class="fas fa-history me-1"></i>Past</span>';
+      if (!periods || periods.length === 0) {
+        list.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-calendar-times me-2"></i>No periods yet. Add your first exam period above.</div>';
+        return;
       }
       
-      const activeStatus = period.isActive 
-        ? '<span class="badge bg-success ms-2"><i class="fas fa-check-circle me-1"></i>Active</span>' 
-        : '<span class="badge bg-danger ms-2"><i class="fas fa-times-circle me-1"></i>Inactive</span>';
-      
-      return `
-        <div class="exam-period-item ${!period.isActive ? 'opacity-50' : ''}" data-period-id="${period._id}">
-          <div class="d-flex justify-content-between align-items-start">
-            <div class="flex-grow-1">
-              <h6 class="mb-1">
-                <i class="fas fa-calendar-alt me-2" style="color: #3a92bd"></i>
-                ${period.name}
-                ${statusBadge}
-                ${activeStatus}
-              </h6>
-              <small class="text-muted d-block mb-1">
-                <i class="fas fa-calendar me-1"></i>
-                ${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-              </small>
-              ${period.coursesCount > 0 ? `
-                <small class="text-muted d-block">
-                  <i class="fas fa-book me-1"></i>${period.coursesCount} courses assigned
-                </small>
-              ` : ''}
+      list.innerHTML = periods.map(p => {
+        const start = new Date(p.startDate).toLocaleDateString();
+        const end = new Date(p.endDate).toLocaleDateString();
+        const isActive = p.isActive !== false;
+        const statusClass = isActive ? 'active' : 'inactive';
+        const statusText = isActive ? 'Active' : 'Inactive';
+        const statusIcon = isActive ? 'check-circle' : 'times-circle';
+        const toggleAction = isActive ? 'Deactivate' : 'Activate';
+        
+        return `
+          <div class="period-item ${statusClass}">
+            <div class="period-info">
+              <div class="period-name">
+                <i class="fas fa-calendar-alt text-primary me-2"></i>
+                <strong>${p.name}</strong>
+                <span class="period-status-badge ${statusClass}">
+                  <i class="fas fa-${statusIcon}"></i> ${statusText}
+                </span>
+              </div>
+              <div class="period-dates">
+                <i class="fas fa-clock me-1"></i>${start} - ${end}
+                ${p.year ? `<span class="period-year"><i class="fas fa-calendar-check ms-2 me-1"></i>Year: ${p.year}</span>` : ''}
+              </div>
             </div>
-            <div class="btn-group">
-              <button class="btn btn-sm btn-outline-primary" onclick="editExamPeriod('${period._id}')" title="Edit" ${!period.isActive ? 'disabled' : ''}>
+            <div class="period-actions">
+              <button class="period-action-btn toggle ${statusClass}" onclick="togglePeriodStatus('${p._id}', ${isActive})" title="${toggleAction}">
+                <i class="fas fa-${isActive ? 'toggle-on' : 'toggle-off'}"></i>
+              </button>
+              <button class="period-action-btn edit" onclick="editPeriod('${p._id}')" title="Edit">
                 <i class="fas fa-edit"></i>
               </button>
-              <button class="btn btn-sm ${period.isCurrent ? 'btn-warning' : 'btn-outline-warning'}" onclick="togglePeriodCurrent('${period._id}', ${!period.isCurrent})" title="${period.isCurrent ? 'Unset current' : 'Set as current'}" ${!period.isActive ? 'disabled' : ''}>
-                <i class="fas fa-star"></i>
-              </button>
-              <button class="btn btn-sm ${period.isActive ? 'btn-outline-secondary' : 'btn-outline-success'}" onclick="togglePeriodActive('${period._id}', ${!period.isActive})" title="${period.isActive ? 'Deactivate' : 'Activate'}">
-                <i class="fas fa-${period.isActive ? 'toggle-on' : 'toggle-off'}"></i>
-              </button>
-              <button class="btn btn-sm btn-outline-danger" onclick="deleteExamPeriod('${period._id}')" title="Delete">
+              <button class="period-action-btn delete" onclick="deletePeriod('${p._id}')" title="Delete">
                 <i class="fas fa-trash"></i>
               </button>
             </div>
           </div>
-        </div>
-      `;
-    }).join('');
-  }
+        `;
+      }).join('');
+    })
+    .catch(err => {
+      console.error('Error loading periods:', err);
+      document.getElementById('periodsList').innerHTML = '<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle me-2"></i>Error loading periods</div>';
+    });
+}
 
-  // Setup exam period form submission
-  function setupExamPeriodForm() {
-    const form = document.getElementById('addExamPeriodForm');
-    form.addEventListener('submit', async function(e) {
-      e.preventDefault();
+// Toggle Period Status
+async function togglePeriodStatus(periodId, currentStatus) {
+  const action = currentStatus ? 'deactivate' : 'activate';
+  
+  const result = await Swal.fire({
+    title: `${currentStatus ? 'Deactivate' : 'Activate'} Period?`,
+    text: `Are you sure you want to ${action} this exam period?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: currentStatus ? '#f59e0b' : '#22c55e',
+    confirmButtonText: `Yes, ${action} it`,
+  });
+  
+  if (result.isConfirmed) {
+    try {
+      const res = await fetch(`/admin/api/exam-periods/${periodId}/toggle-status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
       
-      const formData = {
-        name: document.getElementById('periodName').value,
-        displayName: document.getElementById('periodDisplayName').value,
-        year: parseInt(document.getElementById('periodYear').value),
-        months: document.getElementById('periodDisplayName').value.split('/'),
-        startDate: document.getElementById('periodStartDate').value,
-        endDate: document.getElementById('periodEndDate').value,
-      };
-
-      const isEditing = form.dataset.editingPeriodId;
-      const url = isEditing 
-        ? `/admin/api/exam-periods/${form.dataset.editingPeriodId}` 
-        : '/admin/api/exam-periods';
-      const method = isEditing ? 'PUT' : 'POST';
-
-      try {
-        const response = await fetch(url, {
-          method: method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+      if (data.success) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: `Period ${action}d successfully`,
+          showConfirmButton: false,
+          timer: 2000
         });
+        loadExamPeriodsList();
+        loadExamPeriodsSelect();
+      } else {
+        Swal.fire('Error', data.message || 'Failed to update period', 'error');
+      }
+    } catch (err) {
+      console.error('Error toggling period status:', err);
+      Swal.fire('Error', 'Failed to update period status', 'error');
+    }
+  }
+}
 
-        const result = await response.json();
-        
-        if (result.success) {
-          showToast(`Exam period ${isEditing ? 'updated' : 'created'} successfully!`, 'success');
-          form.reset();
-          if (isEditing) {
-            cancelEditPeriod();
-          }
-          loadExamPeriods(); // Reload the list
-        } else {
-          showToast(result.message || `Failed to ${isEditing ? 'update' : 'create'} exam period`, 'error');
-        }
-      } catch (error) {
-        console.error(`Error ${isEditing ? 'updating' : 'creating'} exam period:`, error);
-        showToast(`Error ${isEditing ? 'updating' : 'creating'} exam period`, 'error');
+// Edit Period
+async function editPeriod(periodId) {
+  try {
+    const res = await fetch(`/admin/api/exam-periods/${periodId}`);
+    const period = await res.json();
+    
+    if (!period || period.error) {
+      Swal.fire('Error', 'Period not found', 'error');
+      return;
+    }
+    
+    const { value: formValues } = await Swal.fire({
+      title: '<i class="fas fa-edit text-primary me-2"></i>Edit Exam Period',
+      html: `
+        <div class="text-start">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Period Name</label>
+            <input id="editPeriodName" class="form-control" value="${period.name || ''}" placeholder="e.g., January 2026">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Display Name</label>
+            <input id="editPeriodDisplayName" class="form-control" value="${period.displayName || ''}" placeholder="e.g., Jan '26">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Year</label>
+            <input id="editPeriodYear" type="number" class="form-control" value="${period.year || 2026}">
+          </div>
+          <div class="row">
+            <div class="col-6">
+              <label class="form-label fw-bold">Start Date</label>
+              <input id="editPeriodStartDate" type="date" class="form-control" value="${period.startDate ? period.startDate.substring(0, 10) : ''}">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-bold">End Date</label>
+              <input id="editPeriodEndDate" type="date" class="form-control" value="${period.endDate ? period.endDate.substring(0, 10) : ''}">
+            </div>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-save me-1"></i>Save Changes',
+      confirmButtonColor: '#3a92bd',
+      preConfirm: () => {
+        return {
+          name: document.getElementById('editPeriodName').value,
+          displayName: document.getElementById('editPeriodDisplayName').value,
+          year: parseInt(document.getElementById('editPeriodYear').value),
+          startDate: document.getElementById('editPeriodStartDate').value,
+          endDate: document.getElementById('editPeriodEndDate').value,
+        };
       }
     });
-  }
-
-  // Edit exam period
-  function editExamPeriod(periodId) {
-    // Find the period in the current list
-    const periodItem = document.querySelector(`[data-period-id="${periodId}"]`);
-    if (!periodItem) return;
-
-    // Get period data from the API
-    fetch(`/admin/api/exam-periods`)
-      .then(res => res.json())
-      .then(periods => {
-        const period = periods.find(p => p._id === periodId);
-        if (!period) return;
-
-        // Populate form with period data
-        document.getElementById('periodName').value = period.name;
-        document.getElementById('periodDisplayName').value = period.displayName;
-        document.getElementById('periodYear').value = period.year;
-        document.getElementById('periodStartDate').value = period.startDate.split('T')[0];
-        document.getElementById('periodEndDate').value = period.endDate.split('T')[0];
-
-        // Change form submit to update mode
-        const form = document.getElementById('addExamPeriodForm');
-        const submitBtn = form.querySelector('button[type="submit"]');
-        submitBtn.innerHTML = '<i class=\"fas fa-save me-2\"></i>Update Period';
-        
-        // Store period ID in form
-        form.dataset.editingPeriodId = periodId;
-        
-        // Change form title
-        document.getElementById('examPeriodModalLabel').innerHTML = '<i class=\"fas fa-edit me-2\"></i>Edit Exam Period';
-        
-        // Add cancel edit button if not exists
-        if (!form.querySelector('.cancel-edit-btn')) {
-          const cancelBtn = document.createElement('button');
-          cancelBtn.type = 'button';
-          cancelBtn.className = 'btn btn-secondary cancel-edit-btn ms-2';
-          cancelBtn.innerHTML = '<i class=\"fas fa-times me-2\"></i>Cancel';
-          cancelBtn.onclick = cancelEditPeriod;
-          submitBtn.parentElement.appendChild(cancelBtn);
-        }
-      })
-      .catch(error => {
-        console.error('Error loading period:', error);
-        showToast('Error loading period data', 'error');
-      });
-  }
-
-  // Cancel edit mode
-  function cancelEditPeriod() {
-    const form = document.getElementById('addExamPeriodForm');
-    form.reset();
-    delete form.dataset.editingPeriodId;
     
-    const submitBtn = form.querySelector('button[type=\"submit\"]');
-    submitBtn.innerHTML = '<i class=\"fas fa-plus me-2\"></i>Add Period';
-    
-    document.getElementById('examPeriodModalLabel').innerHTML = '<i class=\"fas fa-calendar-alt me-2\"></i>Manage Exam Periods';
-    
-    const cancelBtn = form.querySelector('.cancel-edit-btn');
-    if (cancelBtn) cancelBtn.remove();
-  }
-
-  // Toggle period active/inactive
-  async function togglePeriodActive(periodId, isActive) {
-    try {
-      const response = await fetch(`/admin/api/exam-periods/${periodId}`, {
+    if (formValues) {
+      const updateRes = await fetch(`/admin/api/exam-periods/${periodId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive })
+        body: JSON.stringify(formValues)
       });
-
-      const result = await response.json();
+      const updateData = await updateRes.json();
       
-      if (result.success) {
-        showToast(`Exam period ${isActive ? 'activated' : 'deactivated'}!`, 'success');
-        loadExamPeriods();
+      if (updateData.success) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Period updated successfully',
+          showConfirmButton: false,
+          timer: 2000
+        });
+        loadExamPeriodsList();
+        loadExamPeriodsSelect();
       } else {
-        showToast(result.message || 'Failed to update period', 'error');
+        Swal.fire('Error', updateData.message || 'Failed to update period', 'error');
       }
-    } catch (error) {
-      console.error('Error updating period:', error);
-      showToast('Error updating period', 'error');
     }
+  } catch (err) {
+    console.error('Error editing period:', err);
+    Swal.fire('Error', 'Failed to load period data', 'error');
   }
+}
 
-  // Toggle period as current
-  async function togglePeriodCurrent(periodId, isCurrent) {
-    try {
-      const response = await fetch(`/admin/api/exam-periods/${periodId}/toggle-current`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isCurrent })
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        showToast('Exam period updated!', 'success');
-        loadExamPeriods();
-      } else {
-        showToast(result.message || 'Failed to update period', 'error');
-      }
-    } catch (error) {
-      console.error('Error updating period:', error);
-      showToast('Error updating period', 'error');
-    }
-  }
-
-  // Delete exam period
-  async function deleteExamPeriod(periodId) {
-    if (!confirm('Are you sure you want to delete this exam period? Courses associated with it will not be deleted but will have no period assigned.')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/admin/api/exam-periods/${periodId}`, {
-        method: 'DELETE'
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        showToast('Exam period deleted successfully!', 'success');
-        loadExamPeriods();
-      } else {
-        showToast(result.message || 'Failed to delete period', 'error');
-      }
-    } catch (error) {
-      console.error('Error deleting period:', error);
-      showToast('Error deleting period', 'error');
-    }
-  }
-
-  function setupFormValidation() {
-    const form = document.getElementById('createCourseForm');
-    const inputs = form.querySelectorAll('input, textarea, select');
-
-    // Add real-time validation
-    inputs.forEach(input => {
-      input.addEventListener('input', function() {
-        validateField(this);
-      });
-
-      input.addEventListener('blur', function() {
-        validateField(this);
-      });
-    });
-
-    // Prevent form submission if validation fails
-    form.addEventListener('submit', function(e) {
-      let isValid = true;
-
-      inputs.forEach(input => {
-        if (!validateField(input)) {
-          isValid = false;
-        }
-      });
-
-      if (!isValid) {
-        e.preventDefault();
-        showFormError('Please fix the validation errors before submitting.');
-      }
-    });
-  }
-
-  function validateField(field) {
-    const value = field.value.trim();
-    const fieldName = field.name;
-    let isValid = true;
-    let errorMessage = '';
-
-    // Clear previous error
-    field.classList.remove('is-invalid');
-    const errorElement = document.getElementById(fieldName + 'Error');
-    if (errorElement) {
-      errorElement.textContent = '';
-    }
-
-    // Required field validation
-    if (field.hasAttribute('required') && !value) {
-      isValid = false;
-      errorMessage = `${getFieldLabel(fieldName)} is required.`;
-    }
-
-    // Length validation
-    if (value && field.hasAttribute('minlength')) {
-      const minLength = parseInt(field.getAttribute('minlength'));
-      if (value.length < minLength) {
-        isValid = false;
-        errorMessage = `${getFieldLabel(fieldName)} must be at least ${minLength} characters.`;
-      }
-    }
-
-    if (value && field.hasAttribute('maxlength')) {
-      const maxLength = parseInt(field.getAttribute('maxlength'));
-      if (value.length > maxLength) {
-        isValid = false;
-        errorMessage = `${getFieldLabel(fieldName)} must not exceed ${maxLength} characters.`;
-      }
-    }
-
-    // Number validation
-    if (field.type === 'number' && value) {
-      const numValue = parseFloat(value);
-      if (field.hasAttribute('min') && numValue < parseFloat(field.getAttribute('min'))) {
-        isValid = false;
-        errorMessage = `${getFieldLabel(fieldName)} must be at least ${field.getAttribute('min')}.`;
-      }
-      if (field.hasAttribute('max') && numValue > parseFloat(field.getAttribute('max'))) {
-        isValid = false;
-        errorMessage = `${getFieldLabel(fieldName)} must not exceed ${field.getAttribute('max')}.`;
-      }
-    }
-
-    // Bundle selection validation
-    if (fieldName === 'bundleId' && !value) {
-      isValid = false;
-      errorMessage = 'Please select a bundle for this course.';
-    }
-
-    // Show error if validation failed
-    if (!isValid) {
-      field.classList.add('is-invalid');
-      if (errorElement) {
-        errorElement.textContent = errorMessage;
-      }
-    }
-
-    return isValid;
-  }
-
-  function getFieldLabel(fieldName) {
-    const labels = {
-      'title': 'Title',
-      'description': 'Description',
-      'shortDescription': 'Short Description',
-      'bundleId': 'Bundle',
-      'price': 'Price',
-      'discountPrice': 'Discount Percentage'
-    };
-    return labels[fieldName] || fieldName;
-  }
-
-  function showFormError(message) {
-    // Create or update error message
-    let errorDiv = document.querySelector('.form-validation-error');
-    if (!errorDiv) {
-      errorDiv = document.createElement('div');
-      errorDiv.className = 'form-validation-error alert alert-danger mt-3';
-      const form = document.getElementById('createCourseForm');
-      form.appendChild(errorDiv);
-    }
-
-    errorDiv.innerHTML = `
-    <i class="fas fa-exclamation-triangle me-2"></i>
-    ${message}
-  `;
-    errorDiv.style.display = 'block';
-
-    // Scroll to error
-    errorDiv.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center'
-    });
-  }
-
-  // Toggle checkbox icon visibility
-  function toggleCheckboxIcon(checkbox) {
-    const icon = checkbox.nextElementSibling;
-    if (checkbox.checked) {
-      if (icon) icon.style.opacity = '1';
-      checkbox.closest('.custom-checkbox-label').style.background = 'linear-gradient(135deg, #3a92bd, #0c5374)';
-      checkbox.closest('.custom-checkbox-label').style.borderColor = '#dc2626';
-      checkbox.closest('.custom-checkbox-label').style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.3)';
-    } else {
-      if (icon) icon.style.opacity = '0';
-      checkbox.closest('.custom-checkbox-label').style.background = 'white';
-      checkbox.closest('.custom-checkbox-label').style.borderColor = '#dc2626';
-      checkbox.closest('.custom-checkbox-label').style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';
-    }
-  }
-
-  // Initialize checkbox states on page load
-  document.addEventListener('DOMContentLoaded', function() {
-    const checkboxes = document.querySelectorAll('.course-checkbox');
-    checkboxes.forEach(checkbox => {
-      toggleCheckboxIcon(checkbox);
-    });
-  });
-
-  // Bulk selection functions
-  function updateBulkActionsToolbar() {
-    const checkboxes = document.querySelectorAll('.course-checkbox:checked');
-    const toolbar = document.getElementById('bulkActionsToolbar');
-    const selectedCount = document.getElementById('selectedCount');
-    const applyBtn = document.getElementById('applyBulkBtn');
-    const statusSelect = document.getElementById('bulkStatusSelect');
+// Setup Period Form
+function setupPeriodForm() {
+  document.getElementById('addPeriodForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
     
-    if (checkboxes.length > 0) {
-      toolbar.style.display = 'block';
-      selectedCount.innerHTML = `<strong>${checkboxes.length}</strong> course(s) selected`;
-      applyBtn.disabled = !statusSelect.value;
-    } else {
-      toolbar.style.display = 'none';
-    }
-  }
-
-  function selectAllCourses() {
-    const checkboxes = document.querySelectorAll('.course-checkbox');
-    checkboxes.forEach(checkbox => {
-      checkbox.checked = true;
-      toggleCheckboxIcon(checkbox);
-    });
-    updateBulkActionsToolbar();
-  }
-
-  function deselectAllCourses() {
-    const checkboxes = document.querySelectorAll('.course-checkbox');
-    checkboxes.forEach(checkbox => {
-      checkbox.checked = false;
-      toggleCheckboxIcon(checkbox);
-    });
-    updateBulkActionsToolbar();
-  }
-
-  function applyBulkStatus() {
-    const checkboxes = document.querySelectorAll('.course-checkbox:checked');
-    const statusSelect = document.getElementById('bulkStatusSelect');
-    
-    if (checkboxes.length === 0) {
-      showToast('Please select at least one course', 'error');
-      return;
-    }
-    
-    if (!statusSelect.value) {
-      showToast('Please select a status action', 'error');
-      return;
-    }
-    
-    const courseCodes = Array.from(checkboxes).map(cb => cb.dataset.courseCode);
-    const newStatus = statusSelect.value;
-    
-    const statusLabels = {
-      'published': 'Published',
-      'draft': 'Draft',
-      'archived': 'Archived'
+    const data = {
+      name: document.getElementById('periodName').value,
+      displayName: document.getElementById('periodDisplayName').value,
+      year: parseInt(document.getElementById('periodYear').value),
+      startDate: document.getElementById('periodStartDate').value,
+      endDate: document.getElementById('periodEndDate').value,
     };
     
-    if (!confirm(`Are you sure you want to change the status of ${courseCodes.length} course(s) to "${statusLabels[newStatus]}"?`)) {
-      return;
-    }
-    
-    // Show loading state
-    const applyBtn = document.getElementById('applyBulkBtn');
-    const originalText = applyBtn.innerHTML;
-    applyBtn.disabled = true;
-    applyBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Applying...';
-    
-    // Send bulk update request
-    fetch('/admin/courses/bulk-status', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        courseCodes: courseCodes,
-        status: newStatus
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        showToast(data.message || `Successfully updated ${courseCodes.length} course(s)`, 'success');
-        // Reload page after a short delay
-        setTimeout(() => {
-          location.reload();
-        }, 1500);
-      } else {
-        showToast(data.message || 'Error updating courses', 'error');
-        applyBtn.disabled = false;
-        applyBtn.innerHTML = originalText;
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      showToast('Error updating courses', 'error');
-      applyBtn.disabled = false;
-      applyBtn.innerHTML = originalText;
-    });
-  }
-
-  // Enable/disable apply button based on status selection
-  document.addEventListener('DOMContentLoaded', function() {
-    const statusSelect = document.getElementById('bulkStatusSelect');
-    const applyBtn = document.getElementById('applyBulkBtn');
-    
-    if (statusSelect && applyBtn) {
-      statusSelect.addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('.course-checkbox:checked');
-        applyBtn.disabled = checkboxes.length === 0 || !this.value;
-      });
-    }
-  });
-
-  // Course management functions
-  function editCourse(courseCode) {
-    // TODO: Implement edit course functionality
-    console.log('Edit course:', courseCode);
-  }
-
-  function duplicateCourse(courseCode, event) {
-    if (event) {
-      event.stopPropagation();
-    }
-
-    if (!confirm(`Are you sure you want to duplicate this course? This will create a new course with all topics and content. The new course will be set to draft status.`)) {
-      return;
-    }
-
-    // Show loading state
-    const duplicateButton = event ? event.target.closest('button') : null;
-    const originalHTML = duplicateButton ? duplicateButton.innerHTML : '';
-    if (duplicateButton) {
-      duplicateButton.disabled = true;
-      duplicateButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    }
-
-    fetch(`/admin/courses/${courseCode}/duplicate`, {
+    try {
+      const res = await fetch('/admin/api/exam-periods', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Show success toast
-          showToast(data.message || 'Course duplicated successfully!', 'success');
-          // Reload the page to show the new course
-          setTimeout(() => {
-            location.reload();
-          }, 1500);
-        } else {
-          showToast(data.message || 'Error duplicating course', 'error');
-          if (duplicateButton) {
-            duplicateButton.disabled = false;
-            duplicateButton.innerHTML = originalHTML;
-          }
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        showToast('Error duplicating course', 'error');
-        if (duplicateButton) {
-          duplicateButton.disabled = false;
-          duplicateButton.innerHTML = originalHTML;
-        }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
       });
-  }
-
-  function deleteCourse(courseCode, event) {
-    // Find the specific course card by looking for the button that was clicked
-    const deleteButton = event.target;
-    const courseCard = deleteButton.closest('.admin-course-card');
-    const courseStatus = courseCard ? courseCard.getAttribute('data-status') : 'unknown';
-
-    let confirmMessage;
-    if (courseStatus === 'archived') {
-      confirmMessage = 'This course is already archived. Are you sure you want to PERMANENTLY DELETE it from the database? This action cannot be undone and will remove all associated data.';
-    } else {
-      confirmMessage = 'Are you sure you want to delete this course? It will be moved to archived status instead of being permanently deleted.';
+      const result = await res.json();
+      
+      if (result.success) {
+        Swal.fire('Success', 'Period added!', 'success');
+        this.reset();
+        loadExamPeriodsList();
+        loadExamPeriodsSelect();
+      } else {
+        Swal.fire('Error', result.message, 'error');
+      }
+    } catch (err) {
+      Swal.fire('Error', 'Failed to add period', 'error');
     }
+  });
+}
 
-    if (confirm(confirmMessage)) {
-      fetch(`/admin/courses/${courseCode}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        })
-        .then(response => response.json())
+async function deletePeriod(id) {
+  const result = await Swal.fire({
+    title: 'Delete Period?',
+    text: 'This cannot be undone',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+  });
+  
+  if (result.isConfirmed) {
+    const res = await fetch(`/admin/api/exam-periods/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      Swal.fire('Deleted', 'Period removed', 'success');
+      loadExamPeriodsList();
+    } else {
+      Swal.fire('Error', data.message, 'error');
+    }
+  }
+}
+
+// Thumbnail Upload
+function setupThumbnailUpload() {
+  const input = document.getElementById('courseThumbnail');
+  const placeholder = document.getElementById('thumbnailPlaceholder');
+  const previewImg = document.getElementById('thumbnailPreviewImg');
+  const urlInput = document.getElementById('thumbnailUrl');
+  const uploadBox = document.getElementById('thumbnailUploadBox');
+  
+  if (!input) return;
+  
+  input.addEventListener('change', async function() {
+    if (!this.files[0]) return;
+    
+    const file = this.files[0];
+    
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      Swal.fire('Error', 'Please upload an image file (JPEG, PNG, WebP, or GIF)', 'error');
+      return;
+    }
+    
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      Swal.fire('Error', 'Image size must be less than 5MB', 'error');
+      return;
+    }
+    
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('uploadType', 'course-thumbnails');
+    
+    // Show loading state
+    if (placeholder) {
+      placeholder.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Uploading...</span>';
+    }
+    
+    try {
+      const res = await fetch('/api/upload/image', {
+        method: 'POST',
+        body: formData
+      });
+      
+      // Check if response is OK and JSON
+      const contentType = res.headers.get('content-type');
+      if (!res.ok) {
+        throw new Error(`Upload failed with status ${res.status}`);
+      }
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server returned invalid response. Please try again.');
+      }
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        urlInput.value = data.url;
+        if (previewImg) {
+          previewImg.src = data.url;
+          previewImg.style.display = 'block';
+        }
+        if (placeholder) {
+          placeholder.style.display = 'none';
+        }
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Thumbnail uploaded!',
+          showConfirmButton: false,
+          timer: 2000
+        });
+      } else {
+        throw new Error(data.message || 'Upload failed');
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      if (placeholder) {
+        placeholder.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><span>Click to upload</span><small>800×450px recommended</small>';
+        placeholder.style.display = 'flex';
+      }
+      if (previewImg) {
+        previewImg.style.display = 'none';
+      }
+      Swal.fire('Upload Failed', err.message || 'Failed to upload image', 'error');
+    }
+  });
+}
+
+// Share Course
+function shareCourse(code, title, id) {
+  const baseUrl = window.location.hostname !== 'localhost' ? 'https://elkably.com' : window.location.origin;
+  const url = `${baseUrl}/student/course/${id}/content`;
+  
+  Swal.fire({
+    title: '<i class="fas fa-share-alt text-primary me-2"></i>Share Course',
+    html: `
+      <div class="text-start">
+        <p class="mb-3"><strong>${title}</strong></p>
+        <div class="mb-3">
+          <label class="form-label small text-muted">Course Link</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="shareUrl" value="${url}" readonly>
+            <button class="btn btn-primary" onclick="copyLink()"><i class="fas fa-copy"></i></button>
+          </div>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="https://wa.me/?text=${encodeURIComponent(title + '\n' + url)}" target="_blank" class="btn btn-success flex-fill">
+            <i class="fab fa-whatsapp me-1"></i>WhatsApp
+          </a>
+          <a href="mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}" class="btn btn-danger flex-fill">
+            <i class="fas fa-envelope me-1"></i>Email
+          </a>
+        </div>
+      </div>
+    `,
+    showConfirmButton: false,
+    showCloseButton: true,
+  });
+}
+
+function copyLink() {
+  const input = document.getElementById('shareUrl');
+  input.select();
+  document.execCommand('copy');
+  Swal.showValidationMessage('Copied!');
+  setTimeout(() => Swal.resetValidationMessage(), 1500);
+}
+
+// Duplicate Course
+function duplicateCourse(code) {
+  Swal.fire({
+    title: 'Duplicate Course?',
+    text: 'This will create a copy with all content',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3a92bd',
+  }).then(result => {
+    if (result.isConfirmed) {
+      fetch(`/admin/courses/${code}/duplicate`, { method: 'POST' })
+        .then(res => res.json())
         .then(data => {
           if (data.success) {
-            // Show success toast
-            showToast(data.message, 'success');
-            // Reload the page to show updated status
-            setTimeout(() => {
-              location.reload();
-            }, 1500);
+            Swal.fire('Success', 'Course duplicated!', 'success').then(() => location.reload());
           } else {
-            showToast(data.message || 'Error deleting course', 'error');
+            Swal.fire('Error', data.message, 'error');
           }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          showToast('Error deleting course', 'error');
         });
     }
-  }
+  });
+}
 
-  /**
-   * Get the base URL for sharing (production or development)
-   */
-  function getShareBaseUrl() {
-    // In production, use elkably.com
-    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-      return 'https://elkably.com';
+// Delete Course
+function deleteCourse(code, status) {
+  const msg = status === 'archived' 
+    ? 'PERMANENTLY DELETE this course?' 
+    : 'Archive this course?';
+  
+  Swal.fire({
+    title: 'Delete Course?',
+    text: msg,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+  }).then(result => {
+    if (result.isConfirmed) {
+      fetch(`/admin/courses/${code}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire('Done', data.message, 'success').then(() => location.reload());
+          } else {
+            Swal.fire('Error', data.message, 'error');
+          }
+        });
     }
-    // In development, use current origin
-    return window.location.origin;
-  }
-
-  /**
-   * Share a course link with students
-   */
-  function shareCourseLink(courseCode, courseTitle, event) {
-    if (event) {
-      event.stopPropagation();
-      event.preventDefault();
-    }
-
-    const baseUrl = getShareBaseUrl();
-    // Get the course ID from the course card's data attribute
-    const courseCard = event.target.closest('[data-course-code="' + courseCode + '"]');
-    const courseId = courseCard ? courseCard.getAttribute('data-course-id') : null;
-    
-    if (!courseId) {
-      showToast('Unable to generate share link', 'error');
-      return;
-    }
-    
-    const shareUrl = `${baseUrl}/student/course/${courseId}/content`;
-    
-    Swal.fire({
-      title: `<i class="fas fa-share-alt"></i> Share Course`,
-      html: `
-        <div class="share-modal-content">
-          <div class="share-item-info">
-            <div class="share-item-icon">
-              <i class="fas fa-book"></i>
-            </div>
-            <div class="share-item-details">
-              <h4 class="share-item-title">${courseTitle}</h4>
-              <p class="share-item-description">Share this course with your students. They can enroll using this link.</p>
-            </div>
-          </div>
-          
-          <div class="share-link-container">
-            <label class="share-link-label">
-              <i class="fas fa-link"></i> Shareable Link
-            </label>
-            <div class="share-link-input-wrapper">
-              <input 
-                type="text" 
-                class="share-link-input" 
-                id="shareUrlInput" 
-                value="${shareUrl}" 
-                readonly
-              />
-              <button class="share-copy-btn" onclick="copyShareLink()">
-                <i class="fas fa-copy"></i>
-                <span>Copy</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="share-actions">
-            <button class="share-action-btn whatsapp" onclick="shareViaWhatsApp('${shareUrl}', '${courseTitle}')">
-              <i class="fab fa-whatsapp"></i>
-              WhatsApp
-            </button>
-            <button class="share-action-btn email" onclick="shareViaEmail('${shareUrl}', '${courseTitle}')">
-              <i class="fas fa-envelope"></i>
-              Email
-            </button>
-            <button class="share-action-btn telegram" onclick="shareViaTelegram('${shareUrl}', '${courseTitle}')">
-              <i class="fab fa-telegram"></i>
-              Telegram
-            </button>
-          </div>
-
-          <div class="share-qr-section">
-            <button class="share-qr-btn" onclick="generateQRCode('${shareUrl}')">
-              <i class="fas fa-qrcode"></i>
-              Generate QR Code
-            </button>
-          </div>
-        </div>
-      `,
-      showConfirmButton: false,
-      showCloseButton: true,
-      width: '600px',
-      customClass: {
-        popup: 'share-modal-popup',
-        closeButton: 'share-modal-close'
-      },
-      didOpen: () => {
-        const input = document.getElementById('shareUrlInput');
-        if (input) {
-          input.select();
-        }
-      }
-    });
-  }
-
-  function copyShareLink() {
-    const input = document.getElementById('shareUrlInput');
-    if (!input) return;
-
-    input.select();
-    input.setSelectionRange(0, 99999);
-
-    try {
-      document.execCommand('copy');
-      
-      const btn = document.querySelector('.share-copy-btn');
-      if (btn) {
-        const originalHTML = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check"></i><span>Copied!</span>';
-        btn.classList.add('copied');
-        
-        setTimeout(() => {
-          btn.innerHTML = originalHTML;
-          btn.classList.remove('copied');
-        }, 2000);
-      }
-
-      showToast('Link copied to clipboard!', 'success');
-    } catch (err) {
-      showToast('Failed to copy link', 'error');
-    }
-  }
-
-  function shareViaWhatsApp(url, title) {
-    const message = encodeURIComponent(`Check out this course: ${title}\n${url}`);
-    window.open(`https://wa.me/?text=${message}`, '_blank');
-  }
-
-  function shareViaEmail(url, title) {
-    const subject = encodeURIComponent(`Check out: ${title}`);
-    const body = encodeURIComponent(`I wanted to share this course with you:\n\n${title}\n\n${url}`);
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
-  }
-
-  function shareViaTelegram(url, title) {
-    const text = encodeURIComponent(`${title}\n${url}`);
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`, '_blank');
-  }
-
-  function generateQRCode(url) {
-    Swal.fire({
-      title: '<i class="fas fa-qrcode"></i> QR Code',
-      html: `
-        <div class="qr-code-container">
-          <p class="qr-code-description">Scan this QR code to access the course</p>
-          <div id="qrcode" class="qr-code-display"></div>
-          <p class="qr-code-url">${url}</p>
-          <button class="qr-download-btn" onclick="downloadQRCode('${url}')" style="margin-top: 1rem;">
-            <i class="fas fa-download"></i>
-            Download QR Code
-          </button>
-        </div>
-      `,
-      showConfirmButton: true,
-      confirmButtonText: 'Close',
-      width: '500px',
-      customClass: {
-        popup: 'qr-modal-popup'
-      },
-      didOpen: () => {
-        const qrContainer = document.getElementById('qrcode');
-        if (qrContainer) {
-          const qrSize = 250;
-          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(url)}`;
-          qrContainer.innerHTML = `<img id="qrCodeImage" src="${qrUrl}" alt="QR Code" style="max-width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />`;
-        }
-      }
-    });
-  }
-
-  /**
-   * Download QR Code as image
-   */
-  async function downloadQRCode(url) {
-    try {
-      const qrSize = 500; // Higher resolution for download
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(url)}`;
-      
-      // Fetch the QR code image
-      const response = await fetch(qrUrl);
-      const blob = await response.blob();
-      
-      // Create a blob URL and trigger download
-      const blobUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = `qr-code-${Date.now()}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Clean up the blob URL
-      window.URL.revokeObjectURL(blobUrl);
-      
-      showToast('QR Code downloaded successfully!', 'success');
-    } catch (error) {
-      console.error('Error downloading QR code:', error);
-      showToast('Failed to download QR code', 'error');
-    }
-  }
-
+  });
+}
 </script>

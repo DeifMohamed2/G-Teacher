@@ -14,9 +14,7 @@ function getPageCSS(pageName) {
     'courses': 'courses',
     'course-detail': 'courses',
     'course-content': 'courses',
-    'bundles': 'bundles',
-    'bundle-info': 'bundles',
-    'bundle-manage': 'bundles',
+
     'quizzes': 'quizzes',
     'create-quiz': 'quizzes',
     'edit-quiz': 'quizzes',
@@ -29,7 +27,7 @@ function getPageCSS(pageName) {
     'orders': 'orders',
     'order-details': 'orders'
   };
-  
+
   return cssMap[pageName] || null;
 }
 
@@ -41,7 +39,7 @@ function getPageCSS(pageName) {
  */
 function generateCSSConfig(pageName, additionalCSS = []) {
   const pageCSS = getPageCSS(pageName);
-  
+
   return {
     pageCSS: pageCSS,
     additionalCSS: additionalCSS,
@@ -57,7 +55,7 @@ function getAvailableCSSFiles() {
   return [
     'dashboard',
     'courses',
-    'bundles',
+
     'quizzes',
     'question-banks',
     'students',
@@ -95,20 +93,20 @@ function getCSSFilePath(pageName) {
 function generateCSSImports(pageName, additionalCSS = []) {
   const pageCSS = getPageCSS(pageName);
   let html = '';
-  
+
   // Main admin CSS
   html += '<link rel="stylesheet" href="/css/adminCSS/admin-main.css">\n';
-  
+
   // Page specific CSS
   if (pageCSS) {
     html += `<link rel="stylesheet" href="/css/adminCSS/${pageCSS}.css">\n`;
   }
-  
+
   // Additional CSS
   additionalCSS.forEach(css => {
     html += `<link rel="stylesheet" href="${css}">\n`;
   });
-  
+
   return html;
 }
 
@@ -120,11 +118,11 @@ function generateCSSImports(pageName, additionalCSS = []) {
 function getPageCSSClasses(pageName) {
   const pageCSS = getPageCSS(pageName);
   const baseClasses = 'admin-page';
-  
+
   if (pageCSS) {
     return `${baseClasses} admin-page-${pageCSS}`;
   }
-  
+
   return baseClasses;
 }
 

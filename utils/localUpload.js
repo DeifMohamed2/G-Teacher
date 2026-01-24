@@ -10,7 +10,6 @@ const UPLOAD_FOLDERS = {
   'profile-pictures': 'profile-pictures',
   'quiz-thumbnails': 'thumbnails',
   'course-thumbnails': 'thumbnails',
-  'bundle-thumbnails': 'thumbnails',
   'game-room-thumbnails': 'thumbnails',
   'question-images': 'questions',
   'option-images': 'questions',

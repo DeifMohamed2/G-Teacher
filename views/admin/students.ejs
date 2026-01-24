@@ -1976,18 +1976,6 @@
             </div>
 
             <div class="filter-group">
-              <label class="filter-label">Bundle</label>
-              <select name="bundle" class="filter-control">
-                <option value="all">All Bundles</option>
-                <% if (filterOptions?.bundles) { %>
-                <% filterOptions.bundles.forEach(bundle => { %>
-                <option value="<%= bundle._id %>" <%= currentFilters?.bundle === bundle._id ? 'selected' : '' %>><%= bundle.title %></option>
-                <% }) %>
-                <% } %>
-              </select>
-            </div>
-
-            <div class="filter-group">
               <label class="filter-label">Course</label>
               <select name="course" class="filter-control">
                 <option value="all">All Courses</option>

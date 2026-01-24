@@ -179,10 +179,7 @@ class WhatsAppSMSNotificationService {
     const studentName = (student.firstName || '').substring(0, 20);
     const orderNum = (purchaseData.orderNumber || purchaseData._id.toString()).substring(0, 12);
     const total = purchaseData.total || 0;
-    // Count both cart items and books
-    const cartItems = purchaseData.items ? purchaseData.items.length : 0;
-    const bookItems = purchaseData.bookOrders ? purchaseData.bookOrders.length : 0;
-    const totalItems = cartItems + bookItems;
+    const totalItems = purchaseData.items ? purchaseData.items.length : 0;
     const message = `Payment Confirmed!\nStudent: ${studentName}\nOrder: #${orderNum}\nItems: ${totalItems} item(s)\nTotal: EGP ${total}\nThank you!\nELKABLY`;
     return this.truncateSmsMessage(message);
   }

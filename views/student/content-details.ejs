@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= contentItem.title %> - Content | ELKABLY</title>
+  <title><%= contentItem.title %> - Content | G-Teacher</title>
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="/images/KImage.png">
@@ -1486,7 +1486,15 @@
     <!-- Main Content -->
     <main class="student-main">
       <!-- Include Header -->
-      <%- include('partials/student-header', { title: 'Content', student: student, theme: theme, currentPage: 'content', backLink: `/student/course/${course._id}/content` }) %>
+      <%- include('partials/student-header', { 
+        title: 'Content', 
+        student: student, 
+        theme: theme, 
+        currentPage: 'content', 
+        backLink: `/student/course/${course._id}/content`,
+        availableTeachers: typeof availableTeachers !== 'undefined' ? availableTeachers : [],
+        selectedTeacherId: typeof selectedTeacherId !== 'undefined' ? selectedTeacherId : 'all'
+      }) %>
 
       <!-- Notification Container (Top Right, Above Header) -->
       <div id="notification-container" class="notification-container-top"></div>
@@ -1744,226 +1752,6 @@
                 <i class="fas fa-file-pdf"></i>
                 <p>PDF content will be available here</p>
               </div>
-              <% } %>
-            </div>
-          </div>
-          <% } else if (contentItem.type === 'quiz') { %>
-          <div class="quiz-content">
-            <div class="quiz-info">
-              <h3>Quiz Information</h3>
-              <p style="margin-bottom: 8px; opacity: 0.9;">Answer all questions to finish. Passing score applies to unlock results.</p>
-
-              <!-- Compact Quiz Details Row -->
-              <div class="quiz-details-compact">
-                <div class="quiz-detail-item">
-                  <i class="fas fa-list-ol"></i>
-                  <span class="detail-label">Questions</span>
-                  <span class="detail-value"><%= contentItem.selectedQuestions ? contentItem.selectedQuestions.length : 0 %></span>
-                </div>
-                <div class="quiz-detail-item">
-                  <i class="fas fa-target"></i>
-                  <span class="detail-label">Pass</span>
-                  <span class="detail-value">
-                    <% if (contentItem.quizSettings && contentItem.quizSettings.passingScore !== undefined) { %>
-                    <%= contentItem.quizSettings.passingScore %>%
-                    <% } else { %>
-                    50%
-                    <% } %>
-                  </span>
-                </div>
-                <% if (contentItem.quizSettings && contentItem.quizSettings.maxAttempts) { %>
-                <div class="quiz-detail-item">
-                  <i class="fas fa-redo"></i>
-                  <span class="detail-label">Attempts</span>
-                  <span class="detail-value"><%= contentItem.quizSettings.maxAttempts %></span>
-                </div>
-                <% } %>
-              </div>
-
-              <!-- Progress Info -->
-              <% if (contentProgress && contentProgress.attempts > 0) { %>
-              <div class="quiz-progress-compact">
-                <div class="progress-item">
-                  <span class="progress-label">Attempts:</span>
-                  <span class="progress-value"><%= contentProgress.attempts %></span>
-                </div>
-                <% if (contentProgress.bestScore !== undefined) { %>
-                <div class="progress-item">
-                  <span class="progress-label">Best Score:</span>
-                  <span class="progress-value"><%= contentProgress.bestScore %>%</span>
-                </div>
-                <% } %>
-              </div>
-              <!-- Attempts Cards -->
-              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-top:10px;">
-                <% const attemptsList = (contentProgress.attemptsList || []); %>
-                <% attemptsList.forEach(function(a, i){ %>
-                <div style="border:1px solid var(--border-color); border-radius:10px; padding:12px; background:var(--card-bg);">
-                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                    <strong style="font-size:13px;">Attempt <%= i+1 %></strong>
-                    <span class="attempt-status <%= a.passed ? 'passed' : 'failed' %>"><%= a.passed ? 'Passed' : 'Failed' %></span>
-                  </div>
-                  <div style="display:flex; justify-content:space-between; font-size:12px; opacity:.9;">
-                    <span>Score</span>
-                    <span><%= a.score %>%</span>
-                  </div>
-                  <div style="display:flex; justify-content:space-between; font-size:12px; opacity:.9;">
-                    <span>Correct</span>
-                    <span><%= a.correctAnswers %>/<%= a.totalQuestions %></span>
-                  </div>
-                  <div style="display:flex; justify-content:space-between; font-size:12px; opacity:.9;">
-                    <span>Time</span>
-                    <span><%= Math.round((a.timeSpent||0)/60) %>m</span>
-                  </div>
-                </div>
-                <% }) %>
-              </div>
-              <% } %>
-
-              <% const latest = (contentProgress.attemptsList||[])[(contentProgress.attemptsList||[]).length-1]; %>
-              <% if (latest && latest.passed) { %>
-              <div class="quiz-completed-compact">
-                <div class="completion-badge-compact">
-                  <i class="fas fa-check-circle"></i>
-                  <span>Quiz Completed</span>
-                </div>
-                <div class="completion-details-compact">
-                  <div class="completion-detail-row">
-                    <span class="detail-label">Best Score:</span>
-                    <span class="detail-value"><%= contentProgress.bestScore %>%</span>
-                  </div>
-                  <div class="completion-detail-row">
-                    <span class="detail-label">Attempts:</span>
-                    <span class="detail-value"><%= contentProgress.attempts %></span>
-                  </div>
-                  <div class="completion-detail-row">
-                    <span class="detail-label">Completed:</span>
-                    <span class="detail-value"><%= contentProgress.completedAt ? new Date(contentProgress.completedAt).toLocaleDateString() : 'Recently' %></span>
-                  </div>
-                </div>
-                <div class="completion-actions-compact">
-                  <a href="/student/content/<%= contentItem._id %>/results" class="btn btn-primary btn-sm">
-                    <i class="fas fa-chart-line"></i>
-                    View Results
-                  </a>
-                </div>
-              </div>
-              <% } else { %>
-              <% const outOfAttempts = attemptPolicy && attemptPolicy.outOfAttempts; %>
-              <button class="btn btn-primary btn-sm" style="padding:8px 14px; border-radius:8px; font-weight:600;" onclick="startQuiz('<%= contentItem._id %>', '<%= contentItem.type %>')" <%= outOfAttempts ? 'disabled' : '' %>>
-                <i class="fas <%= outOfAttempts ? 'fa-lock' : 'fa-play' %>"></i>
-                <%= outOfAttempts ? 'Out of attempts' : (timing && timing.remainingSeconds > 0 ? 'Resume Quiz' : 'Start Quiz') %>
-              </button>
-              <% if (attemptPolicy && attemptPolicy.maxAttempts) { %>
-              <div style="margin-top:6px; font-size:12px; opacity:.8;">
-                Attempts: <%= attemptPolicy.maxAttempts - (attemptPolicy.remainingAttempts||0) %>/<%= attemptPolicy.maxAttempts %>
-              </div>
-              <% } %>
-              <% } %>
-            </div>
-          </div>
-          <% } else if (contentItem.type === 'homework') { %>
-          <div class="homework-content">
-            <div class="homework-info">
-              <h3>Homework Assignment</h3>
-              <% 
-                const homeworkPassingScore = contentItem.homeworkSettings && contentItem.homeworkSettings.passingScore !== undefined 
-                  ? contentItem.homeworkSettings.passingScore 
-                  : 0;
-              %>
-              <% if (homeworkPassingScore === 0) { %>
-                <p>This is a homework assignment. Simply submit your work to complete it - no minimum score required.</p>
-              <% } else { %>
-                <p>This is a homework assignment. Complete the requirements and submit your work. You need to score at least <%= homeworkPassingScore %>% to pass.</p>
-              <% } %>
-
-              <!-- Compact Homework Details Row -->
-              <div class="homework-details-compact">
-                <div class="homework-detail-item">
-                  <i class="fas fa-list-ol"></i>
-                  <span class="detail-label">Questions</span>
-                  <span class="detail-value"><%= contentItem.selectedQuestions ? contentItem.selectedQuestions.length : 0 %></span>
-                </div>
-                <div class="homework-detail-item">
-                  <i class="fas fa-target"></i>
-                  <span class="detail-label">Pass</span>
-                  <span class="detail-value">
-                    <% if (contentItem.homeworkSettings && contentItem.homeworkSettings.passingScore !== undefined) { %>
-                    <%= contentItem.homeworkSettings.passingScore %>%
-                    <% } else { %>
-                    0%
-                    <% } %>
-                  </span>
-                </div>
-                <% if (contentItem.homeworkSettings && contentItem.homeworkSettings.maxAttempts) { %>
-                <div class="homework-detail-item">
-                  <i class="fas fa-redo"></i>
-                  <span class="detail-label">Attempts</span>
-                  <span class="detail-value"><%= contentItem.homeworkSettings.maxAttempts %></span>
-                </div>
-                <% } %>
-              </div>
-
-              <!-- Progress Info -->
-              <% if (contentProgress && contentProgress.attempts > 0) { %>
-              <div class="homework-progress-compact">
-                <div class="progress-item">
-                  <span class="progress-label">Attempts:</span>
-                  <span class="progress-value"><%= contentProgress.attempts %></span>
-                </div>
-                <% if (contentProgress.bestScore !== undefined) { %>
-                <div class="progress-item">
-                  <span class="progress-label">Best Score:</span>
-                  <span class="progress-value"><%= contentProgress.bestScore %>%</span>
-                </div>
-                <% } %>
-                <div class="progress-item">
-                  <span class="progress-label">Status:</span>
-                  <span class="progress-value <%= contentProgress.completionStatus === 'completed' ? 'text-success' : 'text-warning' %>">
-                    <%= contentProgress.completionStatus === 'completed' ? 'Completed' : 'In Progress' %>
-                  </span>
-                </div>
-              </div>
-              <% } %>
-
-              <% if (contentProgress && contentProgress.completionStatus === 'completed') { %>
-              <div class="homework-completed-compact">
-                <div class="completion-badge-compact">
-                  <i class="fas fa-check-circle"></i>
-                  <span>Homework Completed</span>
-                </div>
-                <div class="completion-details-compact">
-                  <div class="completion-detail-row">
-                    <span class="detail-label">Best Score:</span>
-                    <span class="detail-value"><%= contentProgress.bestScore %>%</span>
-                  </div>
-                  <div class="completion-detail-row">
-                    <span class="detail-label">Attempts:</span>
-                    <span class="detail-value"><%= contentProgress.attempts %></span>
-                  </div>
-                  <div class="completion-detail-row">
-                    <span class="detail-label">Completed:</span>
-                    <span class="detail-value"><%= contentProgress.completedAt ? new Date(contentProgress.completedAt).toLocaleDateString() : 'Recently' %></span>
-                  </div>
-                </div>
-                <div class="completion-actions-compact">
-                  <a href="/student/content/<%= contentItem._id %>/results" class="btn btn-primary btn-sm">
-                    <i class="fas fa-chart-line"></i>
-                    View Results
-                  </a>
-                </div>
-              </div>
-              <% } else { %>
-              <% const outOfAttempts = attemptPolicy && attemptPolicy.outOfAttempts; %>
-              <button class="btn btn-primary btn-lg" onclick="startQuiz('<%= contentItem._id %>', '<%= contentItem.type %>')" <%= outOfAttempts ? 'disabled' : '' %>>
-                <i class="fas <%= outOfAttempts ? 'fa-lock' : 'fa-tasks' %>"></i>
-                <%= outOfAttempts ? 'Out of attempts' : (timing && timing.remainingSeconds > 0 ? 'Resume Homework' : 'Start Homework') %>
-              </button>
-              <% if (attemptPolicy && attemptPolicy.maxAttempts) { %>
-              <div style="margin-top:6px; font-size:12px; opacity:.8;">
-                Attempts: <%= attemptPolicy.maxAttempts - (attemptPolicy.remainingAttempts||0) %>/<%= attemptPolicy.maxAttempts %>
-              </div>
-              <% } %>
               <% } %>
             </div>
           </div>
@@ -2909,89 +2697,6 @@
       }
     }
 
-    // Start Quiz/Homework with SweetAlert2 confirmation
-    function startQuiz(contentId, contentType) {
-      // Disable all quiz start buttons immediately to prevent multiple clicks
-      const quizButtons = document.querySelectorAll('button[onclick*="startQuiz"]');
-      quizButtons.forEach(btn => {
-        if (!btn.disabled) {
-          btn.dataset.originalText = btn.innerHTML;
-          btn.disabled = true;
-          btn.style.opacity = '0.6';
-          btn.style.cursor = 'not-allowed';
-        }
-      });
-
-      const quizType = contentType === 'quiz' ? 'Quiz' : 'Homework';
-
-      Swal.fire({
-        title: `Start ${quizType}?`,
-        html: `
-          <div style="text-align: left; margin: 20px 0;">
-            <p style="margin-bottom: 15px; color: #6b7280; font-size: 16px;">
-              Are you sure you want to start this ${quizType.toLowerCase()}?
-            </p>
-            <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin: 15px 0;">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-exclamation-triangle" style="color: #f59e0b; font-size: 18px;"></i>
-                <strong style="color: #92400e;">Important:</strong>
-              </div>
-              <p style="margin: 8px 0 0 0; color: #92400e; font-size: 14px;">
-                Once you start, the timer will begin (if applicable) and you'll need to complete all questions.
-              </p>
-            </div>
-          </div>
-        `,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#dc2626',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: `<i class="fas fa-play"></i> Start ${quizType}`,
-        cancelButtonText: '<i class="fas fa-times"></i> Cancel',
-        reverseButtons: true,
-        focusCancel: false,
-        allowOutsideClick: true,
-        allowEscapeKey: true,
-        showCloseButton: true,
-        customClass: {
-          popup: 'swal2-popup-custom',
-          title: 'swal2-title-custom',
-          content: 'swal2-content-custom',
-          confirmButton: 'swal2-confirm-custom',
-          cancelButton: 'swal2-cancel-custom'
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          confirmStartQuiz(contentId, quizType);
-        } else {
-          // User cancelled - re-enable buttons
-          const quizButtons = document.querySelectorAll('button[onclick*="startQuiz"]');
-          quizButtons.forEach(btn => {
-            if (btn.dataset.originalText) {
-              btn.innerHTML = btn.dataset.originalText;
-              delete btn.dataset.originalText;
-            }
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.style.cursor = 'pointer';
-          });
-        }
-      });
-    }
-
-    function confirmStartQuiz(contentId, quizType) {
-      const isQuiz = quizType.toLowerCase() === 'quiz';
-      const icon = isQuiz ? 'fa-question-circle' : 'fa-tasks';
-      showEnhancedNotification(
-        `Opening ${quizType.toLowerCase()}... Get ready!`,
-        'info',
-        `${quizType} Starting`
-      );
-      setTimeout(() => {
-        window.location.href = '/student/content/' + contentId + '/take';
-      }, 1000);
-    }
-
     // Toast notification function - Enhanced
     function showToast(message, type = 'success') {
       const title = type === 'success' ? 'Success' : 'Error';
@@ -3115,18 +2820,6 @@
         window.history.replaceState({}, document.title, window.location.pathname);
       }
 
-      // Show notification if quiz/HW was just started
-      if (urlParams.get('quizStarted') === 'true') {
-        const contentType = urlParams.get('type') || 'quiz';
-        const typeName = contentType === 'quiz' ? 'Quiz' : 'Homework';
-        showEnhancedNotification(
-          `${typeName} is now open. Good luck!`,
-          'info',
-          `${typeName} Started`
-        );
-        // Clean URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
     });
 
     // ==================== WATERMARK INITIALIZATION ====================

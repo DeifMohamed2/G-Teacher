@@ -3,8 +3,8 @@
 /* CSS Variables for Theme Support */
 :root {
   /* Light Theme Colors */
-  --primary-color: #dc2626;
-  --primary-hover: #b91c1c;
+  --primary-color: #3a92bd;
+  --primary-hover: #2d7a9e;
   --primary-light: #fef2f2;
   --primary-dark: #991b1b;
   --secondary-color: #1f2937;
@@ -35,7 +35,7 @@
   /* Border Colors */
   --border-color: #e5e7eb;
   --border-light: #f3f4f6;
-  --border-focus: #dc2626;
+  --border-focus: #3a92bd;
   --border-hover: #d1d5db;
 
   /* Shadow Colors */
@@ -46,10 +46,10 @@
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-primary: 0 4px 14px 0 rgba(220, 38, 38, 0.2);
+  --shadow-primary: 0 4px 14px 0 rgba(58, 146, 189, 0.2);
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  --gradient-primary: linear-gradient(135deg, #3a92bd 0%, #2d7a9e 100%);
   --gradient-secondary: linear-gradient(135deg, #1f2937 0%, #374151 100%);
   --gradient-accent: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
@@ -93,8 +93,8 @@
 /* Dark Theme */
 .dark-theme {
   /* Dark Theme Colors */
-  --primary-color: #ef4444;
-  --primary-hover: #dc2626;
+  --primary-color: #3a92bd;
+  --primary-hover: #2d7a9e;
   --primary-light: #1f1f1f;
   --primary-dark: #991b1b;
   --secondary-color: #e5e7eb;
@@ -129,7 +129,7 @@
   /* Border Colors */
   --border-color: #374151;
   --border-light: #4b5563;
-  --border-focus: #ef4444;
+  --border-focus: #3a92bd;
   --border-hover: #6b7280;
 
   /* Shadow Colors */
@@ -140,7 +140,7 @@
     0 4px 6px -2px rgba(0, 0, 0, 0.3);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4),
     0 10px 10px -5px rgba(0, 0, 0, 0.3);
-  --shadow-primary: 0 4px 14px 0 rgba(239, 68, 68, 0.3);
+  --shadow-primary: 0 4px 14px 0 rgba(58, 146, 189, 0.3);
 }
 
 /* Base Styles */

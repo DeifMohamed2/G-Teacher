@@ -565,17 +565,6 @@
 
                                 <div class="notification-item">
                                     <div class="notification-info">
-                                        <div class="notification-title">Quiz Reminders</div>
-                                        <div class="notification-description">Get reminded about upcoming quizzes and deadlines</div>
-                                    </div>
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" name="quizReminders" <%= student.preferences?.notifications?.quizReminders ? 'checked' : '' %>>
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-
-                                <div class="notification-item">
-                                    <div class="notification-info">
                                         <div class="notification-title">Week Updates</div>
                                         <div class="notification-description">Receive notifications when courses are updated</div>
                                     </div>
@@ -751,7 +740,6 @@
             const formData = new FormData(form);
             const notifications = {
                 email: formData.get('email') === 'on',
-                quizReminders: formData.get('quizReminders') === 'on',
                 courseUpdates: formData.get('courseUpdates') === 'on'
             };
 

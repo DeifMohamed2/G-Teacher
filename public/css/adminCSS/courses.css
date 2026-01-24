@@ -1057,12 +1057,20 @@
 }
 
 .invalid-feedback {
-  display: block;
+  display: none;
   width: 100%;
   margin-top: 0.25rem;
   font-size: 0.875em;
   color: #dc3545;
   font-weight: 500;
+}
+
+/* Show invalid-feedback only when input is invalid */
+.is-invalid ~ .invalid-feedback,
+.is-invalid + .invalid-feedback,
+.was-validated .form-control:invalid ~ .invalid-feedback,
+.was-validated .form-select:invalid ~ .invalid-feedback {
+  display: block;
 }
 
 .form-select.is-invalid {

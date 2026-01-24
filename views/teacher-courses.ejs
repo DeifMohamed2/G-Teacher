@@ -1,1403 +1,1661 @@
 <%- include('partials/header', { title: title }) %>
 
-<!-- Floating Math Elements -->
-<div class="floating-math-elements-professor" id="floatingMath">
-  <div class="math-element-professor" data-equation="∂">∂</div>
-  <div class="math-element-professor" data-equation="∇">∇</div>
-  <div class="math-element-professor" data-equation="∫">∫</div>
-  <div class="math-element-professor" data-equation="∑">∑</div>
-  <div class="math-element-professor" data-equation="∏">∏</div>
-  <div class="math-element-professor" data-equation="∞">∞</div>
-  <div class="math-element-professor" data-equation="∃">∃</div>
-  <div class="math-element-professor" data-equation="∀">∀</div>
-  <div class="math-element-professor" data-equation="ℝ">ℝ</div>
-  <div class="math-element-professor" data-equation="ℂ">ℂ</div>
-</div>
-
-<!-- Teacher Courses Section -->
-<section class="teacher-courses-section" style="margin-top: 60px;">
-  <div class="container">
-    <!-- Breadcrumb -->
-    <nav class="breadcrumb-nav">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item"><a href="/#ig-courses">IG Courses</a></li>
-        <li class="breadcrumb-item"><a href="/#ig-courses"><%= subject %></a></li>
-        <li class="breadcrumb-item active"><%= teacher.name %></li>
-      </ol>
-    </nav>
-
-    <!-- Teacher Header -->
-    <div class="teacher-header-section mb-4">
-      <div class="row">
-        <div class="col-lg-8">
-          <div class="teacher-profile-card">
-            <div class="teacher-profile-image">
-              <img src="<%= teacher.image %>" alt="<%= teacher.name %>" onerror="this.onerror=null; this.src='/images/place.png'">
-              <div class="teacher-verified-badge" title="Verified Teacher">
-                <i class="fas fa-check-circle"></i>
-              </div>
-            </div>
-            <div class="teacher-profile-info">
-              <div class="teacher-badges">
-                <span class="badge-subject">
-                  <i class="fas fa-book"></i>
-                  <%= subject %>
-                </span>
-                <span class="badge-exam-date">
-                  <i class="fas fa-calendar"></i>
-                  <%= examDate %>
-                </span>
-              </div>
-              <h1 class="teacher-name"><%= teacher.name %></h1>
-              <p class="teacher-specialty"><%= teacher.specialty %></p>
-              <p class="teacher-bio"><%= teacher.bio %></p>
-              
-              <div class="teacher-stats-row">
-                <div class="teacher-stat">
-                  <i class="fas fa-book-open"></i>
-                  <span><%= teacher.totalCourses %> Courses</span>
-                </div>
-                <div class="teacher-stat">
-                  <i class="fas fa-users"></i>
-                  <span><%= teacher.totalStudents %>+ Students</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="teacher-quick-info-card h-100 d-flex flex-column">
-            <h3 class="quick-info-title">Quick Info</h3>
-            <div class="quick-info-items">
-              <div class="quick-info-item">
-                <i class="fas fa-graduation-cap"></i>
-                <div>
-                  <span class="info-label">Qualification</span>
-                  <span class="info-value"><%= teacher.qualification %></span>
-                </div>
-              </div>
-              <div class="quick-info-item">
-                <i class="fas fa-language"></i>
-                <div>
-                  <span class="info-label">Teaching Language</span>
-                  <span class="info-value"><%= teacher.language %></span>
-                </div>
-              </div>
-              <div class="quick-info-item">
-                <i class="fas fa-chalkboard-teacher"></i>
-                <div>
-                  <span class="info-label">Teaching Style</span>
-                  <span class="info-value"><%= teacher.teachingStyle %></span>
-                </div>
-              </div>
-            </div>
-            <div class="teacher-contact-actions mt-auto">
-              <button class="btn-contact-teacher" onclick="showContactModal()">
-                <i class="fas fa-envelope"></i>
-                <span>Contact Teacher</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Search and Filter Section -->
-    <div class="courses-filter-section-enhanced mb-3">
-      <div class="filter-container">
-        <div class="search-filter-wrapper">
-          <!-- Search Input -->
-          <div class="search-box-modern">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" class="search-input-modern" id="courseSearchInput" placeholder="Search courses by name..." onkeyup="filterCourses()">
-            <button type="button" class="search-clear-btn" id="searchClearBtn" onclick="clearSearch()" style="display: none;">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-
-          <!-- Price Filter -->
-          <div class="filter-dropdown-modern">
-            <i class="fas fa-filter filter-icon"></i>
-            <select class="filter-select-modern" id="priceFilter" onchange="filterCourses()">
-              <option value="">All Prices</option>
-              <option value="0-500">Under 500 EGP</option>
-              <option value="500-1000">500 - 1000 EGP</option>
-              <option value="1000+">1000+ EGP</option>
-            </select>
-          </div>
-
-          <!-- Clear Filters Button -->
-          <button type="button" class="clear-filters-btn" onclick="clearFilters()" title="Clear all filters">
-            <i class="fas fa-redo"></i>
-            <span>Reset</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Results Count -->
-    <div class="results-count-enhanced mb-3">
-      <div class="results-info">
-        <div class="results-stats">
-          <span class="results-number" id="filteredCount"><%= courses.length %></span>
-          <span class="results-label">/ <%= courses.length %> courses available</span>
-        </div>
-        <div class="results-type">
-          <i class="fas fa-chalkboard-teacher"></i>
-          <span>By <%= teacher.name %></span>
-        </div>
-      </div>
-    </div>
-
-
-
-    <!-- Courses Grid -->
-    <div class="courses-content-grid">
-      <h2 class="section-title">
-        <i class="fas fa-book-open"></i>
-        Available Courses
-      </h2>
-      <div class="courses-grid" id="coursesGrid">
-        <% courses.forEach((course, index) => { %>
-        <article class="course-card-enhanced" data-title="<%= course.title.toLowerCase() %>" data-type="<%= course.type %>" data-price="<%= course.finalPrice %>">
-          <div class="course-card-header">
-            <div class="course-favorite-btn-enhanced" onclick="toggleWishlist('<%= course.id %>', 'course')" title="Add to Wishlist">
-              <i class="far fa-heart"></i>
-            </div>
-            <div class="course-badge-container">
-              <% if (course.discountPercentage > 0) { %>
-              <div class="course-offer-badge-enhanced discount">
-                <i class="fas fa-percentage"></i>
-                <span>Save <%= course.discountPercentage %>%</span>
-              </div>
-              <% } %>
-              <% if (course.isBestseller) { %>
-              <div class="course-offer-badge-enhanced bestseller">
-                <i class="fas fa-trophy"></i>
-                <span>Bestseller</span>
-              </div>
-              <% } %>
-              <% if (course.isNew) { %>
-              <div class="course-offer-badge-enhanced new">
-                <i class="fas fa-sparkles"></i>
-                <span>New</span>
-              </div>
-              <% } %>
-            </div>
-          </div>
-
-          <div class="course-card-media-enhanced">
-            <img src="<%= course.thumbnail %>" alt="<%= course.title %>" loading="lazy" onerror="this.onerror=null; this.src='/images/adad.png'">
-            <div class="course-overlay-enhanced">
-              <div class="course-quick-actions">
-                <% if (course.isFullyBooked) { %>
-                <button class="quick-action-btn fully-booked" title="Fully Booked" disabled>
-                  <i class="fas fa-ban"></i>
-                </button>
-                <% } else { %>
-                <button class="quick-action-btn" onclick="addCourseToCart('<%= course.id %>')" title="Add to Cart">
-                  <i class="fas fa-shopping-cart"></i>
-                </button>
-                <button class="quick-action-btn" onclick="quickView('<%= course.id %>')" title="Quick View">
-                  <i class="fas fa-eye"></i>
-                </button>
-                <% } %>
-              </div>
-            </div>
-            <div class="course-type-badge <%= course.type %>">
-              <i class="fas fa-<%= course.type === 'online' ? 'laptop' : course.type === 'recorded' ? 'video' : 'chalkboard-teacher' %>"></i>
-              <%= course.type === 'online' ? 'Online Live' : course.type === 'recorded' ? 'Recorded' : 'On-Ground' %>
-            </div>
-          </div>
-
-          <div class="course-card-body-enhanced">
-            <div class="course-meta">
-              <span class="course-unit"><%= course.unit %></span>
-              <span class="course-duration"><i class="fas fa-clock"></i> <%= course.duration %></span>
-            </div>
-
-            <h3 class="course-card-title-enhanced"><%= course.title %></h3>
-            <p class="course-card-description-enhanced"><%= course.shortDescription %></p>
-
-            <div class="course-features">
-              <% course.features.forEach(feature => { %>
-              <span class="course-feature">
-                <i class="fas fa-check"></i>
-                <%= feature %>
-              </span>
-              <% }); %>
-            </div>
-
-            <div class="course-stats-enhanced">
-              <div class="stat-item">
-                <i class="fas fa-video"></i>
-                <span><%= course.lessonsCount %> Lessons</span>
-              </div>
-              <div class="stat-item">
-                <i class="fas fa-users"></i>
-                <span><%= course.studentsEnrolled %> Enrolled</span>
-              </div>
-              <div class="stat-item">
-                <i class="fas fa-star" style="color: #fbbf24;"></i>
-                <span><%= course.rating %></span>
-              </div>
-            </div>
-
-            <div class="course-price-container-enhanced">
-              <% if (course.discountPercentage > 0) { %>
-              <div class="price-wrapper">
-                <span class="course-price-original-enhanced"><%= course.originalPrice %> EGP</span>
-                <span class="course-price-current-enhanced"><%= course.finalPrice %> EGP</span>
-              </div>
-              <div class="savings-info">
-                <span class="savings-amount">Save <%= course.originalPrice - course.finalPrice %> EGP</span>
-              </div>
-              <% } else { %>
-              <div class="price-wrapper">
-                <span class="course-price-current-enhanced"><%= course.finalPrice %> EGP</span>
-              </div>
-              <% } %>
-            </div>
-
-            <div class="course-actions-enhanced">
-              <% if (course.isFullyBooked) { %>
-              <button class="btn-fully-booked-enhanced" disabled>
-                <i class="fas fa-ban"></i>
-                <span class="fully-booked-text">FULLY BOOKED</span>
-              </button>
-              <% } else { %>
-              <button class="btn-add-to-cart-enhanced" onclick="addCourseToCart('<%= course.id %>')">
-                <i class="fas fa-shopping-cart"></i>
-                <span>Add to Cart</span>
-              </button>
-              <% } %>
-            </div>
-          </div>
-        </article>
-        <% }); %>
-      </div>
-
-      <!-- No Courses Found Message -->
-      <div class="no-courses-found-enhanced" id="noCoursesFound" style="display: none;">
-        <div class="no-courses-content">
-          <div class="no-courses-icon-enhanced">
-            <div class="icon-background">
-              <i class="fas fa-search"></i>
-            </div>
-          </div>
-          <h3 class="no-courses-title">No Courses Found</h3>
-          <p class="no-courses-description">
-            We couldn't find any courses matching your search criteria.
-            Try adjusting your filters or search terms.
-          </p>
-          <div class="no-courses-actions">
-            <button class="btn-secondary-enhanced" onclick="clearFilters()">
-              <i class="fas fa-refresh"></i>
-              <span>Clear Filters</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
+  <!-- Floating Math Elements -->
+  <div class="floating-math-elements-professor" id="floatingMath">
+    <div class="math-element-professor" data-equation="∂">∂</div>
+    <div class="math-element-professor" data-equation="∇">∇</div>
+    <div class="math-element-professor" data-equation="∫">∫</div>
+    <div class="math-element-professor" data-equation="∑">∑</div>
+    <div class="math-element-professor" data-equation="∏">∏</div>
+    <div class="math-element-professor" data-equation="∞">∞</div>
+    <div class="math-element-professor" data-equation="∃">∃</div>
+    <div class="math-element-professor" data-equation="∀">∀</div>
+    <div class="math-element-professor" data-equation="ℝ">ℝ</div>
+    <div class="math-element-professor" data-equation="ℂ">ℂ</div>
   </div>
-</section>
 
-<script>
-  // Course Filtering Functionality
-  function filterCourses() {
-    const searchInput = document.getElementById('courseSearchInput').value.toLowerCase();
-    const priceFilter = document.getElementById('priceFilter').value;
-    const coursesGrid = document.getElementById('coursesGrid');
-    const noCoursesFound = document.getElementById('noCoursesFound');
-    const filteredCountEl = document.getElementById('filteredCount');
-    const searchClearBtn = document.getElementById('searchClearBtn');
-    
-    // Show/hide clear button
-    if (searchClearBtn) {
-      searchClearBtn.style.display = searchInput ? 'flex' : 'none';
-    }
-    
-    const courseCards = coursesGrid.querySelectorAll('.course-card-enhanced');
-    let visibleCount = 0;
-    
-    courseCards.forEach(card => {
-      const title = card.dataset.title;
-      const price = parseFloat(card.dataset.price);
-      
-      let matchesSearch = !searchInput || title.includes(searchInput);
-      let matchesPrice = true;
-      
-      if (priceFilter) {
-        if (priceFilter === '0-500') {
-          matchesPrice = price < 500;
-        } else if (priceFilter === '500-1000') {
-          matchesPrice = price >= 500 && price <= 1000;
-        } else if (priceFilter === '1000+') {
-          matchesPrice = price > 1000;
+  <!-- Teacher Courses Section -->
+  <section class="teacher-courses-section" style="margin-top: 60px;">
+    <div class="container">
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb-nav">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">Home</a></li>
+          <li class="breadcrumb-item"><a href="/#ig-courses">IG Courses</a></li>
+          <li class="breadcrumb-item"><a href="/#ig-courses">
+              <%= subject %>
+            </a></li>
+          <li class="breadcrumb-item active">
+            <%= teacher.name %>
+          </li>
+        </ol>
+      </nav>
+
+      <!-- Teacher Header -->
+      <div class="teacher-header-section mb-4">
+        <div class="row">
+          <div class="col-lg-8">
+            <div class="teacher-profile-card">
+              <div class="teacher-profile-image">
+                <img src="<%= teacher.image %>" alt="<%= teacher.name %>"
+                  onerror="this.onerror=null; this.src='/images/place.png'">
+                <div class="teacher-verified-badge" title="Verified Teacher">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+              </div>
+              <div class="teacher-profile-info">
+                <div class="teacher-badges">
+                  <span class="badge-subject">
+                    <i class="fas fa-book"></i>
+                    <%= subject %>
+                  </span>
+                  <span class="badge-exam-date">
+                    <i class="fas fa-calendar"></i>
+                    <%= examDate %>
+                  </span>
+                </div>
+                <h1 class="teacher-name">
+                  <%= teacher.name %>
+                </h1>
+                <p class="teacher-specialty">
+                  <%= teacher.specialty %>
+                </p>
+                <p class="teacher-bio">
+                  <%= teacher.bio %>
+                </p>
+
+                <div class="teacher-stats-row">
+                  <div class="teacher-stat">
+                    <i class="fas fa-book-open"></i>
+                    <span>
+                      <%= teacher.totalCourses %> Courses
+                    </span>
+                  </div>
+                  <div class="teacher-stat">
+                    <i class="fas fa-users"></i>
+                    <span>
+                      <%= teacher.totalStudents %>+ Students
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="teacher-quick-info-card h-100 d-flex flex-column">
+              <h3 class="quick-info-title">Quick Info</h3>
+              <div class="quick-info-items">
+                <div class="quick-info-item">
+                  <i class="fas fa-graduation-cap"></i>
+                  <div>
+                    <span class="info-label">Qualification</span>
+                    <span class="info-value">
+                      <%= teacher.qualification %>
+                    </span>
+                  </div>
+                </div>
+                <div class="quick-info-item">
+                  <i class="fas fa-language"></i>
+                  <div>
+                    <span class="info-label">Teaching Language</span>
+                    <span class="info-value">
+                      <%= teacher.language %>
+                    </span>
+                  </div>
+                </div>
+                <div class="quick-info-item">
+                  <i class="fas fa-chalkboard-teacher"></i>
+                  <div>
+                    <span class="info-label">Teaching Style</span>
+                    <span class="info-value">
+                      <%= teacher.teachingStyle %>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="teacher-contact-actions mt-auto">
+                <button class="btn-contact-teacher" onclick="showContactModal()">
+                  <i class="fas fa-envelope"></i>
+                  <span>Contact Teacher</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search and Filter Section -->
+      <div class="courses-filter-section-enhanced mb-3">
+        <div class="filter-container">
+          <div class="search-filter-wrapper">
+            <!-- Search Input -->
+            <div class="search-box-modern">
+              <i class="fas fa-search search-icon"></i>
+              <input type="text" class="search-input-modern" id="courseSearchInput"
+                placeholder="Search courses by name..." onkeyup="filterCourses()">
+              <button type="button" class="search-clear-btn" id="searchClearBtn" onclick="clearSearch()"
+                style="display: none;">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+
+            <!-- Price Filter -->
+            <div class="filter-dropdown-modern">
+              <i class="fas fa-filter filter-icon"></i>
+              <select class="filter-select-modern" id="priceFilter" onchange="filterCourses()">
+                <option value="">All Prices</option>
+                <option value="0-500">Under 500 EGP</option>
+                <option value="500-1000">500 - 1000 EGP</option>
+                <option value="1000+">1000+ EGP</option>
+              </select>
+            </div>
+
+            <!-- Clear Filters Button -->
+            <button type="button" class="clear-filters-btn" onclick="clearFilters()" title="Clear all filters">
+              <i class="fas fa-redo"></i>
+              <span>Reset</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Count -->
+      <div class="results-count-enhanced mb-3">
+        <div class="results-info">
+          <div class="results-stats">
+            <span class="results-number" id="filteredCount">
+              <%= courses.length %>
+            </span>
+            <span class="results-label">/ <%= courses.length %> courses available</span>
+          </div>
+          <div class="results-type">
+            <i class="fas fa-chalkboard-teacher"></i>
+            <span>By <%= teacher.name %></span>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- Courses Grid -->
+      <div class="courses-content-grid">
+        <h2 class="section-title">
+          <i class="fas fa-book-open"></i>
+          Available Courses
+        </h2>
+        <div class="courses-grid" id="coursesGrid">
+          <% courses.forEach((course, index)=> { %>
+            <article class="course-card-enhanced" data-course-id="<%= course.id %>"
+              data-title="<%= course.title.toLowerCase() %>" data-type="<%= course.type %>"
+              data-price="<%= course.finalPrice %>">
+              <div class="course-card-header">
+                <div class="course-favorite-btn-enhanced" onclick="toggleWishlist('<%= course.id %>', 'course', event)"
+                  title="Add to Wishlist">
+                  <i class="far fa-heart"></i>
+                </div>
+                <div class="course-badge-container">
+                  <% if (course.discountPercentage> 0) { %>
+                    <div class="course-offer-badge-enhanced discount">
+                      <i class="fas fa-percentage"></i>
+                      <span>Save <%= course.discountPercentage %>%</span>
+                    </div>
+                    <% } %>
+                      <% if (course.isBestseller) { %>
+                        <div class="course-offer-badge-enhanced bestseller">
+                          <i class="fas fa-trophy"></i>
+                          <span>Bestseller</span>
+                        </div>
+                        <% } %>
+                          <% if (course.isNew) { %>
+                            <div class="course-offer-badge-enhanced new">
+                              <i class="fas fa-sparkles"></i>
+                              <span>New</span>
+                            </div>
+                            <% } %>
+                </div>
+              </div>
+
+              <div class="course-card-media-enhanced">
+                <img src="<%= course.thumbnail %>" alt="<%= course.title %>" loading="lazy"
+                  onerror="this.onerror=null; this.src='/images/adad.png'">
+                <div class="course-overlay-enhanced">
+                  <div class="course-quick-actions">
+                    <% let isPurchasedOverlay=false; if (user && user.enrolledCourses) {
+                      isPurchasedOverlay=user.enrolledCourses.some(e=>
+                      e.course && e.course.toString() === course.id.toString()
+                      );
+                      }
+                      %>
+
+                      <% if (isPurchasedOverlay) { %>
+                        <button class="quick-action-btn" style="background: #10b981; color: white;"
+                          onclick="window.location.href='/student/my-courses'" title="Go to Course">
+                          <i class="fas fa-play"></i>
+                        </button>
+                        <button class="quick-action-btn" onclick="quickView('<%= course.id %>')" title="Quick View">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <% } else if (course.isFullyBooked) { %>
+                          <button class="quick-action-btn fully-booked" title="Fully Booked" disabled>
+                            <i class="fas fa-ban"></i>
+                          </button>
+                          <% } else { %>
+                            <button class="quick-action-btn" onclick="addCourseToCart('<%= course.id %>', event)"
+                              title="Add to Cart">
+                              <i class="fas fa-shopping-cart"></i>
+                            </button>
+                            <button class="quick-action-btn" onclick="quickView('<%= course.id %>')" title="Quick View">
+                              <i class="fas fa-eye"></i>
+                            </button>
+                            <% } %>
+                  </div>
+                </div>
+                <div class="course-type-badge <%= course.type %>">
+                  <i
+                    class="fas fa-<%= course.type === 'online' ? 'laptop' : course.type === 'recorded' ? 'video' : 'chalkboard-teacher' %>"></i>
+                  <%= course.type==='online' ? 'Online Live' : course.type==='recorded' ? 'Recorded' : 'On-Ground' %>
+                </div>
+              </div>
+
+              <div class="course-card-body-enhanced">
+                <div class="course-meta">
+                  <span class="course-unit">
+                    <%= course.unit %>
+                  </span>
+                  <span class="course-duration"><i class="fas fa-clock"></i>
+                    <%= course.duration %>
+                  </span>
+                </div>
+
+                <h3 class="course-card-title-enhanced">
+                  <%= course.title %>
+                </h3>
+                <p class="course-card-description-enhanced">
+                  <%= course.shortDescription %>
+                </p>
+
+                <div class="course-features">
+                  <% course.features.forEach(feature=> { %>
+                    <span class="course-feature">
+                      <i class="fas fa-check"></i>
+                      <%= feature %>
+                    </span>
+                    <% }); %>
+                </div>
+
+                <div class="course-stats-enhanced">
+                  <div class="stat-item">
+                    <i class="fas fa-video"></i>
+                    <span>
+                      <%= course.lessonsCount %> Lessons
+                    </span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fas fa-users"></i>
+                    <span>
+                      <%= course.studentsEnrolled %> Enrolled
+                    </span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fas fa-star" style="color: #fbbf24;"></i>
+                    <span>
+                      <%= course.rating %>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="course-price-container-enhanced">
+                  <% if (course.discountPercentage> 0) { %>
+                    <div class="price-wrapper">
+                      <span class="course-price-original-enhanced">
+                        <%= course.originalPrice %> EGP
+                      </span>
+                      <span class="course-price-current-enhanced">
+                        <%= course.finalPrice %> EGP
+                      </span>
+                    </div>
+                    <div class="savings-info">
+                      <span class="savings-amount">Save <%= course.originalPrice - course.finalPrice %> EGP</span>
+                    </div>
+                    <% } else { %>
+                      <div class="price-wrapper">
+                        <span class="course-price-current-enhanced">
+                          <%= course.finalPrice %> EGP
+                        </span>
+                      </div>
+                      <% } %>
+                </div>
+
+                <div class="course-actions-enhanced">
+                  <% // Check if user has purchased this course let isPurchased=false; if (user && user.enrolledCourses)
+                    { isPurchased=user.enrolledCourses.some(e=>
+                    e.course && e.course.toString() === course.id.toString()
+                    );
+                    }
+                    %>
+
+                    <% if (isPurchased) { %>
+                      <button class="btn-already-purchased" disabled>
+                        <i class="fas fa-check-circle"></i>
+                        <span class="fully-booked-text">ALREADY PURCHASED</span>
+                      </button>
+                      <% } else if (course.isFullyBooked) { %>
+                        <button class="btn-fully-booked-enhanced" disabled>
+                          <i class="fas fa-ban"></i>
+                          <span class="fully-booked-text">FULLY BOOKED</span>
+                        </button>
+                        <% } else { %>
+                          <button class="btn-add-to-cart-enhanced" onclick="addCourseToCart('<%= course.id %>', event)">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Add to Cart</span>
+                          </button>
+                          <% } %>
+                </div>
+              </div>
+            </article>
+            <% }); %>
+        </div>
+
+        <!-- No Courses Found Message -->
+        <div class="no-courses-found-enhanced" id="noCoursesFound" style="display: none;">
+          <div class="no-courses-content">
+            <div class="no-courses-icon-enhanced">
+              <div class="icon-background">
+                <i class="fas fa-search"></i>
+              </div>
+            </div>
+            <h3 class="no-courses-title">No Courses Found</h3>
+            <p class="no-courses-description">
+              We couldn't find any courses matching your search criteria.
+              Try adjusting your filters or search terms.
+            </p>
+            <div class="no-courses-actions">
+              <button class="btn-secondary-enhanced" onclick="clearFilters()">
+                <i class="fas fa-refresh"></i>
+                <span>Clear Filters</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+  </section>
+
+  <script>
+    // Course Filtering Functionality
+    function filterCourses() {
+      const searchInput = document.getElementById('courseSearchInput').value.toLowerCase();
+      const priceFilter = document.getElementById('priceFilter').value;
+      const coursesGrid = document.getElementById('coursesGrid');
+      const noCoursesFound = document.getElementById('noCoursesFound');
+      const filteredCountEl = document.getElementById('filteredCount');
+      const searchClearBtn = document.getElementById('searchClearBtn');
+
+      // Show/hide clear button
+      if (searchClearBtn) {
+        searchClearBtn.style.display = searchInput ? 'flex' : 'none';
+      }
+
+      const courseCards = coursesGrid.querySelectorAll('.course-card-enhanced');
+      let visibleCount = 0;
+
+      courseCards.forEach(card => {
+        const title = card.dataset.title;
+        const price = parseFloat(card.dataset.price);
+
+        let matchesSearch = !searchInput || title.includes(searchInput);
+        let matchesPrice = true;
+
+        if (priceFilter) {
+          if (priceFilter === '0-500') {
+            matchesPrice = price < 500;
+          } else if (priceFilter === '500-1000') {
+            matchesPrice = price >= 500 && price <= 1000;
+          } else if (priceFilter === '1000+') {
+            matchesPrice = price > 1000;
+          }
         }
-      }
-      
-      if (matchesSearch && matchesPrice) {
-        card.style.display = 'block';
-        visibleCount++;
-      } else {
-        card.style.display = 'none';
-      }
-    });
-    
-    filteredCountEl.textContent = visibleCount;
-    noCoursesFound.style.display = visibleCount === 0 ? 'block' : 'none';
-    coursesGrid.style.display = visibleCount === 0 ? 'none' : 'grid';
-  }
-  
-  function clearSearch() {
-    document.getElementById('courseSearchInput').value = '';
-    document.getElementById('searchClearBtn').style.display = 'none';
-    filterCourses();
-  }
-  
-  function clearFilters() {
-    document.getElementById('courseSearchInput').value = '';
-    document.getElementById('priceFilter').value = '';
-    document.getElementById('searchClearBtn').style.display = 'none';
-    filterCourses();
-  }
-  
-  // Add to cart functionality
-  function addCourseToCart(courseId) {
-    <% if (!user) { %>
-    showCartNotification('Please login to add items to cart', 'error');
-    setTimeout(() => {
-      window.location.href = '/auth/login';
-    }, 2000);
-    return;
-    <% } %>
-    
-    const courseCard = document.querySelector(`[onclick="addCourseToCart('${courseId}')"]`).closest('.course-card-enhanced');
-    const courseTitle = courseCard.querySelector('.course-card-title-enhanced').textContent;
-    const courseImage = courseCard.querySelector('.course-card-media-enhanced img').src;
-    const priceElement = courseCard.querySelector('.course-price-current-enhanced');
-    const coursePrice = parseFloat(priceElement.textContent.replace(' EGP', ''));
-    
-    const btn = courseCard.querySelector('.btn-add-to-cart-enhanced');
-    const originalText = btn.querySelector('span').textContent;
-    const icon = btn.querySelector('i');
-    
-    btn.disabled = true;
-    btn.querySelector('span').textContent = 'Adding...';
-    icon.classList.remove('fa-shopping-cart');
-    icon.classList.add('fa-spinner', 'fa-spin');
-    
-    fetch('/purchase/cart/add', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        itemId: courseId,
-        itemType: 'course',
-        title: courseTitle,
-        price: coursePrice,
-        image: courseImage
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        btn.style.background = '#27ae60';
-        btn.querySelector('span').textContent = 'Added!';
-        icon.classList.remove('fa-spinner', 'fa-spin');
-        icon.classList.add('fa-check');
-        
-        showCartNotification(data.message, 'success');
-        
-        if (window.globalCart) {
-          window.globalCart.updateCount();
-        }
-        
-        setTimeout(() => {
-          btn.style.background = '';
-          btn.querySelector('span').textContent = originalText;
-          icon.classList.remove('fa-check');
-          icon.classList.add('fa-shopping-cart');
-          btn.disabled = false;
-        }, 2000);
-      } else {
-        throw new Error(data.message);
-      }
-    })
-    .catch(error => {
-      btn.querySelector('span').textContent = originalText;
-      icon.classList.remove('fa-spinner', 'fa-spin');
-      icon.classList.add('fa-shopping-cart');
-      btn.disabled = false;
-      showCartNotification(error.message || 'Failed to add to cart', 'error');
-    });
-  }
-  
-  function addCourseToCart(courseId) {
-    <% if (!user) { %>
-    showCartNotification('Please login to add items to cart', 'error');
-    setTimeout(() => {
-      window.location.href = '/auth/login';
-    }, 2000);
-    return;
-    <% } %>
-    
-    const courseCard = document.querySelector(`[onclick="addCourseToCart('${courseId}')"]`).closest('.course-package-card');
-    const courseTitle = courseCard.querySelector('.course-title').textContent;
-    const priceElement = courseCard.querySelector('.course-final-price');
-    const coursePrice = parseFloat(priceElement.textContent.replace(' EGP', ''));
-    
-    fetch('/purchase/cart/add', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        itemId: courseId,
-        itemType: 'course',
-        title: courseTitle,
-        price: coursePrice,
-        image: '/images/course-default.png'
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        showCartNotification(data.message, 'success');
-        if (window.globalCart) {
-          window.globalCart.updateCount();
-        }
-      } else {
-        throw new Error(data.message);
-      }
-    })
-    .catch(error => {
-      showCartNotification(error.message || 'Failed to add to cart', 'error');
-    });
-  }
-  
-  function toggleWishlist(itemId, itemType) {
-    <% if (!user) { %>
-    showCartNotification('Please login to add to wishlist', 'error');
-    return;
-    <% } %>
-    
-    fetch('/purchase/wishlist/toggle', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ itemId, itemType })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        const btn = document.querySelector(`[onclick="toggleWishlist('${itemId}', '${itemType}')"]`);
-        const icon = btn.querySelector('i');
-        if (data.added) {
-          icon.classList.remove('far');
-          icon.classList.add('fas');
-          icon.style.color = '#ff6b6b';
+
+        if (matchesSearch && matchesPrice) {
+          card.style.display = 'block';
+          visibleCount++;
         } else {
-          icon.classList.remove('fas');
-          icon.classList.add('far');
-          icon.style.color = '';
+          card.style.display = 'none';
         }
-        showCartNotification(data.message, 'success');
-      }
-    })
-    .catch(error => {
-      showCartNotification('Failed to update wishlist', 'error');
-    });
-  }
-  
-  function quickView(courseId) {
-    // Quick view modal logic - can be expanded
-    window.location.href = `/course/${courseId}`;
-  }
-  
-  function showContactModal() {
-    showCartNotification('Contact feature coming soon!', 'info');
-  }
-  
-  function showCartNotification(message, type = 'success') {
-    const existingNotification = document.querySelector('.cart-notification');
-    if (existingNotification) {
-      existingNotification.remove();
+      });
+
+      filteredCountEl.textContent = visibleCount;
+      noCoursesFound.style.display = visibleCount === 0 ? 'block' : 'none';
+      coursesGrid.style.display = visibleCount === 0 ? 'none' : 'grid';
     }
-    
-    const notification = document.createElement('div');
-    notification.className = `cart-notification cart-notification-${type}`;
-    notification.innerHTML = `
+
+    function clearSearch() {
+      document.getElementById('courseSearchInput').value = '';
+      document.getElementById('searchClearBtn').style.display = 'none';
+      filterCourses();
+    }
+
+    function clearFilters() {
+      document.getElementById('courseSearchInput').value = '';
+      document.getElementById('priceFilter').value = '';
+      document.getElementById('searchClearBtn').style.display = 'none';
+      filterCourses();
+    }
+
+    // Helper function to update cart from server - syncs with header
+    function updateCartFromServer(showSidebar = false) {
+      fetch('/purchase/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            // Update window.sessionCart that the header uses
+            if (window.globalCart && typeof window.globalCart.setSessionCart === 'function') {
+              // Use the proper setter which also updates count
+              window.globalCart.setSessionCart(data.cart || []);
+            } else {
+              // Fallback: set manually
+              window.sessionCart = data.cart || [];
+            }
+
+            // Update cart count badges
+            const cartCount = document.getElementById('cartCount');
+            const cartHeaderCount = document.getElementById('cartHeaderCount');
+
+            if (cartCount) {
+              cartCount.textContent = data.cartCount || 0;
+              cartCount.setAttribute('data-count', data.cartCount || 0);
+            }
+
+            if (cartHeaderCount) {
+              cartHeaderCount.textContent = data.cartCount || 0;
+            }
+
+            // Update entire cart sidebar using globalCart if available
+            if (window.globalCart && typeof window.globalCart.updateCartSidebar === 'function') {
+              window.globalCart.updateCartSidebar();
+            }
+
+            // Optionally show the cart sidebar
+            if (showSidebar && typeof showCartSidebar === 'function') {
+              setTimeout(() => showCartSidebar(), 300);
+            }
+
+            console.log('✅ Cart updated:', data.cartCount, 'items');
+          }
+        })
+        .catch(error => {
+          console.error('Failed to update cart:', error);
+          // Fallback: try to use globalCart method if available
+          if (window.globalCart && typeof window.globalCart.updateCartSidebar === 'function') {
+            window.globalCart.updateCartSidebar();
+          }
+        });
+    }
+
+    // Add to cart functionality with improved element finding
+    function addCourseToCart(courseId, event) {
+    <% if (!user) { %>
+        showCartNotification('Please login to add items to cart', 'error');
+        setTimeout(() => {
+          window.location.href = '/auth/login';
+        }, 2000);
+        return;
+    <% } %>
+
+        // Find the course card - try multiple strategies
+        let courseCard = null;
+      let btn = null;
+
+      // Strategy 1: Use event target if available (most reliable)
+      if (event && event.currentTarget) {
+        btn = event.currentTarget;
+        courseCard = btn.closest('.course-card-enhanced');
+      }
+
+      // Strategy 2: Find by data attribute (add data-course-id to cards)
+      if (!courseCard) {
+        courseCard = document.querySelector(`[data-course-id="${courseId}"]`);
+      }
+
+      // Strategy 3: Search all cards and match by ID in onclick
+      if (!courseCard) {
+        const allCards = document.querySelectorAll('.course-card-enhanced');
+        for (const card of allCards) {
+          const cardBtn = card.querySelector(`[onclick*="${courseId}"]`);
+          if (cardBtn) {
+            courseCard = card;
+            btn = btn || cardBtn;
+            break;
+          }
+        }
+      }
+
+      if (!courseCard) {
+        console.error('Course card not found for ID:', courseId);
+        showCartNotification('Course not found. Please refresh the page.', 'error');
+        return;
+      }
+
+      // Get course details from the card
+      const courseTitleEl = courseCard.querySelector('.course-card-title-enhanced');
+      const courseImageEl = courseCard.querySelector('.course-card-media-enhanced img');
+      const priceElement = courseCard.querySelector('.course-price-current-enhanced');
+
+      if (!courseTitleEl || !priceElement) {
+        console.error('Course data elements not found');
+        showCartNotification('Invalid course data', 'error');
+        return;
+      }
+
+      const courseTitle = courseTitleEl.textContent.trim();
+      const courseImage = courseImageEl ? courseImageEl.src : '/images/course-default.png';
+      const priceText = priceElement.textContent.replace(/[^0-9.]/g, '');
+      const coursePrice = parseFloat(priceText) || 0;
+
+      // Find the main add to cart button if not already found
+      if (!btn) {
+        btn = courseCard.querySelector('.btn-add-to-cart-enhanced');
+      }
+
+      const originalText = btn && btn.querySelector('span') ? btn.querySelector('span').textContent : 'Add to Cart';
+      const icon = btn ? btn.querySelector('i') : null;
+
+      // Update button state
+      if (btn) {
+        btn.disabled = true;
+        if (btn.querySelector('span')) btn.querySelector('span').textContent = 'Adding...';
+        if (icon) {
+          icon.classList.remove('fa-shopping-cart');
+          icon.classList.add('fa-spinner', 'fa-spin');
+        }
+      }
+
+      // Make the API request
+      fetch('/purchase/cart/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          itemId: courseId,
+          itemType: 'course',
+          title: courseTitle,
+          price: coursePrice,
+          image: courseImage
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            if (btn) {
+              btn.style.background = '#27ae60';
+              if (btn.querySelector('span')) btn.querySelector('span').textContent = 'Added!';
+              if (icon) {
+                icon.classList.remove('fa-spinner', 'fa-spin');
+                icon.classList.add('fa-check');
+              }
+            }
+
+            showCartNotification(data.message, 'success');
+
+            // Update cart from server (item already added by server)
+            if (window.globalCart && window.globalCart.refreshCartData) {
+              window.globalCart.refreshCartData();
+              // Show cart sidebar after refresh completes
+              setTimeout(() => {
+                if (typeof showCartSidebar === 'function') {
+                  showCartSidebar();
+                }
+              }, 300);
+            } else {
+              // Fallback: manual refresh
+              updateCartFromServer(true);
+            }
+
+            // Reset button after 2 seconds
+            if (btn) {
+              setTimeout(() => {
+                btn.style.background = '';
+                if (btn.querySelector('span')) btn.querySelector('span').textContent = originalText;
+                if (icon) {
+                  icon.classList.remove('fa-check');
+                  icon.classList.add('fa-shopping-cart');
+                }
+                btn.disabled = false;
+              }, 2000);
+            }
+          } else {
+            throw new Error(data.message || 'Failed to add to cart');
+          }
+        })
+        .catch(error => {
+          console.error('Cart error:', error);
+          if (btn) {
+            if (btn.querySelector('span')) btn.querySelector('span').textContent = originalText;
+            if (icon) {
+              icon.classList.remove('fa-spinner', 'fa-spin');
+              icon.classList.add('fa-shopping-cart');
+            }
+            btn.disabled = false;
+          }
+          showCartNotification(error.message || 'Failed to add to cart. Please try again.', 'error');
+        });
+    }
+
+    function toggleWishlist(itemId, itemType, event) {
+    <% if (!user) { %>
+        showCartNotification('Please login to add to wishlist', 'error');
+        setTimeout(() => {
+          window.location.href = '/auth/login';
+        }, 1500);
+        return;
+    <% } %>
+
+        // Find the button element
+        let btn = null;
+      if (event && event.currentTarget) {
+        btn = event.currentTarget;
+      } else {
+        btn = document.querySelector(`[onclick*="toggleWishlist('${itemId}'"]`);
+      }
+
+      if (!btn) {
+        console.error('Wishlist button not found');
+      }
+
+      const icon = btn ? btn.querySelector('i') : null;
+      const originalColor = icon ? icon.style.color : '';
+
+      fetch('/purchase/wishlist/toggle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ itemId, itemType })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            if (icon) {
+              if (data.added) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                icon.style.color = '#ff6b6b';
+              } else {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                icon.style.color = originalColor;
+              }
+            }
+            showCartNotification(data.message, 'success');
+          } else {
+            throw new Error(data.message || 'Failed to update wishlist');
+          }
+        })
+        .catch(error => {
+          console.error('Wishlist error:', error);
+          showCartNotification(error.message || 'Failed to update wishlist', 'error');
+        });
+    }
+
+    function quickView(courseId) {
+      // Quick view modal logic - can be expanded
+      window.location.href = `/course/${courseId}`;
+    }
+
+    function showContactModal() {
+      showCartNotification('Contact feature coming soon!', 'info');
+    }
+
+    function showCartNotification(message, type = 'success') {
+      // Remove any existing notifications first
+      const existingNotification = document.querySelector('.cart-notification');
+      if (existingNotification) {
+        existingNotification.remove();
+      }
+
+      // Validate type
+      const validTypes = ['success', 'error', 'info'];
+      if (!validTypes.includes(type)) {
+        type = 'info';
+      }
+
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `cart-notification cart-notification-${type}`;
+
+      // Icon mapping
+      const iconMap = {
+        success: 'check-circle',
+        error: 'exclamation-circle',
+        info: 'info-circle'
+      };
+
+      notification.innerHTML = `
       <div class="cart-notification-content">
-        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-        <span>${message}</span>
+        <i class="fas fa-${iconMap[type] || 'info-circle'}"></i>
+        <span>${message || 'Action completed'}</span>
       </div>
     `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => notification.classList.add('show'), 10);
-    
-    setTimeout(() => {
-      notification.classList.remove('show');
-      setTimeout(() => notification.remove(), 300);
-    }, 3000);
-  }
-</script>
 
-<!-- Import CSS -->
-<link rel="stylesheet" href="/css/index.css">
+      // Add to body
+      document.body.appendChild(notification);
 
-<style>
-  /* Teacher Courses Page Styles */
-  .teacher-courses-section {
-    padding-bottom: 80px;
-  }
-  
-  /* Breadcrumb */
-  .breadcrumb-nav {
-    margin-bottom: 30px;
-  }
-  
-  .breadcrumb {
-    background: transparent;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    list-style: none;
-    gap: 8px;
-  }
-  
-  .breadcrumb-item {
-    font-size: 14px;
-    color: #64748b;
-  }
-  
-  .breadcrumb-item a {
-    color: #3a92bd;
-    text-decoration: none;
-    transition: color 0.3s ease;
-  }
-  
-  .breadcrumb-item a:hover {
-    color: #0c5374;
-  }
-  
-  .breadcrumb-item.active {
-    color: #1e293b;
-  }
-  
-  .breadcrumb-item + .breadcrumb-item::before {
-    content: '/';
-    padding-right: 8px;
-    color: #94a3b8;
-  }
-  
-  .dark-theme .breadcrumb-item {
-    color: #94a3b8;
-  }
-  
-  .dark-theme .breadcrumb-item.active {
-    color: #f1f5f9;
-  }
-  
-  /* Teacher Profile Card */
-  .teacher-profile-card {
-    display: flex;
-    gap: 30px;
-    padding: 30px;
-    background: #ffffff;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-  }
-  
-  .dark-theme .teacher-profile-card {
-    background: #1e293b;
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .teacher-profile-image {
-    position: relative;
-    width: 180px;
-    height: 180px;
-    flex-shrink: 0;
-  }
-  
-  .teacher-profile-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 16px;
-    border: 4px solid #ffffff;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  }
-  
-  .dark-theme .teacher-profile-image img {
-    border-color: #334155;
-  }
-  
-  .teacher-verified-badge {
-    position: absolute;
-    bottom: -8px;
-    right: -8px;
-    width: 36px;
-    height: 36px;
-    background: linear-gradient(135deg, #3a92bd 0%, #0c5374 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 16px;
-    border: 3px solid white;
-  }
-  
-  .teacher-profile-info {
-    flex: 1;
-  }
-  
-  .teacher-badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 15px;
-  }
-  
-  .teacher-badges span {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 500;
-  }
-  
-  .badge-subject {
-    background: rgba(58, 146, 189, 0.1);
-    color: #3a92bd;
-  }
-  
-  .badge-exam-date {
-    background: rgba(34, 197, 94, 0.1);
-    color: #22c55e;
-  }
-  
-  .badge-rating {
-    background: rgba(251, 191, 36, 0.1);
-    color: #f59e0b;
-  }
-  
-  .teacher-name {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin: 0 0 8px 0;
-  }
-  
-  .dark-theme .teacher-name {
-    color: #f1f5f9;
-  }
-  
-  .teacher-specialty {
-    font-size: 16px;
-    color: #3a92bd;
-    font-weight: 500;
-    margin-bottom: 10px;
-  }
-  
-  .teacher-bio {
-    font-size: 15px;
-    color: #64748b;
-    line-height: 1.6;
-    margin-bottom: 20px;
-  }
-  
-  .dark-theme .teacher-bio {
-    color: #94a3b8;
-  }
-  
-  .teacher-stats-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-  }
-  
-  .teacher-stat {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    color: #64748b;
-  }
-  
-  .teacher-stat i {
-    color: #3a92bd;
-    font-size: 16px;
-  }
-  
-  .dark-theme .teacher-stat {
-    color: #94a3b8;
-  }
-  
-  /* Quick Info Card */
-  .teacher-quick-info-card {
-    padding: 25px;
-    background: linear-gradient(135deg, #3a92bd 0%, #0c5374 100%);
-    border-radius: 20px;
-    color: white;
-  }
-  
-  .quick-info-title {
-    font-size: 18px;
-    font-weight: 600;
-    margin: 0 0 20px 0;
-  }
-  
-  .quick-info-items {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .quick-info-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  
-  .quick-info-item i {
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-  }
-  
-  .quick-info-item div {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .info-label {
-    font-size: 12px;
-    opacity: 0.8;
-  }
-  
-  .info-value {
-    font-size: 14px;
-    font-weight: 600;
-  }
-  
-  .btn-contact-teacher {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    padding: 14px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 12px;
-    color: white;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  
-  .btn-contact-teacher:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
-  }
-  
-  /* Filter Section */
-  .courses-filter-section-enhanced {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 20px 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-  }
-  
-  .dark-theme .courses-filter-section-enhanced {
-    background: #1e293b;
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  }
-  
-  .search-filter-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-  
-  /* Modern Search Box */
-  .search-box-modern {
-    flex: 1;
-    min-width: 280px;
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-  
-  .search-box-modern .search-icon {
-    position: absolute;
-    left: 16px;
-    color: #94a3b8;
-    font-size: 15px;
-    pointer-events: none;
-    transition: color 0.3s ease;
-  }
-  
-  .search-input-modern {
-    width: 100%;
-    padding: 14px 44px 14px 46px;
-    border: 2px solid rgba(0, 0, 0, 0.08);
-    border-radius: 12px;
-    font-size: 14px;
-    background: #f8fafc;
-    color: #1e293b;
-    transition: all 0.3s ease;
-  }
-  
-  .search-input-modern:focus {
-    outline: none;
-    border-color: #3a92bd;
-    background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(58, 146, 189, 0.1);
-  }
-  
-  .search-input-modern:focus + .search-icon,
-  .search-box-modern:focus-within .search-icon {
-    color: #3a92bd;
-  }
-  
-  .search-input-modern::placeholder {
-    color: #94a3b8;
-  }
-  
-  .dark-theme .search-input-modern {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #f1f5f9;
-  }
-  
-  .dark-theme .search-input-modern:focus {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: #3a92bd;
-    box-shadow: 0 0 0 4px rgba(58, 146, 189, 0.15);
-  }
-  
-  .search-clear-btn {
-    position: absolute;
-    right: 12px;
-    background: none;
-    border: none;
-    color: #94a3b8;
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-  }
-  
-  .search-clear-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
-    color: #64748b;
-  }
-  
-  .dark-theme .search-clear-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #cbd5e1;
-  }
-  
-  /* Modern Filter Dropdown */
-  .filter-dropdown-modern {
-    position: relative;
-    display: flex;
-    align-items: center;
-    min-width: 180px;
-  }
-  
-  .filter-dropdown-modern .filter-icon {
-    position: absolute;
-    left: 14px;
-    color: #94a3b8;
-    font-size: 13px;
-    pointer-events: none;
-    z-index: 1;
-  }
-  
-  .filter-select-modern {
-    width: 100%;
-    padding: 14px 40px 14px 40px;
-    border: 2px solid rgba(0, 0, 0, 0.08);
-    border-radius: 12px;
-    font-size: 14px;
-    background: #f8fafc;
-    color: #1e293b;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-  }
-  
-  .filter-select-modern:focus {
-    outline: none;
-    border-color: #3a92bd;
-    background-color: #ffffff;
-    box-shadow: 0 0 0 4px rgba(58, 146, 189, 0.1);
-  }
-  
-  .filter-select-modern:hover {
-    border-color: #3a92bd;
-  }
-  
-  .dark-theme .filter-select-modern {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #f1f5f9;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  }
-  
-  .dark-theme .filter-select-modern:focus {
-    background-color: rgba(255, 255, 255, 0.08);
-    border-color: #3a92bd;
-    box-shadow: 0 0 0 4px rgba(58, 146, 189, 0.15);
-  }
-  
-  .dark-theme .filter-dropdown-modern .filter-icon {
-    color: #64748b;
-  }
-  
-  /* Clear Filters Button */
-  .clear-filters-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 14px 20px;
-    background: transparent;
-    border: 2px solid rgba(0, 0, 0, 0.08);
-    border-radius: 12px;
-    color: #64748b;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  
-  .clear-filters-btn:hover {
-    border-color: #3a92bd;
-    color: #3a92bd;
-    background: rgba(58, 146, 189, 0.05);
-  }
-  
-  .clear-filters-btn i {
-    font-size: 12px;
-  }
-  
-  .dark-theme .clear-filters-btn {
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #94a3b8;
-  }
-  
-  .dark-theme .clear-filters-btn:hover {
-    border-color: #3a92bd;
-    color: #3a92bd;
-    background: rgba(58, 146, 189, 0.1);
-  }
-  
-  /* Responsive Filter Section */
-  @media (max-width: 768px) {
-    .search-filter-wrapper {
-      flex-direction: column;
-    }
-    
-    .search-box-modern,
-    .filter-dropdown-modern {
-      width: 100%;
-      min-width: auto;
-    }
-    
-    .clear-filters-btn {
-      width: 100%;
-      justify-content: center;
-    }
-  }
-  
-  .filter-options {
-    display: flex;
-    gap: 15px;
-    justify-content: flex-end;
-  }
-  
-  .filter-select {
-    padding: 12px 20px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-    font-size: 14px;
-    background: #ffffff;
-    color: #1e293b;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  
-  .filter-select:hover {
-    border-color: #3a92bd;
-  }
-  
-  .dark-theme .filter-select {
-    background: #1e293b;
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #f1f5f9;
-  }
-  
+      // Trigger animation
+      setTimeout(() => notification.classList.add('show'), 10);
 
-  
-  /* Section Title */
-  .section-title {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 25px;
-  }
-  
-  .section-title i {
-    color: #3a92bd;
-  }
-  
-  .dark-theme .section-title {
-    color: #f1f5f9;
-  }
-  
-  /* Course Type Badge */
-  .course-type-badge {
-    position: absolute;
-    bottom: 12px;
-    left: 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    color: white;
-  }
-  
-  .course-type-badge.online {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  }
-  
-  .course-type-badge.recorded {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  }
-  
-  .course-type-badge.onground {
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  }
-  
-  /* Course Features */
-  .course-features {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 15px;
-  }
-  
-  .course-feature {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    color: #64748b;
-    background: rgba(58, 146, 189, 0.08);
-    padding: 4px 10px;
-    border-radius: 20px;
-  }
-  
-  .course-feature i {
-    color: #22c55e;
-    font-size: 10px;
-  }
-  
-  .dark-theme .course-feature {
-    background: rgba(58, 146, 189, 0.15);
-    color: #94a3b8;
-  }
-  
-  /* Fully Booked Button Enhanced */
-  .btn-fully-booked-enhanced {
-    width: 100%;
-    padding: 14px 20px;
-    background: linear-gradient(135deg, rgba(58, 146, 189, 0.15) 0%, rgba(12, 83, 116, 0.1) 100%);
-    border: 2px solid rgba(58, 146, 189, 0.3);
-    border-radius: 12px;
-    color: #64748b;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: not-allowed;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    position: relative;
-    overflow: hidden;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-  }
-  
-  .btn-fully-booked-enhanced:hover {
-    background: linear-gradient(135deg, rgba(58, 146, 189, 0.2) 0%, rgba(12, 83, 116, 0.15) 100%);
-    border-color: rgba(58, 146, 189, 0.4);
-  }
-  
-  .btn-fully-booked-enhanced i {
-    font-size: 16px;
-    color: #3a92bd;
-  }
-  
-  .btn-fully-booked-enhanced .fully-booked-text {
-    color: #64748b;
-  }
-  
-  .dark-theme .btn-fully-booked-enhanced {
-    background: linear-gradient(135deg, rgba(58, 146, 189, 0.1) 0%, rgba(12, 83, 116, 0.08) 100%);
-    border-color: rgba(58, 146, 189, 0.25);
-    color: #94a3b8;
-  }
-  
-  .dark-theme .btn-fully-booked-enhanced:hover {
-    background: linear-gradient(135deg, rgba(58, 146, 189, 0.15) 0%, rgba(12, 83, 116, 0.12) 100%);
-    border-color: rgba(58, 146, 189, 0.35);
-  }
-  
-  .dark-theme .btn-fully-booked-enhanced .fully-booked-text {
-    color: #94a3b8;
-  }
-  
-  .dark-theme .btn-fully-booked-enhanced i {
-    color: rgba(58, 146, 189, 0.8);
-  }
-  
-  .quick-action-btn.fully-booked {
-    background: linear-gradient(135deg, rgba(58, 146, 189, 0.15) 0%, rgba(12, 83, 116, 0.1) 100%);
-    border: 1px solid rgba(58, 146, 189, 0.3);
-    cursor: not-allowed;
-    opacity: 0.9;
-  }
-  
-  .quick-action-btn.fully-booked i {
-    color: #3a92bd;
-  }
-  
-  /* Responsive */
-  @media (max-width: 992px) {
+      // Auto-remove after 3 seconds
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.remove();
+          }
+        }, 500);
+      }, 3000);
+    }
+  </script>
+
+  <!-- Import CSS -->
+  <link rel="stylesheet" href="/css/index.css">
+
+  <style>
+    /* Teacher Courses Page Styles */
+    .teacher-courses-section {
+      padding-bottom: 80px;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb-nav {
+      margin-bottom: 30px;
+    }
+
+    .breadcrumb {
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      list-style: none;
+      gap: 8px;
+    }
+
+    .breadcrumb-item {
+      font-size: 14px;
+      color: #64748b;
+    }
+
+    .breadcrumb-item a {
+      color: #3a92bd;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .breadcrumb-item a:hover {
+      color: #0c5374;
+    }
+
+    .breadcrumb-item.active {
+      color: #1e293b;
+    }
+
+    .breadcrumb-item+.breadcrumb-item::before {
+      content: '/';
+      padding-right: 8px;
+      color: #94a3b8;
+    }
+
+    .dark-theme .breadcrumb-item {
+      color: #94a3b8;
+    }
+
+    .dark-theme .breadcrumb-item.active {
+      color: #f1f5f9;
+    }
+
+    /* Teacher Profile Card */
     .teacher-profile-card {
-      flex-direction: column;
-      text-align: center;
+      display: flex;
+      gap: 30px;
+      padding: 30px;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.05);
     }
-    
+
+    .dark-theme .teacher-profile-card {
+      background: #1e293b;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
     .teacher-profile-image {
-      margin: 0 auto;
+      position: relative;
+      width: 180px;
+      height: 180px;
+      flex-shrink: 0;
     }
-    
-    .teacher-badges {
-      justify-content: center;
-    }
-    
-    .teacher-stats-row {
-      justify-content: center;
-    }
-    
-    .filter-options {
-      flex-direction: column;
-      margin-top: 15px;
-    }
-    
-    .filter-select {
+
+    .teacher-profile-image img {
       width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 16px;
+      border: 4px solid #ffffff;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
-  }
-  
-  @media (max-width: 768px) {
-    .teacher-profile-image {
-      width: 140px;
-      height: 140px;
+
+    .dark-theme .teacher-profile-image img {
+      border-color: #334155;
     }
-    
-    .teacher-name {
-      font-size: 1.5rem;
+
+    .teacher-verified-badge {
+      position: absolute;
+      bottom: -8px;
+      right: -8px;
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #3a92bd 0%, #0c5374 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 16px;
+      border: 3px solid white;
     }
-    
-    .teacher-stats-row {
-      flex-direction: column;
+
+    .teacher-profile-info {
+      flex: 1;
+    }
+
+    .teacher-badges {
+      display: flex;
+      flex-wrap: wrap;
       gap: 10px;
+      margin-bottom: 15px;
     }
-  }
-  
-  /* Bestseller and New Badges */
-  .course-offer-badge-enhanced.bestseller {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    color: white;
-  }
-  
-  .course-offer-badge-enhanced.new {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-    color: white;
-  }
-  
-  /* Cart Notification Styles - Premium Design */
-  .cart-notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    min-width: 320px;
-    max-width: 420px;
-    padding: 0;
-    border-radius: 16px;
-    z-index: 99999;
-    transform: translateX(calc(100% + 40px));
-    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    overflow: hidden;
-  }
-  
-  .cart-notification.show {
-    transform: translateX(0);
-  }
-  
-  .cart-notification-success,
-  .cart-notification-error,
-  .cart-notification-info {
-    background: #ffffff;
-    border: 1px solid rgba(58, 146, 189, 0.15);
-    box-shadow: 0 20px 50px rgba(58, 146, 189, 0.2), 
-                0 8px 20px rgba(0, 0, 0, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  }
-  
-  .cart-notification-content {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 18px 22px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #1e293b;
-    position: relative;
-  }
-  
-  .cart-notification-content::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: linear-gradient(180deg, #3a92bd 0%, #0c5374 100%);
-    border-radius: 4px 0 0 4px;
-  }
-  
-  .cart-notification-content i {
-    width: 38px;
-    height: 38px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    font-size: 16px;
-    flex-shrink: 0;
-  }
-  
-  .cart-notification-success .cart-notification-content i {
-    background: linear-gradient(135deg, rgba(58, 146, 189, 0.15) 0%, rgba(12, 83, 116, 0.1) 100%);
-    color: #3a92bd;
-  }
-  
-  .cart-notification-error .cart-notification-content i {
-    background: linear-gradient(135deg, rgba(100, 116, 139, 0.15) 0%, rgba(71, 85, 105, 0.1) 100%);
-    color: #64748b;
-  }
-  
-  .cart-notification-info .cart-notification-content i {
-    background: linear-gradient(135deg, rgba(58, 146, 189, 0.15) 0%, rgba(12, 83, 116, 0.1) 100%);
-    color: #3a92bd;
-  }
-  
-  .cart-notification-content span {
-    flex: 1;
-    line-height: 1.5;
-    color: #334155;
-  }
-  
-  /* Dark Theme */
-  .dark-theme .cart-notification-success,
-  .dark-theme .cart-notification-error,
-  .dark-theme .cart-notification-info {
-    background: #1e293b;
-    border-color: rgba(58, 146, 189, 0.2);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 
-                0 8px 20px rgba(58, 146, 189, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  }
-  
-  .dark-theme .cart-notification-content {
-    color: #f1f5f9;
-  }
-  
-  .dark-theme .cart-notification-content span {
-    color: #cbd5e1;
-  }
-  
-  .dark-theme .cart-notification-success .cart-notification-content i {
-    background: linear-gradient(135deg, rgba(58, 146, 189, 0.2) 0%, rgba(12, 83, 116, 0.15) 100%);
-    color: #5fb3d9;
-  }
-  
-  .dark-theme .cart-notification-error .cart-notification-content i {
-    background: linear-gradient(135deg, rgba(148, 163, 184, 0.15) 0%, rgba(100, 116, 139, 0.1) 100%);
-    color: #94a3b8;
-  }
-  
-  .dark-theme .cart-notification-info .cart-notification-content i {
-    background: linear-gradient(135deg, rgba(58, 146, 189, 0.2) 0%, rgba(12, 83, 116, 0.15) 100%);
-    color: #5fb3d9;
-  }
-  
-  /* Responsive */
-  @media (max-width: 480px) {
+
+    .teacher-badges span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .badge-subject {
+      background: rgba(58, 146, 189, 0.1);
+      color: #3a92bd;
+    }
+
+    .badge-exam-date {
+      background: rgba(34, 197, 94, 0.1);
+      color: #22c55e;
+    }
+
+    .badge-rating {
+      background: rgba(251, 191, 36, 0.1);
+      color: #f59e0b;
+    }
+
+    .teacher-name {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 0 0 8px 0;
+    }
+
+    .dark-theme .teacher-name {
+      color: #f1f5f9;
+    }
+
+    .teacher-specialty {
+      font-size: 16px;
+      color: #3a92bd;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+
+    .teacher-bio {
+      font-size: 15px;
+      color: #64748b;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .dark-theme .teacher-bio {
+      color: #94a3b8;
+    }
+
+    .teacher-stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .teacher-stat {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #64748b;
+    }
+
+    .teacher-stat i {
+      color: #3a92bd;
+      font-size: 16px;
+    }
+
+    .dark-theme .teacher-stat {
+      color: #94a3b8;
+    }
+
+    /* Quick Info Card */
+    .teacher-quick-info-card {
+      padding: 25px;
+      background: linear-gradient(135deg, #3a92bd 0%, #0c5374 100%);
+      border-radius: 20px;
+      color: white;
+    }
+
+    .quick-info-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 20px 0;
+    }
+
+    .quick-info-items {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .quick-info-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .quick-info-item i {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .quick-info-item div {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .info-label {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .info-value {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .btn-contact-teacher {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-contact-teacher:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Filter Section */
+    .courses-filter-section-enhanced {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 20px 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .dark-theme .courses-filter-section-enhanced {
+      background: #1e293b;
+      border-color: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .search-filter-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* Modern Search Box */
+    .search-box-modern {
+      flex: 1;
+      min-width: 280px;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-box-modern .search-icon {
+      position: absolute;
+      left: 16px;
+      color: #94a3b8;
+      font-size: 15px;
+      pointer-events: none;
+      transition: color 0.3s ease;
+    }
+
+    .search-input-modern {
+      width: 100%;
+      padding: 14px 44px 14px 46px;
+      border: 2px solid rgba(0, 0, 0, 0.08);
+      border-radius: 12px;
+      font-size: 14px;
+      background: #f8fafc;
+      color: #1e293b;
+      transition: all 0.3s ease;
+    }
+
+    .search-input-modern:focus {
+      outline: none;
+      border-color: #3a92bd;
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(58, 146, 189, 0.1);
+    }
+
+    .search-input-modern:focus+.search-icon,
+    .search-box-modern:focus-within .search-icon {
+      color: #3a92bd;
+    }
+
+    .search-input-modern::placeholder {
+      color: #94a3b8;
+    }
+
+    .dark-theme .search-input-modern {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #f1f5f9;
+    }
+
+    .dark-theme .search-input-modern:focus {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: #3a92bd;
+      box-shadow: 0 0 0 4px rgba(58, 146, 189, 0.15);
+    }
+
+    .search-clear-btn {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .search-clear-btn:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: #64748b;
+    }
+
+    .dark-theme .search-clear-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+    }
+
+    /* Modern Filter Dropdown */
+    .filter-dropdown-modern {
+      position: relative;
+      display: flex;
+      align-items: center;
+      min-width: 180px;
+    }
+
+    .filter-dropdown-modern .filter-icon {
+      position: absolute;
+      left: 14px;
+      color: #94a3b8;
+      font-size: 13px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .filter-select-modern {
+      width: 100%;
+      padding: 14px 40px 14px 40px;
+      border: 2px solid rgba(0, 0, 0, 0.08);
+      border-radius: 12px;
+      font-size: 14px;
+      background: #f8fafc;
+      color: #1e293b;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+    }
+
+    .filter-select-modern:focus {
+      outline: none;
+      border-color: #3a92bd;
+      background-color: #ffffff;
+      box-shadow: 0 0 0 4px rgba(58, 146, 189, 0.1);
+    }
+
+    .filter-select-modern:hover {
+      border-color: #3a92bd;
+    }
+
+    .dark-theme .filter-select-modern {
+      background-color: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #f1f5f9;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    }
+
+    .dark-theme .filter-select-modern:focus {
+      background-color: rgba(255, 255, 255, 0.08);
+      border-color: #3a92bd;
+      box-shadow: 0 0 0 4px rgba(58, 146, 189, 0.15);
+    }
+
+    .dark-theme .filter-dropdown-modern .filter-icon {
+      color: #64748b;
+    }
+
+    /* Clear Filters Button */
+    .clear-filters-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 20px;
+      background: transparent;
+      border: 2px solid rgba(0, 0, 0, 0.08);
+      border-radius: 12px;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .clear-filters-btn:hover {
+      border-color: #3a92bd;
+      color: #3a92bd;
+      background: rgba(58, 146, 189, 0.05);
+    }
+
+    .clear-filters-btn i {
+      font-size: 12px;
+    }
+
+    .dark-theme .clear-filters-btn {
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+    }
+
+    .dark-theme .clear-filters-btn:hover {
+      border-color: #3a92bd;
+      color: #3a92bd;
+      background: rgba(58, 146, 189, 0.1);
+    }
+
+    /* Responsive Filter Section */
+    @media (max-width: 768px) {
+      .search-filter-wrapper {
+        flex-direction: column;
+      }
+
+      .search-box-modern,
+      .filter-dropdown-modern {
+        width: 100%;
+        min-width: auto;
+      }
+
+      .clear-filters-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    .filter-options {
+      display: flex;
+      gap: 15px;
+      justify-content: flex-end;
+    }
+
+    .filter-select {
+      padding: 12px 20px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      font-size: 14px;
+      background: #ffffff;
+      color: #1e293b;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .filter-select:hover {
+      border-color: #3a92bd;
+    }
+
+    .dark-theme .filter-select {
+      background: #1e293b;
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #f1f5f9;
+    }
+
+
+
+    /* Section Title */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 25px;
+    }
+
+    .section-title i {
+      color: #3a92bd;
+    }
+
+    .dark-theme .section-title {
+      color: #f1f5f9;
+    }
+
+    /* Course Type Badge */
+    .course-type-badge {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .course-type-badge.online {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    }
+
+    .course-type-badge.recorded {
+      background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    }
+
+    .course-type-badge.onground {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    }
+
+    /* Course Features */
+    .course-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .course-feature {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: #64748b;
+      background: rgba(58, 146, 189, 0.08);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .course-feature i {
+      color: #22c55e;
+      font-size: 10px;
+    }
+
+    .dark-theme .course-feature {
+      background: rgba(58, 146, 189, 0.15);
+      color: #94a3b8;
+    }
+
+    /* Fully Booked Button Enhanced */
+    .btn-fully-booked-enhanced {
+      width: 100%;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, rgba(58, 146, 189, 0.15) 0%, rgba(12, 83, 116, 0.1) 100%);
+      border: 2px solid rgba(58, 146, 189, 0.3);
+      border-radius: 12px;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: not-allowed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-fully-booked-enhanced:hover {
+      background: linear-gradient(135deg, rgba(58, 146, 189, 0.2) 0%, rgba(12, 83, 116, 0.15) 100%);
+      border-color: rgba(58, 146, 189, 0.4);
+    }
+
+    .btn-fully-booked-enhanced i {
+      font-size: 16px;
+      color: #3a92bd;
+    }
+
+    .btn-fully-booked-enhanced .fully-booked-text {
+      color: #64748b;
+    }
+
+    .dark-theme .btn-fully-booked-enhanced {
+      background: linear-gradient(135deg, rgba(58, 146, 189, 0.1) 0%, rgba(12, 83, 116, 0.08) 100%);
+      border-color: rgba(58, 146, 189, 0.25);
+      color: #94a3b8;
+    }
+
+    .dark-theme .btn-fully-booked-enhanced:hover {
+      background: linear-gradient(135deg, rgba(58, 146, 189, 0.15) 0%, rgba(12, 83, 116, 0.12) 100%);
+      border-color: rgba(58, 146, 189, 0.35);
+    }
+
+    .dark-theme .btn-fully-booked-enhanced .fully-booked-text {
+      color: #94a3b8;
+    }
+
+    .dark-theme .btn-fully-booked-enhanced i {
+      color: rgba(58, 146, 189, 0.8);
+    }
+
+    .quick-action-btn.fully-booked {
+      background: linear-gradient(135deg, rgba(58, 146, 189, 0.15) 0%, rgba(12, 83, 116, 0.1) 100%);
+      border: 1px solid rgba(58, 146, 189, 0.3);
+      cursor: not-allowed;
+      opacity: 0.9;
+    }
+
+    .quick-action-btn.fully-booked i {
+      color: #3a92bd;
+    }
+
+    /* Already Purchased Button */
+    .btn-already-purchased {
+      width: 100%;
+      padding: 14px 20px;
+      /* Solid green background */
+      background: #10b981;
+      border: 2px solid #10b981;
+      border-radius: 12px;
+      /* White text */
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: default;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      opacity: 1;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+
+    .btn-already-purchased i {
+      font-size: 16px;
+      color: white;
+    }
+
+    .btn-already-purchased .fully-booked-text {
+      color: white;
+    }
+
+    /* Dark theme adjustment if needed, but keeping it green is usually preferred for success states */
+    .dark-theme .btn-already-purchased {
+      background: #059669;
+      border-color: #059669;
+      color: white;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .teacher-profile-card {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .teacher-profile-image {
+        margin: 0 auto;
+      }
+
+      .teacher-badges {
+        justify-content: center;
+      }
+
+      .teacher-stats-row {
+        justify-content: center;
+      }
+
+      .filter-options {
+        flex-direction: column;
+        margin-top: 15px;
+      }
+
+      .filter-select {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .teacher-profile-image {
+        width: 140px;
+        height: 140px;
+      }
+
+      .teacher-name {
+        font-size: 1.5rem;
+      }
+
+      .teacher-stats-row {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+
+    /* Bestseller and New Badges */
+    .course-offer-badge-enhanced.bestseller {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+    }
+
+    .course-offer-badge-enhanced.new {
+      background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+      color: white;
+    }
+
+    /* Cart Notification Styles - Premium Design */
     .cart-notification {
-      right: 10px;
-      left: 10px;
-      min-width: auto;
-      max-width: none;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      min-width: 320px;
+      max-width: 420px;
+      padding: 0;
+      border-radius: 16px;
+      z-index: 99999;
+      transform: translateX(calc(100% + 40px));
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      overflow: hidden;
     }
-  }
-</style>
 
-<!-- Import JavaScript -->
-<script src="/js/index.js"></script>
-<script src="/js/enhanced-scroll-effects.js"></script>
+    .cart-notification.show {
+      transform: translateX(0);
+    }
 
-<%- include('partials/footer') %>
+    .cart-notification-success,
+    .cart-notification-error,
+    .cart-notification-info {
+      background: #ffffff;
+      border: 1px solid rgba(58, 146, 189, 0.15);
+      box-shadow: 0 20px 50px rgba(58, 146, 189, 0.2),
+        0 8px 20px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .cart-notification-content {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 22px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #1e293b;
+      position: relative;
+    }
+
+    .cart-notification-content::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(180deg, #3a92bd 0%, #0c5374 100%);
+      border-radius: 4px 0 0 4px;
+    }
+
+    .cart-notification-content i {
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .cart-notification-success .cart-notification-content i {
+      background: linear-gradient(135deg, rgba(58, 146, 189, 0.15) 0%, rgba(12, 83, 116, 0.1) 100%);
+      color: #3a92bd;
+    }
+
+    .cart-notification-error .cart-notification-content i {
+      background: linear-gradient(135deg, rgba(100, 116, 139, 0.15) 0%, rgba(71, 85, 105, 0.1) 100%);
+      color: #64748b;
+    }
+
+    .cart-notification-info .cart-notification-content i {
+      background: linear-gradient(135deg, rgba(58, 146, 189, 0.15) 0%, rgba(12, 83, 116, 0.1) 100%);
+      color: #3a92bd;
+    }
+
+    .cart-notification-content span {
+      flex: 1;
+      line-height: 1.5;
+      color: #334155;
+    }
+
+    /* Dark Theme */
+    .dark-theme .cart-notification-success,
+    .dark-theme .cart-notification-error,
+    .dark-theme .cart-notification-info {
+      background: #1e293b;
+      border-color: rgba(58, 146, 189, 0.2);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4),
+        0 8px 20px rgba(58, 146, 189, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .dark-theme .cart-notification-content {
+      color: #f1f5f9;
+    }
+
+    .dark-theme .cart-notification-content span {
+      color: #cbd5e1;
+    }
+
+    .dark-theme .cart-notification-success .cart-notification-content i {
+      background: linear-gradient(135deg, rgba(58, 146, 189, 0.2) 0%, rgba(12, 83, 116, 0.15) 100%);
+      color: #5fb3d9;
+    }
+
+    .dark-theme .cart-notification-error .cart-notification-content i {
+      background: linear-gradient(135deg, rgba(148, 163, 184, 0.15) 0%, rgba(100, 116, 139, 0.1) 100%);
+      color: #94a3b8;
+    }
+
+    .dark-theme .cart-notification-info .cart-notification-content i {
+      background: linear-gradient(135deg, rgba(58, 146, 189, 0.2) 0%, rgba(12, 83, 116, 0.15) 100%);
+      color: #5fb3d9;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .cart-notification {
+        right: 10px;
+        left: 10px;
+        min-width: auto;
+        max-width: none;
+      }
+    }
+  </style>
+
+  <!-- Import JavaScript -->
+  <script src="/js/index.js"></script>
+  <script src="/js/enhanced-scroll-effects.js"></script>
+
+  <%- include('partials/footer') %>

@@ -45,7 +45,6 @@ router.get('/course/:id', studentController.courseDetails);
 router.get('/course/:id/content', studentController.courseContent);
 router.get('/content/:id', studentController.contentDetails);
 router.post('/content/progress/update', studentController.updateContentProgress);
-router.get('/debug/progress/:courseId', studentController.debugProgress);
 
 // Wishlist
 router.get('/wishlist', studentController.wishlist);

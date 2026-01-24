@@ -952,26 +952,26 @@
 
 /* Dark Theme Enhancements */
 .dark-theme .orders-header {
-  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  background: linear-gradient(135deg, #3a92bd 0%, #2d7a9e 100%);
 }
 
 .dark-theme .order-details-header {
-  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  background: linear-gradient(135deg, #3a92bd 0%, #2d7a9e 100%);
 }
 
 .dark-theme .order-card:hover {
   border-color: var(--primary-color);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.1);
 }
 
 .dark-theme .order-item:hover {
   border-color: var(--primary-color);
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1);
+  box-shadow: 0 2px 8px rgba(58, 146, 189, 0.1);
 }
 
 .dark-theme .action-card:hover {
   border-color: var(--primary-color);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.1);
 }
 
 .dark-theme .timeline-content:hover {

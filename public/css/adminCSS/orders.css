@@ -700,13 +700,6 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
-.product-type.bundle {
-  background: rgba(16, 185, 129, 0.15);
-  color: #059669;
-  border: 2px solid rgba(16, 185, 129, 0.3);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-}
-
 .product-type.quiz {
   background: rgba(245, 158, 11, 0.15);
   color: #d97706;
@@ -1207,11 +1200,6 @@
 .product-type.course {
   background: rgba(59, 130, 246, 0.1);
   color: #3b82f6;
-}
-
-.product-type.bundle {
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
 }
 
 .product-type.quiz {

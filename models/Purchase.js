@@ -11,7 +11,7 @@ const PurchaseSchema = new mongoose.Schema(
       {
         itemType: {
           type: String,
-          enum: ['course', 'bundle'],
+          enum: ['course'],
           required: true,
         },
         item: {
@@ -21,7 +21,7 @@ const PurchaseSchema = new mongoose.Schema(
         },
         itemTypeModel: {
           type: String,
-          enum: ['Course', 'BundleCourse'],
+          enum: ['Course'],
           required: true,
         },
         title: {
@@ -37,7 +37,7 @@ const PurchaseSchema = new mongoose.Schema(
           type: Number,
           default: 1,
           min: 1,
-          max: 1, // Only allow 1 quantity per course/bundle
+          max: 1, // Only allow 1 quantity per course
         },
       },
     ],
@@ -206,20 +206,6 @@ const PurchaseSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    // Book orders reference
-    bookOrders: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'BookOrder',
-    }],
-    isBookOnly: {
-      type: Boolean,
-      default: false,
-    },
-    booksSubtotal: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
   },
   {
     timestamps: true,
@@ -297,9 +283,7 @@ PurchaseSchema.virtual('paymentStatusDisplay').get(function () {
 
 // Virtuals for analytics
 PurchaseSchema.virtual('itemCount').get(function () {
-  const itemsCount = Array.isArray(this.items) ? this.items.length : 0;
-  const booksCount = Array.isArray(this.bookOrders) ? this.bookOrders.length : 0;
-  return itemsCount + booksCount;
+  return Array.isArray(this.items) ? this.items.length : 0;
 });
 
 PurchaseSchema.virtual('isRefunded').get(function () {

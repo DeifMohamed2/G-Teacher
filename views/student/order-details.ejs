@@ -316,14 +316,14 @@
     <div class="invoice-template" id="invoice-template" style="display: none;">
         <div class="invoice-container">
             <!-- Watermark -->
-            <div class="invoice-watermark">ELKABLY</div>
+            <div class="invoice-watermark">G-Teacher</div>
             
             <!-- Invoice Header -->
             <div class="invoice-header">
                 <div class="invoice-logo-section">
-                    <img src="/images/K.png" alt="ELKABLY Logo" class="invoice-logo">
+                    <img src="/images/G-TeacherLogo.png" alt="G-Teacher Logo" class="invoice-logo">
                     <div class="invoice-brand">
-                        <h1 class="invoice-brand-name">ELKABLY</h1>
+                        <h1 class="invoice-brand-name">G-Teacher</h1>
                         <p class="invoice-brand-tagline">Math Is Root of Knowledge</p>
                     </div>
                 </div>
@@ -386,14 +386,6 @@
                                                 <span>Topics: <%= order.item.topics.length %></span>
                                             <% } %>
                                         </div>
-                                    <% } else if (order.type === 'bundle' && order.item) { %>
-                                        <div class="invoice-item-meta">
-                                            <span>Subject: <%= order.item.subject %></span>
-                                            <span>Courses: <%= order.item.courses ? order.item.courses.length : 0 %></span>
-                                            <% if (order.item.duration) { %>
-                                                <span>Total Duration: <%= order.item.duration %>h</span>
-                                            <% } %>
-                                        </div>
                                     <% } %>
                                 </div>
                             </td>
@@ -411,24 +403,6 @@
                     </tbody>
                 </table>
             </div>
-            
-            <!-- Included Weeks (if bundle) -->
-            <% if (order.type === 'bundle' && order.item && order.item.courses && order.item.courses.length > 0) { %>
-                <div class="invoice-courses-section">
-                    <h3 class="invoice-section-title-small">Included Weeks:</h3>
-                    <div class="invoice-courses-list">
-                        <% order.item.courses.forEach((course, index) => { %>
-                            <div class="invoice-course-item">
-                                <span class="course-number-badge"><%= index + 1 %></span>
-                                <span class="course-name"><%= course.title %></span>
-                                <% if (course.duration) { %>
-                                    <span class="course-duration-badge"><%= course.duration %>h</span>
-                                <% } %>
-                            </div>
-                        <% }); %>
-                    </div>
-                </div>
-            <% } %>
             
             <!-- Invoice Totals -->
             <div class="invoice-totals-section">
@@ -466,7 +440,7 @@
                         <strong>Thank you for your purchase!</strong>
                     </p>
                     <p class="invoice-footer-text">
-                        This is an official invoice from ELKABLY. For any inquiries, please contact us through our website.
+                        This is an official invoice from G-Teacher. For any inquiries, please contact us through our website.
                     </p>
                     <div class="invoice-footer-divider"></div>
                     <p class="invoice-footer-note">

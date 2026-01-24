@@ -304,9 +304,8 @@ class ExcelExporter {
   // Export students data
   async exportStudents(students, isSingleStudent = false) {
     const title = isSingleStudent
-      ? `Student Comprehensive Report - ${
-          students[0]?.studentCode || 'Unknown'
-        }`
+      ? `Student Comprehensive Report - ${students[0]?.studentCode || 'Unknown'
+      }`
       : `Students Comprehensive Report - ${students.length} Students`;
 
     const columns = [
@@ -734,9 +733,8 @@ class ExcelExporter {
     quizPerformanceData.forEach((quiz, quizIndex) => {
       // Quiz header
       worksheet.mergeCells(`A${currentRow}:L${currentRow}`);
-      worksheet.getCell(`A${currentRow}`).value = `Quiz: ${quiz.quizTitle} (${
-        quiz.code || 'No Code'
-      })`;
+      worksheet.getCell(`A${currentRow}`).value = `Quiz: ${quiz.quizTitle} (${quiz.code || 'No Code'
+        })`;
       worksheet.getCell(`A${currentRow}`).style = this.getSectionTitleStyle();
       worksheet.getRow(currentRow).height = 25;
       currentRow++;
@@ -928,8 +926,7 @@ class ExcelExporter {
   // Create purchase history sheet
   createPurchaseHistorySheet(purchaseHistory) {
     const columns = [
-      { key: 'bundleTitle', header: 'Bundle Title', width: 30 },
-      { key: 'bundleCode', header: 'Bundle Code', width: 15 },
+      { key: 'orderNumber', header: 'Order Number', width: 20 },
       { key: 'price', header: 'Price', width: 15, type: 'currency' },
       { key: 'purchaseDate', header: 'Purchase Date', width: 15, type: 'date' },
       { key: 'expiryDate', header: 'Expiry Date', width: 15, type: 'date' },
@@ -937,8 +934,7 @@ class ExcelExporter {
     ];
 
     const data = purchaseHistory.map((purchase) => ({
-      bundleTitle: purchase.bundleTitle,
-      bundleCode: purchase.bundleCode,
+      orderNumber: purchase.orderNumber,
       price: purchase.price,
       purchaseDate: purchase.purchaseDate,
       expiryDate: purchase.expiryDate,
@@ -975,16 +971,14 @@ class ExcelExporter {
     purchaseHistoryData.forEach((purchase, purchaseIndex) => {
       // Purchase header
       worksheet.mergeCells(`A${currentRow}:K${currentRow}`);
-      worksheet.getCell(`A${currentRow}`).value = `Purchase: ${
-        purchase.bundleTitle
-      } - ${purchase.orderNumber || 'N/A'}`;
+      worksheet.getCell(`A${currentRow}`).value = `Purchase: ${purchase.orderNumber || 'N/A'}`;
       worksheet.getCell(`A${currentRow}`).style = this.getSectionTitleStyle();
       worksheet.getRow(currentRow).height = 25;
       currentRow++;
 
       // Purchase summary
       const summaryHeaders = [
-        'Bundle Code',
+        'Order Number',
         'Price',
         'Purchase Date',
         'Expiry Date',
@@ -1003,16 +997,16 @@ class ExcelExporter {
 
       const daysRemaining = purchase.expiryDate
         ? Math.max(
-            0,
-            Math.ceil(
-              (new Date(purchase.expiryDate) - new Date()) /
-                (1000 * 60 * 60 * 24)
-            )
+          0,
+          Math.ceil(
+            (new Date(purchase.expiryDate) - new Date()) /
+            (1000 * 60 * 60 * 24)
           )
+        )
         : 'N/A';
 
       const summaryValues = [
-        purchase.bundleCode || 'N/A',
+        purchase.orderNumber || 'N/A',
         `$${purchase.price || 0}`,
         purchase.purchaseDate
           ? new Date(purchase.purchaseDate).toLocaleDateString()
@@ -1432,71 +1426,6 @@ class ExcelExporter {
     return this.workbook;
   }
 
-  // Export book orders
-  async exportBookOrders(bookOrders) {
-    const title = `Book Orders Report - ${bookOrders.length} Orders`;
-
-    const columns = [
-      { key: 'bookOrderNumber', header: 'Book Order #', width: 18 },
-      { key: 'mainOrderNumber', header: 'Main Order #', width: 18 },
-      { key: 'bookName', header: 'Book Name', width: 30 },
-      { key: 'bundleCode', header: 'Bundle Code', width: 15 },
-      { key: 'studentName', header: 'Student Name', width: 25 },
-      { key: 'studentEmail', header: 'Student Email', width: 30 },
-      { key: 'studentCode', header: 'Student Code', width: 15 },
-      {
-        key: 'bookPrice',
-        header: 'Price (EGP)',
-        width: 15,
-        type: 'currency',
-      },
-      { key: 'status', header: 'Status', width: 12 },
-      { key: 'trackingNumber', header: 'Tracking Number', width: 20 },
-      { key: 'shippingAddress', header: 'Shipping Address', width: 40 },
-      { key: 'shippingStreetName', header: 'Street Name', width: 20 },
-      { key: 'shippingBuildingNumber', header: 'Building Number', width: 15 },
-      { key: 'shippingApartmentNumber', header: 'Apartment Number', width: 15 },
-      { key: 'shippingZone', header: 'Zone', width: 15 },
-      { key: 'shippingGovernorate', header: 'Governorate', width: 15 },
-      { key: 'shippingCountry', header: 'Country', width: 15 },
-      { key: 'shippingPhone', header: 'Phone', width: 15 },
-      { key: 'paymentStatus', header: 'Payment Status', width: 15 },
-      { key: 'createdAt', header: 'Order Date', width: 18, type: 'date' },
-      { key: 'shippedAt', header: 'Shipped Date', width: 18, type: 'date' },
-      { key: 'deliveredAt', header: 'Delivered Date', width: 18, type: 'date' },
-    ];
-
-    const data = bookOrders.map((order) => ({
-      bookOrderNumber: order.orderNumber || '',
-      mainOrderNumber: order.purchase?.orderNumber || 'N/A',
-      bookName: order.bookName || '',
-      bundleCode: order.bundle?.bundleCode || 'N/A',
-      studentName: order.user
-        ? `${order.user.firstName || ''} ${order.user.lastName || ''}`.trim()
-        : 'Unknown',
-      studentEmail: order.user?.studentEmail || '',
-      studentCode: order.user?.studentCode || '',
-      bookPrice: order.bookPrice || 0,
-      status: order.status || '',
-      trackingNumber: order.trackingNumber || '',
-      shippingAddress: order.shippingAddress?.address || '',
-      shippingStreetName: order.shippingAddress?.streetName || '',
-      shippingBuildingNumber: order.shippingAddress?.buildingNumber || '',
-      shippingApartmentNumber: order.shippingAddress?.apartmentNumber || '',
-      shippingZone: order.shippingAddress?.city || '',
-      shippingGovernorate: order.shippingAddress?.governorate || '',
-      shippingCountry: order.shippingAddress?.country || '',
-      shippingPhone: order.shippingAddress?.phone || '',
-      paymentStatus: order.purchase?.paymentStatus || 'N/A',
-      createdAt: order.createdAt,
-      shippedAt: order.shippedAt || null,
-      deliveredAt: order.deliveredAt || null,
-    }));
-
-    this.createSummarySheet(title, data, columns, 'Book Orders');
-    return this.workbook;
-  }
-
   // Export quizzes
   async exportQuizzes(quizzes) {
     const title = `Quizzes Report - ${quizzes.length} Quizzes`;
@@ -1636,7 +1565,7 @@ class ExcelExporter {
       cell1.value = info[0];
       cell2.value = info[1];
       cell1.style = this.getSubHeaderStyle();
-      
+
       if (index === 3 || index === 4) {
         // Attendance rate columns
         const value = parseFloat(info[1]) || 0;
@@ -1707,7 +1636,7 @@ class ExcelExporter {
         values.forEach((value, colIndex) => {
           const cell = worksheet.getCell(currentRow, colIndex + 1);
           cell.value = value;
-          
+
           if (colIndex === 3) {
             // Attendance percentage
             cell.style = this.getPerformanceStyle(student.attendancePercentage, 100);
@@ -1724,10 +1653,10 @@ class ExcelExporter {
 
     // Students Who Did Not Attend
     if (enrolledStudents && enrolledStudents.length > 0) {
-      const attendedStudentIds = zoomMeeting.studentsAttended 
+      const attendedStudentIds = zoomMeeting.studentsAttended
         ? zoomMeeting.studentsAttended.map(a => a.student.toString())
         : [];
-      
+
       const notAttendedStudents = enrolledStudents.filter(
         student => !attendedStudentIds.includes(student._id.toString())
       );
@@ -1761,12 +1690,12 @@ class ExcelExporter {
           const parentPhone = student.parentCountryCode && student.parentNumber
             ? `${student.parentCountryCode}${student.parentNumber}`
             : student.parentNumber || 'N/A';
-          
+
           // Format student phone with country code if available
           const studentPhone = student.studentCountryCode && student.studentNumber
             ? `${student.studentCountryCode}${student.studentNumber}`
             : student.studentNumber || 'N/A';
-          
+
           const values = [
             student.studentCode || 'N/A',
             `${student.firstName || ''} ${student.lastName || ''}`.trim() || 'N/A',

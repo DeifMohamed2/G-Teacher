@@ -12,82 +12,50 @@
 
     <!-- Page Title with Enhanced Design -->
     <div class="header-title-container">
-      <% if (typeof backLink !== 'undefined' && backLink) { %>
-      <a href="<%= backLink %>" class="header-back-btn" title="Go Back">
-        <i class="fas fa-arrow-left"></i>
-      </a>
-      <% } %>
-      <h1 class="header-title enhanced-title">
-        <%= title || 'Student Dashboard' %>
-      </h1>
-      <div class="title-decoration"></div>
+      <% if (typeof backLink !=='undefined' && backLink) { %>
+        <a href="<%= backLink %>" class="header-back-btn" title="Go Back">
+          <i class="fas fa-arrow-left"></i>
+        </a>
+        <% } %>
+          <h1 class="header-title enhanced-title">
+            <%= title || 'Student Dashboard' %>
+          </h1>
+          <div class="title-decoration"></div>
     </div>
   </div>
 
   <div class="header-right">
     <!-- Enhanced Theme Toggle -->
     <div class="header-theme-toggle">
-      <button class="theme-toggle-btn enhanced-theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Switch between light and dark mode">
+      <button class="theme-toggle-btn enhanced-theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"
+        title="Switch between light and dark mode">
         <div class="toggle-icon-container light-icon-container">
           <i class="fas fa-sun light-icon"></i>
         </div>
-                  <div class="toggle-icon-container dark-icon-container">
-            <i class="fas fa-moon " style="color: #767f8a; font-size: 1.2rem; transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1); filter: drop-shadow(0 0 3px rgba(148, 163, 184, 0.5));"></i>
-          </div>
+        <div class="toggle-icon-container dark-icon-container">
+          <i class="fas fa-moon "
+            style="color: #767f8a; font-size: 1.2rem; transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1); filter: drop-shadow(0 0 3px rgba(148, 163, 184, 0.5));"></i>
+        </div>
         <span class="visually-hidden">Toggle Theme</span>
       </button>
     </div>
-
-    <!-- Enhanced Notifications -->
-     
-    <!-- <div class="notification-container">
-      <button class="notification-btn" onclick="toggleNotifications()">
-        <i class="fas fa-bell"></i>
-        <span class="notification-badge">3</span>
-        <div class="notification-ripple"></div>
-      </button>
-      <div class="notification-dropdown enhanced-notifications" id="notificationDropdown">
-        <div class="notification-header">
-          <h3>Notifications</h3>
-          <button class="mark-all-read">Mark all as read</button>
-        </div>
-        <div class="notification-list">
-          <div class="notification-item unread">
-            <div class="notification-icon">
-              <i class="fas fa-book"></i>
-            </div>
-            <div class="notification-content">
-              <p class="notification-title">New Week Available</p>
-              <p class="notification-text">Advanced Mathematics course is now available</p>
-              <span class="notification-time">2 hours ago</span>
-            </div>
-          </div>
-          <div class="notification-item">
-            <div class="notification-icon">
-              <i class="fas fa-quiz"></i>
-            </div>
-            <div class="notification-content">
-              <p class="notification-title">Quiz Assignment</p>
-              <p class="notification-text">You have a new quiz to complete</p>
-              <span class="notification-time">1 day ago</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div> -->
 
     <!-- Enhanced User Profile -->
     <div class="user-profile enhanced-profile" onclick="toggleUserMenu()">
       <div class="user-avatar enhanced-avatar">
         <% if (student && student.profilePicture) { %>
-        <img src="<%= student.profilePicture %>" alt="Profile" class="avatar-image">
-        <% } else { %>
-        <span class="avatar-text"><%= (student && student.name) ? student.name.charAt(0).toUpperCase() : 'S' %></span>
-        <% } %>
-        <div class="avatar-status online"></div>
+          <img src="<%= student.profilePicture %>" alt="Profile" class="avatar-image">
+          <% } else { %>
+            <span class="avatar-text">
+              <%= (student && student.name) ? student.name.charAt(0).toUpperCase() : 'S' %>
+            </span>
+            <% } %>
+              <div class="avatar-status online"></div>
       </div>
       <div class="user-info enhanced-info">
-        <div class="user-name"><%= (student && student.name) ? student.name : 'Student' %></div>
+        <div class="user-name">
+          <%= (student && student.name) ? student.name : 'Student' %>
+        </div>
         <div class="user-role">
           <i class="fas fa-user-graduate"></i>
           <%= (student && student.studentCode) ? student.studentCode : 'STU0000' %>
@@ -103,14 +71,20 @@
       <div class="dropdown-header">
         <div class="dropdown-avatar">
           <% if (student && student.profilePicture) { %>
-          <img src="<%= student.profilePicture %>" alt="Profile" class="dropdown-avatar-image">
-          <% } else { %>
-          <span class="dropdown-avatar-text"><%= (student && student.name) ? student.name.charAt(0).toUpperCase() : 'S' %></span>
-          <% } %>
+            <img src="<%= student.profilePicture %>" alt="Profile" class="dropdown-avatar-image">
+            <% } else { %>
+              <span class="dropdown-avatar-text">
+                <%= (student && student.name) ? student.name.charAt(0).toUpperCase() : 'S' %>
+              </span>
+              <% } %>
         </div>
         <div class="dropdown-info">
-          <div class="dropdown-name"><%= (student && student.name) ? student.name : 'Student' %></div>
-          <div class="dropdown-email"><%= (student && student.studentEmail) ? student.studentEmail : 'student@example.com' %></div>
+          <div class="dropdown-name">
+            <%= (student && student.name) ? student.name : 'Student' %>
+          </div>
+          <div class="dropdown-email">
+            <%= (student && student.studentEmail) ? student.studentEmail : 'student@example.com' %>
+          </div>
         </div>
       </div>
 
@@ -146,589 +120,743 @@
   </div>
 </header>
 
-<script>
-  // Enhanced sidebar toggle with animation
-  function toggleSidebar() {
-    const sidebar = document.querySelector('.student-sidebar');
-    const toggle = document.querySelector('.enhanced-toggle');
-    const overlay = document.querySelector('.sidebar-overlay');
+<!-- Teacher Selection Dropdown -->
+<% if (typeof availableTeachers !=='undefined' && availableTeachers && availableTeachers.length> 0) { %>
+  <div class="teacher-selection-bar">
+    <div class="teacher-selection-container">
+      <div class="teacher-selection-label">
+        <i class="fas fa-chalkboard-teacher"></i>
+        <span>Select Teacher:</span>
+      </div>
+      <div class="teacher-dropdown-wrapper">
+        <select id="teacherDropdown" class="teacher-dropdown" onchange="handleTeacherChange(this.value)">
+          <option value="all" <%=(typeof selectedTeacherId==='undefined' || selectedTeacherId==='all' ||
+            !selectedTeacherId) ? 'selected' : '' %>>
+            All Teachers (<%= availableTeachers.reduce((sum, t)=> sum + (t.courseCount || 0), 0) %> Weeks)
+          </option>
+          <% availableTeachers.forEach(teacher=> { %>
+            <option value="<%= teacher._id %>" <%=(typeof selectedTeacherId !=='undefined' &&
+              selectedTeacherId===teacher._id.toString()) ? 'selected' : '' %>>
+              <%= teacher.firstName %>
+                <%= teacher.lastName %> (<%= teacher.courseCount || 0 %> Weeks)<% if (teacher.subject) { %> - <%=
+                        teacher.subject %>
+                        <% } %>
+            </option>
+            <% }); %>
+        </select>
+        <div class="dropdown-icon-right">
+          <i class="fas fa-chevron-down"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
 
-    sidebar.classList.toggle('open');
-    toggle.classList.toggle('active');
-
-    // Show/hide overlay on mobile
-    if (window.innerWidth <= 1024) {
-      if (sidebar.classList.contains('open')) {
-        overlay.classList.add('show');
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
-      } else {
-        overlay.classList.remove('show');
-        document.body.style.overflow = '';
-      }
-    }
-
-    // Animate hamburger
-    const hamburger = toggle.querySelector('.hamburger');
-    hamburger.classList.toggle('active');
-  }
-
-  // Close sidebar (for close button)
-  function closeSidebar() {
-    const sidebar = document.querySelector('.student-sidebar');
-    const toggle = document.querySelector('.enhanced-toggle');
-    const overlay = document.querySelector('.sidebar-overlay');
-
-    sidebar.classList.remove('open');
-    toggle.classList.remove('active');
-    overlay.classList.remove('show');
-    document.body.style.overflow = ''; // Restore scrolling
-
-    // Reset hamburger animation
-    const hamburger = toggle.querySelector('.hamburger');
-    hamburger.classList.remove('active');
-  }
-
-  // Initialize sidebar functionality when DOM is loaded
-  document.addEventListener('DOMContentLoaded', function() {
-    // Close button event listener
-    const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
-    if (sidebarCloseBtn) {
-      sidebarCloseBtn.addEventListener('click', closeSidebar);
-    }
-
-    // Overlay click event listener
-    const overlay = document.querySelector('.sidebar-overlay');
-    if (overlay) {
-      overlay.addEventListener('click', closeSidebar);
-    }
-
-    // Close sidebar when clicking outside on mobile (legacy support)
-    document.addEventListener('click', function(event) {
-      const sidebar = document.querySelector('.student-sidebar');
-      const toggle = document.querySelector('.enhanced-toggle');
-      const isClickInsideSidebar = sidebar.contains(event.target);
-      const isClickOnToggle = toggle.contains(event.target);
-      const isClickOnOverlay = overlay && overlay.contains(event.target);
-
-      // Close sidebar if clicking outside on mobile/tablet (when sidebar is open)
-      if (window.innerWidth <= 1024 && sidebar.classList.contains('open') &&
-        !isClickInsideSidebar && !isClickOnToggle && !isClickOnOverlay) {
-        closeSidebar();
-      }
-    });
-
-    // Handle window resize
-    window.addEventListener('resize', function() {
-      const sidebar = document.querySelector('.student-sidebar');
-      const overlay = document.querySelector('.sidebar-overlay');
-
-      // Close sidebar on resize to larger screen
-      if (window.innerWidth > 1024 && sidebar.classList.contains('open')) {
-        closeSidebar();
+    <!-- Teacher Selection Dropdown Styles -->
+    <style>
+      .teacher-selection-bar {
+        background: var(--bg-card);
+        border-bottom: 1px solid var(--border-color);
+        padding: 12px 24px;
       }
 
-      // Hide overlay on desktop
-      if (window.innerWidth > 1024) {
-        overlay.classList.remove('show');
-        document.body.style.overflow = '';
+      .teacher-selection-container {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
       }
-    });
 
-    // Handle escape key to close sidebar
-    document.addEventListener('keydown', function(event) {
-      if (event.key === 'Escape') {
-        const sidebar = document.querySelector('.student-sidebar');
-        if (sidebar.classList.contains('open')) {
-          closeSidebar();
+      .teacher-selection-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .teacher-selection-label i {
+        color: #3a92bd;
+        font-size: 16px;
+      }
+
+      .teacher-dropdown-wrapper {
+        position: relative;
+        min-width: 280px;
+      }
+
+      .teacher-dropdown {
+        width: 100%;
+        padding: 12px 40px 12px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-primary);
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        transition: all 0.3s ease;
+      }
+
+      .teacher-dropdown:hover {
+        border-color: #3a92bd;
+        box-shadow: 0 4px 12px rgba(58, 146, 189, 0.15);
+      }
+
+      .teacher-dropdown:focus {
+        outline: none;
+        border-color: #3a92bd;
+        box-shadow: 0 0 0 3px rgba(58, 146, 189, 0.2);
+      }
+
+      .dropdown-icon-right {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #3a92bd;
+        pointer-events: none;
+        font-size: 12px;
+      }
+
+      /* Dark theme support */
+      .dark-theme .teacher-dropdown {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border-color: var(--border-color);
+      }
+
+      .dark-theme .teacher-dropdown:hover {
+        border-color: #3a92bd;
+      }
+
+      /* Mobile responsive */
+      @media (max-width: 768px) {
+        .teacher-selection-bar {
+          padding: 10px 16px;
+        }
+
+        .teacher-selection-container {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 10px;
+        }
+
+        .teacher-dropdown-wrapper {
+          min-width: 100%;
+        }
+
+        .teacher-selection-label span {
+          display: inline;
         }
       }
-    });
-  });
+    </style>
 
-  // Enhanced user dropdown with smooth animations
-  function toggleUserMenu() {
-    const dropdown = document.getElementById('userDropdown');
-    const profile = document.querySelector('.enhanced-profile');
-
-    if (dropdown.classList.contains('show')) {
-      dropdown.classList.remove('show');
-      profile.classList.remove('active');
-    } else {
-      dropdown.classList.add('show');
-      profile.classList.add('active');
-    }
-  }
-
-  // Enhanced notifications toggle
-  function toggleNotifications() {
-    const dropdown = document.getElementById('notificationDropdown');
-    const btn = document.querySelector('.notification-btn');
-
-    if (dropdown.classList.contains('show')) {
-      dropdown.classList.remove('show');
-      btn.classList.remove('active');
-    } else {
-      dropdown.classList.add('show');
-      btn.classList.add('active');
-
-      // Close user dropdown if open
-      const userDropdown = document.getElementById('userDropdown');
-      const userProfile = document.querySelector('.enhanced-profile');
-      userDropdown.classList.remove('show');
-      userProfile.classList.remove('active');
-    }
-  }
-
-  // Close dropdowns when clicking outside
-  document.addEventListener('click', function(event) {
-    const userProfile = document.querySelector('.enhanced-profile');
-    const userDropdown = document.getElementById('userDropdown');
-    const notificationContainer = document.querySelector('.notification-container');
-    const notificationDropdown = document.getElementById('notificationDropdown');
-
-    if (!userProfile.contains(event.target)) {
-      userDropdown.classList.remove('show');
-      userProfile.classList.remove('active');
-    }
-
-    if (!notificationContainer.contains(event.target)) {
-      notificationDropdown.classList.remove('show');
-      notificationContainer.querySelector('.notification-btn').classList.remove('active');
-    }
-  });
-
-  // Enhanced theme toggle with smooth animations - Unified with main header
-  function toggleTheme() {
-    const body = document.body;
-    const toggle = document.querySelector('.enhanced-theme-toggle');
-    
-    // Add loading state to prevent multiple clicks
-    toggle.disabled = true;
-    toggle.classList.add('animating');
-    
-    const currentTheme = body.classList.contains('dark-theme') ? 'dark' : 'light';
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-    // Add transition class for smooth theme change
-    body.classList.add('theme-transitioning');
-
-    // Remove current theme from both html and body
-    document.documentElement.classList.remove('light-theme', 'dark-theme');
-    body.classList.remove('light-theme', 'dark-theme');
-
-    // Add new theme to both html and body
-    document.documentElement.classList.add(newTheme + '-theme');
-    body.classList.add(newTheme + '-theme');
-
-    // Save to localStorage for better persistence
-    localStorage.setItem('theme', newTheme);
-
-    // Update theme toggle button
-    updateThemeToggleButton(newTheme);
-    
-    // Remove loading state after animation
-    setTimeout(() => {
-      body.classList.remove('theme-transitioning');
-      toggle.classList.remove('animating');
-      toggle.disabled = false;
-    }, 300);
-    
-    // Trigger custom event for other components
-    window.dispatchEvent(new CustomEvent('themeChanged', { 
-      detail: { theme: newTheme } 
-    }));
-  }
-
-  function updateThemeToggleButton(theme) {
-    // The theme toggle styling is handled by CSS classes in theme-toggle.css
-    // No manual DOM manipulation needed as the CSS handles visibility based on theme classes
-    const toggle = document.querySelector('.enhanced-theme-toggle');
-    if (toggle) {
-      // Remove any existing dark-mode class (legacy support)
-      toggle.classList.remove('dark-mode');
-    }
-  }
-
-
-  // Initialize everything on page load
-  document.addEventListener('DOMContentLoaded', function() {
-    // Initialize theme
-    const savedTheme = localStorage.getItem('theme') || '<%= theme || "light" %>';
-    const body = document.body;
-
-    // Remove existing theme classes from both html and body
-    document.documentElement.classList.remove('light-theme', 'dark-theme');
-    body.classList.remove('light-theme', 'dark-theme');
-    
-    // Add the correct theme class to both html and body
-    document.documentElement.classList.add(savedTheme + '-theme');
-    body.classList.add(savedTheme + '-theme');
-
-    updateThemeToggleButton(savedTheme);
-    
-    // Listen for theme changes from other tabs/windows
-    window.addEventListener('storage', function(e) {
-      if (e.key === 'theme') {
-        const newTheme = e.newValue || 'light';
-        document.documentElement.classList.remove('light-theme', 'dark-theme');
-        document.body.classList.remove('light-theme', 'dark-theme');
-        document.documentElement.classList.add(newTheme + '-theme');
-        document.body.classList.add(newTheme + '-theme');
-        updateThemeToggleButton(newTheme);
+    <script>
+      function handleTeacherChange(teacherId) {
+        window.location.href = '?teacher=' + teacherId;
       }
-    });
-    
-    // Listen for custom theme change events
-    window.addEventListener('themeChanged', function(e) {
-      const newTheme = e.detail.theme;
-      document.documentElement.classList.remove('light-theme', 'dark-theme');
-      document.body.classList.remove('light-theme', 'dark-theme');
-      document.documentElement.classList.add(newTheme + '-theme');
-      document.body.classList.add(newTheme + '-theme');
-      updateThemeToggleButton(newTheme);
-    });
+    </script>
 
-    // Initialize smooth scrolling for sidebar
-    const sidebar = document.querySelector('.enhanced-sidebar');
-    if (sidebar) {
-      sidebar.addEventListener('scroll', function() {
-        const scrollTop = this.scrollTop;
-        const brand = this.querySelector('.enhanced-brand');
+    <script>
+      // Enhanced sidebar toggle with animation
+      function toggleSidebar() {
+        const sidebar = document.querySelector('.student-sidebar');
+        const toggle = document.querySelector('.enhanced-toggle');
+        const overlay = document.querySelector('.sidebar-overlay');
 
-        if (scrollTop > 20) {
-          brand.classList.add('scrolled');
+        sidebar.classList.toggle('open');
+        toggle.classList.toggle('active');
+
+        // Show/hide overlay on mobile
+        if (window.innerWidth <= 1024) {
+          if (sidebar.classList.contains('open')) {
+            overlay.classList.add('show');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+          } else {
+            overlay.classList.remove('show');
+            document.body.style.overflow = '';
+          }
+        }
+
+        // Animate hamburger
+        const hamburger = toggle.querySelector('.hamburger');
+        hamburger.classList.toggle('active');
+      }
+
+      // Close sidebar (for close button)
+      function closeSidebar() {
+        const sidebar = document.querySelector('.student-sidebar');
+        const toggle = document.querySelector('.enhanced-toggle');
+        const overlay = document.querySelector('.sidebar-overlay');
+
+        sidebar.classList.remove('open');
+        toggle.classList.remove('active');
+        overlay.classList.remove('show');
+        document.body.style.overflow = ''; // Restore scrolling
+
+        // Reset hamburger animation
+        const hamburger = toggle.querySelector('.hamburger');
+        hamburger.classList.remove('active');
+      }
+
+      // Initialize sidebar functionality when DOM is loaded
+      document.addEventListener('DOMContentLoaded', function () {
+        // Close button event listener
+        const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+        if (sidebarCloseBtn) {
+          sidebarCloseBtn.addEventListener('click', closeSidebar);
+        }
+
+        // Overlay click event listener
+        const overlay = document.querySelector('.sidebar-overlay');
+        if (overlay) {
+          overlay.addEventListener('click', closeSidebar);
+        }
+
+        // Close sidebar when clicking outside on mobile (legacy support)
+        document.addEventListener('click', function (event) {
+          const sidebar = document.querySelector('.student-sidebar');
+          const toggle = document.querySelector('.enhanced-toggle');
+          const isClickInsideSidebar = sidebar.contains(event.target);
+          const isClickOnToggle = toggle.contains(event.target);
+          const isClickOnOverlay = overlay && overlay.contains(event.target);
+
+          // Close sidebar if clicking outside on mobile/tablet (when sidebar is open)
+          if (window.innerWidth <= 1024 && sidebar.classList.contains('open') &&
+            !isClickInsideSidebar && !isClickOnToggle && !isClickOnOverlay) {
+            closeSidebar();
+          }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function () {
+          const sidebar = document.querySelector('.student-sidebar');
+          const overlay = document.querySelector('.sidebar-overlay');
+
+          // Close sidebar on resize to larger screen
+          if (window.innerWidth > 1024 && sidebar.classList.contains('open')) {
+            closeSidebar();
+          }
+
+          // Hide overlay on desktop
+          if (window.innerWidth > 1024) {
+            overlay.classList.remove('show');
+            document.body.style.overflow = '';
+          }
+        });
+
+        // Handle escape key to close sidebar
+        document.addEventListener('keydown', function (event) {
+          if (event.key === 'Escape') {
+            const sidebar = document.querySelector('.student-sidebar');
+            if (sidebar.classList.contains('open')) {
+              closeSidebar();
+            }
+          }
+        });
+      });
+
+      // Enhanced user dropdown with smooth animations
+      function toggleUserMenu() {
+        const dropdown = document.getElementById('userDropdown');
+        const profile = document.querySelector('.enhanced-profile');
+
+        if (dropdown.classList.contains('show')) {
+          dropdown.classList.remove('show');
+          profile.classList.remove('active');
         } else {
-          brand.classList.remove('scrolled');
+          dropdown.classList.add('show');
+          profile.classList.add('active');
+        }
+      }
+
+      // Enhanced notifications toggle
+      function toggleNotifications() {
+        const dropdown = document.getElementById('notificationDropdown');
+        const btn = document.querySelector('.notification-btn');
+
+        if (dropdown.classList.contains('show')) {
+          dropdown.classList.remove('show');
+          btn.classList.remove('active');
+        } else {
+          dropdown.classList.add('show');
+          btn.classList.add('active');
+
+          // Close user dropdown if open
+          const userDropdown = document.getElementById('userDropdown');
+          const userProfile = document.querySelector('.enhanced-profile');
+          userDropdown.classList.remove('show');
+          userProfile.classList.remove('active');
+        }
+      }
+
+      // Close dropdowns when clicking outside
+      document.addEventListener('click', function (event) {
+        const userProfile = document.querySelector('.enhanced-profile');
+        const userDropdown = document.getElementById('userDropdown');
+        const notificationContainer = document.querySelector('.notification-container');
+        const notificationDropdown = document.getElementById('notificationDropdown');
+
+        if (!userProfile.contains(event.target)) {
+          userDropdown.classList.remove('show');
+          userProfile.classList.remove('active');
+        }
+
+        if (!notificationContainer.contains(event.target)) {
+          notificationDropdown.classList.remove('show');
+          notificationContainer.querySelector('.notification-btn').classList.remove('active');
         }
       });
-    }
-  });
 
-  // Helper function to get cookie value (kept for backward compatibility)
-  function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-  }
-</script>
+      // Enhanced theme toggle with smooth animations - Unified with main header
+      function toggleTheme() {
+        const body = document.body;
+        const toggle = document.querySelector('.enhanced-theme-toggle');
 
-<!-- Toast/Flash Messages (top-right) -->
-<div class="toast-container" aria-live="polite" aria-atomic="true">
-  <% const __success = (typeof success_msg !== 'undefined' && success_msg && success_msg.length) ? success_msg : (typeof success !== 'undefined' ? success : []); %>
-  <% const __error = (typeof error_msg !== 'undefined' && error_msg && error_msg.length) ? error_msg : (typeof error !== 'undefined' ? error : []); %>
-  <% const __info = (typeof info_msg !== 'undefined' && info_msg && info_msg.length) ? info_msg : (typeof info !== 'undefined' ? info : []); %>
+        // Add loading state to prevent multiple clicks
+        toggle.disabled = true;
+        toggle.classList.add('animating');
 
-  <% if (__success && __success.length) { __success.forEach(function(msg){ %>
-  <div class="toast toast-success" role="status">
-    <i class="fas fa-check-circle"></i>
-    <span><%= msg %></span>
-    <button class="toast-close" onclick="this.parentElement.remove()" aria-label="Close">&times;</button>
-  </div>
-  <% }) } %>
+        const currentTheme = body.classList.contains('dark-theme') ? 'dark' : 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-  <% if (__error && __error.length) { __error.forEach(function(msg){ %>
-  <div class="toast toast-danger" role="alert">
-    <i class="fas fa-exclamation-circle"></i>
-    <span><%= msg %></span>
-    <button class="toast-close" onclick="this.parentElement.remove()" aria-label="Close">&times;</button>
-  </div>
-  <% }) } %>
+        // Add transition class for smooth theme change
+        body.classList.add('theme-transitioning');
 
-  <% if (__info && __info.length) { __info.forEach(function(msg){ %>
-  <div class="toast toast-info" role="status">
-    <i class="fas fa-info-circle"></i>
-    <span><%= msg %></span>
-    <button class="toast-close" onclick="this.parentElement.remove()" aria-label="Close">&times;</button>
-  </div>
-  <% }) } %>
-</div>
+        // Remove current theme from both html and body
+        document.documentElement.classList.remove('light-theme', 'dark-theme');
+        body.classList.remove('light-theme', 'dark-theme');
 
-<script>
-  // Auto-dismiss toasts after 5 seconds
-  (function() {
-    const toasts = document.querySelectorAll('.toast-container .toast');
-    toasts.forEach(function(t) {
-      setTimeout(function() {
-        if (t && t.parentElement) t.parentElement.removeChild(t);
-      }, 5000);
-    });
-  })();
+        // Add new theme to both html and body
+        document.documentElement.classList.add(newTheme + '-theme');
+        body.classList.add(newTheme + '-theme');
+
+        // Save to localStorage for better persistence
+        localStorage.setItem('theme', newTheme);
+
+        // Update theme toggle button
+        updateThemeToggleButton(newTheme);
+
+        // Remove loading state after animation
+        setTimeout(() => {
+          body.classList.remove('theme-transitioning');
+          toggle.classList.remove('animating');
+          toggle.disabled = false;
+        }, 300);
+
+        // Trigger custom event for other components
+        window.dispatchEvent(new CustomEvent('themeChanged', {
+          detail: { theme: newTheme }
+        }));
+      }
+
+      function updateThemeToggleButton(theme) {
+        // The theme toggle styling is handled by CSS classes in theme-toggle.css
+        // No manual DOM manipulation needed as the CSS handles visibility based on theme classes
+        const toggle = document.querySelector('.enhanced-theme-toggle');
+        if (toggle) {
+          // Remove any existing dark-mode class (legacy support)
+          toggle.classList.remove('dark-mode');
+        }
+      }
 
 
-  if ('<%= process.env.NODE_ENV || "development" %>' === 'production') {
-    window.console.log = window.console.warn = window.console.error = window.console.info = () => {};
-  }
-</script>
+      // Initialize everything on page load
+      document.addEventListener('DOMContentLoaded', function () {
+        // Initialize theme
+        const savedTheme = localStorage.getItem('theme') || '<%= theme || "light" %>';
+        const body = document.body;
 
-<style>
-  /* Compact Header Styles */
-  .student-header.enhanced-header {
-    padding: var(--spacing-md) var(--spacing-lg);
-    min-height: 60px;
-  }
+        // Remove existing theme classes from both html and body
+        document.documentElement.classList.remove('light-theme', 'dark-theme');
+        body.classList.remove('light-theme', 'dark-theme');
 
-  .header-title-container {
-    margin-left: var(--spacing-md);
-  }
+        // Add the correct theme class to both html and body
+        document.documentElement.classList.add(savedTheme + '-theme');
+        body.classList.add(savedTheme + '-theme');
 
-  .enhanced-title {
-    font-size: 1.5rem;
-    margin: 0;
-  }
+        updateThemeToggleButton(savedTheme);
 
-  .header-title-container {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-  }
+        // Listen for theme changes from other tabs/windows
+        window.addEventListener('storage', function (e) {
+          if (e.key === 'theme') {
+            const newTheme = e.newValue || 'light';
+            document.documentElement.classList.remove('light-theme', 'dark-theme');
+            document.body.classList.remove('light-theme', 'dark-theme');
+            document.documentElement.classList.add(newTheme + '-theme');
+            document.body.classList.add(newTheme + '-theme');
+            updateThemeToggleButton(newTheme);
+          }
+        });
 
-  .header-back-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: rgba(220, 38, 38, 0.1);
-    color: var(--primary-color);
-    text-decoration: none;
-    transition: all 0.3s ease;
-  }
+        // Listen for custom theme change events
+        window.addEventListener('themeChanged', function (e) {
+          const newTheme = e.detail.theme;
+          document.documentElement.classList.remove('light-theme', 'dark-theme');
+          document.body.classList.remove('light-theme', 'dark-theme');
+          document.documentElement.classList.add(newTheme + '-theme');
+          document.body.classList.add(newTheme + '-theme');
+          updateThemeToggleButton(newTheme);
+        });
 
-  .header-back-btn:hover {
-    background: var(--primary-color);
-    color: white;
-    transform: translateX(-3px);
-  }
+        // Initialize smooth scrolling for sidebar
+        const sidebar = document.querySelector('.enhanced-sidebar');
+        if (sidebar) {
+          sidebar.addEventListener('scroll', function () {
+            const scrollTop = this.scrollTop;
+            const brand = this.querySelector('.enhanced-brand');
 
-  .dark-theme .header-back-btn {
-    background: rgba(239, 68, 68, 0.2);
-  }
+            if (scrollTop > 20) {
+              brand.classList.add('scrolled');
+            } else {
+              brand.classList.remove('scrolled');
+            }
+          });
+        }
+      });
 
-  .dark-theme .header-back-btn:hover {
-    background: var(--primary-color);
-    color: white;
-  }
+      // Helper function to get cookie value (kept for backward compatibility)
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+      }
+    </script>
 
-  .title-decoration {
-    width: 40px;
-    height: 3px;
-  }
+    <!-- Toast/Flash Messages (top-right) -->
+    <div class="toast-container" aria-live="polite" aria-atomic="true">
+      <% const __success=(typeof success_msg !=='undefined' && success_msg && success_msg.length) ? success_msg :
+        (typeof success !=='undefined' ? success : []); %>
+        <% const __error=(typeof error_msg !=='undefined' && error_msg && error_msg.length) ? error_msg : (typeof error
+          !=='undefined' ? error : []); %>
+          <% const __info=(typeof info_msg !=='undefined' && info_msg && info_msg.length) ? info_msg : (typeof info
+            !=='undefined' ? info : []); %>
 
-  /* Compact Theme Toggle - Matches header.ejs style */
-  .header-theme-toggle {
-    display: flex;
-    align-items: center;
-    position: relative;
-    margin-right: var(--spacing-md);
-  }
+            <% if (__success && __success.length) { __success.forEach(function(msg){ %>
+              <div class="toast toast-success" role="status">
+                <i class="fas fa-check-circle"></i>
+                <span>
+                  <%= msg %>
+                </span>
+                <button class="toast-close" onclick="this.parentElement.remove()" aria-label="Close">&times;</button>
+              </div>
+              <% }) } %>
 
-  .enhanced-theme-toggle {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: rgba(184, 1, 1, 0.15);
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-  }
+                <% if (__error && __error.length) { __error.forEach(function(msg){ %>
+                  <div class="toast toast-danger" role="alert">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>
+                      <%= msg %>
+                    </span>
+                    <button class="toast-close" onclick="this.parentElement.remove()"
+                      aria-label="Close">&times;</button>
+                  </div>
+                  <% }) } %>
 
-  .light-theme .enhanced-theme-toggle {
-    background: rgba(184, 1, 1, 0.1);
-  }
+                    <% if (__info && __info.length) { __info.forEach(function(msg){ %>
+                      <div class="toast toast-info" role="status">
+                        <i class="fas fa-info-circle"></i>
+                        <span>
+                          <%= msg %>
+                        </span>
+                        <button class="toast-close" onclick="this.parentElement.remove()"
+                          aria-label="Close">&times;</button>
+                      </div>
+                      <% }) } %>
+    </div>
 
-  .dark-theme .enhanced-theme-toggle {
-    background: rgba(184, 1, 1, 0.2);
-  }
+    <script>
+      // Auto-dismiss toasts after 5 seconds
+      (function () {
+        const toasts = document.querySelectorAll('.toast-container .toast');
+        toasts.forEach(function (t) {
+          setTimeout(function () {
+            if (t && t.parentElement) t.parentElement.removeChild(t);
+          }, 5000);
+        });
+      })();
 
-  .enhanced-theme-toggle:hover {
-    box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
-    transform: translateY(-2px);
-  }
 
-  .enhanced-theme-toggle:active {
-    transform: translateY(1px);
-  }
+      if ('<%= process.env.NODE_ENV || "development" %>' === 'production') {
+        window.console.log = window.console.warn = window.console.error = window.console.info = () => { };
+      }
+    </script>
 
-  .toggle-icon-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    top: 0;
-    left: 0;
-    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-  }
+    <style>
+      /* Compact Header Styles */
+      .student-header.enhanced-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        min-height: 60px;
+      }
 
-  .light-icon,
-  .dark-icon {
-    font-size: 1.2rem;
-    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-  }
+      .header-title-container {
+        margin-left: var(--spacing-md);
+      }
 
-  .light-icon {
-    color: #facc15;
-    filter: drop-shadow(0 0 3px rgba(250, 204, 21, 0.5));
-  }
+      .enhanced-title {
+        font-size: 1.5rem;
+        margin: 0;
+      }
 
-  .dark-icon {
-    color: #94a3b8;
-    filter: drop-shadow(0 0 3px rgba(148, 163, 184, 0.5));
-  }
+      .header-title-container {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+      }
 
-  /* Theme-based icon visibility - handled by theme-toggle.css */
-  .visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
+      .header-back-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(220, 38, 38, 0.1);
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: all 0.3s ease;
+      }
 
-  /* Compact Notification Button */
-  .notification-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 1rem;
-  }
+      .header-back-btn:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: translateX(-3px);
+      }
 
-  .notification-badge {
-    width: 16px;
-    height: 16px;
-    font-size: 0.65rem;
-    top: -1px;
-    right: -1px;
-  }
+      .dark-theme .header-back-btn {
+        background: rgba(239, 68, 68, 0.2);
+      }
 
-  /* Compact User Profile */
-  .enhanced-profile {
-    padding: var(--spacing-xs);
-  }
+      .dark-theme .header-back-btn:hover {
+        background: var(--primary-color);
+        color: white;
+      }
 
-  .enhanced-avatar {
-    width: 40px;
-    height: 40px;
-    font-size: 1rem;
-  }
+      .title-decoration {
+        width: 40px;
+        height: 3px;
+      }
 
-  .avatar-status {
-    width: 10px;
-    height: 10px;
-  }
+      /* Compact Theme Toggle - Matches header.ejs style */
+      .header-theme-toggle {
+        display: flex;
+        align-items: center;
+        position: relative;
+        margin-right: var(--spacing-md);
+      }
 
-  .enhanced-info {
-    margin-left: var(--spacing-sm);
-    margin-right: var(--spacing-xs);
-  }
+      .enhanced-theme-toggle {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: rgba(184, 1, 1, 0.15);
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+      }
 
-  .user-name {
-    font-size: 0.85rem;
-    margin-bottom: 1px;
-  }
+      .light-theme .enhanced-theme-toggle {
+        background: rgba(184, 1, 1, 0.1);
+      }
 
-  .user-role {
-    font-size: 0.7rem;
-  }
+      .dark-theme .enhanced-theme-toggle {
+        background: rgba(184, 1, 1, 0.2);
+      }
 
-  /* Compact Sidebar Toggle */
-  .enhanced-toggle {
-    width: 36px;
-    height: 36px;
-  }
+      .enhanced-theme-toggle:hover {
+        box-shadow: 0 4px 12px rgba(184, 1, 1, 0.3);
+        transform: translateY(-2px);
+      }
 
-  .hamburger span {
-    width: 16px;
-    height: 2px;
-  }
+      .enhanced-theme-toggle:active {
+        transform: translateY(1px);
+      }
 
-  /* User dropdown hover effects */
-  .user-dropdown a:hover {
-    background-color: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
-  }
+      .toggle-icon-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: 0;
+        left: 0;
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+      }
 
-  /* Responsive header styles */
-  @media (max-width: 1024px) {
-    .student-header.enhanced-header {
-      padding: var(--spacing-sm) var(--spacing-md);
-      min-height: 55px;
-    }
+      .light-icon,
+      .dark-icon {
+        font-size: 1.2rem;
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+      }
 
-    .enhanced-title {
-      font-size: 1.25rem;
-    }
+      .light-icon {
+        color: #facc15;
+        filter: drop-shadow(0 0 3px rgba(250, 204, 21, 0.5));
+      }
 
-    .user-info {
-      display: none;
-    }
+      .dark-icon {
+        color: #94a3b8;
+        filter: drop-shadow(0 0 3px rgba(148, 163, 184, 0.5));
+      }
 
-    .sidebar-toggle {
-      display: block;
-    }
+      /* Theme-based icon visibility - handled by theme-toggle.css */
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
 
-    .enhanced-theme-toggle {
-      width: 38px;
-      height: 38px;
-    }
+      /* Compact Notification Button */
+      .notification-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+      }
 
-    .light-icon,
-    .dark-icon {
-      font-size: 1.1rem;
-    }
-  }
+      .notification-badge {
+        width: 16px;
+        height: 16px;
+        font-size: 0.65rem;
+        top: -1px;
+        right: -1px;
+      }
 
-  @media (max-width: 480px) {
-    .student-header.enhanced-header {
-      padding: var(--spacing-xs) var(--spacing-sm);
-      min-height: 50px;
-    }
+      /* Compact User Profile */
+      .enhanced-profile {
+        padding: var(--spacing-xs);
+      }
 
-    .enhanced-title {
-      font-size: 1.1rem;
-    }
+      .enhanced-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+      }
 
-    .notification-dropdown {
-      display: none;
-    }
+      .avatar-status {
+        width: 10px;
+        height: 10px;
+      }
 
-    .enhanced-avatar {
-      width: 36px;
-      height: 36px;
-      font-size: 0.9rem;
-    }
+      .enhanced-info {
+        margin-left: var(--spacing-sm);
+        margin-right: var(--spacing-xs);
+      }
 
-    .notification-btn {
-      width: 32px;
-      height: 32px;
-      font-size: 0.9rem;
-    }
+      .user-name {
+        font-size: 0.85rem;
+        margin-bottom: 1px;
+      }
 
-    .enhanced-toggle {
-      width: 32px;
-      height: 32px;
-    }
+      .user-role {
+        font-size: 0.7rem;
+      }
 
-    .enhanced-theme-toggle {
-      width: 36px;
-      height: 36px;
-    }
+      /* Compact Sidebar Toggle */
+      .enhanced-toggle {
+        width: 36px;
+        height: 36px;
+      }
 
-    .light-icon,
-    .dark-icon {
-      font-size: 1rem;
-    }
-  }
-</style>
+      .hamburger span {
+        width: 16px;
+        height: 2px;
+      }
+
+      /* User dropdown hover effects */
+      .user-dropdown a:hover {
+        background-color: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+      }
+
+      /* Responsive header styles */
+      @media (max-width: 1024px) {
+        .student-header.enhanced-header {
+          padding: var(--spacing-sm) var(--spacing-md);
+          min-height: 55px;
+        }
+
+        .enhanced-title {
+          font-size: 1.25rem;
+        }
+
+        .user-info {
+          display: none;
+        }
+
+        .sidebar-toggle {
+          display: block;
+        }
+
+        .enhanced-theme-toggle {
+          width: 38px;
+          height: 38px;
+        }
+
+        .light-icon,
+        .dark-icon {
+          font-size: 1.1rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .student-header.enhanced-header {
+          padding: var(--spacing-xs) var(--spacing-sm);
+          min-height: 50px;
+        }
+
+        .enhanced-title {
+          font-size: 1.1rem;
+        }
+
+        .notification-dropdown {
+          display: none;
+        }
+
+        .enhanced-avatar {
+          width: 36px;
+          height: 36px;
+          font-size: 0.9rem;
+        }
+
+        .notification-btn {
+          width: 32px;
+          height: 32px;
+          font-size: 0.9rem;
+        }
+
+        .enhanced-toggle {
+          width: 32px;
+          height: 32px;
+        }
+
+        .enhanced-theme-toggle {
+          width: 36px;
+          height: 36px;
+        }
+
+        .light-icon,
+        .dark-icon {
+          font-size: 1rem;
+        }
+      }
+    </style>

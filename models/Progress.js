@@ -23,7 +23,7 @@ const ProgressSchema = new mongoose.Schema(
     },
     contentType: {
       type: String,
-      enum: ['video', 'pdf', 'reading', 'assignment', 'link'],
+      enum: ['video', 'pdf', 'reading', 'assignment', 'link', 'submission'],
       required: false,
     },
     activity: {

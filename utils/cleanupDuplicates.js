@@ -36,7 +36,6 @@ const cleanupAllDuplicates = async () => {
         console.log(`User ${user._id} (${user.firstName} ${user.lastName}): Removed ${result.duplicatesRemoved} duplicates`);
         console.log(`  - Enrollments removed: ${result.enrollmentsRemoved}`);
         console.log(`  - Course purchases removed: ${result.coursePurchasesRemoved}`);
-        console.log(`  - Bundle purchases removed: ${result.bundlePurchasesRemoved}`);
       }
     }
     
@@ -66,7 +65,6 @@ const cleanupUserDuplicates = async (userId) => {
     console.log(`User ${user._id} (${user.firstName} ${user.lastName}): Removed ${result.duplicatesRemoved} duplicates`);
     console.log(`  - Enrollments removed: ${result.enrollmentsRemoved}`);
     console.log(`  - Course purchases removed: ${result.coursePurchasesRemoved}`);
-    console.log(`  - Bundle purchases removed: ${result.bundlePurchasesRemoved}`);
     
   } catch (error) {
     console.error('Error during user cleanup:', error);

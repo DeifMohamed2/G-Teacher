@@ -102,9 +102,9 @@
 }
 
 .student-name-simple {
-  color: var(--primary-color);
+  color: #3a92bd;
   font-weight: 600;
-  text-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+  text-shadow: 0 2px 4px rgba(58, 146, 189, 0.2);
 }
 
 /* Stats Grid */
@@ -201,15 +201,15 @@
 
 /* Enhanced Stats Grid */
 .stats-grid.enhanced {
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--spacing-xl);
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-md);
 }
 
 .stat-card.enhanced {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  padding: var(--spacing-2xl);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
   position: relative;
   overflow: hidden;
   transition: var(--transition-normal);
@@ -223,16 +223,16 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(220, 38, 38, 0.05) 0%, rgba(185, 28, 28, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(58, 146, 189, 0.05) 0%, rgba(45, 123, 163, 0.05) 100%);
   opacity: 0;
   transition: var(--transition-normal);
 }
 
 .stat-card.enhanced:hover {
-  box-shadow: var(--shadow-xl);
-  transform: translateY(-6px);
-  border-color: var(--primary-color);
-  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(220, 38, 38, 0.02) 100%);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+  border-color: #3a92bd;
+  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(58, 146, 189, 0.02) 100%);
 }
 
 .stat-card.enhanced:hover::before {
@@ -240,8 +240,8 @@
 }
 
 .stat-card.enhanced.primary {
-  border-color: var(--primary-color);
-  background: linear-gradient(135deg, rgba(220, 38, 38, 0.02) 0%, rgba(185, 28, 28, 0.02) 100%);
+  border-color: #3a92bd;
+  background: linear-gradient(135deg, rgba(58, 146, 189, 0.04) 0%, rgba(45, 123, 163, 0.04) 100%);
 }
 
 .stat-card.enhanced.success {
@@ -267,19 +267,19 @@
 }
 
 .stat-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: var(--radius-lg);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   color: var(--text-white);
   flex-shrink: 0;
 }
 
 .stat-card.enhanced.primary .stat-icon {
-  background: var(--gradient-primary);
+  background: linear-gradient(135deg, #3a92bd, #2d7ba3);
 }
 
 .stat-card.enhanced.success .stat-icon {
@@ -320,20 +320,19 @@
 }
 
 .stat-value {
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-weight: 800;
   color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
   line-height: 1;
 }
 
 .stat-label {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: var(--spacing-sm);
 }
 
 .stat-description {
@@ -994,10 +993,21 @@
 }
 
 /* Text Colors */
-.text-warning { color: var(--warning-color) !important; }
-.text-info { color: var(--info-color) !important; }
-.text-success { color: var(--success-color) !important; }
-.text-danger { color: var(--danger-color) !important; }
+.text-warning {
+  color: var(--warning-color) !important;
+}
+
+.text-info {
+  color: var(--info-color) !important;
+}
+
+.text-success {
+  color: var(--success-color) !important;
+}
+
+.text-danger {
+  color: var(--danger-color) !important;
+}
 
 /* Dark Mode Enhancements */
 .dark-theme .welcome-section.simple {
@@ -1144,7 +1154,7 @@
     grid-template-columns: 1fr;
     gap: var(--spacing-xl);
   }
-  
+
   .stats-grid.enhanced {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
@@ -1154,24 +1164,24 @@
   .welcome-title-simple {
     font-size: 1.5rem;
   }
-  
+
   .stats-grid.enhanced {
     grid-template-columns: 1fr;
   }
-  
+
   .activity-item {
     padding-left: var(--spacing-md);
   }
-  
+
   .activity-line {
     left: calc(-1 * var(--spacing-md) - 1px);
   }
-  
+
   .welcome-content {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .welcome-actions {
     justify-content: center;
   }
@@ -1181,32 +1191,32 @@
   .welcome-title-simple {
     font-size: 1.25rem;
   }
-  
+
   .stat-card.enhanced {
     padding: var(--spacing-lg);
   }
-  
+
   .course-card.enhanced,
   .quiz-card.enhanced {
     padding: var(--spacing-md);
   }
-  
+
   .simple-card .card-header.simple {
     padding: var(--spacing-md);
   }
-  
+
   .simple-card .card-header.simple .card-title {
     font-size: 1rem;
   }
-  
+
   .welcome-section {
     padding: var(--spacing-lg);
   }
-  
+
   .welcome-title {
     font-size: 2rem;
   }
-  
+
   .welcome-avatar {
     width: 80px;
     height: 80px;

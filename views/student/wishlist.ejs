@@ -168,7 +168,6 @@
                                             <% } else { %>
                                                 <i class="fas fa-layer-group"></i>
                                             <% } %>
-                                            <!-- Bundle Badge -->
                                             <div class="course-badge" style="position: absolute; top: var(--spacing-sm); right: var(--spacing-sm); background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 600;">
                                                 COURSE
                                             </div>
@@ -237,19 +236,12 @@
                                                 </div>
                                             <% } %>
 
-                                            <!-- Bundle Footer -->
                                             <div class="course-footer">
-                                                <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                                                    <i class="fas fa-layer-group" style="color: var(--text-muted); font-size: 0.75rem;"></i>
-                                                    <span style="font-size: 0.75rem; color: var(--text-muted);">
-                                                        <%= course.courses ? course.courses.length : 0 %> courses
-                                                    </span>
-                                                </div>
                                                 <div style="display: flex; gap: var(--spacing-xs);">
                                                     <button class="btn btn-outline btn-sm" onclick="removeFromWishlist('<%= course._id %>', 'course')">
                                                         Remove
                                                     </button>
-                                                    <a href="/bundle/<%= course._id %>" class="btn btn-primary btn-sm">
+                                                    <a href="/student/course/<%= course._id %>" class="btn btn-primary btn-sm">
                                                         View Details
                                                     </a>
                                                 </div>

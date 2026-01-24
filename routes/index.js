@@ -3,40 +3,20 @@ const router = express.Router();
 const { isAuthenticated } = require('../middlewares/auth');
 const {
   getLandingPage,
-  getOnlineCourses,
-  getOngroundCourses,
-  getRecordedCourses,
-  getRecoveryCourses,
-  getCourseContent,
-  getIGTeacherCourses
+  getIGTeacherCourses,
+  getTeachersBySubject,
+  getSubjectsByExamPeriod
 } = require('../controllers/landingController');
 
 // Landing page route
 router.get('/', getLandingPage);
 
-// Online courses page route
-router.get('/courses/online', getOnlineCourses);
-
-// On-ground courses page route
-router.get('/courses/onground', getOngroundCourses);
-
-// Recorded courses page route
-router.get('/courses/recorded', getRecordedCourses);
-
-// Recovery courses page route
-router.get('/courses/recovery', getRecoveryCourses);
-
-// Course details route
-router.get('/course/:id', getCourseContent);
-
-// Legacy bundle route - redirect to course
-router.get('/bundle/:id', (req, res) => res.redirect(`/course/${req.params.id}`));
-
-// Course content route
-router.get('/course/:id/content', getCourseContent);
-
 // IG Teacher Courses route
 router.get('/ig/teacher/:teacherId', getIGTeacherCourses);
+
+// API routes for dynamic data fetching
+router.get('/api/teachers-by-subject', getTeachersBySubject);
+router.get('/api/subjects-by-period', getSubjectsByExamPeriod);
 
 // Terms of Service route
 router.get('/terms-of-service', (req, res) => {

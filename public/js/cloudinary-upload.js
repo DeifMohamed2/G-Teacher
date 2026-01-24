@@ -312,23 +312,4 @@ document.addEventListener('DOMContentLoaded', function() {
     );
   }
 
-  // Initialize for bundle creation modal (only if elements exist)
-  if (document.querySelector('#createBundleForm')) {
-    uploader.init(
-      '#createBundleForm',
-      '#bundleThumbnail',
-      '#bundleThumbnailPreview',
-      '#bundleThumbnailProgress'
-    );
-  }
-
-  // Initialize for edit bundle modal (only if elements exist)
-  if (document.querySelector('#editBundleForm')) {
-    uploader.init(
-      '#editBundleForm',
-      '#editBundleThumbnail',
-      '#editBundleThumbnailPreview',
-      '#editBundleThumbnailProgress'
-    );
-  }
 });

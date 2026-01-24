@@ -45,12 +45,6 @@
                   <%= course.examPeriod.displayName %> <%= course.examPeriod.year %>
                 </span>
                 <% } %>
-                <% if (course.bundle) { %>
-                <span class="bundle-badge">
-                  <i class="fas fa-box"></i>
-                  <%= course.bundle.bundleCode %>
-                </span>
-                <% } %>
               </div>
               <div class="course-header-actions">
                 <button class="btn btn-outline-success btn-sm" onclick="editCourse('<%= course.courseCode %>')">
@@ -441,6 +435,7 @@
                     <option value="pdf">PDF Document</option>
                     <option value="zoom">Zoom Live Session</option>
                     <option value="link">External Link</option>
+                    <option value="submission">Assignment</option>
                   </select>
                 </div>
 
@@ -700,6 +695,124 @@
               </div>
             </div>
           </div>
+
+          <!-- Assignment Content Section -->
+          <div class="row mt-4" id="submissionContentSection" style="display: none;">
+            <div class="col-12">
+              <div class="submission-config-header mb-4">
+                <h5 class="mb-2" style="color: #2d3748; font-weight: 600; display: flex; align-items: center;">
+                  <i class="fas fa-file-upload me-2" style="color: #2d5aa0;"></i>
+                  Assignment Configuration
+                </h5>
+                <div class="alert alert-info mb-0" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 1px solid #90caf9; border-radius: 8px; padding: 12px 16px;">
+                  <i class="fas fa-info-circle me-2" style="color: #1976d2;"></i>
+                  <small style="color: #1565c0; font-weight: 500;">Upload assignment files for students to download. Students will submit their answers which you can grade.</small>
+                </div>
+              </div>
+
+              <!-- Assignment Files Upload -->
+              <div class="row g-3 mb-3">
+                <div class="col-12">
+                  <div class="mb-3">
+                    <label for="submissionAssignmentFiles" class="admin-form-label" style="font-weight: 500; color: #4a5568; margin-bottom: 8px;">
+                      <i class="fas fa-file-pdf me-2" style="color: #2d5aa0;"></i>
+                      Assignment Files (PDF/Images)
+                    </label>
+                    <div class="upload-section">
+                      <input type="file" id="submissionFileInput" class="upload-input" accept=".pdf,image/*" multiple>
+                      <label for="submissionFileInput" class="upload-label" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px dashed #90caf9;">
+                        <i class="fas fa-cloud-upload-alt" style="color: #2d5aa0;"></i>
+                        <span style="color: #1976d2;">Choose Assignment Files</span>
+                      </label>
+                      <div id="submissionFilePreview" class="upload-preview mt-2" style="display: none;">
+                        <div class="uploaded-files-list" id="uploadedFilesList"></div>
+                      </div>
+                      <div id="submissionFileProgress" class="progress-container" style="display: none;"></div>
+                    </div>
+                    <input type="hidden" name="submissionAssignmentFiles" id="submissionAssignmentFilesInput">
+                    <small class="admin-form-text">Upload PDF or image files that students will download</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Instructions -->
+              <div class="row g-3 mb-3">
+                <div class="col-12">
+                  <div class="mb-3">
+                    <label for="submissionInstructions" class="admin-form-label" style="font-weight: 500; color: #4a5568; margin-bottom: 8px;">
+                      <i class="fas fa-clipboard-list me-2" style="color: #2d5aa0;"></i>
+                      Instructions for Students
+                    </label>
+                    <textarea class="admin-form-control" id="submissionInstructions" name="submissionInstructions" rows="3" placeholder="Enter instructions for completing this assignment..." style="border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px 14px;"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Due Date and Scoring -->
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="submissionDueDate" class="admin-form-label" style="font-weight: 500; color: #4a5568; margin-bottom: 8px;">
+                      <i class="far fa-calendar-alt me-2" style="color: #2d5aa0;"></i>
+                      Due Date
+                    </label>
+                    <input type="datetime-local" class="admin-form-control" id="submissionDueDate" name="submissionDueDate" style="border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px 14px;">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="submissionMaxScore" class="admin-form-label" style="font-weight: 500; color: #4a5568; margin-bottom: 8px;">
+                      <i class="fas fa-star me-2" style="color: #2d5aa0;"></i>
+                      Maximum Score
+                    </label>
+                    <input type="number" class="admin-form-control" id="submissionMaxScore" name="submissionMaxScore" value="100" min="1" style="border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px 14px;">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Late Submission Option -->
+              <div class="late-submission-section" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-top: 20px;">
+                <!-- Toggle Row -->
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-3">
+                    <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #64748b 0%, #475569 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(100, 116, 139, 0.25);">
+                      <i class="fas fa-clock" style="color: white; font-size: 18px;"></i>
+                    </div>
+                    <div>
+                      <label for="submissionAllowLate" class="mb-0" style="font-size: 15px; font-weight: 600; color: #1e293b; cursor: pointer; display: block;">
+                        Allow Late Submissions
+                      </label>
+                      <small style="color: #64748b; font-size: 12px;">Students can submit after the due date</small>
+                    </div>
+                  </div>
+                  <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="submissionAllowLate" name="submissionAllowLate" style="width: 50px; height: 26px; cursor: pointer;">
+                  </div>
+                </div>
+                
+                <!-- Penalty Section (hidden by default) -->
+                <div id="latePenaltySection" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px dashed #cbd5e1;">
+                  <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-radius: 10px; padding: 16px; border: 1px solid #fecaca;">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                      <div class="d-flex align-items-center gap-3">
+                        <div style="width: 38px; height: 38px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(239, 68, 68, 0.3);">
+                          <i class="fas fa-percentage" style="color: white; font-size: 14px;"></i>
+                        </div>
+                        <div>
+                          <span style="font-size: 14px; font-weight: 600; color: #991b1b; display: block;">Late Submission Penalty</span>
+                          <small style="color: #b91c1c; font-size: 11px;">Percentage deducted from score</small>
+                        </div>
+                      </div>
+                      <div class="d-flex align-items-center gap-2" style="background: white; padding: 8px 14px; border-radius: 8px; border: 2px solid #fca5a5; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.1);">
+                        <input type="number" class="form-control form-control-sm" id="submissionLatePenalty" name="submissionLatePenalty" value="10" min="0" max="100" style="width: 60px; text-align: center; font-weight: 700; font-size: 16px; border: none; background: transparent; color: #dc2626;">
+                        <span style="font-size: 16px; color: #dc2626; font-weight: 700;">%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="modal-footer admin-modal-footer" style="display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem;">
@@ -750,6 +863,7 @@
                     <option value="pdf">PDF Document</option>
                     <option value="zoom">Zoom Live Session</option>
                     <option value="link">External Link</option>
+                    <option value="submission">Assignment</option>
                   </select>
                 </div>
 
@@ -894,6 +1008,120 @@
               </div>
             </div>
           </div>
+
+          <!-- Edit Assignment Content Section -->
+          <div class="row mt-4" id="editSubmissionContentSection" style="display: none;">
+            <div class="col-12">
+              <div class="submission-config-header mb-4">
+                <h5 class="mb-2" style="color: #2d3748; font-weight: 600; display: flex; align-items: center;">
+                  <i class="fas fa-file-upload me-2" style="color: #2d5aa0;"></i>
+                  Edit Assignment Configuration
+                </h5>
+              </div>
+
+              <!-- Assignment Files Upload -->
+              <div class="row g-3 mb-3">
+                <div class="col-12">
+                  <div class="mb-3">
+                    <label for="editSubmissionAssignmentFiles" class="admin-form-label" style="font-weight: 500; color: #4a5568; margin-bottom: 8px;">
+                      <i class="fas fa-file-pdf me-2" style="color: #2d5aa0;"></i>
+                      Assignment Files (PDF/Images)
+                    </label>
+                    <div class="upload-section">
+                      <input type="file" id="editSubmissionFileInput" class="upload-input" accept=".pdf,image/*" multiple>
+                      <label for="editSubmissionFileInput" class="upload-label" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px dashed #90caf9;">
+                        <i class="fas fa-cloud-upload-alt" style="color: #2d5aa0;"></i>
+                        <span style="color: #1976d2;">Choose Assignment Files</span>
+                      </label>
+                      <div id="editSubmissionFilePreview" class="upload-preview mt-2" style="display: none;">
+                        <div class="uploaded-files-list" id="editUploadedFilesList"></div>
+                      </div>
+                      <div id="editSubmissionFileProgress" class="progress-container" style="display: none;"></div>
+                    </div>
+                    <input type="hidden" name="submissionAssignmentFiles" id="editSubmissionAssignmentFilesInput">
+                    <small class="admin-form-text">Upload PDF or image files that students will download</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Instructions -->
+              <div class="row g-3 mb-3">
+                <div class="col-12">
+                  <div class="mb-3">
+                    <label for="editSubmissionInstructions" class="admin-form-label" style="font-weight: 500; color: #4a5568; margin-bottom: 8px;">
+                      <i class="fas fa-clipboard-list me-2" style="color: #2d5aa0;"></i>
+                      Instructions for Students
+                    </label>
+                    <textarea class="admin-form-control" id="editSubmissionInstructions" name="submissionInstructions" rows="3" placeholder="Enter instructions for completing this assignment..."></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Due Date and Scoring -->
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="editSubmissionDueDate" class="admin-form-label" style="font-weight: 500; color: #4a5568; margin-bottom: 8px;">
+                      <i class="far fa-calendar-alt me-2" style="color: #2d5aa0;"></i>
+                      Due Date
+                    </label>
+                    <input type="datetime-local" class="admin-form-control" id="editSubmissionDueDate" name="submissionDueDate">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="editSubmissionMaxScore" class="admin-form-label" style="font-weight: 500; color: #4a5568; margin-bottom: 8px;">
+                      <i class="fas fa-star me-2" style="color: #2d5aa0;"></i>
+                      Maximum Score
+                    </label>
+                    <input type="number" class="admin-form-control" id="editSubmissionMaxScore" name="submissionMaxScore" value="100" min="1">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Late Submission Option -->
+              <div class="late-submission-section" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-top: 20px;">
+                <!-- Toggle Row -->
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-3">
+                    <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #64748b 0%, #475569 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(100, 116, 139, 0.25);">
+                      <i class="fas fa-clock" style="color: white; font-size: 18px;"></i>
+                    </div>
+                    <div>
+                      <label for="editSubmissionAllowLate" class="mb-0" style="font-size: 15px; font-weight: 600; color: #1e293b; cursor: pointer; display: block;">
+                        Allow Late Submissions
+                      </label>
+                      <small style="color: #64748b; font-size: 12px;">Students can submit after the due date</small>
+                    </div>
+                  </div>
+                  <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="editSubmissionAllowLate" name="submissionAllowLate" style="width: 50px; height: 26px; cursor: pointer;">
+                  </div>
+                </div>
+                
+                <!-- Penalty Section (hidden by default) -->
+                <div id="editLatePenaltyContainer" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px dashed #cbd5e1;">
+                  <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-radius: 10px; padding: 16px; border: 1px solid #fecaca;">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                      <div class="d-flex align-items-center gap-3">
+                        <div style="width: 38px; height: 38px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(239, 68, 68, 0.3);">
+                          <i class="fas fa-percentage" style="color: white; font-size: 14px;"></i>
+                        </div>
+                        <div>
+                          <span style="font-size: 14px; font-weight: 600; color: #991b1b; display: block;">Late Submission Penalty</span>
+                          <small style="color: #b91c1c; font-size: 11px;">Percentage deducted from score</small>
+                        </div>
+                      </div>
+                      <div class="d-flex align-items-center gap-2" style="background: white; padding: 8px 14px; border-radius: 8px; border: 2px solid #fca5a5; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.1);">
+                        <input type="number" class="form-control form-control-sm" id="editSubmissionLatePenalty" name="submissionLatePenalty" value="10" min="0" max="100" style="width: 60px; text-align: center; font-weight: 700; font-size: 16px; border: none; background: transparent; color: #dc2626;">
+                        <span style="font-size: 16px; color: #dc2626; font-weight: 700;">%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="modal-footer admin-modal-footer">
@@ -902,6 +1130,179 @@
             <i class="fas fa-save me-2" id="editContentBtnIcon"></i>
             <span id="editContentBtnText">Update Content</span>
           </button>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Course Modal -->
+<div class="modal fade" id="editCourseModal" tabindex="-1" aria-labelledby="editCourseModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content admin-modal-content admin-modal-wide">
+      <div class="modal-header admin-modal-header">
+        <h5 class="modal-title" id="editCourseModalLabel">
+          <i class="fas fa-edit me-2"></i>
+          Edit Course
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form id="editCourseForm" method="PUT">
+        <div class="modal-body admin-modal-body">
+          <div class="row">
+            <!-- Basic Information -->
+            <div class="col-12">
+              <div class="admin-form-section mb-4">
+                <h6 class="admin-form-section-title">
+                  <i class="fas fa-info-circle me-2"></i>Basic Information
+                </h6>
+                
+                <div class="mb-3">
+                  <label for="editCourseTitle" class="form-label">Course Title *</label>
+                  <input type="text" class="form-control" id="editCourseTitle" name="title" required>
+                  <div class="invalid-feedback">Please enter a course title.</div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="editCourseDescription" class="form-label">Description</label>
+                  <textarea class="form-control" id="editCourseDescription" name="description" rows="4"></textarea>
+                </div>
+
+                <div class="mb-3">
+                  <label for="editShortDescription" class="form-label">Short Description</label>
+                  <textarea class="form-control" id="editShortDescription" name="shortDescription" rows="2" maxlength="200"></textarea>
+                  <small class="form-text text-muted">Max 200 characters</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Teacher and Exam Period -->
+            <div class="col-md-6">
+              <div class="admin-form-section mb-4">
+                <h6 class="admin-form-section-title">
+                  <i class="fas fa-user-tie me-2"></i>Teacher
+                </h6>
+                
+                <div class="mb-3">
+                  <label for="editCourseTeacher" class="form-label">Select Teacher</label>
+                  <select class="form-select" id="editCourseTeacher" name="teacher">
+                    <option value="">Loading...</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="admin-form-section mb-4">
+                <h6 class="admin-form-section-title">
+                  <i class="fas fa-calendar me-2"></i>Exam Period
+                </h6>
+                
+                <div class="mb-3">
+                  <label for="editCourseExamPeriod" class="form-label">Select Exam Period</label>
+                  <select class="form-select" id="editCourseExamPeriod" name="examPeriod">
+                    <option value="">Loading...</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pricing -->
+            <div class="col-md-6">
+              <div class="admin-form-section mb-4">
+                <h6 class="admin-form-section-title">
+                  <i class="fas fa-dollar-sign me-2"></i>Pricing
+                </h6>
+                
+                <div class="mb-3">
+                  <label for="editCoursePrice" class="form-label">Price (EGP) *</label>
+                  <input type="number" class="form-control" id="editCoursePrice" name="price" min="0" step="0.01" required>
+                  <div class="invalid-feedback">Please enter a valid price.</div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="editCourseDiscountPrice" class="form-label">Discount Percentage (%)</label>
+                  <input type="number" class="form-control" id="editCourseDiscountPrice" name="discountPrice" min="0" max="100" step="1">
+                  <small class="form-text text-muted">Enter discount as percentage (0-100)</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Status and Tags -->
+            <div class="col-md-6">
+              <div class="admin-form-section mb-4">
+                <h6 class="admin-form-section-title">
+                  <i class="fas fa-cog me-2"></i>Status & Tags
+                </h6>
+                
+                <div class="mb-3">
+                  <label for="editCourseStatus" class="form-label">Course Status *</label>
+                  <select class="form-select" id="editCourseStatus" name="status" required>
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label for="editCourseTags" class="form-label">Tags</label>
+                  <input type="text" class="form-control" id="editCourseTags" name="tags" placeholder="e.g., math, physics, chemistry">
+                  <small class="form-text text-muted">Separate tags with commas</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Thumbnail -->
+            <div class="col-12">
+              <div class="admin-form-section mb-4">
+                <h6 class="admin-form-section-title">
+                  <i class="fas fa-image me-2"></i>Thumbnail
+                </h6>
+                
+                <!-- Current Thumbnail Preview -->
+                <div id="currentThumbnailSection" style="display: none;" class="mb-3">
+                  <label class="form-label">Current Thumbnail</label>
+                  <div class="current-thumbnail-preview d-flex align-items-center gap-3 p-3 border rounded">
+                    <img id="currentThumbnailImage" src="" alt="Current Thumbnail" style="max-width: 150px; max-height: 100px; border-radius: 8px; object-fit: cover;">
+                    <div>
+                      <small class="text-muted d-block" id="currentThumbnailUrlText"></small>
+                      <button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="clearEditThumbnail()">
+                        <i class="fas fa-trash me-1"></i>Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Upload New Thumbnail -->
+                <div class="upload-section">
+                  <input type="file" id="editCourseThumbnail" class="upload-input" accept="image/*">
+                  <label for="editCourseThumbnail" class="upload-label">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Choose New Thumbnail Image
+                  </label>
+                  <div id="editCourseThumbnailPreview" class="upload-preview">
+                    <div class="preview-overlay">
+                      <i class="fas fa-cloud-upload-alt"></i>
+                      <p>Click or drag to upload</p>
+                      <small>JPEG, PNG, JPG, WebP (max 10MB)</small>
+                    </div>
+                  </div>
+                  <div id="editCourseThumbnailProgress" class="progress-container" style="display: none;"></div>
+                </div>
+                <input type="hidden" name="thumbnail" id="editCourseThumbnailUrl">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer admin-modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2"></i>Cancel
+          </button>
+          <button type="button" class="btn btn-primary" onclick="submitEditForm()">
+            <i class="fas fa-save me-2"></i>Update Course
           </button>
         </div>
       </form>
@@ -918,7 +1319,8 @@ function getContentIcon(type) {
     'homework': 'tasks',
     'quiz': 'question-circle',
     'zoom': 'video',
-    'link': 'external-link-alt'
+    'link': 'external-link-alt',
+    'submission': 'file-upload'
   };
   return icons[type] || 'file';
 }
@@ -948,9 +1350,25 @@ function getContentIcon(type) {
 
     // Hide all content type sections
     document.getElementById('zoomContentSection').style.display = 'none';
+    document.getElementById('submissionContentSection').style.display = 'none';
+
+    // Reset submission files
+    uploadedSubmissionFiles = [];
+    document.getElementById('submissionAssignmentFilesInput').value = '';
+    const uploadedFilesList = document.getElementById('uploadedFilesList');
+    if (uploadedFilesList) uploadedFilesList.innerHTML = '';
+    const submissionPreview = document.getElementById('submissionFilePreview');
+    if (submissionPreview) submissionPreview.style.display = 'none';
+    const latePenaltySection = document.getElementById('latePenaltySection');
+    if (latePenaltySection) latePenaltySection.style.display = 'none';
 
     // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('addContentModal'));
+    const modalElement = document.getElementById('addContentModal');
+    if (!modalElement) {
+      console.error('Add Content Modal element not found');
+      return;
+    }
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
   }
 
@@ -1158,7 +1576,12 @@ function getContentIcon(type) {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
 
     // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('editTopicModal'));
+    const modalElement = document.getElementById('editTopicModal');
+    if (!modalElement) {
+      console.error('Edit Topic Modal element not found');
+      return;
+    }
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
 
     // Handle form submission
@@ -1402,7 +1825,12 @@ function getContentIcon(type) {
     document.body.insertAdjacentHTML('beforeend', confirmModalHtml);
 
     // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    const modalElement = document.getElementById('deleteConfirmModal');
+    if (!modalElement) {
+      console.error('Delete Confirm Modal element not found');
+      return;
+    }
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
 
     // Handle delete confirmation
@@ -1639,7 +2067,12 @@ function getContentIcon(type) {
   // Show Edit Content Modal and populate with existing data
   function showEditContentModal(topicId, contentId, contentData) {
     // First, show the modal so DOM elements are available
-    const modal = new bootstrap.Modal(document.getElementById('editContentModal'));
+    const modalElement = document.getElementById('editContentModal');
+    if (!modalElement) {
+      console.error('Edit Content Modal element not found');
+      return;
+    }
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
 
     // Wait for modal to be fully shown before populating
@@ -1890,6 +2323,18 @@ function getContentIcon(type) {
       initializeEditQuizFunctionality(contentData);
     } else if (contentData.type === 'homework') {
       initializeEditHomeworkFunctionality(contentData);
+    } else if (contentData.type === 'submission') {
+      initEditSubmissionFiles(contentData);
+      
+      // Setup edit submission file upload handler
+      const editSubmissionFileInput = document.getElementById('editSubmissionFileInput');
+      if (editSubmissionFileInput) {
+        editSubmissionFileInput.addEventListener('change', function() {
+          if (this.files && this.files.length > 0) {
+            uploadEditSubmissionFiles(Array.from(this.files));
+          }
+        });
+      }
     }
   }
 
@@ -1911,12 +2356,14 @@ function getContentIcon(type) {
     const editQuizContentSection = document.getElementById('editQuizContentSection');
     const editHomeworkContentSection = document.getElementById('editHomeworkContentSection');
     const editZoomContentSection = document.getElementById('editZoomContentSection');
+    const editSubmissionContentSection = document.getElementById('editSubmissionContentSection');
     
     if (editContentUrlSection) editContentUrlSection.style.display = 'none';
     if (editFileUploadSection) editFileUploadSection.style.display = 'none';
     if (editQuizContentSection) editQuizContentSection.style.display = 'none';
     if (editHomeworkContentSection) editHomeworkContentSection.style.display = 'none';
     if (editZoomContentSection) editZoomContentSection.style.display = 'none';
+    if (editSubmissionContentSection) editSubmissionContentSection.style.display = 'none';
 
     // Get the content URL input
     const contentUrlInput = document.getElementById('editContentUrl');
@@ -1945,6 +2392,11 @@ function getContentIcon(type) {
       if (contentUrlInput) {
         contentUrlInput.required = false; // Not required for zoom
       }
+    } else if (type === 'submission') {
+      if (editSubmissionContentSection) editSubmissionContentSection.style.display = 'block';
+      if (contentUrlInput) {
+        contentUrlInput.required = false; // Not required for submission
+      }
     }
 
     // Update submit button text and icon
@@ -1957,6 +2409,9 @@ function getContentIcon(type) {
       } else if (type === 'homework') {
         btnIcon.className = 'fas fa-tasks me-2';
         btnText.textContent = 'Update Homework';
+      } else if (type === 'submission') {
+        btnIcon.className = 'fas fa-file-upload me-2';
+        btnText.textContent = 'Update Submission';
       } else {
         btnIcon.className = 'fas fa-save me-2';
         btnText.textContent = 'Update Content';
@@ -4450,7 +4905,8 @@ function getContentIcon(type) {
       'homework': 'tasks',
       'quiz': 'question-circle',
       'zoom': 'video',
-      'link': 'external-link-alt'
+      'link': 'external-link-alt',
+      'submission': 'file-upload'
     };
     return icons[type] || 'file';
   }
@@ -4483,6 +4939,16 @@ function getContentIcon(type) {
           }
         }
 
+        // Show/hide Submission content section
+        const submissionContentSection = document.getElementById('submissionContentSection');
+        if (submissionContentSection) {
+          if (type === 'submission') {
+            submissionContentSection.style.display = 'block';
+          } else {
+            submissionContentSection.style.display = 'none';
+          }
+        }
+
         // Update submit button text and icon based on content type
         const submitBtn = document.getElementById('addContentSubmitBtn');
         const btnIcon = document.getElementById('addContentBtnIcon');
@@ -4492,14 +4958,17 @@ function getContentIcon(type) {
           if (type === 'zoom') {
             btnIcon.className = 'fas fa-video me-2';
             btnText.textContent = 'Create Zoom Meeting';
+          } else if (type === 'submission') {
+            btnIcon.className = 'fas fa-file-upload me-2';
+            btnText.textContent = 'Create Submission';
           } else {
             btnIcon.className = 'fas fa-plus me-2';
             btnText.textContent = 'Add Content';
           }
         }
 
-        // Hide Content URL/File section for Zoom
-        if (type === 'zoom') {
+        // Hide Content URL/File section for Zoom and Submission
+        if (type === 'zoom' || type === 'submission') {
           contentUrlSection.style.display = 'none';
           contentUrlInput.required = false;
           fileUploadSection.style.display = 'none';
@@ -4532,6 +5001,34 @@ function getContentIcon(type) {
       });
     }
 
+    // Setup submission file upload handler
+    const submissionFileInput = document.getElementById('submissionFileInput');
+    if (submissionFileInput) {
+      submissionFileInput.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+          uploadSubmissionFiles(Array.from(this.files));
+        }
+      });
+    }
+
+    // Setup late penalty toggle for Add modal
+    const allowLateCheckbox = document.getElementById('submissionAllowLate');
+    const latePenaltySection = document.getElementById('latePenaltySection');
+    if (allowLateCheckbox && latePenaltySection) {
+      allowLateCheckbox.addEventListener('change', function() {
+        latePenaltySection.style.display = this.checked ? 'flex' : 'none';
+      });
+    }
+
+    // Setup late penalty toggle for Edit modal
+    const editAllowLateCheckbox = document.getElementById('editSubmissionAllowLate');
+    const editLatePenaltyContainer = document.getElementById('editLatePenaltyContainer');
+    if (editAllowLateCheckbox && editLatePenaltyContainer) {
+      editAllowLateCheckbox.addEventListener('change', function() {
+        editLatePenaltyContainer.style.display = this.checked ? 'flex' : 'none';
+      });
+    }
+
     // Add click handlers for topic cards
     const topicCards = document.querySelectorAll('.topic-card');
     topicCards.forEach(card => {
@@ -4553,7 +5050,166 @@ function getContentIcon(type) {
         }
       });
     });
+    
+    // Initialize Edit Course Thumbnail Uploader
+    initEditCourseThumbnailUploader();
   });
+  
+  // Initialize the thumbnail uploader for Edit Course modal
+  function initEditCourseThumbnailUploader() {
+    const form = document.getElementById('editCourseForm');
+    const input = document.getElementById('editCourseThumbnail');
+    const preview = document.getElementById('editCourseThumbnailPreview');
+    const progress = document.getElementById('editCourseThumbnailProgress');
+    const hiddenField = document.getElementById('editCourseThumbnailUrl');
+    
+    if (!form || !input || !preview || !progress) {
+      console.log('Edit course thumbnail upload elements not found');
+      return;
+    }
+    
+    const maxFileSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/gif'];
+    
+    // Handle file selection
+    input.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        if (!validateEditThumbnailFile(file)) {
+          input.value = '';
+          return;
+        }
+        handleEditThumbnailSelection(file);
+        uploadEditThumbnail(file);
+      }
+    });
+    
+    // Handle drag and drop
+    preview.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      preview.classList.add('drag-over');
+    });
+
+    preview.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      preview.classList.remove('drag-over');
+    });
+
+    preview.addEventListener('drop', (e) => {
+      e.preventDefault();
+      preview.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        if (!validateEditThumbnailFile(file)) {
+          return;
+        }
+        input.files = e.dataTransfer.files;
+        handleEditThumbnailSelection(file);
+        uploadEditThumbnail(file);
+      }
+    });
+    
+    // Click to trigger file input
+    preview.addEventListener('click', () => {
+      input.click();
+    });
+    
+    function validateEditThumbnailFile(file) {
+      if (!allowedTypes.includes(file.type)) {
+        showNotification('Invalid file type. Please upload JPEG, PNG, JPG, WebP, or GIF', 'error');
+        return false;
+      }
+      if (file.size > maxFileSize) {
+        showNotification('File too large. Maximum size is 10MB', 'error');
+        return false;
+      }
+      return true;
+    }
+    
+    function handleEditThumbnailSelection(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        preview.innerHTML = `
+          <img src="${e.target.result}" alt="Preview" style="max-width: 100%; max-height: 200px; border-radius: 8px; object-fit: cover;">
+        `;
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    function uploadEditThumbnail(file) {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      // Show progress
+      progress.style.display = 'block';
+      progress.innerHTML = `
+        <div class="progress" style="height: 10px;">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+        </div>
+        <small class="text-muted">Uploading...</small>
+      `;
+      
+      const xhr = new XMLHttpRequest();
+      
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          progress.querySelector('.progress-bar').style.width = percent + '%';
+        }
+      });
+      
+      xhr.addEventListener('load', () => {
+        if (xhr.status === 200) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            if (response.success && response.url) {
+              hiddenField.value = response.url;
+              input.dataset.uploaded = 'true';
+              input.dataset.localUrl = response.url;
+              
+              progress.innerHTML = `
+                <div class="alert alert-success py-2 mb-0">
+                  <i class="fas fa-check-circle me-2"></i>Upload successful!
+                </div>
+              `;
+              
+              // Hide current thumbnail section since we have new upload
+              document.getElementById('currentThumbnailSection').style.display = 'none';
+              
+              setTimeout(() => {
+                progress.style.display = 'none';
+              }, 2000);
+            } else {
+              throw new Error(response.message || 'Upload failed');
+            }
+          } catch (err) {
+            progress.innerHTML = `
+              <div class="alert alert-danger py-2 mb-0">
+                <i class="fas fa-exclamation-circle me-2"></i>${err.message}
+              </div>
+            `;
+          }
+        } else {
+          progress.innerHTML = `
+            <div class="alert alert-danger py-2 mb-0">
+              <i class="fas fa-exclamation-circle me-2"></i>Upload failed. Please try again.
+            </div>
+          `;
+        }
+      });
+      
+      xhr.addEventListener('error', () => {
+        progress.innerHTML = `
+          <div class="alert alert-danger py-2 mb-0">
+            <i class="fas fa-exclamation-circle me-2"></i>Network error. Please try again.
+          </div>
+        `;
+      });
+      
+      xhr.open('POST', '/api/upload/image');
+      xhr.send(formData);
+    }
+  }
 
   // Simple PDF Upload Function
   function uploadContentFile(file) {
@@ -4676,6 +5332,331 @@ function getContentIcon(type) {
         `;
       }
     });
+  }
+
+  // Submission Files Upload Function
+  let uploadedSubmissionFiles = [];
+
+  function uploadSubmissionFiles(files) {
+    const progressContainer = document.getElementById('submissionFileProgress');
+    const preview = document.getElementById('submissionFilePreview');
+    const uploadedFilesInput = document.getElementById('submissionAssignmentFilesInput');
+    const uploadedFilesList = document.getElementById('uploadedFilesList');
+
+    if (!files.length) return;
+
+    // Show preview section
+    if (preview) {
+      preview.style.display = 'block';
+    }
+
+    // Show progress
+    if (progressContainer) {
+      progressContainer.style.display = 'block';
+      progressContainer.innerHTML = `
+        <div class="progress">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+        </div>
+        <small class="d-block mt-2 text-center">Uploading files...</small>
+      `;
+    }
+
+    // Upload each file
+    let uploadedCount = 0;
+    const totalFiles = files.length;
+
+    files.forEach((file, index) => {
+      // Validate file type
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      const isImage = file.type.startsWith('image/');
+      
+      if (!isPdf && !isImage) {
+        showNotification(`File ${file.name} is not a PDF or image`, 'error');
+        uploadedCount++;
+        return;
+      }
+
+      // Validate file size (50MB limit)
+      const maxSize = 50 * 1024 * 1024; // 50MB
+      if (file.size > maxSize) {
+        showNotification(`File ${file.name} exceeds 50MB limit`, 'error');
+        uploadedCount++;
+        return;
+      }
+
+      // Create FormData
+      const formData = new FormData();
+      if (isPdf) {
+        formData.append('pdf', file);
+      } else {
+        formData.append('image', file);
+      }
+
+      // Upload file
+      const uploadUrl = isPdf ? '/admin/upload/pdf' : '/admin/upload/image';
+      
+      fetch(uploadUrl, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        uploadedCount++;
+        
+        if (data.success) {
+          // Add to uploaded files array
+          uploadedSubmissionFiles.push(data.fileUrl);
+          
+          // Update hidden input
+          if (uploadedFilesInput) {
+            uploadedFilesInput.value = uploadedSubmissionFiles.join(',');
+          }
+
+          // Add file to list
+          if (uploadedFilesList) {
+            const fileIcon = isPdf ? 'fa-file-pdf' : 'fa-file-image';
+            const iconColor = isPdf ? '#dc2626' : '#3b82f6';
+            uploadedFilesList.innerHTML += `
+              <div class="uploaded-file-item" style="display: flex; align-items: center; padding: 8px 12px; background: #f8f9fa; border-radius: 6px; margin-bottom: 6px; border: 1px solid #e2e8f0;">
+                <i class="fas ${fileIcon}" style="font-size: 1.5rem; color: ${iconColor}; margin-right: 10px;"></i>
+                <div class="file-details" style="flex: 1;">
+                  <strong style="font-size: 13px; display: block;">${data.fileName || file.name}</strong>
+                  <small style="color: #718096;">${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSubmissionFile('${data.fileUrl}', this)" style="padding: 4px 8px;">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            `;
+          }
+        } else {
+          showNotification(`Error uploading ${file.name}: ${data.message}`, 'error');
+        }
+
+        // Update progress
+        const progress = (uploadedCount / totalFiles) * 100;
+        if (progressContainer) {
+          const progressBar = progressContainer.querySelector('.progress-bar');
+          if (progressBar) {
+            progressBar.style.width = `${progress}%`;
+          }
+          if (uploadedCount === totalFiles) {
+            progressContainer.innerHTML = `
+              <div class="alert alert-success" style="padding: 8px 12px; margin-top: 8px;">
+                <i class="fas fa-check-circle me-2"></i>
+                ${uploadedSubmissionFiles.length} file(s) uploaded successfully!
+              </div>
+            `;
+            setTimeout(() => {
+              progressContainer.style.display = 'none';
+            }, 3000);
+          }
+        }
+      })
+      .catch(error => {
+        uploadedCount++;
+        console.error('Upload error:', error);
+        showNotification(`Error uploading ${file.name}`, 'error');
+      });
+    });
+  }
+
+  // Remove uploaded submission file
+  function removeSubmissionFile(fileUrl, buttonElement) {
+    // Remove from array
+    uploadedSubmissionFiles = uploadedSubmissionFiles.filter(url => url !== fileUrl);
+    
+    // Update hidden input
+    const uploadedFilesInput = document.getElementById('submissionAssignmentFilesInput');
+    if (uploadedFilesInput) {
+      uploadedFilesInput.value = uploadedSubmissionFiles.join(',');
+    }
+
+    // Remove from UI
+    if (buttonElement) {
+      const fileItem = buttonElement.closest('.uploaded-file-item');
+      if (fileItem) {
+        fileItem.remove();
+      }
+    }
+
+    // Hide preview if no files left
+    if (uploadedSubmissionFiles.length === 0) {
+      const preview = document.getElementById('submissionFilePreview');
+      if (preview) {
+        preview.style.display = 'none';
+      }
+    }
+
+    showNotification('File removed', 'info');
+  }
+
+  // Edit submission files variables and functions
+  let editUploadedSubmissionFiles = [];
+
+  function initEditSubmissionFiles(contentData) {
+    editUploadedSubmissionFiles = [];
+    const uploadedFilesList = document.getElementById('editUploadedFilesList');
+    const preview = document.getElementById('editSubmissionFilePreview');
+    const filesInput = document.getElementById('editSubmissionAssignmentFilesInput');
+
+    if (uploadedFilesList) uploadedFilesList.innerHTML = '';
+    if (filesInput) filesInput.value = '';
+    
+    // Populate with existing files
+    if (contentData.submissionConfig && contentData.submissionConfig.assignmentFiles) {
+      contentData.submissionConfig.assignmentFiles.forEach(file => {
+        editUploadedSubmissionFiles.push(file.fileUrl);
+        
+        if (uploadedFilesList) {
+          const isPdf = file.fileType === 'pdf' || file.fileUrl.toLowerCase().endsWith('.pdf');
+          const fileIcon = isPdf ? 'fa-file-pdf' : 'fa-file-image';
+          const iconColor = isPdf ? '#dc2626' : '#3b82f6';
+          uploadedFilesList.innerHTML += `
+            <div class="uploaded-file-item" style="display: flex; align-items: center; padding: 8px 12px; background: #f8f9fa; border-radius: 6px; margin-bottom: 6px; border: 1px solid #e2e8f0;">
+              <i class="fas ${fileIcon}" style="font-size: 1.5rem; color: ${iconColor}; margin-right: 10px;"></i>
+              <div class="file-details" style="flex: 1;">
+                <strong style="font-size: 13px; display: block;">${file.fileName}</strong>
+                <small style="color: #718096;">Existing file</small>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeEditSubmissionFile('${file.fileUrl}', this)" style="padding: 4px 8px;">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          `;
+        }
+      });
+      
+      if (preview && editUploadedSubmissionFiles.length > 0) {
+        preview.style.display = 'block';
+      }
+    }
+
+    if (filesInput) {
+      filesInput.value = editUploadedSubmissionFiles.join(',');
+    }
+
+    // Populate other fields
+    if (contentData.submissionConfig) {
+      const config = contentData.submissionConfig;
+      const instructionsInput = document.getElementById('editSubmissionInstructions');
+      const dueDateInput = document.getElementById('editSubmissionDueDate');
+      const maxScoreInput = document.getElementById('editSubmissionMaxScore');
+      const allowLateCheckbox = document.getElementById('editSubmissionAllowLate');
+      const latePenaltyInput = document.getElementById('editSubmissionLatePenalty');
+      const latePenaltyContainer = document.getElementById('editLatePenaltyContainer');
+
+      if (instructionsInput) instructionsInput.value = config.instructions || '';
+      if (dueDateInput && config.dueDate) {
+        const date = new Date(config.dueDate);
+        dueDateInput.value = date.toISOString().slice(0, 16);
+      }
+      if (maxScoreInput) maxScoreInput.value = config.maxScore || 100;
+      if (allowLateCheckbox) {
+        allowLateCheckbox.checked = config.allowLateSubmission || false;
+        // Show/hide late penalty container based on checkbox
+        if (latePenaltyContainer) {
+          latePenaltyContainer.style.display = allowLateCheckbox.checked ? 'flex' : 'none';
+        }
+      }
+      if (latePenaltyInput) latePenaltyInput.value = config.latePenalty || 10;
+    }
+  }
+
+  function uploadEditSubmissionFiles(files) {
+    const progressContainer = document.getElementById('editSubmissionFileProgress');
+    const preview = document.getElementById('editSubmissionFilePreview');
+    const uploadedFilesInput = document.getElementById('editSubmissionAssignmentFilesInput');
+    const uploadedFilesList = document.getElementById('editUploadedFilesList');
+
+    if (!files.length) return;
+
+    if (preview) preview.style.display = 'block';
+    if (progressContainer) {
+      progressContainer.style.display = 'block';
+      progressContainer.innerHTML = `
+        <div class="progress"><div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div></div>
+        <small class="d-block mt-2 text-center">Uploading files...</small>
+      `;
+    }
+
+    let uploadedCount = 0;
+    const totalFiles = files.length;
+
+    files.forEach((file) => {
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      const isImage = file.type.startsWith('image/');
+      
+      if (!isPdf && !isImage) {
+        showNotification(`File ${file.name} is not a PDF or image`, 'error');
+        uploadedCount++;
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append(isPdf ? 'pdf' : 'image', file);
+      const uploadUrl = isPdf ? '/admin/upload/pdf' : '/admin/upload/image';
+
+      fetch(uploadUrl, { method: 'POST', body: formData })
+        .then(response => response.json())
+        .then(data => {
+          uploadedCount++;
+          if (data.success) {
+            editUploadedSubmissionFiles.push(data.fileUrl);
+            if (uploadedFilesInput) uploadedFilesInput.value = editUploadedSubmissionFiles.join(',');
+            
+            if (uploadedFilesList) {
+              const fileIcon = isPdf ? 'fa-file-pdf' : 'fa-file-image';
+              const iconColor = isPdf ? '#dc2626' : '#3b82f6';
+              uploadedFilesList.innerHTML += `
+                <div class="uploaded-file-item" style="display: flex; align-items: center; padding: 8px 12px; background: #f8f9fa; border-radius: 6px; margin-bottom: 6px; border: 1px solid #e2e8f0;">
+                  <i class="fas ${fileIcon}" style="font-size: 1.5rem; color: ${iconColor}; margin-right: 10px;"></i>
+                  <div class="file-details" style="flex: 1;">
+                    <strong style="font-size: 13px; display: block;">${data.fileName || file.name}</strong>
+                    <small style="color: #718096;">${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeEditSubmissionFile('${data.fileUrl}', this)" style="padding: 4px 8px;">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              `;
+            }
+          }
+          
+          const progress = (uploadedCount / totalFiles) * 100;
+          if (progressContainer) {
+            const progressBar = progressContainer.querySelector('.progress-bar');
+            if (progressBar) progressBar.style.width = `${progress}%`;
+            if (uploadedCount === totalFiles) {
+              progressContainer.innerHTML = `<div class="alert alert-success" style="padding: 8px 12px; margin-top: 8px;"><i class="fas fa-check-circle me-2"></i>Files uploaded!</div>`;
+              setTimeout(() => { progressContainer.style.display = 'none'; }, 3000);
+            }
+          }
+        })
+        .catch(error => {
+          uploadedCount++;
+          showNotification(`Error uploading ${file.name}`, 'error');
+        });
+    });
+  }
+
+  function removeEditSubmissionFile(fileUrl, buttonElement) {
+    editUploadedSubmissionFiles = editUploadedSubmissionFiles.filter(url => url !== fileUrl);
+    
+    const filesInput = document.getElementById('editSubmissionAssignmentFilesInput');
+    if (filesInput) filesInput.value = editUploadedSubmissionFiles.join(',');
+
+    if (buttonElement) {
+      const fileItem = buttonElement.closest('.uploaded-file-item');
+      if (fileItem) fileItem.remove();
+    }
+
+    if (editUploadedSubmissionFiles.length === 0) {
+      const preview = document.getElementById('editSubmissionFilePreview');
+      if (preview) preview.style.display = 'none';
+    }
+
+    showNotification('File removed', 'info');
   }
 
   // Update topic card in UI
@@ -4808,13 +5789,38 @@ function getContentIcon(type) {
 
     // Thumbnail
     const thumbnailUrlField = document.getElementById('editCourseThumbnailUrl');
-    const currentThumbnailUrl = document.getElementById('currentThumbnailUrl');
+    const currentThumbnailImage = document.getElementById('currentThumbnailImage');
+    const currentThumbnailUrlText = document.getElementById('currentThumbnailUrlText');
     const currentThumbnailSection = document.getElementById('currentThumbnailSection');
+    const editThumbnailPreview = document.getElementById('editCourseThumbnailPreview');
+    
+    // Reset thumbnail upload preview
+    if (editThumbnailPreview) {
+      editThumbnailPreview.innerHTML = `
+        <div class="preview-overlay">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Click or drag to upload</p>
+          <small>JPEG, PNG, JPG, WebP (max 10MB)</small>
+        </div>
+      `;
+    }
+    
+    // Reset file input
+    const fileInput = document.getElementById('editCourseThumbnail');
+    if (fileInput) {
+      fileInput.value = '';
+      delete fileInput.dataset.uploaded;
+      delete fileInput.dataset.localUrl;
+    }
     
     if (course.thumbnail) {
       if (thumbnailUrlField) thumbnailUrlField.value = course.thumbnail;
-      if (currentThumbnailUrl) currentThumbnailUrl.textContent = course.thumbnail;
+      if (currentThumbnailImage) currentThumbnailImage.src = course.thumbnail;
+      if (currentThumbnailUrlText) currentThumbnailUrlText.textContent = course.thumbnail;
       if (currentThumbnailSection) currentThumbnailSection.style.display = 'block';
+    } else {
+      if (thumbnailUrlField) thumbnailUrlField.value = '';
+      if (currentThumbnailSection) currentThumbnailSection.style.display = 'none';
     }
 
     // Set form action
@@ -4823,10 +5829,40 @@ function getContentIcon(type) {
       form.action = `/admin/courses/${course.courseCode}`;
     }
   }
+  
+  // Clear/remove thumbnail in edit form
+  function clearEditThumbnail() {
+    const thumbnailUrlField = document.getElementById('editCourseThumbnailUrl');
+    const currentThumbnailSection = document.getElementById('currentThumbnailSection');
+    const editThumbnailPreview = document.getElementById('editCourseThumbnailPreview');
+    const fileInput = document.getElementById('editCourseThumbnail');
+    
+    if (thumbnailUrlField) thumbnailUrlField.value = '';
+    if (currentThumbnailSection) currentThumbnailSection.style.display = 'none';
+    if (fileInput) {
+      fileInput.value = '';
+      delete fileInput.dataset.uploaded;
+      delete fileInput.dataset.localUrl;
+    }
+    if (editThumbnailPreview) {
+      editThumbnailPreview.innerHTML = `
+        <div class="preview-overlay">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Click or drag to upload</p>
+          <small>JPEG, PNG, JPG, WebP (max 10MB)</small>
+        </div>
+      `;
+    }
+  }
 
   // Show edit modal
   function showEditModal(course) {
-    const modal = new bootstrap.Modal(document.getElementById('editCourseModal'));
+    const modalElement = document.getElementById('editCourseModal');
+    if (!modalElement) {
+      console.error('Edit Course Modal element not found');
+      return;
+    }
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
 
     // Load teachers and exam periods after showing modal with course data
@@ -5011,13 +6047,21 @@ function getContentIcon(type) {
   // Submit edit form
   function submitEditForm() {
     const form = document.getElementById('editCourseForm');
+    if (!form) {
+      showNotification('Form not found', 'error');
+      return;
+    }
+    
     const formData = new FormData(form);
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
+    // Find the submit button - it's type="button" with onclick, so find it in the modal footer
+    const submitBtn = form.querySelector('.modal-footer .btn-primary') || form.querySelector('button[onclick*="submitEditForm"]');
+    const originalText = submitBtn ? submitBtn.innerHTML : '';
 
     // Show loading state
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
-    submitBtn.disabled = true;
+    if (submitBtn) {
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+      submitBtn.disabled = true;
+    }
 
     // Convert FormData to JSON
     const data = {};
@@ -5080,8 +6124,10 @@ function getContentIcon(type) {
       })
       .finally(() => {
         // Restore button state
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
+        if (submitBtn) {
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        }
       });
   }
 
@@ -5131,20 +6177,6 @@ function getContentIcon(type) {
         if (contentType === 'zoom') {
           e.preventDefault();
           submitZoomMeeting();
-          return false;
-        }
-
-        // Handle quiz content separately with AJAX
-        if (contentType === 'quiz') {
-          e.preventDefault();
-          submitQuizContent();
-          return false;
-        }
-
-        // Handle homework content separately with AJAX
-        if (contentType === 'homework') {
-          e.preventDefault();
-          submitHomeworkContent();
           return false;
         }
       });
@@ -6275,6 +7307,10 @@ function getContentIcon(type) {
 
   .content-icon.link {
     background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  }
+
+  .content-icon.submission {
+    background: linear-gradient(135deg, #2d5aa0 0%, #1976d2 100%);
   }
 
   .content-details {

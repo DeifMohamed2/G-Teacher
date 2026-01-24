@@ -231,19 +231,12 @@
                   </td>
                   <td style="padding: 20px 24px; border-bottom: 1px solid var(--admin-border-light); vertical-align: middle; color: var(--admin-text-light);">
                     <% 
-                      const itemsCount = o.items ? o.items.length : 0;
-                      const booksCount = o.bookOrders ? o.bookOrders.length : 0;
-                      const totalItemsCount = itemsCount + booksCount;
-                      const itemTitles = [];
-                      if (o.items && o.items.length > 0) {
-                        itemTitles.push(...o.items.map(i => i.title));
-                      }
-                      if (o.bookOrders && o.bookOrders.length > 0) {
-                        itemTitles.push(...o.bookOrders.map(b => b.bookName || 'Book'));
-                      }
+                      const itemTitles = (o.items && o.items.length > 0)
+                        ? o.items.map(i => i.title)
+                        : [];
                     %>
                     <div class="text-muted small" style="color: #64748b; font-size: 12px; display: flex; align-items: center; gap: 4px;">
-                      <i class="fas fa-shopping-cart"></i> <%= totalItemsCount %> item(s)
+                      <i class="fas fa-shopping-cart"></i> <%= itemTitles.length %> item(s)
                     </div>
                     <div class="order-item-preview" style="color: var(--admin-text-light); font-size: 13px; font-weight: 500; margin-top: 4px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                       <%= itemTitles.slice(0,2).join(', ') %><%= itemTitles.length>2?' …':'' %>
@@ -362,10 +355,6 @@
                 <li style="padding: 8px 0; color: #64748b; font-size: 14px; display: flex; align-items: start; gap: 10px;">
                   <i class="fas fa-check-circle" style="color: #10b981; margin-top: 4px;"></i>
                   <span>Enroll student in courses</span>
-                </li>
-                <li style="padding: 8px 0; color: #64748b; font-size: 14px; display: flex; align-items: start; gap: 10px;">
-                  <i class="fas fa-check-circle" style="color: #10b981; margin-top: 4px;"></i>
-                  <span>Process book orders (if any)</span>
                 </li>
                 <li style="padding: 8px 0; color: #64748b; font-size: 14px; display: flex; align-items: start; gap: 10px;">
                   <i class="fas fa-exclamation-triangle" style="color: #f59e0b; margin-top: 4px;"></i>

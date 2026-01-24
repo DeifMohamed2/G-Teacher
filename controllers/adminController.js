@@ -8,6 +8,7 @@ const Purchase = require('../models/Purchase');
 const ZoomMeeting = require('../models/ZoomMeeting');
 const PromoCode = require('../models/PromoCode');
 const ExamPeriod = require('../models/ExamPeriod');
+const Submission = require('../models/Submission');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const ExcelExporter = require('../utils/excelExporter');
@@ -17,7 +18,6 @@ const { sendSms, sendBulkSms } = require('../utils/sms');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { createLog } = require('../middlewares/adminLogger');
 const otpMasterUtil = require('../utils/otpMasterGenerator');
 
 // Admin Dashboard with Real Data
@@ -266,8 +266,8 @@ const getAdminDashboard = async (req, res) => {
           engagementScore > 70
             ? 'up'
             : engagementScore > 50
-            ? 'neutral'
-            : 'down',
+              ? 'neutral'
+              : 'down',
         change: engagementScore > 70 ? 5 : engagementScore > 50 ? 0 : -3,
         avgSession: '24m',
         completion:
@@ -488,7 +488,7 @@ const getCourses = async (req, res) => {
       // No filters: show all courses
       courses = await Course.find(filter)
         .populate('topics')
-        .populate('teacher', 'firstName lastName teacherCode')
+        .populate('teacher', 'firstName lastName teacherCode subject profilePicture')
         .populate('examPeriod', 'name displayName')
         .sort(sort);
     } else {
@@ -499,7 +499,7 @@ const getCourses = async (req, res) => {
 
       courses = await Course.find(filter)
         .populate('topics')
-        .populate('teacher', 'firstName lastName teacherCode')
+        .populate('teacher', 'firstName lastName teacherCode subject profilePicture')
         .populate('examPeriod', 'name displayName')
         .sort(sort)
         .skip(skip)
@@ -611,26 +611,6 @@ const createCourse = async (req, res) => {
       await examPeriodObj.updateCoursesCount();
     }
 
-    // Log admin action
-    await createLog(req, {
-      action: 'CREATE_COURSE',
-      actionCategory: 'COURSE_MANAGEMENT',
-      description: `Created course "${course.title}" (${course.courseCode})${teacherObj ? ` for teacher "${teacherObj.firstName} ${teacherObj.lastName}"` : ''}${examPeriodObj ? ` in period "${examPeriodObj.name}"` : ''}`,
-      targetModel: 'Course',
-      targetId: course._id.toString(),
-      targetName: course.title,
-      metadata: {
-        courseCode: course.courseCode,
-        teacherId: teacherObj ? teacherObj._id.toString() : null,
-        teacherName: teacherObj ? `${teacherObj.firstName} ${teacherObj.lastName}` : null,
-        examPeriodId: examPeriodObj ? examPeriodObj._id.toString() : null,
-        examPeriodName: examPeriodObj ? examPeriodObj.name : null,
-        year: course.year,
-        price: course.price,
-        status: course.status,
-      },
-    });
-
     req.flash(
       'success_msg',
       'Course created successfully!'
@@ -731,8 +711,8 @@ const getCourseDetails = async (req, res) => {
         (progress >= 100
           ? 'completed'
           : progress > 0
-          ? 'active'
-          : 'not_started');
+            ? 'active'
+            : 'not_started');
       return {
         _id: stu._id,
         name: `${stu.firstName} ${stu.lastName}`,
@@ -796,33 +776,33 @@ const getCourseDetails = async (req, res) => {
         const passRate =
           ci.type === 'quiz' || ci.type === 'homework'
             ? (() => {
-                let passed = 0;
-                let taken = 0;
-                enrolledStudents.forEach((stu) => {
-                  const enrollment = (stu.enrolledCourses || []).find(
-                    (e) =>
-                      e.course && e.course.toString() === course._id.toString()
-                  );
-                  if (!enrollment || !enrollment.contentProgress) return;
-                  const cp = enrollment.contentProgress.find(
-                    (p) =>
-                      p.contentId &&
-                      p.contentId.toString() === ci._id.toString()
-                  );
-                  if (!cp) return;
-                  if (cp.quizAttempts && cp.quizAttempts.length) {
-                    taken += 1;
-                    const last = cp.quizAttempts[cp.quizAttempts.length - 1];
-                    const passing =
-                      cp.passingScore ||
-                      ci.quizSettings?.passingScore ||
-                      ci.homeworkSettings?.passingScore ||
-                      60;
-                    if ((last?.score || 0) >= passing) passed += 1;
-                  }
-                });
-                return taken > 0 ? Math.round((passed / taken) * 100) : null;
-              })()
+              let passed = 0;
+              let taken = 0;
+              enrolledStudents.forEach((stu) => {
+                const enrollment = (stu.enrolledCourses || []).find(
+                  (e) =>
+                    e.course && e.course.toString() === course._id.toString()
+                );
+                if (!enrollment || !enrollment.contentProgress) return;
+                const cp = enrollment.contentProgress.find(
+                  (p) =>
+                    p.contentId &&
+                    p.contentId.toString() === ci._id.toString()
+                );
+                if (!cp) return;
+                if (cp.quizAttempts && cp.quizAttempts.length) {
+                  taken += 1;
+                  const last = cp.quizAttempts[cp.quizAttempts.length - 1];
+                  const passing =
+                    cp.passingScore ||
+                    ci.quizSettings?.passingScore ||
+                    ci.homeworkSettings?.passingScore ||
+                    60;
+                  if ((last?.score || 0) >= passing) passed += 1;
+                }
+              });
+              return taken > 0 ? Math.round((passed / taken) * 100) : null;
+            })()
             : null;
 
         return {
@@ -862,9 +842,9 @@ const getCourseDetails = async (req, res) => {
     const averageProgress =
       totalEnrolled > 0
         ? Math.round(
-            studentsTable.reduce((s, st) => s + (st.progress || 0), 0) /
-              totalEnrolled
-          )
+          studentsTable.reduce((s, st) => s + (st.progress || 0), 0) /
+          totalEnrolled
+        )
         : 0;
     const completedStudents = studentsTable.filter(
       (s) => s.progress >= 100
@@ -892,9 +872,9 @@ const getCourseDetails = async (req, res) => {
     const contentCompletionRate =
       allContentsCount > 0 && totalEnrolled > 0
         ? Math.round(
-            (totalCompletedContentMarks / (allContentsCount * totalEnrolled)) *
-              100
-          )
+          (totalCompletedContentMarks / (allContentsCount * totalEnrolled)) *
+          100
+        )
         : 0;
 
     const analytics = {
@@ -957,19 +937,19 @@ const getCourseData = async (req, res) => {
         thumbnail: course.thumbnail || '',
         teacher: course.teacher
           ? {
-              _id: course.teacher._id,
-              firstName: course.teacher.firstName,
-              lastName: course.teacher.lastName,
-              teacherCode: course.teacher.teacherCode,
-            }
+            _id: course.teacher._id,
+            firstName: course.teacher.firstName,
+            lastName: course.teacher.lastName,
+            teacherCode: course.teacher.teacherCode,
+          }
           : null,
         examPeriod: course.examPeriod
           ? {
-              _id: course.examPeriod._id,
-              name: course.examPeriod.name,
-              displayName: course.examPeriod.displayName,
-              year: course.examPeriod.year,
-            }
+            _id: course.examPeriod._id,
+            name: course.examPeriod.name,
+            displayName: course.examPeriod.displayName,
+            year: course.examPeriod.year,
+          }
           : null,
       },
     });
@@ -1059,20 +1039,6 @@ const updateCourse = async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    // Log admin action
-    await createLog(req, {
-      action: 'UPDATE_COURSE',
-      actionCategory: 'COURSE_MANAGEMENT',
-      description: `Updated course "${course.title}" (${course.courseCode})`,
-      targetModel: 'Course',
-      targetId: course._id.toString(),
-      targetName: course.title,
-      changes: updateData,
-      metadata: {
-        courseCode: course.courseCode,
-      },
-    });
-
     if (
       req.xhr ||
       req.headers.accept?.indexOf('json') > -1 ||
@@ -1151,20 +1117,6 @@ const deleteCourse = async (req, res) => {
       // Delete the course
       await Course.findOneAndDelete({ courseCode });
 
-      // Log admin action
-      await createLog(req, {
-        action: 'DELETE_COURSE',
-        actionCategory: 'COURSE_MANAGEMENT',
-        description: `Permanently deleted course "${course.title}" (${course.courseCode})`,
-        targetModel: 'Course',
-        targetId: course._id.toString(),
-        targetName: course.title,
-        metadata: {
-          courseCode: course.courseCode,
-          deletionType: 'permanent',
-        },
-      });
-
       return res.json({
         success: true,
         message:
@@ -1180,20 +1132,6 @@ const deleteCourse = async (req, res) => {
           isActive: false,
         }
       );
-
-      // Log admin action
-      await createLog(req, {
-        action: 'DELETE_COURSE',
-        actionCategory: 'COURSE_MANAGEMENT',
-        description: `Archived course "${course.title}" (${course.courseCode})`,
-        targetModel: 'Course',
-        targetId: course._id.toString(),
-        targetName: course.title,
-        metadata: {
-          courseCode: course.courseCode,
-          deletionType: 'archived',
-        },
-      });
 
       return res.json({
         success: true,
@@ -1259,22 +1197,6 @@ const bulkUpdateCourseStatus = async (req, res) => {
       draft: 'Draft',
       archived: 'Archived',
     };
-
-    // Log admin action
-    await createLog(req, {
-      action: 'BULK_UPDATE_COURSE_STATUS',
-      actionCategory: 'COURSE_MANAGEMENT',
-      description: `Bulk updated ${updateResult.modifiedCount} course(s) to ${statusLabels[status]}`,
-      targetModel: 'Course',
-      targetId: 'multiple',
-      targetName: `${updateResult.modifiedCount} courses`,
-      metadata: {
-        courseCodes: courseCodes,
-        status: status,
-        updatedCount: updateResult.modifiedCount,
-        totalRequested: courseCodes.length,
-      },
-    });
 
     return res.json({
       success: true,
@@ -1579,23 +1501,6 @@ const duplicateCourse = async (req, res) => {
       await session.commitTransaction();
       session.endSession();
 
-      // Log admin action
-      await createLog(req, {
-        action: 'DUPLICATE_COURSE',
-        actionCategory: 'COURSE_MANAGEMENT',
-        description: `Duplicated course "${originalCourse.title}" to "${newCourse.title}" (${newCourse.courseCode})`,
-        targetModel: 'Course',
-        targetId: newCourse._id.toString(),
-        targetName: newCourse.title,
-        metadata: {
-          originalCourseCode: originalCourse.courseCode,
-          originalCourseId: originalCourse._id.toString(),
-          newCourseCode: newCourse.courseCode,
-          bundleId: originalCourse.bundle?.toString(),
-          topicsCount: newCourse.topics?.length || 0,
-        },
-      });
-
       return res.json({
         success: true,
         message: 'Course duplicated successfully!',
@@ -1639,7 +1544,18 @@ const getCourseContent = async (req, res) => {
       return res.redirect('/admin/courses');
     }
 
-    // Calculate course stats
+    // Filter out quiz/homework (removed)
+    if (course.topics && course.topics.length > 0) {
+      for (const topic of course.topics) {
+        if (topic.content && topic.content.length > 0) {
+          topic.content = topic.content.filter(
+            (ci) => ci.type !== 'quiz' && ci.type !== 'homework'
+          );
+        }
+      }
+    }
+
+    // Calculate course stats (excluding quiz/homework)
     const totalTopics = course.topics ? course.topics.length : 0;
     const publishedTopics = course.topics
       ? course.topics.filter((topic) => topic.isPublished).length
@@ -1656,7 +1572,7 @@ const getCourseContent = async (req, res) => {
       .select('_id title order')
       .sort({ order: 1 });
 
-    // Get all content items from all topics for content prerequisites
+    // Get all content items from all topics (excluding quiz/homework)
     const allContentItems = [];
     if (course.topics && course.topics.length > 0) {
       for (const topic of course.topics) {
@@ -1739,24 +1655,6 @@ const createTopic = async (req, res) => {
     // Add topic to course
     course.topics.push(topic._id);
     await course.save();
-
-    // Log admin action
-    await createLog(req, {
-      action: 'CREATE_TOPIC',
-      actionCategory: 'CONTENT_MANAGEMENT',
-      description: `Created topic "${topic.title}" in course "${course.title}" (${course.courseCode})`,
-      targetModel: 'Topic',
-      targetId: topic._id.toString(),
-      targetName: topic.title,
-      metadata: {
-        courseCode: course.courseCode,
-        courseId: course._id.toString(),
-        courseTitle: course.title,
-        topicOrder: topic.order,
-        isPublished: topic.isPublished,
-        difficulty: topic.difficulty,
-      },
-    });
 
     req.flash('success_msg', 'Topic created successfully!');
     res.redirect(`/admin/courses/${courseCode}/content`);
@@ -1853,35 +1751,7 @@ const updateTopic = async (req, res) => {
 
     const oldTopic = { ...topic.toObject() };
     await topic.save();
-
-    // Log admin action
     const course = await Course.findById(topic.course);
-    await createLog(req, {
-      action: 'UPDATE_TOPIC',
-      actionCategory: 'CONTENT_MANAGEMENT',
-      description: `Updated topic "${topic.title}" in course "${
-        course?.title || courseCode
-      }"`,
-      targetModel: 'Topic',
-      targetId: topic._id.toString(),
-      targetName: topic.title,
-      changes: {
-        before: {
-          title: oldTopic.title,
-          isPublished: oldTopic.isPublished,
-          difficulty: oldTopic.difficulty,
-        },
-        after: {
-          title: topic.title,
-          isPublished: topic.isPublished,
-          difficulty: topic.difficulty,
-        },
-      },
-      metadata: {
-        courseCode: course?.courseCode || courseCode,
-        courseId: course?._id?.toString(),
-      },
-    });
 
     // Check if this is an AJAX request
     if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
@@ -1971,26 +1841,6 @@ const updateTopicVisibility = async (req, res) => {
     // Get course info for logging
     const course = await Course.findOne({ courseCode });
 
-    // Log admin action
-    await createLog(req, {
-      action: 'UPDATE_TOPIC_VISIBILITY',
-      actionCategory: 'CONTENT_MANAGEMENT',
-      description: `Updated visibility of topic "${topic.title}" to ${
-        topic.isPublished ? 'published' : 'unpublished'
-      }`,
-      targetModel: 'Topic',
-      targetId: topicId,
-      targetName: topic.title,
-      changes: {
-        before: { isPublished: oldVisibility },
-        after: { isPublished: topic.isPublished },
-      },
-      metadata: {
-        courseCode: courseCode,
-        courseId: course?._id?.toString(),
-      },
-    });
-
     res.json({
       success: true,
       message: 'Topic visibility updated successfully',
@@ -2010,10 +1860,7 @@ const getTopicDetails = async (req, res) => {
   try {
     const { courseCode, topicId } = req.params;
 
-    const course = await Course.findOne({ courseCode }).populate(
-      'bundle',
-      'title bundleCode year'
-    );
+    const course = await Course.findOne({ courseCode });
 
     if (!course) {
       req.flash('error_msg', 'Course not found');
@@ -2082,16 +1929,14 @@ const getTopicDetails = async (req, res) => {
         progress >= 100
           ? 'completed'
           : topicViewed
-          ? 'in-progress'
-          : 'not-started';
+            ? 'in-progress'
+            : 'not-started';
 
       // Format phones with country codes
-      const parentPhone = `${stu.parentCountryCode || ''} ${
-        stu.parentNumber || ''
-      }`.trim();
-      const studentPhone = `${stu.studentCountryCode || ''} ${
-        stu.studentNumber || ''
-      }`.trim();
+      const parentPhone = `${stu.parentCountryCode || ''} ${stu.parentNumber || ''
+        }`.trim();
+      const studentPhone = `${stu.studentCountryCode || ''} ${stu.studentNumber || ''
+        }`.trim();
 
       return {
         id: stu._id,
@@ -2341,10 +2186,10 @@ const getTopicContentStudentStats = async (req, res) => {
     const totalStudents = rows.length;
     const averageScore =
       (contentItem.type === 'quiz' || contentItem.type === 'homework') &&
-      totalStudents > 0
+        totalStudents > 0
         ? Math.round(
-            rows.reduce((sum, r) => sum + (r.bestScore || 0), 0) / totalStudents
-          )
+          rows.reduce((sum, r) => sum + (r.bestScore || 0), 0) / totalStudents
+        )
         : null;
     const totalAttempts = rows.reduce(
       (sum, r) => sum + (r.attempts?.length || 0),
@@ -2352,16 +2197,16 @@ const getTopicContentStudentStats = async (req, res) => {
     );
     const passRate =
       (contentItem.type === 'quiz' || contentItem.type === 'homework') &&
-      totalStudents > 0
+        totalStudents > 0
         ? (() => {
-            const takers = rows.filter((r) => (r.attempts?.length || 0) > 0);
-            const passed = takers.filter((r) =>
-              (r.attempts || []).some((a) => a.passed)
-            ).length;
-            return takers.length > 0
-              ? Math.round((passed / takers.length) * 100)
-              : 0;
-          })()
+          const takers = rows.filter((r) => (r.attempts?.length || 0) > 0);
+          const passed = takers.filter((r) =>
+            (r.attempts || []).some((a) => a.passed)
+          ).length;
+          return takers.length > 0
+            ? Math.round((passed / takers.length) * 100)
+            : 0;
+        })()
         : null;
 
     return res.json({
@@ -2402,27 +2247,6 @@ const resetContentAttempts = async (req, res) => {
     const topic = await Topic.findById(topicId);
     const contentItem = topic?.content?.id(contentId);
 
-    // Log admin action
-    await createLog(req, {
-      action: 'RESET_CONTENT_ATTEMPTS',
-      actionCategory: 'CONTENT_MANAGEMENT',
-      description: `Reset attempts for student "${
-        student.name || student.firstName + ' ' + student.lastName
-      }" in content "${contentItem?.title || contentId}"`,
-      targetModel: 'Content',
-      targetId: contentId,
-      targetName: contentItem?.title || 'Unknown',
-      metadata: {
-        courseCode: courseCode,
-        courseId: course._id.toString(),
-        topicId: topicId,
-        topicTitle: topic?.title,
-        contentTitle: contentItem?.title,
-        studentId: studentId,
-        studentName: student.name || `${student.firstName} ${student.lastName}`,
-      },
-    });
-
     return res.json({ success: true, message: 'Attempts reset successfully' });
   } catch (error) {
     console.error('Error resetting content attempts:', error);
@@ -2459,6 +2283,11 @@ const getContentDetailsPage = async (req, res) => {
     const contentItem = topic.content.id(contentId);
     if (!contentItem) {
       req.flash('error_msg', 'Content item not found');
+      return res.redirect(`/admin/courses/${courseCode}/content`);
+    }
+
+    if (contentItem.type === 'quiz' || contentItem.type === 'homework') {
+      req.flash('error_msg', 'Quiz and homework content have been removed.');
       return res.redirect(`/admin/courses/${courseCode}/content`);
     }
 
@@ -2544,7 +2373,7 @@ const getContentDetailsPage = async (req, res) => {
         ) {
           const latestAttempt =
             contentProgress.quizAttempts[
-              contentProgress.quizAttempts.length - 1
+            contentProgress.quizAttempts.length - 1
             ];
           progressData.grade = latestAttempt.score;
           progressData.passed = latestAttempt.passed;
@@ -2615,12 +2444,12 @@ const getContentDetailsPage = async (req, res) => {
       if (studentsWithGrades.length > 0) {
         averageGrade = Math.round(
           studentsWithGrades.reduce((sum, s) => sum + s.grade, 0) /
-            studentsWithGrades.length
+          studentsWithGrades.length
         );
         passRate = Math.round(
           (studentsWithGrades.filter((s) => s.passed === true).length /
             studentsWithGrades.length) *
-            100
+          100
         );
       }
 
@@ -2653,9 +2482,9 @@ const getContentDetailsPage = async (req, res) => {
       averageTimeSpent:
         totalStudents > 0
           ? Math.round(
-              studentProgress.reduce((sum, s) => sum + s.timeSpent, 0) /
-                totalStudents
-            )
+            studentProgress.reduce((sum, s) => sum + s.timeSpent, 0) /
+            totalStudents
+          )
           : 0,
       totalAttempts: studentProgress.reduce((sum, s) => sum + s.attempts, 0),
       totalPoints: studentProgress.reduce((sum, s) => sum + s.totalPoints, 0),
@@ -2788,23 +2617,6 @@ const reorderTopics = async (req, res) => {
     // Get course info for logging
     const course = await Course.findOne({ courseCode });
 
-    // Log admin action
-    await createLog(req, {
-      action: 'REORDER_TOPICS',
-      actionCategory: 'CONTENT_MANAGEMENT',
-      description: `Reordered ${orderUpdates.length} topics in course "${
-        course?.title || courseCode
-      }"`,
-      targetModel: 'Topic',
-      targetId: 'multiple',
-      targetName: `${orderUpdates.length} topics`,
-      metadata: {
-        courseCode: courseCode,
-        courseId: course?._id?.toString(),
-        orderUpdates: orderUpdates,
-      },
-    });
-
     res.json({ success: true, message: 'Topic order updated successfully' });
   } catch (error) {
     console.error('Error reordering topics:', error);
@@ -2848,23 +2660,6 @@ const reorderContent = async (req, res) => {
 
     // Get course info for logging
     const course = await Course.findById(topic.course);
-
-    // Log admin action
-    await createLog(req, {
-      action: 'REORDER_CONTENT',
-      actionCategory: 'CONTENT_MANAGEMENT',
-      description: `Reordered ${orderUpdates.length} content items in topic "${topic.title}"`,
-      targetModel: 'Content',
-      targetId: 'multiple',
-      targetName: `${orderUpdates.length} content items`,
-      metadata: {
-        courseCode: course?.courseCode,
-        courseId: course?._id?.toString(),
-        topicId: topicId,
-        topicTitle: topic.title,
-        orderUpdates: orderUpdates,
-      },
-    });
 
     res.json({
       success: true,
@@ -3135,23 +2930,6 @@ const duplicateTopic = async (req, res) => {
       await session.commitTransaction();
       session.endSession();
 
-      // Log admin action
-      await createLog(req, {
-        action: 'DUPLICATE_TOPIC',
-        actionCategory: 'CONTENT_MANAGEMENT',
-        description: `Duplicated topic "${originalTopic.title}" to "${newTopic.title}" in course "${course.title}"`,
-        targetModel: 'Topic',
-        targetId: newTopic._id.toString(),
-        targetName: newTopic.title,
-        metadata: {
-          originalTopicId: originalTopic._id.toString(),
-          originalTopicTitle: originalTopic.title,
-          courseCode: courseCode,
-          courseId: course._id.toString(),
-          contentCount: newTopic.content.length,
-        },
-      });
-
       return res.json({
         success: true,
         message: 'Topic duplicated successfully!',
@@ -3195,20 +2973,6 @@ const deleteTopic = async (req, res) => {
 
     // Delete the topic
     await Topic.findByIdAndDelete(topicId);
-
-    // Log admin action
-    await createLog(req, {
-      action: 'DELETE_TOPIC',
-      actionCategory: 'CONTENT_MANAGEMENT',
-      description: `Deleted topic "${topicTitle}" from course "${courseTitle}"`,
-      targetModel: 'Topic',
-      targetId: topicId,
-      targetName: topicTitle,
-      metadata: {
-        courseCode: course?.courseCode || courseCode,
-        courseId: course?._id?.toString(),
-      },
-    });
 
     return res.status(200).json({
       success: true,
@@ -3266,6 +3030,11 @@ const addTopicContent = async (req, res) => {
       return res.redirect(`/admin/courses/${courseCode}/content`);
     }
 
+    if (type === 'quiz' || type === 'homework') {
+      req.flash('error_msg', 'Quiz and homework content have been removed.');
+      return res.redirect(`/admin/courses/${courseCode}/content`);
+    }
+
     // Get the next order number for content
     const contentCount = topic.content ? topic.content.length : 0;
 
@@ -3282,12 +3051,7 @@ const addTopicContent = async (req, res) => {
       type,
       title: title.trim(),
       description: description ? description.trim() : '',
-      content:
-        type === 'quiz' || type === 'homework'
-          ? ''
-          : content
-          ? content.trim()
-          : '',
+      content: content ? content.trim() : '',
       isRequired: isRequired === 'on',
       order:
         order && !isNaN(parseInt(order)) ? parseInt(order) : contentCount + 1,
@@ -3319,130 +3083,6 @@ const addTopicContent = async (req, res) => {
       }
     }
 
-    // Handle Quiz content
-    if (type === 'quiz') {
-      if (!questionBank || !selectedQuestions) {
-        req.flash(
-          'error_msg',
-          'Question bank and selected questions are required for quiz content'
-        );
-        return res.redirect(`/admin/courses/${courseCode}/content`);
-      }
-
-      const questionBankDoc = await QuestionBank.findById(questionBank);
-      if (!questionBankDoc) {
-        req.flash('error_msg', 'Question bank not found');
-        return res.redirect(`/admin/courses/${courseCode}/content`);
-      }
-
-      // Parse selected questions
-      let selectedQuestionsArray = [];
-      if (typeof selectedQuestions === 'string') {
-        selectedQuestionsArray = selectedQuestions
-          .split(',')
-          .map((q) => q.trim())
-          .filter((q) => q);
-      } else if (Array.isArray(selectedQuestions)) {
-        selectedQuestionsArray = selectedQuestions.filter((q) => q);
-      }
-
-      if (selectedQuestionsArray.length === 0) {
-        req.flash(
-          'error_msg',
-          'Please select at least one question for the quiz'
-        );
-        return res.redirect(`/admin/courses/${courseCode}/content`);
-      }
-
-      // Add quiz-specific fields to contentItem
-      contentItem.questionBank = questionBank;
-      contentItem.selectedQuestions = selectedQuestionsArray.map(
-        (questionId, index) => ({
-          question: questionId,
-          points: 1,
-          order: index,
-        })
-      );
-      contentItem.quizSettings = {
-        passingScore:
-          quizPassingScore && !isNaN(parseInt(quizPassingScore))
-            ? parseInt(quizPassingScore)
-            : 60,
-        maxAttempts:
-          quizMaxAttempts && !isNaN(parseInt(quizMaxAttempts))
-            ? parseInt(quizMaxAttempts)
-            : 3,
-        shuffleQuestions: quizShuffleQuestions === 'on',
-        shuffleOptions: quizShuffleOptions === 'on',
-        showCorrectAnswers: quizShowCorrectAnswers === 'on',
-        showResults: quizShowResults === 'on',
-        instructions: quizInstructions ? quizInstructions.trim() : '',
-      };
-      contentItem.completionCriteria = 'pass_quiz';
-    }
-
-    // Handle Homework content
-    if (type === 'homework') {
-      if (!questionBank || !selectedQuestions) {
-        req.flash(
-          'error_msg',
-          'Question bank and selected questions are required for homework content'
-        );
-        return res.redirect(`/admin/courses/${courseCode}/content`);
-      }
-
-      const questionBankDoc = await QuestionBank.findById(questionBank);
-      if (!questionBankDoc) {
-        req.flash('error_msg', 'Question bank not found');
-        return res.redirect(`/admin/courses/${courseCode}/content`);
-      }
-
-      // Parse selected questions
-      let selectedQuestionsArray = [];
-      if (typeof selectedQuestions === 'string') {
-        selectedQuestionsArray = selectedQuestions
-          .split(',')
-          .map((q) => q.trim())
-          .filter((q) => q);
-      } else if (Array.isArray(selectedQuestions)) {
-        selectedQuestionsArray = selectedQuestions.filter((q) => q);
-      }
-
-      if (selectedQuestionsArray.length === 0) {
-        req.flash(
-          'error_msg',
-          'Please select at least one question for the homework'
-        );
-        return res.redirect(`/admin/courses/${courseCode}/content`);
-      }
-
-      // Add homework-specific fields to contentItem
-      contentItem.questionBank = questionBank;
-      contentItem.selectedQuestions = selectedQuestionsArray.map(
-        (questionId, index) => ({
-          question: questionId,
-          points: 1,
-          order: index,
-        })
-      );
-      contentItem.homeworkSettings = {
-        passingCriteria: 'pass',
-        passingScore:
-          (homeworkPassingScore !== null && homeworkPassingScore !== undefined && homeworkPassingScore !== '' && !isNaN(parseInt(homeworkPassingScore)))
-            ? parseInt(homeworkPassingScore)
-            : 0,
-        maxAttempts:
-          homeworkMaxAttempts && !isNaN(parseInt(homeworkMaxAttempts))
-            ? parseInt(homeworkMaxAttempts)
-            : 1,
-        shuffleQuestions: homeworkShuffleQuestions === 'on',
-        shuffleOptions: homeworkShuffleOptions === 'on',
-        showCorrectAnswers: homeworkShowCorrectAnswers === 'on',
-        instructions: homeworkInstructions ? homeworkInstructions.trim() : '',
-      };
-      contentItem.completionCriteria = 'pass_quiz';
-    }
-
     // Handle Zoom content
     if (type === 'zoom') {
       if (!zoomMeeting) {
@@ -3463,6 +3103,46 @@ const addTopicContent = async (req, res) => {
       contentItem.completionCriteria = 'attendance';
     }
 
+    // Handle HW/Quiz Submission content
+    if (type === 'submission') {
+      const {
+        submissionInstructions,
+        submissionDueDate,
+        submissionMaxScore,
+        submissionAllowLate,
+        submissionLatePenalty,
+        submissionAssignmentFiles,
+      } = req.body;
+
+      // Parse assignment files (can be a single file URL or comma-separated)
+      let assignmentFiles = [];
+      if (submissionAssignmentFiles) {
+        const fileUrls = typeof submissionAssignmentFiles === 'string'
+          ? submissionAssignmentFiles.split(',').map(f => f.trim()).filter(f => f)
+          : Array.isArray(submissionAssignmentFiles) ? submissionAssignmentFiles : [];
+
+        assignmentFiles = fileUrls.map(fileUrl => ({
+          fileName: fileUrl.split('/').pop() || 'assignment',
+          fileUrl: fileUrl,
+          fileType: fileUrl.toLowerCase().endsWith('.pdf') ? 'pdf' :
+            /\.(jpg|jpeg|png|gif|webp)$/i.test(fileUrl) ? 'image' : 'document',
+        }));
+      }
+
+      contentItem.submissionConfig = {
+        assignmentFiles: assignmentFiles,
+        instructions: submissionInstructions ? submissionInstructions.trim() : '',
+        dueDate: submissionDueDate ? new Date(submissionDueDate) : null,
+        maxScore: submissionMaxScore && !isNaN(parseInt(submissionMaxScore))
+          ? parseInt(submissionMaxScore) : 100,
+        allowLateSubmission: submissionAllowLate === 'on',
+        latePenalty: submissionLatePenalty && !isNaN(parseInt(submissionLatePenalty))
+          ? parseInt(submissionLatePenalty) : 0,
+      };
+      contentItem.content = ''; // No content URL for submission type
+      contentItem.completionCriteria = 'submit_assignment';
+    }
+
     if (!topic.content) {
       topic.content = [];
     }
@@ -3473,27 +3153,6 @@ const addTopicContent = async (req, res) => {
     // Get course and topic info for logging
     const course = await Course.findOne({ courseCode }).populate('topics');
     const topicInfo = await Topic.findById(topicId);
-
-    // Log admin action
-    await createLog(req, {
-      action: 'CREATE_CONTENT',
-      actionCategory: 'CONTENT_MANAGEMENT',
-      description: `Added ${type} content "${contentItem.title}" to topic "${
-        topicInfo?.title || 'Unknown'
-      }" in course "${course?.title || courseCode}"`,
-      targetModel: 'Content',
-      targetId: contentItem._id?.toString() || 'new',
-      targetName: contentItem.title,
-      metadata: {
-        contentType: type,
-        courseCode: courseCode,
-        courseId: course?._id?.toString(),
-        topicId: topicId,
-        topicTitle: topicInfo?.title,
-        contentOrder: contentItem.order,
-        isRequired: contentItem.isRequired,
-      },
-    });
 
     req.flash('success_msg', 'Content added successfully!');
     res.redirect(`/admin/courses/${courseCode}/content`);
@@ -3585,16 +3244,16 @@ const updateTopicContent = async (req, res) => {
     }
 
     // Update basic content properties
+    if (type === 'quiz' || type === 'homework') {
+      return res.status(400).json({
+        success: false,
+        message: 'Quiz and homework content have been removed.',
+      });
+    }
     contentItem.type = type;
     contentItem.title = title.trim();
     contentItem.description = description ? description.trim() : '';
-
-    // For quiz/homework, content should be empty or type name
-    if (type === 'quiz' || type === 'homework' || type === 'zoom') {
-      contentItem.content = type;
-    } else {
-      contentItem.content = content ? content.trim() : '';
-    }
+    contentItem.content = type === 'zoom' ? type : (content ? content.trim() : '');
 
     contentItem.isRequired = isRequired === 'on' || isRequired === true;
     contentItem.difficulty = difficulty || 'beginner';
@@ -3603,9 +3262,9 @@ const updateTopicContent = async (req, res) => {
       ? Array.isArray(tags)
         ? tags
         : tags
-            .split(',')
-            .map((tag) => tag.trim())
-            .filter((tag) => tag)
+          .split(',')
+          .map((tag) => tag.trim())
+          .filter((tag) => tag)
       : [];
     contentItem.prerequisites = prerequisites
       ? Array.isArray(prerequisites)
@@ -3637,236 +3296,6 @@ const updateTopicContent = async (req, res) => {
       // If maxWatchCount is undefined, keep the existing value (don't change it)
     }
 
-    // Handle Quiz content updates with multiple banks support
-    if (type === 'quiz') {
-      // Determine which banks to use
-      let selectedBankIds = [];
-      if (questionBanks) {
-        selectedBankIds = Array.isArray(questionBanks)
-          ? questionBanks
-          : [questionBanks];
-      } else if (questionBank) {
-        selectedBankIds = [questionBank];
-      } else if (quizData?.questionBankId) {
-        // Legacy support
-        selectedBankIds = [quizData.questionBankId];
-      } else if (
-        contentItem.questionBanks &&
-        contentItem.questionBanks.length > 0
-      ) {
-        // Keep existing banks if none provided
-        selectedBankIds = contentItem.questionBanks;
-      } else if (contentItem.questionBank) {
-        // Keep existing single bank if none provided
-        selectedBankIds = [contentItem.questionBank];
-      }
-
-      // Parse selected questions
-      let parsedQuestions = [];
-      if (selectedQuestions) {
-        try {
-          parsedQuestions =
-            typeof selectedQuestions === 'string'
-              ? JSON.parse(selectedQuestions)
-              : selectedQuestions;
-        } catch (e) {
-          return res.status(400).json({
-            success: false,
-            message: 'Invalid selected questions format',
-          });
-        }
-      } else if (quizData?.selectedQuestions) {
-        // Legacy support
-        parsedQuestions = Array.isArray(quizData.selectedQuestions)
-          ? quizData.selectedQuestions
-          : [];
-      } else if (contentItem.selectedQuestions) {
-        // Keep existing questions if none provided
-        parsedQuestions = contentItem.selectedQuestions;
-      }
-
-      // Validate banks and questions if provided
-      if (selectedBankIds.length > 0) {
-        const banks = await QuestionBank.find({
-          _id: { $in: selectedBankIds },
-        });
-        if (banks.length !== selectedBankIds.length) {
-          return res.status(400).json({
-            success: false,
-            message: 'One or more question banks not found',
-          });
-        }
-
-        // Update question banks
-        contentItem.questionBank = selectedBankIds[0]; // Backward compatibility
-        contentItem.questionBanks = selectedBankIds;
-      }
-
-      // Update selected questions if provided
-      if (parsedQuestions.length > 0) {
-        contentItem.selectedQuestions = parsedQuestions.map((q, index) => ({
-          question: q.question || q,
-          sourceBank: q.sourceBank || selectedBankIds[0],
-          points: q.points || 1,
-          order: index + 1,
-        }));
-      }
-
-      // Update quiz settings
-      contentItem.quizSettings = {
-        passingScore: (quizPassingScore !== null && quizPassingScore !== undefined && quizPassingScore !== '')
-          ? parseInt(quizPassingScore)
-          : (quizData?.passingScore !== null && quizData?.passingScore !== undefined && quizData?.passingScore !== '')
-          ? parseInt(quizData.passingScore)
-          : (contentItem.quizSettings?.passingScore !== undefined ? contentItem.quizSettings.passingScore : 50),
-        maxAttempts: quizMaxAttempts
-          ? parseInt(quizMaxAttempts)
-          : quizData?.maxAttempts
-          ? parseInt(quizData.maxAttempts)
-          : contentItem.quizSettings?.maxAttempts || 3,
-        shuffleQuestions:
-          quizShuffleQuestions === true ||
-          quizShuffleQuestions === 'on' ||
-          quizData?.shuffleQuestions ||
-          contentItem.quizSettings?.shuffleQuestions ||
-          false,
-        shuffleOptions:
-          quizShuffleOptions === true ||
-          quizShuffleOptions === 'on' ||
-          quizData?.shuffleOptions ||
-          contentItem.quizSettings?.shuffleOptions ||
-          false,
-        showCorrectAnswers:
-          quizShowCorrectAnswers !== false &&
-          quizShowCorrectAnswers !== 'off' &&
-          quizData?.showCorrectAnswers !== false &&
-          contentItem.quizSettings?.showCorrectAnswers !== false,
-        showResults:
-          quizShowResults !== false &&
-          quizShowResults !== 'off' &&
-          quizData?.showResults !== false &&
-          contentItem.quizSettings?.showResults !== false,
-        instructions:
-          quizInstructions ||
-          quizData?.instructions ||
-          contentItem.quizSettings?.instructions ||
-          '',
-      };
-    }
-
-    // Handle Homework content updates with multiple banks support
-    if (type === 'homework') {
-      // Determine which banks to use
-      let selectedBankIds = [];
-      if (questionBanks) {
-        selectedBankIds = Array.isArray(questionBanks)
-          ? questionBanks
-          : [questionBanks];
-      } else if (questionBank) {
-        selectedBankIds = [questionBank];
-      } else if (homeworkData?.questionBankId) {
-        // Legacy support
-        selectedBankIds = [homeworkData.questionBankId];
-      } else if (
-        contentItem.questionBanks &&
-        contentItem.questionBanks.length > 0
-      ) {
-        // Keep existing banks if none provided
-        selectedBankIds = contentItem.questionBanks;
-      } else if (contentItem.questionBank) {
-        // Keep existing single bank if none provided
-        selectedBankIds = [contentItem.questionBank];
-      }
-
-      // Parse selected questions
-      let parsedQuestions = [];
-      if (selectedQuestions) {
-        try {
-          parsedQuestions =
-            typeof selectedQuestions === 'string'
-              ? JSON.parse(selectedQuestions)
-              : selectedQuestions;
-        } catch (e) {
-          return res.status(400).json({
-            success: false,
-            message: 'Invalid selected questions format',
-          });
-        }
-      } else if (homeworkData?.selectedQuestions) {
-        // Legacy support
-        parsedQuestions = Array.isArray(homeworkData.selectedQuestions)
-          ? homeworkData.selectedQuestions
-          : [];
-      } else if (contentItem.selectedQuestions) {
-        // Keep existing questions if none provided
-        parsedQuestions = contentItem.selectedQuestions;
-      }
-
-      // Validate banks and questions if provided
-      if (selectedBankIds.length > 0) {
-        const banks = await QuestionBank.find({
-          _id: { $in: selectedBankIds },
-        });
-        if (banks.length !== selectedBankIds.length) {
-          return res.status(400).json({
-            success: false,
-            message: 'One or more question banks not found',
-          });
-        }
-
-        // Update question banks
-        contentItem.questionBank = selectedBankIds[0]; // Backward compatibility
-        contentItem.questionBanks = selectedBankIds;
-      }
-
-      // Update selected questions if provided
-      if (parsedQuestions.length > 0) {
-        contentItem.selectedQuestions = parsedQuestions.map((q, index) => ({
-          question: q.question || q,
-          sourceBank: q.sourceBank || selectedBankIds[0],
-          points: q.points || 1,
-          order: index + 1,
-        }));
-      }
-
-      // Update homework settings
-      contentItem.homeworkSettings = {
-        passingScore: (homeworkPassingScore !== null && homeworkPassingScore !== undefined && homeworkPassingScore !== '')
-          ? parseInt(homeworkPassingScore)
-          : (homeworkData?.passingScore !== null && homeworkData?.passingScore !== undefined && homeworkData?.passingScore !== '')
-          ? parseInt(homeworkData.passingScore)
-          : (contentItem.homeworkSettings?.passingScore !== undefined ? contentItem.homeworkSettings.passingScore : 0),
-        maxAttempts: homeworkMaxAttempts
-          ? parseInt(homeworkMaxAttempts)
-          : homeworkData?.maxAttempts
-          ? parseInt(homeworkData.maxAttempts)
-          : contentItem.homeworkSettings?.maxAttempts || 1,
-        shuffleQuestions:
-          homeworkShuffleQuestions === true ||
-          homeworkShuffleQuestions === 'on' ||
-          homeworkData?.shuffleQuestions ||
-          contentItem.homeworkSettings?.shuffleQuestions ||
-          false,
-        shuffleOptions:
-          homeworkShuffleOptions === true ||
-          homeworkShuffleOptions === 'on' ||
-          homeworkData?.shuffleOptions ||
-          contentItem.homeworkSettings?.shuffleOptions ||
-          false,
-        showCorrectAnswers:
-          homeworkShowCorrectAnswers === true ||
-          homeworkShowCorrectAnswers === 'on' ||
-          homeworkData?.showCorrectAnswers ||
-          contentItem.homeworkSettings?.showCorrectAnswers ||
-          false,
-        instructions:
-          homeworkInstructions ||
-          homeworkData?.instructions ||
-          contentItem.homeworkSettings?.instructions ||
-          '',
-      };
-    }
-
     if (type === 'zoom') {
       // Update zoom meeting settings
       if (contentItem.zoomMeeting) {
@@ -3893,43 +3322,63 @@ const updateTopicContent = async (req, res) => {
       }
     }
 
+    // Handle HW/Quiz Submission content updates
+    if (type === 'submission') {
+      const {
+        submissionInstructions,
+        submissionDueDate,
+        submissionMaxScore,
+        submissionAllowLate,
+        submissionLatePenalty,
+        submissionAssignmentFiles,
+      } = req.body;
+
+      // Parse assignment files
+      let assignmentFiles = [];
+      if (submissionAssignmentFiles) {
+        const fileUrls = typeof submissionAssignmentFiles === 'string'
+          ? submissionAssignmentFiles.split(',').map(f => f.trim()).filter(f => f)
+          : Array.isArray(submissionAssignmentFiles) ? submissionAssignmentFiles : [];
+
+        assignmentFiles = fileUrls.map(fileUrl => ({
+          fileName: fileUrl.split('/').pop() || 'assignment',
+          fileUrl: fileUrl,
+          fileType: fileUrl.toLowerCase().endsWith('.pdf') ? 'pdf' :
+            /\.(jpg|jpeg|png|gif|webp)$/i.test(fileUrl) ? 'image' : 'document',
+        }));
+      } else if (contentItem.submissionConfig?.assignmentFiles) {
+        // Keep existing files if none provided
+        assignmentFiles = contentItem.submissionConfig.assignmentFiles;
+      }
+
+      contentItem.submissionConfig = {
+        assignmentFiles: assignmentFiles,
+        instructions: submissionInstructions !== undefined
+          ? (submissionInstructions ? submissionInstructions.trim() : '')
+          : (contentItem.submissionConfig?.instructions || ''),
+        dueDate: submissionDueDate
+          ? new Date(submissionDueDate)
+          : (contentItem.submissionConfig?.dueDate || null),
+        maxScore: submissionMaxScore && !isNaN(parseInt(submissionMaxScore))
+          ? parseInt(submissionMaxScore)
+          : (contentItem.submissionConfig?.maxScore || 100),
+        allowLateSubmission: submissionAllowLate !== undefined
+          ? submissionAllowLate === 'on' || submissionAllowLate === true
+          : (contentItem.submissionConfig?.allowLateSubmission || false),
+        latePenalty: submissionLatePenalty && !isNaN(parseInt(submissionLatePenalty))
+          ? parseInt(submissionLatePenalty)
+          : (contentItem.submissionConfig?.latePenalty || 0),
+      };
+      contentItem.content = ''; // No content URL for submission type
+      contentItem.completionCriteria = 'submit_assignment';
+    }
+
     const oldContent = { ...contentItem.toObject() };
     await topic.save();
 
     // Get course and topic info for logging
     const course = await Course.findOne({ courseCode });
     const topicInfo = await Topic.findById(topicId);
-
-    // Log admin action
-    await createLog(req, {
-      action: 'UPDATE_CONTENT',
-      actionCategory: 'CONTENT_MANAGEMENT',
-      description: `Updated ${contentItem.type} content "${
-        contentItem.title
-      }" in topic "${topicInfo?.title || 'Unknown'}"`,
-      targetModel: 'Content',
-      targetId: contentId,
-      targetName: contentItem.title,
-      changes: {
-        before: {
-          title: oldContent.title,
-          type: oldContent.type,
-          isRequired: oldContent.isRequired,
-        },
-        after: {
-          title: contentItem.title,
-          type: contentItem.type,
-          isRequired: contentItem.isRequired,
-        },
-      },
-      metadata: {
-        contentType: contentItem.type,
-        courseCode: courseCode,
-        courseId: course?._id?.toString(),
-        topicId: topicId,
-        topicTitle: topicInfo?.title,
-      },
-    });
 
     return res.json({
       success: true,
@@ -3972,6 +3421,13 @@ const getContentDetailsForEdit = async (req, res) => {
       });
     }
 
+    if (contentItem.type === 'quiz' || contentItem.type === 'homework') {
+      return res.status(400).json({
+        success: false,
+        message: 'Quiz and homework content have been removed.',
+      });
+    }
+
     // Prepare content data for editing
     const contentData = {
       title: contentItem.title,
@@ -4007,6 +3463,18 @@ const getContentDetailsForEdit = async (req, res) => {
           muteUponEntry: meeting.settings?.muteUponEntry || false,
           recording: meeting.settings?.recording || false,
         },
+      };
+    }
+
+    // Add Submission specific data
+    if (contentItem.type === 'submission' && contentItem.submissionConfig) {
+      contentData.submissionConfig = {
+        assignmentFiles: contentItem.submissionConfig.assignmentFiles || [],
+        instructions: contentItem.submissionConfig.instructions || '',
+        dueDate: contentItem.submissionConfig.dueDate || null,
+        maxScore: contentItem.submissionConfig.maxScore || 100,
+        allowLateSubmission: contentItem.submissionConfig.allowLateSubmission || false,
+        latePenalty: contentItem.submissionConfig.latePenalty || 0,
       };
     }
 
@@ -4046,23 +3514,6 @@ const deleteTopicContent = async (req, res) => {
 
     // Get course info for logging
     const course = await Course.findOne({ courseCode });
-
-    // Log admin action
-    await createLog(req, {
-      action: 'DELETE_CONTENT',
-      actionCategory: 'CONTENT_MANAGEMENT',
-      description: `Deleted ${contentType} content "${contentTitle}" from topic "${topic.title}"`,
-      targetModel: 'Content',
-      targetId: contentId,
-      targetName: contentTitle,
-      metadata: {
-        contentType: contentType,
-        courseCode: courseCode,
-        courseId: course?._id?.toString(),
-        topicId: topicId,
-        topicTitle: topic.title,
-      },
-    });
 
     return res.status(200).json({
       success: true,
@@ -4180,7 +3631,6 @@ const getOrders = async (req, res) => {
         Purchase.find(filter)
           .populate('user', 'firstName lastName studentEmail studentCode')
           .populate('items.item')
-          .populate('bookOrders', 'bookName bookPrice bundle')
           .sort(sort)
           .skip(skip)
           .limit(parseInt(limit))
@@ -4296,7 +3746,7 @@ const getOrderDetails = async (req, res) => {
       )
       .populate({
         path: 'items.item',
-        select: 'title courseCode bundleCode thumbnail description courses',
+        select: 'title courseCode thumbnail description',
       });
 
     if (!order) {
@@ -4304,49 +3754,10 @@ const getOrderDetails = async (req, res) => {
       return res.redirect('/admin/orders');
     }
 
-    // Book orders feature removed - return empty array
-    const bookOrders = [];
-
-    // If we need to populate courses for bundle items, do it separately
-    if (order.items && order.items.length > 0) {
-      for (const item of order.items) {
-        if (item.itemType === 'bundle' && item.item) {
-          // Populate courses for bundle items
-          await Purchase.populate(order, {
-            path: 'items.item.courses',
-            select: 'title thumbnail',
-            model: 'Course',
-          });
-          break; // Only need to do this once
-        }
-      }
-    }
-
     // Compute detailed item summaries with thumbnails and codes
     const itemsSummary = (order.items || []).map((it) => {
-      // Extract item details
       const itemDetails = it.item || {};
-
-      // Handle thumbnails based on item type
-      let thumbnail = null;
-
-      if (it.itemType === 'bundle') {
-        // For bundles, use bundle thumbnail first, then first course thumbnail as fallback
-        thumbnail = itemDetails.thumbnail;
-        if (
-          !thumbnail &&
-          itemDetails.courses &&
-          itemDetails.courses.length > 0
-        ) {
-          thumbnail = itemDetails.courses[0].thumbnail;
-        }
-      } else if (it.itemType === 'course') {
-        // For courses, use course thumbnail
-        thumbnail = itemDetails.thumbnail;
-      } else if (it.itemType === 'quiz') {
-        // For quizzes, use quiz thumbnail or default
-        thumbnail = itemDetails.thumbnail;
-      }
+      const thumbnail = itemDetails.thumbnail || null;
 
       return {
         title: it.title,
@@ -4355,35 +3766,11 @@ const getOrderDetails = async (req, res) => {
         quantity: it.quantity,
         total: it.price * (it.quantity || 1),
         refId: it.item,
-        thumbnail: thumbnail,
+        thumbnail,
         courseCode: itemDetails.courseCode || null,
-        bundleCode: itemDetails.bundleCode || null,
         description: itemDetails.description || null,
-        courses: itemDetails.courses || [],
       };
     });
-
-    // Add book orders to items summary
-    if (bookOrders && bookOrders.length > 0) {
-      bookOrders.forEach((bookOrder) => {
-        const bundleDetails = bookOrder.bundle || {};
-        itemsSummary.push({
-          title: bookOrder.bookName || 'Book',
-          type: 'book',
-          price: bookOrder.bookPrice || 0,
-          quantity: 1,
-          total: bookOrder.bookPrice || 0,
-          refId: bookOrder.bundle,
-          thumbnail: bundleDetails.thumbnail || '/images/book-placeholder.jpg',
-          courseCode: null,
-          bundleCode: bundleDetails.bundleCode || null,
-          description: `Physical Book - ${bundleDetails.title || 'N/A'}`,
-          courses: [],
-          bookOrderId: bookOrder._id,
-          bookOrderStatus: bookOrder.status,
-        });
-      });
-    }
 
     // Get customer purchase history count
     const customerPurchaseCount = await Purchase.countDocuments({
@@ -4402,8 +3789,7 @@ const getOrderDetails = async (req, res) => {
     );
 
     // Enhanced order summary
-    // Include book orders in item count
-    const itemCount = (order.items ? order.items.length : 0) + (bookOrders ? bookOrders.length : 0);
+    const itemCount = order.items ? order.items.length : 0;
     const summary = {
       subtotal: order.subtotal,
       tax: order.tax,
@@ -4423,7 +3809,6 @@ const getOrderDetails = async (req, res) => {
       order,
       itemsSummary,
       summary,
-      bookOrders,
       pageTitle: `Order #${order.orderNumber} Details`,
     });
   } catch (error) {
@@ -4444,19 +3829,7 @@ const generateInvoice = async (req, res) => {
       )
       .populate({
         path: 'items.item',
-        select: 'title courseCode bundleCode thumbnail description',
-        populate: [
-          {
-            path: 'courses',
-            select: 'title thumbnail',
-            model: 'Course',
-          },
-          {
-            path: 'bundle',
-            select: 'title thumbnail',
-            model: 'BundleCourse',
-          },
-        ],
+        select: 'title courseCode thumbnail description',
       })
       .lean();
 
@@ -4468,27 +3841,7 @@ const generateInvoice = async (req, res) => {
     // Compute detailed item summaries with thumbnails and codes
     const itemsSummary = order.items.map((it) => {
       const itemDetails = it.item || {};
-
-      // Handle thumbnails based on item type
-      let thumbnail = null;
-
-      if (it.itemType === 'bundle') {
-        // For bundles, use bundle thumbnail first, then first course thumbnail as fallback
-        thumbnail = itemDetails.thumbnail;
-        if (
-          !thumbnail &&
-          itemDetails.courses &&
-          itemDetails.courses.length > 0
-        ) {
-          thumbnail = itemDetails.courses[0].thumbnail;
-        }
-      } else if (it.itemType === 'course') {
-        // For courses, use course thumbnail
-        thumbnail = itemDetails.thumbnail;
-      } else if (it.itemType === 'quiz') {
-        // For quizzes, use quiz thumbnail or default
-        thumbnail = itemDetails.thumbnail;
-      }
+      const thumbnail = itemDetails.thumbnail || null;
 
       return {
         title: it.title,
@@ -4497,12 +3850,9 @@ const generateInvoice = async (req, res) => {
         quantity: it.quantity,
         total: it.price * (it.quantity || 1),
         refId: it.item,
-        thumbnail: thumbnail,
+        thumbnail,
         courseCode: itemDetails.courseCode || null,
-        bundleCode: itemDetails.bundleCode || null,
         description: itemDetails.description || null,
-        courses: itemDetails.courses || [],
-        bundle: itemDetails.bundle || null,
       };
     });
 
@@ -4540,328 +3890,7 @@ const generateInvoice = async (req, res) => {
   }
 };
 
-// Get book orders page
-const getBookOrders = async (req, res) => {
-  try {
-    const {
-      status,
-      search,
-      dateFrom,
-      dateTo,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
-      page = 1,
-      limit = 20,
-    } = req.query;
-
-    const BookOrder = require('../models/BookOrder');
-    const User = require('../models/User');
-    const Purchase = require('../models/Purchase');
-    const filter = {};
-
-    if (status && status !== 'all') filter.status = status;
-    if (dateFrom || dateTo) {
-      filter.createdAt = {};
-      if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
-      if (dateTo) filter.createdAt.$lte = new Date(dateTo);
-    }
-
-    // Enhanced search functionality - search across all fields
-    if (search && search.trim()) {
-      const searchTerm = search.trim();
-
-      // Search in direct BookOrder fields
-      const directSearchFields = [
-        { orderNumber: { $regex: searchTerm, $options: 'i' } },
-        { bookName: { $regex: searchTerm, $options: 'i' } },
-        { trackingNumber: { $regex: searchTerm, $options: 'i' } },
-        { 'shippingAddress.email': { $regex: searchTerm, $options: 'i' } },
-        { 'shippingAddress.firstName': { $regex: searchTerm, $options: 'i' } },
-        { 'shippingAddress.lastName': { $regex: searchTerm, $options: 'i' } },
-        { 'shippingAddress.phone': { $regex: searchTerm, $options: 'i' } },
-        { 'shippingAddress.city': { $regex: searchTerm, $options: 'i' } },
-        { 'shippingAddress.streetName': { $regex: searchTerm, $options: 'i' } },
-        {
-          'shippingAddress.buildingNumber': {
-            $regex: searchTerm,
-            $options: 'i',
-          },
-        },
-        {
-          'shippingAddress.apartmentNumber': {
-            $regex: searchTerm,
-            $options: 'i',
-          },
-        },
-        { 'shippingAddress.address': { $regex: searchTerm, $options: 'i' } },
-        { 'shippingAddress.zipCode': { $regex: searchTerm, $options: 'i' } },
-        { notes: { $regex: searchTerm, $options: 'i' } },
-      ];
-
-      // Search in populated User fields
-      const matchingUsers = await User.find({
-        $or: [
-          { studentEmail: { $regex: searchTerm, $options: 'i' } },
-          { firstName: { $regex: searchTerm, $options: 'i' } },
-          { lastName: { $regex: searchTerm, $options: 'i' } },
-          { studentCode: { $regex: searchTerm, $options: 'i' } },
-        ],
-      })
-        .select('_id')
-        .lean();
-
-      // Search in populated Purchase fields (orderNumber)
-      const matchingPurchases = await Purchase.find({
-        orderNumber: { $regex: searchTerm, $options: 'i' },
-      })
-        .select('_id')
-        .lean();
-
-      // Build combined filter with $or
-      filter.$or = [...directSearchFields];
-
-      // Add user ID filter if matches found
-      if (matchingUsers.length > 0) {
-        const userIds = matchingUsers.map((u) => u._id);
-        filter.$or.push({ user: { $in: userIds } });
-      }
-
-      // Add purchase ID filter if matches found
-      if (matchingPurchases.length > 0) {
-        const purchaseIds = matchingPurchases.map((p) => p._id);
-        filter.$or.push({ purchase: { $in: purchaseIds } });
-      }
-    }
-
-    const sort = {};
-    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
-
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    const [bookOrders, totalOrders] = await Promise.all([
-      BookOrder.find(filter)
-        .populate('user', 'firstName lastName studentEmail studentCode')
-        .populate('teacher', 'firstName lastName teacherCode')
-        .populate('purchase', 'orderNumber paymentStatus status')
-        .sort(sort)
-        .skip(skip)
-        .limit(parseInt(limit))
-        .lean(),
-      BookOrder.countDocuments(filter),
-    ]);
-
-    const totalPages = Math.ceil(totalOrders / parseInt(limit));
-
-    // Calculate statistics
-    const stats = await BookOrder.aggregate([
-      { $match: filter },
-      {
-        $group: {
-          _id: null,
-          totalOrders: { $sum: 1 },
-          totalRevenue: { $sum: '$bookPrice' },
-          pending: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] } },
-          processing: {
-            $sum: { $cond: [{ $eq: ['$status', 'processing'] }, 1, 0] },
-          },
-          shipped: { $sum: { $cond: [{ $eq: ['$status', 'shipped'] }, 1, 0] } },
-          delivered: {
-            $sum: { $cond: [{ $eq: ['$status', 'delivered'] }, 1, 0] },
-          },
-        },
-      },
-    ]);
-
-    const analytics = stats[0] || {
-      totalOrders: 0,
-      totalRevenue: 0,
-      pending: 0,
-      processing: 0,
-      shipped: 0,
-      delivered: 0,
-    };
-
-    return res.render('admin/book-orders', {
-      title: 'Book Orders | ELKABLY',
-      theme: req.cookies.theme || 'light',
-      user: req.session.user,
-      bookOrders,
-      analytics,
-      currentFilters: {
-        status,
-        search,
-        dateFrom,
-        dateTo,
-        sortBy,
-        sortOrder,
-      },
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages,
-        totalOrders,
-        hasNext: parseInt(page) < totalPages,
-        hasPrev: parseInt(page) > 1,
-        limit: parseInt(limit),
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching book orders:', error);
-    req.flash('error_msg', 'Error loading book orders');
-    return res.redirect('/admin/dashboard');
-  }
-};
-
-// Update book order status
-const updateBookOrderStatus = async (req, res) => {
-  try {
-    const { bookOrderId } = req.params;
-    const { status, trackingNumber, notes } = req.body;
-
-    const BookOrder = require('../models/BookOrder');
-    const bookOrder = await BookOrder.findById(bookOrderId);
-
-    if (!bookOrder) {
-      return res.status(404).json({
-        success: false,
-        message: 'Book order not found',
-      });
-    }
-
-    bookOrder.status = status;
-    if (trackingNumber) bookOrder.trackingNumber = trackingNumber;
-    if (notes) bookOrder.notes = notes;
-
-    if (status === 'shipped' && !bookOrder.shippedAt) {
-      bookOrder.shippedAt = new Date();
-    }
-    if (status === 'delivered' && !bookOrder.deliveredAt) {
-      bookOrder.deliveredAt = new Date();
-    }
-
-    await bookOrder.save();
-
-    return res.json({
-      success: true,
-      message: 'Book order status updated successfully',
-      bookOrder,
-    });
-  } catch (error) {
-    console.error('Error updating book order status:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Error updating book order status',
-    });
-  }
-};
-
-// Bulk update book orders status
-const bulkUpdateBookOrdersStatus = async (req, res) => {
-  try {
-    const { orderIds, status, trackingNumber } = req.body;
-
-    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'No order IDs provided',
-      });
-    }
-
-    if (!status) {
-      return res.status(400).json({
-        success: false,
-        message: 'Status is required',
-      });
-    }
-
-    const BookOrder = require('../models/BookOrder');
-    const updateData = { status };
-
-    if (trackingNumber) {
-      updateData.trackingNumber = trackingNumber;
-    }
-
-    // Set shippedAt or deliveredAt timestamps
-    if (status === 'shipped') {
-      updateData.shippedAt = new Date();
-    } else if (status === 'delivered') {
-      updateData.deliveredAt = new Date();
-    }
-
-    const result = await BookOrder.updateMany(
-      { _id: { $in: orderIds } },
-      { $set: updateData }
-    );
-
-    return res.json({
-      success: true,
-      message: `Successfully updated ${result.modifiedCount} book order(s)`,
-      modifiedCount: result.modifiedCount,
-    });
-  } catch (error) {
-    console.error('Error bulk updating book orders status:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Error bulk updating book orders status',
-    });
-  }
-};
-
-// Export book orders data
-const exportBookOrders = async (req, res) => {
-  try {
-    const { status, search, dateFrom, dateTo } = req.query;
-
-    const BookOrder = require('../models/BookOrder');
-    const filter = {};
-
-    if (status && status !== 'all') filter.status = status;
-    if (dateFrom || dateTo) {
-      filter.createdAt = {};
-      if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
-      if (dateTo) filter.createdAt.$lte = new Date(dateTo);
-    }
-    if (search) {
-      filter.$or = [
-        { orderNumber: { $regex: search, $options: 'i' } },
-        { bookName: { $regex: search, $options: 'i' } },
-        { 'shippingAddress.email': { $regex: search, $options: 'i' } },
-        { 'shippingAddress.firstName': { $regex: search, $options: 'i' } },
-        { 'shippingAddress.lastName': { $regex: search, $options: 'i' } },
-        { 'shippingAddress.streetName': { $regex: search, $options: 'i' } },
-        { 'shippingAddress.buildingNumber': { $regex: search, $options: 'i' } },
-        {
-          'shippingAddress.apartmentNumber': { $regex: search, $options: 'i' },
-        },
-      ];
-    }
-
-    const bookOrders = await BookOrder.find(filter)
-      .populate('user', 'firstName lastName studentEmail studentCode')
-      .populate('teacher', 'teacherCode')
-      .populate('purchase', 'orderNumber paymentStatus')
-      .sort({ createdAt: -1 })
-      .lean();
-
-    const exporter = new ExcelExporter();
-    const workbook = await exporter.exportBookOrders(bookOrders);
-    const buffer = await workbook.xlsx.writeBuffer();
-
-    const timestamp = new Date().toISOString().split('T')[0];
-    const filename = `book-orders-report-${timestamp}.xlsx`;
-
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    return res.send(buffer);
-  } catch (error) {
-    console.error('Error exporting book orders:', error);
-    return res.status(500).json({ success: false, message: 'Export failed' });
-  }
-};
-
+// Refund an order and revoke access
 // Refund an order and revoke access
 const refundOrder = async (req, res) => {
   try {
@@ -4888,64 +3917,23 @@ const refundOrder = async (req, res) => {
     const refundAmount = typeof amount === 'number' ? amount : purchase.total;
 
     // Revoke access for each item
-    const bundlesUpdated = [];
     for (const it of purchase.items) {
-      if (it.itemType === 'bundle') {
-        // Mark purchased bundle cancelled
-        user.purchasedBundles = user.purchasedBundles.map((pb) => {
-          if (
-            (pb.bundle?.toString() || pb.bundle) === it.item.toString() &&
-            pb.status === 'active'
-          ) {
-            return { ...(pb.toObject?.() || pb), status: 'cancelled' };
-          }
-          return pb;
-        });
-
-        // Remove enrollment for all courses of this bundle
-        const bundle = await BundleCourse.findById(it.item).populate('courses');
-        if (bundle && bundle.courses && bundle.courses.length) {
-          const bundleCourseIds = new Set(
-            bundle.courses.map((c) => (c._id || c).toString())
-          );
-          user.enrolledCourses = user.enrolledCourses.filter(
-            (en) =>
-              !bundleCourseIds.has((en.course?._id || en.course).toString())
+      if (it.itemType === 'course') {
+        const courseId = it.item;
+        // Find enrollment
+        if (user.enrolledCourses) {
+          const enrollment = user.enrolledCourses.find(
+            (e) => e.course && e.course.toString() === courseId.toString()
           );
 
-          // Remove student from bundle's enrolledStudents list
-          const studentIndexInBundle = bundle.enrolledStudents.indexOf(
-            user._id
-          );
-          if (studentIndexInBundle !== -1) {
-            bundle.enrolledStudents.splice(studentIndexInBundle, 1);
-            bundlesUpdated.push(bundle);
+          if (enrollment) {
+            enrollment.status = 'inactive';
           }
         }
-      } else {
-        // Course purchase cancel and unenroll
-        user.purchasedCourses = user.purchasedCourses.map((pc) => {
-          if (
-            (pc.course?.toString() || pc.course) === it.item.toString() &&
-            pc.status === 'active'
-          ) {
-            return { ...(pc.toObject?.() || pc), status: 'cancelled' };
-          }
-          return pc;
-        });
-        user.enrolledCourses = user.enrolledCourses.filter(
-          (en) =>
-            (en.course?._id || en.course).toString() !== it.item.toString()
-        );
       }
     }
 
     await user.save();
-
-    // Save all updated bundles
-    for (const bundle of bundlesUpdated) {
-      await bundle.save();
-    }
 
     // Update purchase to refunded
     purchase.status = 'refunded';
@@ -5020,7 +4008,7 @@ const completeFailedPayment = async (req, res) => {
     // Import the processSuccessfulPayment function from purchaseController
     // We need to require it dynamically to avoid circular dependencies
     const purchaseController = require('./purchaseController');
-    
+
     // Use the centralized processSuccessfulPayment function
     // This ensures all enrollments, notifications, etc. are handled correctly
     try {
@@ -5033,24 +4021,6 @@ const completeFailedPayment = async (req, res) => {
       // Process the successful payment (this will enroll the student)
       await purchaseController.processSuccessfulPayment(purchase, null);
 
-      // Log admin action using the createLog helper
-      await createLog(req, {
-        action: 'COMPLETE_FAILED_PAYMENT',
-        actionCategory: 'ORDER_MANAGEMENT',
-        description: `Manually completed failed payment for order #${orderNumber}`,
-        targetModel: 'Purchase',
-        targetId: purchase._id.toString(),
-        targetName: `Order #${orderNumber}`,
-        metadata: {
-          orderNumber: purchase.orderNumber,
-          previousStatus: 'failed',
-          newStatus: 'completed',
-          total: purchase.total,
-          userId: purchase.user._id.toString(),
-        },
-        status: 'SUCCESS',
-      });
-
       console.log(`✅ Admin ${req.session.user.id} manually completed failed payment for order #${orderNumber}`);
 
       return res.json({
@@ -5060,7 +4030,7 @@ const completeFailedPayment = async (req, res) => {
       });
     } catch (processError) {
       console.error('Error processing successful payment:', processError);
-      
+
       // Revert status if processing failed
       purchase.status = 'failed';
       purchase.paymentStatus = 'failed';
@@ -5074,1138 +4044,6 @@ const completeFailedPayment = async (req, res) => {
       success: false,
       message: error.message || 'Failed to complete payment',
     });
-  }
-};
-
-// ==================== STUDENT MANAGEMENT CONTROLLERS ====================
-
-// Bundle Course Management
-const getBundles = async (req, res) => {
-  try {
-    const { status, subject, courseType, search, page = 1, limit = 12 } = req.query;
-
-    const filter = {};
-    if (status && status !== 'all') filter.status = status;
-    if (subject) filter.subject = subject;
-    if (courseType && courseType !== 'all') filter.courseType = courseType;
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-      ];
-    }
-
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    const bundles = await BundleCourse.find(filter)
-      .populate('courses')
-      .populate('createdBy', 'userName')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
-
-    const totalBundles = await BundleCourse.countDocuments(filter);
-    const totalPages = Math.ceil(totalBundles / parseInt(limit));
-
-    const stats = await getBundleStats();
-    const filterOptions = await getFilterOptions();
-
-    return res.render('admin/bundles', {
-      title: 'Bundle Management | ELKABLY',
-      theme: req.cookies.theme || 'light',
-      user: req.session.user,
-      bundles,
-      stats,
-      filterOptions,
-      currentFilters: { status, subject, courseType, search },
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages,
-        totalBundles,
-        hasNext: parseInt(page) < totalPages,
-        hasPrev: parseInt(page) > 1,
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching bundles:', error);
-    req.flash('error_msg', 'Error loading bundles');
-    res.redirect('/admin/dashboard');
-  }
-};
-
-// Create bundle
-const createBundle = async (req, res) => {
-  try {
-    const {
-      title,
-      description,
-      shortDescription,
-      subject,
-      testType,
-      courseType,
-      price,
-      discountPrice,
-      status = 'draft',
-      thumbnail,
-      hasBook,
-      bookName,
-      bookPrice,
-    } = req.body;
-
-    console.log('Creating bundle with data:', {
-      title,
-      thumbnail,
-      subject,
-    });
-
-    const bundle = new BundleCourse({
-      title: title.trim(),
-      description: description ? description.trim() : '',
-      shortDescription: shortDescription ? shortDescription.trim() : '',
-      subject,
-      testType,
-      courseType,
-      price: parseFloat(price),
-      discountPrice: discountPrice ? parseFloat(discountPrice) : null,
-      status,
-      createdBy: req.session.user.id,
-      courses: [], // Start with empty courses array
-      thumbnail: thumbnail || '',
-      hasBook: hasBook === 'on' || hasBook === true,
-      bookName: hasBook ? (bookName ? bookName.trim() : '') : '',
-      bookPrice: hasBook && bookPrice ? parseFloat(bookPrice) : 0,
-    });
-
-    console.log('Bundle object before save:', {
-      title: bundle.title,
-      thumbnail: bundle.thumbnail,
-    });
-
-    await bundle.save();
-
-    console.log('Bundle saved successfully with ID:', bundle._id);
-
-    // Log admin action
-    await createLog(req, {
-      action: 'CREATE_BUNDLE',
-      actionCategory: 'COURSE_MANAGEMENT',
-      description: `Created bundle "${bundle.title}" (${bundle.bundleCode})`,
-      targetModel: 'BundleCourse',
-      targetId: bundle._id.toString(),
-      targetName: bundle.title,
-      metadata: {
-        bundleCode: bundle.bundleCode,
-        subject: bundle.subject,
-        testType: bundle.testType,
-        courseType: bundle.courseType,
-        price: bundle.price,
-        status: bundle.status,
-      },
-    });
-
-    req.flash(
-      'success_msg',
-      'Bundle created successfully! You can now add courses to it.'
-    );
-    res.redirect(`/admin/bundles/${bundle.bundleCode}/manage`);
-  } catch (error) {
-    console.error('Error creating bundle:', error);
-
-    // Handle validation errors
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map(
-        (err) => err.message
-      );
-      req.flash(
-        'error_msg',
-        `Validation Error: ${validationErrors.join(', ')}`
-      );
-    } else {
-      req.flash('error_msg', 'Error creating bundle');
-    }
-
-    res.redirect('/admin/bundles');
-  }
-};
-
-// Get bundle management page
-const getBundleManage = async (req, res) => {
-  try {
-    const { bundleCode } = req.params;
-
-    const bundle = await BundleCourse.findOne({ bundleCode })
-      .populate({
-        path: 'courses',
-        options: { sort: { order: 1 } }, // Sort courses by order field
-      })
-      .populate('createdBy', 'userName');
-
-    if (!bundle) {
-      req.flash('error_msg', 'Bundle not found');
-      return res.redirect('/admin/bundles');
-    }
-
-    // Get available courses (no year filter)
-    const availableCourses = await Course.find({
-      status: 'published',
-    }).sort({ title: 1 });
-
-    return res.render('admin/bundle-manage', {
-      title: `Manage Bundle: ${bundle.title} | ELKABLY`,
-      theme: req.cookies.theme || 'light',
-      user: req.session.user,
-      bundle,
-      availableCourses,
-    });
-  } catch (error) {
-    console.error('Error fetching bundle management:', error);
-    req.flash('error_msg', 'Error loading bundle management');
-    res.redirect('/admin/bundles');
-  }
-};
-
-// Add course to bundle
-const addCourseToBundle = async (req, res) => {
-  try {
-    const { bundleCode, courseId } = req.params;
-
-    const bundle = await BundleCourse.findOne({ bundleCode });
-    if (!bundle) {
-      req.flash('error_msg', 'Bundle not found');
-      return res.redirect('/admin/bundles');
-    }
-
-    const course = await Course.findById(courseId);
-    if (!course) {
-      req.flash('error_msg', 'Course not found');
-      return res.redirect(`/admin/bundles/${bundleCode}/manage`);
-    }
-
-    // Check if course is already in bundle
-    if (bundle.courses.includes(courseId)) {
-      req.flash('error_msg', 'Course is already in this bundle');
-      return res.redirect(`/admin/bundles/${bundleCode}/manage`);
-    }
-
-    // Get current max order in bundle to assign next order
-    const existingCourses = await Course.find({ bundle: bundle._id })
-      .sort({ order: -1 })
-      .limit(1);
-    const nextOrder =
-      existingCourses.length > 0 ? (existingCourses[0].order || 0) + 1 : 1;
-
-    // Update course order and bundle reference
-    course.order = nextOrder;
-    await course.save();
-
-    // Add course to bundle
-    bundle.courses.push(courseId);
-    await bundle.save();
-
-    // Log admin action
-    await createLog(req, {
-      action: 'ADD_COURSE_TO_BUNDLE',
-      actionCategory: 'COURSE_MANAGEMENT',
-      description: `Added course "${course.title}" (${course.courseCode}) to bundle "${bundle.title}"`,
-      targetModel: 'BundleCourse',
-      targetId: bundle._id.toString(),
-      targetName: bundle.title,
-      metadata: {
-        bundleCode: bundleCode,
-        courseId: courseId,
-        courseCode: course.courseCode,
-        courseTitle: course.title,
-        courseOrder: nextOrder,
-      },
-    });
-
-    req.flash('success_msg', 'Course added to bundle successfully!');
-    res.redirect(`/admin/bundles/${bundleCode}/manage`);
-  } catch (error) {
-    console.error('Error adding course to bundle:', error);
-    req.flash('error_msg', 'Error adding course to bundle');
-    res.redirect(`/admin/bundles/${req.params.bundleCode}/manage`);
-  }
-};
-
-// Remove course from bundle
-const removeCourseFromBundle = async (req, res) => {
-  try {
-    const { bundleCode, courseId } = req.params;
-
-    const bundle = await BundleCourse.findOne({ bundleCode });
-    if (!bundle) {
-      req.flash('error_msg', 'Bundle not found');
-      return res.redirect('/admin/bundles');
-    }
-
-    // Get course info before removal for logging
-    const course = await Course.findById(courseId);
-
-    // Remove course from bundle
-    bundle.courses = bundle.courses.filter((id) => id.toString() !== courseId);
-    await bundle.save();
-
-    // Log admin action
-    await createLog(req, {
-      action: 'REMOVE_COURSE_FROM_BUNDLE',
-      actionCategory: 'COURSE_MANAGEMENT',
-      description: `Removed course "${
-        course?.title || courseId
-      }" from bundle "${bundle.title}"`,
-      targetModel: 'BundleCourse',
-      targetId: bundle._id.toString(),
-      targetName: bundle.title,
-      metadata: {
-        bundleCode: bundleCode,
-        courseId: courseId,
-        courseCode: course?.courseCode,
-        courseTitle: course?.title,
-      },
-    });
-
-    req.flash('success_msg', 'Course removed from bundle successfully!');
-    res.redirect(`/admin/bundles/${bundleCode}/manage`);
-  } catch (error) {
-    console.error('Error removing course from bundle:', error);
-    req.flash('error_msg', 'Error removing course from bundle');
-    res.redirect(`/admin/bundles/${req.params.bundleCode}/manage`);
-  }
-};
-
-// Create course for bundle
-const createCourseForBundle = async (req, res) => {
-  try {
-    const { bundleCode } = req.params;
-    const {
-      title,
-      description,
-      shortDescription,
-      level,
-      courseType,
-      subject,
-      category,
-      duration,
-      price = 0,
-      status = 'draft',
-      order,
-      requiresSequential,
-    } = req.body;
-
-    const bundle = await BundleCourse.findOne({ bundleCode });
-    if (!bundle) {
-      req.flash('error_msg', 'Bundle not found');
-      return res.redirect('/admin/bundles');
-    }
-
-    // Determine order - use provided order or auto-assign
-    let courseOrder = 0;
-    if (order && !isNaN(parseInt(order)) && parseInt(order) > 0) {
-      courseOrder = parseInt(order);
-    } else {
-      // Auto-assign next available order in bundle
-      const existingCourses = await Course.find({ bundle: bundle._id })
-        .sort({ order: -1 })
-        .limit(1);
-      courseOrder =
-        existingCourses.length > 0 ? (existingCourses[0].order || 0) + 1 : 1;
-    }
-
-    // Handle requiresSequential checkbox
-    const requiresSequentialFlag =
-      requiresSequential === 'on' ||
-      requiresSequential === true ||
-      requiresSequential === 'true';
-
-    // Create new course without year coupling
-    const course = new Course({
-      title: title.trim(),
-      description: description ? description.trim() : '',
-      shortDescription: shortDescription ? shortDescription.trim() : '',
-      level,
-      courseType,
-      subject,
-      category: category.trim(),
-      duration: parseInt(duration),
-      price: parseFloat(price),
-      status,
-      createdBy: req.session.user.id,
-      bundle: bundle._id,
-      order: courseOrder,
-      requiresSequential: requiresSequentialFlag,
-    });
-
-    await course.save();
-
-    // Add course to bundle
-    bundle.courses.push(course._id);
-    await bundle.save();
-
-    req.flash(
-      'success_msg',
-      'Course created and added to bundle successfully!'
-    );
-    res.redirect(`/admin/bundles/${bundleCode}/manage`);
-  } catch (error) {
-    console.error('Error creating course for bundle:', error);
-    req.flash('error_msg', 'Error creating course');
-    res.redirect(`/admin/bundles/${req.params.bundleCode}/manage`);
-  }
-};
-
-// Update course order in bundle
-const updateCourseOrder = async (req, res) => {
-  try {
-    const { bundleCode } = req.params;
-    const { courseOrders } = req.body; // Array of { courseId, order }
-
-    if (!courseOrders || !Array.isArray(courseOrders)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid course orders data',
-      });
-    }
-
-    // Verify bundle exists
-    const bundle = await BundleCourse.findOne({ bundleCode });
-    if (!bundle) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bundle not found',
-      });
-    }
-
-    // Update all courses' order
-    const updatePromises = courseOrders.map(({ courseId, order }) => {
-      return Course.findByIdAndUpdate(
-        courseId,
-        { order: parseInt(order) },
-        { new: true }
-      );
-    });
-
-    await Promise.all(updatePromises);
-
-    // Log admin action
-    await createLog(req, {
-      action: 'REORDER_BUNDLE_COURSES',
-      actionCategory: 'COURSE_MANAGEMENT',
-      description: `Reordered ${courseOrders.length} courses in bundle "${bundle.title}"`,
-      targetModel: 'BundleCourse',
-      targetId: bundle._id.toString(),
-      targetName: bundle.title,
-      metadata: {
-        bundleCode: bundleCode,
-        courseOrders: courseOrders,
-      },
-    });
-
-    return res.json({
-      success: true,
-      message: 'Course order updated successfully',
-    });
-  } catch (error) {
-    console.error('Error updating course order:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Error updating course order',
-    });
-  }
-};
-
-// API Routes
-const getBundlesAPI = async (req, res) => {
-  try {
-    const bundles = await BundleCourse.find({ status: { $ne: 'archived' } })
-      .select('_id title bundleCode')
-      .sort({ title: 1 });
-
-    res.json(bundles);
-  } catch (error) {
-    console.error('Error fetching bundles API:', error);
-    res.status(500).json({ error: 'Failed to fetch bundles' });
-  }
-};
-
-// Helper functions
-const getCourseStats = async () => {
-  const totalCourses = await Course.countDocuments();
-  const publishedCourses = await Course.countDocuments({ status: 'published' });
-  const draftCourses = await Course.countDocuments({ status: 'draft' });
-  const archivedCourses = await Course.countDocuments({ status: 'archived' });
-
-  const totalEnrollments = await Course.aggregate([
-    { $group: { _id: null, total: { $sum: '$enrolledStudents' } } },
-  ]);
-
-  return {
-    totalCourses,
-    publishedCourses,
-    draftCourses,
-    archivedCourses,
-    totalEnrollments: totalEnrollments[0]?.total || 0,
-  };
-};
-
-const getBundleStats = async () => {
-  const totalBundles = await BundleCourse.countDocuments();
-  const publishedBundles = await BundleCourse.countDocuments({
-    status: 'published',
-  });
-  const draftBundles = await BundleCourse.countDocuments({ status: 'draft' });
-
-  // Course type statistics
-  const onlineBundles = await BundleCourse.countDocuments({
-    courseType: 'online',
-    status: 'published',
-  });
-  const ongroundBundles = await BundleCourse.countDocuments({
-    courseType: 'onground',
-    status: 'published',
-  });
-  const recordedBundles = await BundleCourse.countDocuments({
-    courseType: 'recorded',
-    status: 'published',
-  });
-  const recoveryBundles = await BundleCourse.countDocuments({
-    courseType: 'recovery',
-    status: 'published',
-  });
-
-  const totalEnrollments = await BundleCourse.aggregate([
-    { $group: { _id: null, total: { $sum: '$enrolledStudents' } } },
-  ]);
-
-  return {
-    totalBundles,
-    publishedBundles,
-    draftBundles,
-    onlineBundles,
-    ongroundBundles,
-    recordedBundles,
-    recoveryBundles,
-    totalEnrollments: totalEnrollments[0]?.total || 0,
-  };
-};
-
-const getFilterOptions = async () => {
-  const years = []; // year removed from Course
-  const levels = await Course.distinct('level');
-  // Note: BundleCourse model doesn't exist, so we return empty array for bundles
-  const bundles = [];
-  const teachers = await Teacher.find({ isActive: true })
-    .select('_id firstName lastName teacherCode')
-    .sort({ firstName: 1 });
-
-  return { years, levels, bundles, teachers };
-};
-
-// Update bundle
-const updateBundle = async (req, res) => {
-  try {
-    const { bundleCode } = req.params;
-    const {
-      title,
-      description,
-      shortDescription,
-      courseType,
-      testType,
-      subject,
-      price,
-      discountPrice,
-      status,
-      thumbnail,
-      hasBook,
-      bookName,
-      bookPrice,
-    } = req.body;
-
-    // Check if request expects JSON response (AJAX request)
-    const isAjaxRequest =
-      req.headers['x-requested-with'] === 'XMLHttpRequest' ||
-      req.headers['accept']?.includes('application/json');
-
-    const bundle = await BundleCourse.findOne({ bundleCode });
-    if (!bundle) {
-      if (isAjaxRequest) {
-        return res.status(404).json({
-          success: false,
-          message: 'Bundle not found',
-        });
-      }
-      req.flash('error_msg', 'Bundle not found');
-      return res.redirect('/admin/bundles');
-    }
-
-    bundle.title = title.trim();
-    bundle.description = description ? description.trim() : '';
-    bundle.shortDescription = shortDescription ? shortDescription.trim() : '';
-    bundle.courseType = courseType;
-    bundle.testType = testType;
-    bundle.subject = subject.trim();
-    bundle.price = parseFloat(price);
-    bundle.discountPrice = discountPrice ? parseFloat(discountPrice) : null;
-    bundle.status = status;
-    if (thumbnail) bundle.thumbnail = thumbnail;
-    bundle.hasBook = hasBook === 'on' || hasBook === true;
-    bundle.bookName = bundle.hasBook ? (bookName ? bookName.trim() : '') : '';
-    bundle.bookPrice = bundle.hasBook && bookPrice ? parseFloat(bookPrice) : 0;
-
-    // Handle fully booked fields
-    const wasFullyBooked = bundle.isFullyBooked;
-    bundle.isFullyBooked =
-      req.body.isFullyBooked === true ||
-      req.body.isFullyBooked === 'true' ||
-      req.body.isFullyBooked === 'on';
-    bundle.fullyBookedMessage = bundle.isFullyBooked
-      ? req.body.fullyBookedMessage
-        ? req.body.fullyBookedMessage.trim()
-        : 'FULLY BOOKED'
-      : 'FULLY BOOKED';
-
-    const oldBundle = { ...bundle.toObject() };
-    await bundle.save();
-
-    // Log admin action
-    await createLog(req, {
-      action: 'UPDATE_BUNDLE',
-      actionCategory: 'COURSE_MANAGEMENT',
-      description: `Updated bundle "${bundle.title}" (${bundle.bundleCode})`,
-      targetModel: 'BundleCourse',
-      targetId: bundle._id.toString(),
-      targetName: bundle.title,
-      changes: {
-        before: {
-          title: oldBundle.title,
-          status: oldBundle.status,
-          price: oldBundle.price,
-        },
-        after: {
-          title: bundle.title,
-          status: bundle.status,
-          price: bundle.price,
-        },
-      },
-      metadata: {
-        bundleCode: bundleCode,
-        subject: bundle.subject,
-        testType: bundle.testType,
-        courseType: bundle.courseType,
-      },
-    });
-
-    // If bundle is set to fully booked, update all courses in the bundle
-    if (bundle.isFullyBooked && !wasFullyBooked) {
-      const Course = require('../models/Course');
-      await Course.updateMany(
-        { bundle: bundle._id },
-        {
-          $set: {
-            isFullyBooked: true,
-            fullyBookedMessage: bundle.fullyBookedMessage,
-          },
-        }
-      );
-      console.log(
-        `✅ Updated all courses in bundle ${bundle.bundleCode} to fully booked`
-      );
-    }
-    // If bundle is no longer fully booked, remove fully booked status from courses (optional)
-    else if (!bundle.isFullyBooked && wasFullyBooked) {
-      const Course = require('../models/Course');
-      await Course.updateMany(
-        { bundle: bundle._id },
-        {
-          $set: {
-            isFullyBooked: false,
-          },
-        }
-      );
-      console.log(
-        `✅ Removed fully booked status from all courses in bundle ${bundle.bundleCode}`
-      );
-    }
-
-    if (isAjaxRequest) {
-      return res.status(200).json({
-        success: true,
-        message: 'Bundle updated successfully!',
-        bundle: bundle,
-      });
-    }
-
-    req.flash('success_msg', 'Bundle updated successfully!');
-    res.redirect(`/admin/bundles/${bundleCode}/manage`);
-  } catch (error) {
-    console.error('Error updating bundle:', error);
-
-    // Check if request expects JSON response (AJAX request)
-    const isAjaxRequest =
-      req.headers['x-requested-with'] === 'XMLHttpRequest' ||
-      req.headers['accept']?.includes('application/json');
-
-    if (isAjaxRequest) {
-      if (error.name === 'ValidationError') {
-        const validationErrors = Object.values(error.errors).map(
-          (err) => err.message
-        );
-        return res.status(400).json({
-          success: false,
-          message: `Validation Error: ${validationErrors.join(', ')}`,
-          errors: validationErrors,
-        });
-      } else {
-        return res.status(500).json({
-          success: false,
-          message: 'Error updating bundle. Please try again.',
-        });
-      }
-    }
-
-    // Handle non-AJAX requests (redirects)
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map(
-        (err) => err.message
-      );
-      req.flash(
-        'error_msg',
-        `Validation Error: ${validationErrors.join(', ')}`
-      );
-    } else {
-      req.flash('error_msg', 'Error updating bundle');
-    }
-
-    res.redirect('/admin/bundles');
-  }
-};
-
-// Delete bundle
-const deleteBundle = async (req, res) => {
-  try {
-    const { bundleCode } = req.params;
-
-    const bundle = await BundleCourse.findOne({ bundleCode });
-    if (!bundle) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bundle not found',
-      });
-    }
-
-    const bundleTitle = bundle.title;
-    const bundleCodeValue = bundle.bundleCode;
-    const coursesCount = bundle.courses?.length || 0;
-
-    // Remove bundle reference from all courses
-    await Course.updateMany({ bundle: bundle._id }, { $unset: { bundle: 1 } });
-
-    // Delete the bundle
-    await BundleCourse.findByIdAndDelete(bundle._id);
-
-    // Log admin action
-    await createLog(req, {
-      action: 'DELETE_BUNDLE',
-      actionCategory: 'COURSE_MANAGEMENT',
-      description: `Deleted bundle "${bundleTitle}" (${bundleCodeValue})`,
-      targetModel: 'BundleCourse',
-      targetId: bundle._id.toString(),
-      targetName: bundleTitle,
-      metadata: {
-        bundleCode: bundleCodeValue,
-        coursesCount: coursesCount,
-      },
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: 'Bundle deleted successfully!',
-    });
-  } catch (error) {
-    console.error('Error deleting bundle:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Error deleting bundle',
-    });
-  }
-};
-
-// Get bundle students
-const getBundleStudents = async (req, res) => {
-  try {
-    const { bundleCode } = req.params;
-
-    const bundle = await BundleCourse.findOne({ bundleCode }).populate(
-      'courses',
-      'title courseCode enrolledStudents'
-    );
-
-    if (!bundle) {
-      req.flash('error_msg', 'Bundle not found');
-      return res.redirect('/admin/bundles');
-    }
-
-    // Mock student data for now
-    const students = [
-      {
-        id: 1,
-        name: 'Ahmed Mohamed',
-        email: 'ahmed@example.com',
-        enrollmentDate: '2024-01-15',
-        progress: 75,
-        coursesCompleted: 3,
-        totalCourses: bundle.courses.length,
-        lastActivity: '2024-01-20',
-      },
-      {
-        id: 2,
-        name: 'Sarah Ali',
-        email: 'sarah@example.com',
-        enrollmentDate: '2024-01-10',
-        progress: 90,
-        coursesCompleted: 4,
-        totalCourses: bundle.courses.length,
-        lastActivity: '2024-01-21',
-      },
-      {
-        id: 3,
-        name: 'Omar Hassan',
-        email: 'omar@example.com',
-        enrollmentDate: '2024-01-05',
-        progress: 60,
-        coursesCompleted: 2,
-        totalCourses: bundle.courses.length,
-        lastActivity: '2024-01-19',
-      },
-    ];
-
-    const analytics = {
-      totalStudents: students.length,
-      activeStudents: students.filter((s) => s.progress > 0).length,
-      completedStudents: students.filter((s) => s.progress === 100).length,
-      averageProgress: Math.round(
-        students.reduce((sum, s) => sum + s.progress, 0) / students.length
-      ),
-    };
-
-    return res.render('admin/bundle-students', {
-      title: `Bundle Students: ${bundle.title} | ELKABLY`,
-      theme: req.cookies.theme || 'light',
-      user: req.session.user,
-      bundle,
-      students,
-      analytics,
-    });
-  } catch (error) {
-    console.error('Error fetching bundle students:', error);
-    req.flash('error_msg', 'Error loading bundle students');
-    res.redirect('/admin/bundles');
-  }
-};
-
-// Get Bundle Information - Comprehensive analytics and data
-const getBundleInfo = async (req, res) => {
-  try {
-    const { bundleCode } = req.params;
-
-    // Get bundle with populated data
-    const bundle = await BundleCourse.findOne({ bundleCode })
-      .populate({
-        path: 'courses',
-        populate: {
-          path: 'topics',
-          model: 'Topic',
-        },
-      })
-      .populate('createdBy', 'userName email')
-      .populate(
-        'enrolledStudents',
-        'firstName lastName username studentEmail grade schoolName isActive createdAt'
-      );
-
-    if (!bundle) {
-      req.flash('error_msg', 'Bundle not found');
-      return res.redirect('/admin/bundles');
-    }
-
-    // Get students enrolled in this bundle (using enrolledStudents array)
-    const studentsWithBundle = await User.find({
-      _id: { $in: bundle.enrolledStudents },
-    })
-      .populate('enrolledCourses.course', 'title courseCode')
-      .populate('purchasedBundles.bundle', 'title bundleCode')
-      .select(
-        'firstName lastName username studentEmail grade schoolName isActive createdAt enrolledCourses purchasedBundles'
-      );
-
-    // Also get students who purchased this bundle but might not be in enrolledStudents
-    const purchasedStudents = await User.find({
-      'purchasedBundles.bundle': bundle._id,
-    })
-      .populate('enrolledCourses.course', 'title courseCode')
-      .populate('purchasedBundles.bundle', 'title bundleCode')
-      .select(
-        'firstName lastName username studentEmail grade schoolName isActive createdAt enrolledCourses purchasedBundles'
-      );
-
-    // Merge both arrays and remove duplicates
-    const allStudents = [...studentsWithBundle];
-    purchasedStudents.forEach((ps) => {
-      if (!allStudents.find((s) => s._id.toString() === ps._id.toString())) {
-        allStudents.push(ps);
-      }
-    });
-
-    // Calculate comprehensive student analytics
-    const studentAnalytics = {
-      totalStudents: allStudents.length,
-      activeStudents: allStudents.filter((student) => student.isActive).length,
-      inactiveStudents: allStudents.filter((student) => !student.isActive)
-        .length,
-      completedStudents: 0, // Will calculate based on course completion
-      averageProgress: 0,
-      recentEnrollments: allStudents.filter((student) => {
-        // Check if student purchased this bundle in last 30 days
-        const bundlePurchase = student.purchasedBundles.find(
-          (pb) =>
-            pb.bundle._id?.toString() === bundle._id.toString() ||
-            pb.bundle.toString() === bundle._id.toString()
-        );
-        if (bundlePurchase) {
-          const enrollmentDate = new Date(bundlePurchase.purchasedAt);
-          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-          return enrollmentDate >= thirtyDaysAgo;
-        }
-        return false;
-      }).length,
-    };
-
-    // Calculate course completion and progress
-    let totalProgress = 0;
-    let completedCount = 0;
-
-    for (const student of allStudents) {
-      let studentCourseProgress = 0;
-      let completedCourses = 0;
-      let enrolledInBundleCourses = 0;
-
-      for (const course of bundle.courses) {
-        // Find student's enrollment in this course
-        const enrollment = student.enrolledCourses?.find(
-          (e) =>
-            e.course?._id?.toString() === course._id.toString() ||
-            e.course?.toString() === course._id.toString()
-        );
-
-        if (enrollment) {
-          enrolledInBundleCourses++;
-          studentCourseProgress += enrollment.progress || 0;
-          if (enrollment.progress >= 100) {
-            completedCourses++;
-          }
-        }
-      }
-
-      // Calculate average progress only for courses student is enrolled in
-      const averageCourseProgress =
-        enrolledInBundleCourses > 0
-          ? studentCourseProgress / enrolledInBundleCourses
-          : 0;
-      totalProgress += averageCourseProgress;
-
-      // Consider student completed if they finished 80% or more of bundle courses
-      if (completedCourses >= Math.ceil(bundle.courses.length * 0.8)) {
-        completedCount++;
-      }
-    }
-
-    studentAnalytics.averageProgress =
-      allStudents.length > 0
-        ? Math.round(totalProgress / allStudents.length)
-        : 0;
-    studentAnalytics.completedStudents = completedCount;
-
-    // Calculate financial analytics
-    const financialAnalytics = {
-      totalRevenue: 0,
-      discountedRevenue: 0,
-      fullPriceRevenue: 0,
-      averageRevenuePerStudent: 0,
-      monthlyRevenue: Array(12).fill(0),
-      totalPotentialRevenue: allStudents.length * bundle.price,
-      conversionRate: 0,
-    };
-
-    // Calculate revenue from bundle purchases
-    for (const student of allStudents) {
-      const bundlePurchase = student.purchasedBundles.find(
-        (pb) =>
-          pb.bundle._id?.toString() === bundle._id.toString() ||
-          pb.bundle.toString() === bundle._id.toString()
-      );
-
-      if (bundlePurchase) {
-        const paidPrice = bundlePurchase.price || bundle.finalPrice;
-        financialAnalytics.totalRevenue += paidPrice;
-
-        if (paidPrice < bundle.price) {
-          financialAnalytics.discountedRevenue += paidPrice;
-        } else {
-          financialAnalytics.fullPriceRevenue += paidPrice;
-        }
-
-        // Monthly revenue tracking
-        const purchaseMonth = new Date(bundlePurchase.purchasedAt).getMonth();
-        financialAnalytics.monthlyRevenue[purchaseMonth] += paidPrice;
-      }
-    }
-
-    financialAnalytics.averageRevenuePerStudent =
-      allStudents.length > 0
-        ? financialAnalytics.totalRevenue / allStudents.length
-        : 0;
-
-    // Calculate course-specific analytics
-    const courseAnalytics = bundle.courses.map((course) => {
-      const enrolledInCourse = allStudents.filter((student) =>
-        student.enrolledCourses?.some(
-          (e) =>
-            e.course?._id?.toString() === course._id.toString() ||
-            e.course?.toString() === course._id.toString()
-        )
-      ).length;
-
-      const completedCourse = allStudents.filter((student) =>
-        student.enrolledCourses?.some(
-          (e) =>
-            (e.course?._id?.toString() === course._id.toString() ||
-              e.course?.toString() === course._id.toString()) &&
-            e.progress >= 100
-        )
-      ).length;
-
-      return {
-        courseId: course._id,
-        title: course.title,
-        enrolledStudents: enrolledInCourse,
-        completedStudents: completedCourse,
-        completionRate:
-          enrolledInCourse > 0
-            ? Math.round((completedCourse / enrolledInCourse) * 100)
-            : 0,
-        topicsCount: course.topics?.length || 0,
-        averageRating:
-          course.ratings?.length > 0
-            ? Math.round(
-                (course.ratings.reduce((sum, r) => sum + r.rating, 0) /
-                  course.ratings.length) *
-                  10
-              ) / 10
-            : 0,
-      };
-    });
-
-    console.log('Bundle Analytics Debug:', {
-      bundleId: bundle._id,
-      bundleCode: bundle.bundleCode,
-      totalEnrolledStudents: bundle.enrolledStudents?.length || 0,
-      studentsFound: allStudents.length,
-      courseCount: bundle.courses.length,
-      studentAnalytics,
-      courseAnalytics: courseAnalytics.map((c) => ({
-        title: c.title,
-        enrolled: c.enrolledStudents,
-        completed: c.completedStudents,
-        rate: c.completionRate,
-      })),
-    });
-
-    // Calculate engagement metrics
-    const engagementMetrics = {
-      dailyActiveUsers: 0, // Would need activity tracking
-      weeklyActiveUsers: 0,
-      averageSessionDuration: 0,
-      contentCompletionRate: 0,
-    };
-
-    // Calculate content completion rate
-    let totalContent = 0;
-    let completedContent = 0;
-
-    bundle.courses.forEach((course) => {
-      if (course.topics) {
-        course.topics.forEach((topic) => {
-          if (topic.content) {
-            totalContent += topic.content.length;
-            // This would need proper progress tracking implementation
-          }
-        });
-      }
-    });
-
-    engagementMetrics.contentCompletionRate =
-      totalContent > 0
-        ? Math.round((completedContent / totalContent) * 100)
-        : 0;
-
-    // Get recent activity (would need activity tracking)
-    const recentActivity = [
-      {
-        type: 'enrollment',
-        description: `${studentAnalytics.recentEnrollments} new enrollments this month`,
-        timestamp: new Date(),
-        icon: 'user-plus',
-        color: 'success',
-      },
-      {
-        type: 'completion',
-        description: `${studentAnalytics.completedStudents} students completed the bundle`,
-        timestamp: new Date(),
-        icon: 'graduation-cap',
-        color: 'primary',
-      },
-      {
-        type: 'revenue',
-        description: `$${Math.round(
-          financialAnalytics.totalRevenue
-        )} total revenue generated`,
-        timestamp: new Date(),
-        icon: 'coins',
-        color: 'warning',
-      },
-    ];
-
-    // Grade distribution
-    const gradeDistribution = {};
-    allStudents.forEach((student) => {
-      const grade = student.grade || 'Unknown';
-      gradeDistribution[grade] = (gradeDistribution[grade] || 0) + 1;
-    });
-
-    // School distribution
-    const schoolDistribution = {};
-    allStudents.forEach((student) => {
-      const school = student.schoolName || 'Unknown';
-      schoolDistribution[school] = (schoolDistribution[school] || 0) + 1;
-    });
-
-    return res.render('admin/bundle-info', {
-      title: `Bundle Information: ${bundle.title} | ELKABLY`,
-      theme: req.cookies.theme || 'light',
-      user: req.session.user,
-      bundle,
-      studentsWithBundle: allStudents,
-      studentAnalytics,
-      financialAnalytics,
-      courseAnalytics,
-      engagementMetrics,
-      recentActivity,
-      gradeDistribution,
-      schoolDistribution,
-    });
-  } catch (error) {
-    console.error('Error fetching bundle information:', error);
-    req.flash('error_msg', 'Error loading bundle information');
-    res.redirect('/admin/bundles');
   }
 };
 
@@ -6316,7 +4154,7 @@ const getStudents = async (req, res) => {
         : 0;
       const completedCourses = student.enrolledCourses
         ? student.enrolledCourses.filter((ec) => ec.status === 'completed')
-            .length
+          .length
         : 0;
 
       // Calculate overall progress (this would need actual progress data)
@@ -6333,8 +4171,8 @@ const getStudents = async (req, res) => {
       // Calculate days since last activity
       const daysSinceLastActivity = student.lastLogin
         ? Math.floor(
-            (new Date() - new Date(student.lastLogin)) / (1000 * 60 * 60 * 24)
-          )
+          (new Date() - new Date(student.lastLogin)) / (1000 * 60 * 60 * 24)
+        )
         : null;
 
       return {
@@ -6440,16 +4278,16 @@ const getStudentDetails = async (req, res) => {
     // Content quizzes are tracked separately and should not be double-counted
     const totalQuizAttempts = student.quizAttempts
       ? student.quizAttempts.reduce(
-          (total, qa) => total + qa.attempts.length,
-          0
-        )
+        (total, qa) => total + qa.attempts.length,
+        0
+      )
       : 0;
 
     // Fetch Purchase records for this student (used for both analytics and display)
     const studentPurchases = await Purchase.find({ user: studentId })
       .populate({
         path: 'items.item',
-        select: 'title bundleCode courseCode',
+        select: 'title courseCode',
       })
       .populate('appliedPromoCode', 'code discountPercentage')
       .sort({ createdAt: -1 })
@@ -6460,9 +4298,7 @@ const getStudentDetails = async (req, res) => {
       totalEnrolledCourses: student.enrolledCourses
         ? student.enrolledCourses.length
         : 0,
-      totalPurchasedBundles:
-        studentPurchases.length ||
-        (student.purchasedBundles ? student.purchasedBundles.length : 0),
+      totalPurchases: studentPurchases.length,
       totalQuizAttempts: totalQuizAttempts,
       averageQuizScore: calculateAverageQuizScore(student),
       totalTimeSpent: calculateTotalTimeSpent(student, progressData),
@@ -6515,51 +4351,51 @@ const getStudentDetails = async (req, res) => {
             // Build content items array for detailed display
             const contentItems = topic.content
               ? topic.content.map((contentItem) => {
-                  // Find corresponding progress data
-                  const progressData = topicContentProgress.find(
-                    (cp) =>
-                      cp.contentId &&
-                      cp.contentId.toString() === contentItem._id.toString()
-                  );
+                // Find corresponding progress data
+                const progressData = topicContentProgress.find(
+                  (cp) =>
+                    cp.contentId &&
+                    cp.contentId.toString() === contentItem._id.toString()
+                );
 
-                  // Extract score from progress data (could be bestScore or score)
-                  let score = undefined;
-                  let quizAttempts = [];
+                // Extract score from progress data (could be bestScore or score)
+                let score = undefined;
+                let quizAttempts = [];
 
-                  if (progressData) {
-                    // For quiz/homework content, get the best score and attempts
-                    if (
-                      contentItem.type === 'quiz' ||
-                      contentItem.type === 'homework'
-                    ) {
-                      score = progressData.bestScore || progressData.score;
-                      quizAttempts = progressData.quizAttempts || [];
-                    }
+                if (progressData) {
+                  // For quiz/homework content, get the best score and attempts
+                  if (
+                    contentItem.type === 'quiz' ||
+                    contentItem.type === 'homework'
+                  ) {
+                    score = progressData.bestScore || progressData.score;
+                    quizAttempts = progressData.quizAttempts || [];
                   }
+                }
 
-                  return {
-                    _id: contentItem._id,
-                    title: contentItem.title,
-                    type: contentItem.type,
-                    completed: progressData
-                      ? progressData.completionStatus === 'completed'
-                      : false,
-                    completedDate: progressData
-                      ? progressData.completedDate
-                      : null,
-                    score: score,
-                    timeSpent: progressData
-                      ? progressData.timeSpent
-                      : undefined,
-                    lastAccessed: progressData
-                      ? progressData.lastAccessed
-                      : null,
-                    quizAttempts: quizAttempts,
-                    totalPoints: progressData
-                      ? progressData.totalPoints
-                      : undefined,
-                  };
-                })
+                return {
+                  _id: contentItem._id,
+                  title: contentItem.title,
+                  type: contentItem.type,
+                  completed: progressData
+                    ? progressData.completionStatus === 'completed'
+                    : false,
+                  completedDate: progressData
+                    ? progressData.completedDate
+                    : null,
+                  score: score,
+                  timeSpent: progressData
+                    ? progressData.timeSpent
+                    : undefined,
+                  lastAccessed: progressData
+                    ? progressData.lastAccessed
+                    : null,
+                  quizAttempts: quizAttempts,
+                  totalPoints: progressData
+                    ? progressData.totalPoints
+                    : undefined,
+                };
+              })
               : [];
 
             return {
@@ -6570,8 +4406,8 @@ const getStudentDetails = async (req, res) => {
               progress:
                 topicContentCount > 0
                   ? Math.round(
-                      (topicCompletedContent / topicContentCount) * 100
-                    )
+                    (topicCompletedContent / topicContentCount) * 100
+                  )
                   : 0,
               contentItems: contentItems,
             };
@@ -6624,16 +4460,16 @@ const getStudentDetails = async (req, res) => {
           dc.progress === 100
             ? 'completed'
             : dc.progress > 0
-            ? 'active'
-            : 'not_started',
+              ? 'active'
+              : 'not_started',
         enrolledAt: enrolledCourse.enrolledAt
           ? new Date(enrolledCourse.enrolledAt)
           : new Date(),
         lastAccessed: enrolledCourse.lastAccessed
           ? new Date(enrolledCourse.lastAccessed)
           : enrolledCourse.enrolledAt
-          ? new Date(enrolledCourse.enrolledAt)
-          : new Date(),
+            ? new Date(enrolledCourse.enrolledAt)
+            : new Date(),
       };
     });
 
@@ -6683,7 +4519,7 @@ const getStudentDetails = async (req, res) => {
           groupedQuizzes[quizId].passRate = Math.round(
             (groupedQuizzes[quizId].attempts.filter((a) => a.passed).length /
               groupedQuizzes[quizId].totalAttempts) *
-              100
+            100
           );
         }
       });
@@ -6740,9 +4576,8 @@ const getStudentDetails = async (req, res) => {
         ) {
           activityType = 'quiz_attempt';
           if (progress.completionStatus === 'completed') {
-            description = `Completed ${progress.contentType} "${
-              progress.contentTitle
-            }" with score ${progress.score || 'N/A'}/10`;
+            description = `Completed ${progress.contentType} "${progress.contentTitle
+              }" with score ${progress.score || 'N/A'}/10`;
           } else {
             description = `Accessed ${progress.contentType} "${progress.contentTitle}"`;
           }
@@ -6777,9 +4612,8 @@ const getStudentDetails = async (req, res) => {
             ? 'quiz_attempt'
             : 'content_progress',
           title: activity.course ? activity.course.title : 'Course Activity',
-          description: `${activity.activity.replace(/_/g, ' ')} ${
-            activity.topic ? `in ${activity.topic.title}` : ''
-          }`,
+          description: `${activity.activity.replace(/_/g, ' ')} ${activity.topic ? `in ${activity.topic.title}` : ''
+            }`,
           date: activity.timestamp,
         }));
 
@@ -6794,10 +4628,6 @@ const getStudentDetails = async (req, res) => {
       switch (type) {
         case 'video':
           return 'video';
-        case 'quiz':
-          return 'question-circle';
-        case 'homework':
-          return 'tasks';
         case 'pdf':
           return 'file-pdf';
         case 'reading':
@@ -6882,8 +4712,7 @@ const toggleStudentStatus = async (req, res) => {
 
     // Log the action
     console.log(
-      `Admin ${req.session.user.username || 'admin'} ${
-        isActive ? 'activated' : 'deactivated'
+      `Admin ${req.session.user.username || 'admin'} ${isActive ? 'activated' : 'deactivated'
       } student ${student.username}`
     );
 
@@ -6921,25 +4750,10 @@ const toggleParentPhoneStatus = async (req, res) => {
     student.isParentPhoneChecked = isParentPhoneChecked;
     await student.save();
 
-    await createLog(req, {
-      action: 'TOGGLE_PARENT_PHONE_STATUS',
-      actionCategory: 'STUDENT_MANAGEMENT',
-      description: `Marked parent phone as ${
-        isParentPhoneChecked ? 'checked' : 'unchecked'
-      } for student "${student.firstName} ${student.lastName}" (${student.username})`,
-      targetModel: 'User',
-      targetId: student._id.toString(),
-      targetName: `${student.firstName} ${student.lastName}`,
-      metadata: {
-        isParentPhoneChecked,
-      },
-    });
-
     return res.json({
       success: true,
-      message: `Parent phone has been marked as ${
-        isParentPhoneChecked ? 'checked' : 'unchecked'
-      }`,
+      message: `Parent phone has been marked as ${isParentPhoneChecked ? 'checked' : 'unchecked'
+        }`,
       isParentPhoneChecked: student.isParentPhoneChecked,
     });
   } catch (error) {
@@ -7016,34 +4830,11 @@ const bulkToggleStudentStatus = async (req, res) => {
     }
 
     // Log the action
-    await createLog(req, {
-      action: 'BULK_TOGGLE_STUDENT_STATUS',
-      actionCategory: 'STUDENT_MANAGEMENT',
-      description: `Bulk updated ${
-        hasIsActive ? `status (${isActive ? 'activated' : 'deactivated'})` : ''
-      }${
-        hasIsActive && hasParentFlag ? ' and ' : ''
-      }${
-        hasParentFlag
-          ? `parent phone flag (set to ${isParentPhoneChecked ? 'checked' : 'unchecked'})`
-          : ''
-      } for ${updateResult.modifiedCount} student(s)`,
-      targetModel: 'User',
-      metadata: {
-        studentCount: updateResult.modifiedCount,
-        isActive: hasIsActive ? isActive : undefined,
-        isParentPhoneChecked: hasParentFlag ? isParentPhoneChecked : undefined,
-        studentIds: studentIds.slice(0, 10), // Log first 10 IDs
-      },
-    });
 
     console.log(
-      `Admin ${req.session.user.username || 'admin'} bulk updated ${
-        updateResult.modifiedCount
-      } students (isActive: ${
-        hasIsActive ? String(isActive) : 'unchanged'
-      }, isParentPhoneChecked: ${
-        hasParentFlag ? String(isParentPhoneChecked) : 'unchanged'
+      `Admin ${req.session.user.username || 'admin'} bulk updated ${updateResult.modifiedCount
+      } students (isActive: ${hasIsActive ? String(isActive) : 'unchanged'
+      }, isParentPhoneChecked: ${hasParentFlag ? String(isParentPhoneChecked) : 'unchanged'
       })`
     );
 
@@ -7075,14 +4866,6 @@ const exportStudentData = async (req, res) => {
           populate: {
             path: 'topics',
             model: 'Topic',
-          },
-        })
-        .populate({
-          path: 'purchasedBundles.bundle',
-          select: 'title bundleCode price courses',
-          populate: {
-            path: 'courses',
-            select: 'title courseCode',
           },
         })
         .populate({
@@ -7172,7 +4955,7 @@ const exportStudentData = async (req, res) => {
                   // Add question count for quiz/homework content
                   questionCount:
                     ['quiz', 'homework'].includes(content.type) &&
-                    content.selectedQuestions
+                      content.selectedQuestions
                       ? content.selectedQuestions.length
                       : null,
                 };
@@ -7208,8 +4991,8 @@ const exportStudentData = async (req, res) => {
                   topicProgressPercentage === 100
                     ? 'Completed'
                     : topicProgressPercentage > 0
-                    ? 'In Progress'
-                    : 'Not Started',
+                      ? 'In Progress'
+                      : 'Not Started',
                 totalContent: (topic.content || []).length,
                 completedContent,
                 timeSpent: topicProgress.reduce(
@@ -7219,10 +5002,10 @@ const exportStudentData = async (req, res) => {
                 lastAccessed:
                   topicProgress.length > 0
                     ? Math.max(
-                        ...topicProgress.map(
-                          (p) => new Date(p.lastAccessed || 0)
-                        )
+                      ...topicProgress.map(
+                        (p) => new Date(p.lastAccessed || 0)
                       )
+                    )
                     : null,
                 content: contentProgress,
               };
@@ -7276,8 +5059,8 @@ const exportStudentData = async (req, res) => {
               Math.max(
                 progressData.length > 0
                   ? Math.max(
-                      ...progressData.map((p) => new Date(p.lastAccessed || 0))
-                    )
+                    ...progressData.map((p) => new Date(p.lastAccessed || 0))
+                  )
                   : 0,
                 enrollment.lastAccessed ? new Date(enrollment.lastAccessed) : 0
               ) || null,
@@ -7338,7 +5121,7 @@ const exportStudentData = async (req, res) => {
             (a) =>
               a.status === 'passed' ||
               (a.score || 0) >=
-                (quiz.passingScore || quizDetails?.passingScore || 60)
+              (quiz.passingScore || quizDetails?.passingScore || 60)
           ).length;
 
           // Calculate total questions from quiz details
@@ -7377,10 +5160,10 @@ const exportStudentData = async (req, res) => {
               accuracy:
                 (attempt.totalQuestions || totalQuestions) > 0
                   ? Math.round(
-                      ((attempt.correctAnswers || 0) /
-                        (attempt.totalQuestions || totalQuestions)) *
-                        100
-                    )
+                    ((attempt.correctAnswers || 0) /
+                      (attempt.totalQuestions || totalQuestions)) *
+                    100
+                  )
                   : 0,
               questionDetails: attempt.questionDetails || [],
             })),
@@ -7390,93 +5173,8 @@ const exportStudentData = async (req, res) => {
         }
       }
 
-      // Get comprehensive purchase history
-      const comprehensivePurchaseHistory = await Promise.all(
-        (student.purchasedBundles || []).map(async (purchase) => {
-          const bundle = purchase.bundle;
-          if (!bundle) return null;
-
-          // Get courses included in this bundle
-          const includedCourses = await Promise.all(
-            (bundle.courses || []).map(async (courseRef) => {
-              const courseId = courseRef._id || courseRef;
-              const course = courseRef.title
-                ? courseRef
-                : await Course.findById(courseId).lean();
-              const enrollment = student.enrolledCourses?.find(
-                (e) =>
-                  e.course && e.course._id.toString() === courseId.toString()
-              );
-
-              const progressData = await Progress.find({
-                student: studentId,
-                course: courseId,
-              }).lean();
-
-              const progress =
-                progressData.length > 0
-                  ? Math.round(
-                      progressData.reduce(
-                        (sum, p) => sum + (p.progress || 0),
-                        0
-                      ) / progressData.length
-                    )
-                  : 0;
-
-              return {
-                title: course?.title || 'Unknown Course',
-                courseCode: course?.courseCode || 'N/A',
-                enrollmentDate:
-                  enrollment?.enrollmentDate || enrollment?.enrolledAt || null,
-                progress,
-                status:
-                  progress === 100
-                    ? 'Completed'
-                    : progress > 0
-                    ? 'In Progress'
-                    : 'Not Started',
-                timeSpent: progressData.reduce(
-                  (sum, p) => sum + (p.timeSpent || 0),
-                  0
-                ),
-                lastAccessed:
-                  progressData.length > 0
-                    ? Math.max(
-                        ...progressData.map(
-                          (p) => new Date(p.lastAccessed || 0)
-                        )
-                      )
-                    : null,
-              };
-            })
-          );
-
-          const bundleProgress =
-            includedCourses.length > 0
-              ? Math.round(
-                  includedCourses.reduce(
-                    (sum, course) => sum + course.progress,
-                    0
-                  ) / includedCourses.length
-                )
-              : 0;
-
-          return {
-            bundleTitle: bundle.title,
-            bundleCode: bundle.bundleCode,
-            orderNumber: purchase.orderNumber,
-            price: purchase.price || bundle.price,
-            purchaseDate: purchase.purchaseDate || purchase.purchasedAt,
-            expiryDate: purchase.expiryDate || purchase.expiresAt,
-            status: purchase.status || 'Active',
-            paymentMethod: purchase.paymentMethod || 'Unknown',
-            usagePercentage: bundleProgress,
-            includedCourses: includedCourses.filter(
-              (course) => course !== null
-            ),
-          };
-        })
-      );
+      // Get comprehensive purchase history (from Purchase records only; bundles removed)
+      const comprehensivePurchaseHistory = [];
 
       // Generate activity timeline
       const activityTimeline = [];
@@ -7505,9 +5203,8 @@ const exportStudentData = async (req, res) => {
         activityTimeline.push({
           timestamp: progress.lastAccessed || progress.createdAt,
           activityType: 'Content Access',
-          description: `Accessed content in ${
-            progress.topic?.title || 'Unknown Topic'
-          }`,
+          description: `Accessed content in ${progress.topic?.title || 'Unknown Topic'
+            }`,
           courseOrQuiz: progress.course?.title || 'Unknown Course',
           duration: progress.timeSpent || 0,
           scoreOrProgress: `${progress.progress || 0}/10`,
@@ -7523,16 +5220,14 @@ const exportStudentData = async (req, res) => {
             activityTimeline.push({
               timestamp: attempt.createdAt,
               activityType: 'Quiz Attempt',
-              description: `Attempted quiz: ${
-                quizAttempt.quiz?.title || 'Unknown Quiz'
-              }`,
+              description: `Attempted quiz: ${quizAttempt.quiz?.title || 'Unknown Quiz'
+                }`,
               courseOrQuiz: quizAttempt.quiz?.title || 'Quiz',
               duration: attempt.timeSpent || 0,
               scoreOrProgress: `${attempt.score || 0}/10`,
               status: attempt.status || 'Unknown',
-              details: `Score: ${attempt.score || 0}/${
-                attempt.maxScore || 100
-              }`,
+              details: `Score: ${attempt.score || 0}/${attempt.maxScore || 100
+                }`,
             });
           });
         }
@@ -7549,9 +5244,9 @@ const exportStudentData = async (req, res) => {
         avgSessionDuration:
           student.loginHistory?.length > 0
             ? student.loginHistory.reduce(
-                (sum, session) => sum + (session.duration || 0),
-                0
-              ) / student.loginHistory.length
+              (sum, session) => sum + (session.duration || 0),
+              0
+            ) / student.loginHistory.length
             : 0,
         engagementScore: calculateEngagementScore(student, allProgressData),
         activityStreak: calculateActivityStreak(activityTimeline),
@@ -7581,11 +5276,11 @@ const exportStudentData = async (req, res) => {
         completionRate:
           comprehensiveCourseProgress.length > 0
             ? Math.round(
-                comprehensiveCourseProgress.reduce(
-                  (sum, course) => sum + course.progress,
-                  0
-                ) / comprehensiveCourseProgress.length
-              )
+              comprehensiveCourseProgress.reduce(
+                (sum, course) => sum + course.progress,
+                0
+              ) / comprehensiveCourseProgress.length
+            )
             : 0,
         engagementScore: engagementAnalytics.engagementScore,
 
@@ -7609,8 +5304,6 @@ const exportStudentData = async (req, res) => {
         })),
 
         purchaseHistory: comprehensivePurchaseHistory.map((purchase) => ({
-          bundleTitle: purchase.bundleTitle,
-          bundleCode: purchase.bundleCode,
           price: purchase.price,
           purchaseDate: purchase.purchaseDate,
           expiryDate: purchase.expiryDate,
@@ -7623,9 +5316,8 @@ const exportStudentData = async (req, res) => {
       const buffer = await workbook.xlsx.writeBuffer();
 
       const timestamp = new Date().toISOString().split('T')[0];
-      const filename = `${
-        student.studentCode || student._id
-      }-comprehensive-report-${timestamp}.xlsx`;
+      const filename = `${student.studentCode || student._id
+        }-comprehensive-report-${timestamp}.xlsx`;
 
       res.setHeader(
         'Content-Type',
@@ -7648,10 +5340,6 @@ const exportStudentData = async (req, res) => {
         path: 'enrolledCourses.course',
         select: 'title courseCode',
       })
-      .populate({
-        path: 'purchasedBundles.bundle',
-        select: 'title bundleCode',
-      })
       .select('-password')
       .lean();
 
@@ -7671,11 +5359,11 @@ const exportStudentData = async (req, res) => {
           completionRate:
             student.enrolledCourses?.length > 0
               ? Math.round(
-                  student.enrolledCourses.reduce(
-                    (sum, ec) => sum + (ec.progress || 0),
-                    0
-                  ) / student.enrolledCourses.length
-                )
+                student.enrolledCourses.reduce(
+                  (sum, ec) => sum + (ec.progress || 0),
+                  0
+                ) / student.enrolledCourses.length
+              )
               : 0,
           engagementScore: calculateEngagementScore(student, progressData),
         };
@@ -7828,29 +5516,14 @@ const updateStudent = async (req, res) => {
     // Save the student (this will trigger validation and password hashing if password was changed)
     await student.save();
 
-    // Log admin action
-    await createLog(req, {
-      action: 'UPDATE_STUDENT',
-      actionCategory: 'STUDENT_MANAGEMENT',
-      description: `Updated student "${student.firstName} ${student.lastName}" (${student.username})`,
-      targetModel: 'User',
-      targetId: student._id.toString(),
-      targetName: `${student.firstName} ${student.lastName}`,
-      metadata: {
-        username: student.username,
-        email: student.studentEmail,
-        statusChanged: previousIsActive !== student.isActive,
-      },
-    });
-
     // If activation status changed, notify student via SMS (non-blocking)
     if (previousIsActive !== student.isActive) {
       const phone =
         student.studentCountryCode && student.studentNumber
           ? `${student.studentCountryCode}${student.studentNumber}`.replace(
-              /[^\d+]/g,
-              ''
-            )
+            /[^\d+]/g,
+            ''
+          )
           : null;
       if (phone) {
         const message = student.isActive
@@ -7880,8 +5553,7 @@ const updateStudent = async (req, res) => {
         .map((err) => err.message)
         .join(', ');
       return res.redirect(
-        `/admin/students/${
-          req.params.studentId
+        `/admin/students/${req.params.studentId
         }/edit?error=${encodeURIComponent(errorMessages)}`
       );
     }
@@ -7890,8 +5562,7 @@ const updateStudent = async (req, res) => {
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       return res.redirect(
-        `/admin/students/${
-          req.params.studentId
+        `/admin/students/${req.params.studentId
         }/edit?error=${encodeURIComponent(`This ${field} is already in use`)}`
       );
     }
@@ -7951,21 +5622,6 @@ const deleteStudent = async (req, res) => {
 
     // Permanently delete the student from database
     await User.findByIdAndDelete(studentId);
-
-    // Log admin action
-    await createLog(req, {
-      action: 'DELETE_STUDENT',
-      actionCategory: 'STUDENT_MANAGEMENT',
-      description: `Permanently deleted student "${studentInfo.name}" (${studentInfo.username})`,
-      targetModel: 'User',
-      targetId: studentInfo.id.toString(),
-      targetName: studentInfo.name,
-      metadata: {
-        username: studentInfo.username,
-        email: studentInfo.email,
-        phone: studentInfo.phone,
-      },
-    });
 
     // Notify student via SMS about deletion (non-blocking)
     if (studentInfo.phone) {
@@ -8069,16 +5725,13 @@ const calculateStudentAnalytics = async (filter = {}) => {
       {
         $project: {
           totalCourses: { $size: { $ifNull: ['$enrolledCourses', []] } },
-          totalBundles: { $size: { $ifNull: ['$purchasedBundles', []] } },
         },
       },
       {
         $group: {
           _id: null,
           avgCourses: { $avg: '$totalCourses' },
-          avgBundles: { $avg: '$totalBundles' },
           totalCourses: { $sum: '$totalCourses' },
-          totalBundles: { $sum: '$totalBundles' },
         },
       },
     ]);
@@ -8092,9 +5745,7 @@ const calculateStudentAnalytics = async (filter = {}) => {
       enrollmentTrends,
       courseStats: courseStats[0] || {
         avgCourses: 0,
-        avgBundles: 0,
         totalCourses: 0,
-        totalBundles: 0,
       },
     };
   } catch (error) {
@@ -8108,9 +5759,7 @@ const calculateStudentAnalytics = async (filter = {}) => {
       enrollmentTrends: [],
       courseStats: {
         avgCourses: 0,
-        avgBundles: 0,
         totalCourses: 0,
-        totalBundles: 0,
       },
     };
   }
@@ -8120,16 +5769,14 @@ const getStudentFilterOptions = async () => {
   try {
     const grades = await User.distinct('grade');
     const schools = await User.distinct('schoolName');
-    // Note: BundleCourse model doesn't exist, so we return empty array for bundles
-    const bundles = [];
     const courses = await Course.find({ status: { $ne: 'archived' } })
       .select('_id title courseCode')
       .sort({ title: 1 });
 
-    return { grades, schools, bundles, courses };
+    return { grades, schools, courses };
   } catch (error) {
     console.error('Error getting filter options:', error);
-    return { grades: [], schools: [], bundles: [], courses: [] };
+    return { grades: [], schools: [], courses: [] };
   }
 };
 
@@ -8213,24 +5860,24 @@ const calculateStudentDetailedAnalytics = async (studentId, student) => {
     );
     const daysSinceLastActivity = student.lastLogin
       ? Math.floor(
-          (new Date() - new Date(student.lastLogin)) / (1000 * 60 * 60 * 24)
-        )
+        (new Date() - new Date(student.lastLogin)) / (1000 * 60 * 60 * 24)
+      )
       : null;
 
     // Content completion statistics - this is already calculated above
     // Using previously calculated totalContentCount and completedContentCount
     const inProgressContent = student.enrolledCourses
       ? student.enrolledCourses.reduce((sum, course) => {
-          if (course.contentProgress) {
-            return (
-              sum +
-              course.contentProgress.filter(
-                (cp) => cp.completionStatus === 'in_progress'
-              ).length
-            );
-          }
-          return sum;
-        }, 0)
+        if (course.contentProgress) {
+          return (
+            sum +
+            course.contentProgress.filter(
+              (cp) => cp.completionStatus === 'in_progress'
+            ).length
+          );
+        }
+        return sum;
+      }, 0)
       : 0;
 
     const contentCompletionRate =
@@ -8342,9 +5989,9 @@ const calculateCourseAnalytics = async (studentId, enrolledCourses) => {
       // Calculate time spent (sum from contentProgress)
       const totalTimeSpent = enrollment.contentProgress
         ? enrollment.contentProgress.reduce(
-            (sum, cp) => sum + (cp.timeSpent || 0),
-            0
-          )
+          (sum, cp) => sum + (cp.timeSpent || 0),
+          0
+        )
         : 0;
 
       // Calculate days since enrollment
@@ -8415,9 +6062,8 @@ const getStudentActivityTimeline = async (studentId) => {
 
     const activities = progressActivities.map((progress) => ({
       type: 'progress',
-      description: `Made progress in ${
-        progress.course?.title || 'Unknown Course'
-      }`,
+      description: `Made progress in ${progress.course?.title || 'Unknown Course'
+        }`,
       details: progress.topic?.title || 'Topic progress',
       timestamp: progress.timestamp,
       data: progress,
@@ -8526,8 +6172,8 @@ const calculateTotalTimeSpent = (student, progressData) => {
       // Assume each content item takes about 20 minutes
       const contentCompleted = course.contentProgress
         ? course.contentProgress.filter(
-            (cp) => cp.completionStatus === 'completed'
-          ).length
+          (cp) => cp.completionStatus === 'completed'
+        ).length
         : 0;
 
       return total + contentCompleted * 20;
@@ -8783,10 +6429,10 @@ const createBrilliantStudent = async (req, res) => {
         field: !name
           ? 'name'
           : !testType
-          ? 'testType'
-          : !score
-          ? 'score'
-          : 'fallbackInitials',
+            ? 'testType'
+            : !score
+              ? 'score'
+              : 'fallbackInitials',
       });
     }
 
@@ -8937,10 +6583,10 @@ const updateBrilliantStudent = async (req, res) => {
         field: !name
           ? 'name'
           : !testType
-          ? 'testType'
-          : !score
-          ? 'score'
-          : 'fallbackInitials',
+            ? 'testType'
+            : !score
+              ? 'score'
+              : 'fallbackInitials',
       });
     }
 
@@ -9475,8 +7121,8 @@ const exportCourseDetails = async (req, res) => {
           (enrollment?.progress || 0) >= 100
             ? 'completed'
             : (enrollment?.progress || 0) > 0
-            ? 'in-progress'
-            : 'not-started',
+              ? 'in-progress'
+              : 'not-started',
         enrolledAt: enrollment?.enrollmentDate || enrollment?.enrolledAt,
         lastAccessed: enrollment?.lastAccessed,
         timeSpent: studentProgress.reduce(
@@ -9536,7 +7182,7 @@ const exportCourseDetails = async (req, res) => {
               passRate = Math.round(
                 (scores.filter((s) => s >= passingScore).length /
                   scores.length) *
-                  100
+                100
               );
             }
           }
@@ -9667,8 +7313,8 @@ const exportTopicDetails = async (req, res) => {
       const lastActivity =
         studentProgress.length > 0
           ? Math.max(
-              ...studentProgress.map((p) => new Date(p.updatedAt).getTime())
-            )
+            ...studentProgress.map((p) => new Date(p.updatedAt).getTime())
+          )
           : null;
 
       // Determine status
@@ -9706,25 +7352,25 @@ const exportTopicDetails = async (req, res) => {
       averageProgress:
         studentsAnalytics.length > 0
           ? Math.round(
-              studentsAnalytics.reduce((sum, s) => sum + s.progress, 0) /
-                studentsAnalytics.length
-            )
+            studentsAnalytics.reduce((sum, s) => sum + s.progress, 0) /
+            studentsAnalytics.length
+          )
           : 0,
       completionRate:
         enrolledStudents.length > 0
           ? Math.round(
-              (studentsAnalytics.filter((s) => s.status === 'completed')
-                .length /
-                enrolledStudents.length) *
-                100
-            )
+            (studentsAnalytics.filter((s) => s.status === 'completed')
+              .length /
+              enrolledStudents.length) *
+            100
+          )
           : 0,
       averageTimeSpent:
         studentsAnalytics.length > 0
           ? Math.round(
-              studentsAnalytics.reduce((sum, s) => sum + s.totalTimeSpent, 0) /
-                studentsAnalytics.length
-            )
+            studentsAnalytics.reduce((sum, s) => sum + s.totalTimeSpent, 0) /
+            studentsAnalytics.length
+          )
           : 0,
       totalContentItems: topic.content ? topic.content.length : 0,
     };
@@ -9885,25 +7531,23 @@ const exportQuestionBankDetails = async (req, res) => {
         correctAnswer =
           question.correctAnswers && question.correctAnswers.length > 0
             ? question.correctAnswers
-                .map((ans) => {
-                  const answerText =
-                    typeof ans === 'string' ? ans : ans.text || '';
-                  const isMandatory =
-                    typeof ans === 'object' && ans.isMandatory !== undefined
-                      ? ans.isMandatory
-                      : true;
-                  return `${answerText}${
-                    isMandatory ? ' (Mandatory)' : ' (Optional)'
+              .map((ans) => {
+                const answerText =
+                  typeof ans === 'string' ? ans : ans.text || '';
+                const isMandatory =
+                  typeof ans === 'object' && ans.isMandatory !== undefined
+                    ? ans.isMandatory
+                    : true;
+                return `${answerText}${isMandatory ? ' (Mandatory)' : ' (Optional)'
                   }`;
-                })
-                .join('; ')
+              })
+              .join('; ')
             : 'N/A';
       } else if (question.options && question.options.length > 0) {
         optionsText = question.options
           .map(
             (opt, idx) =>
-              `${String.fromCharCode(65 + idx)}. ${opt.text}${
-                opt.isCorrect ? ' ✓' : ''
+              `${String.fromCharCode(65 + idx)}. ${opt.text}${opt.isCorrect ? ' ✓' : ''
               }`
           )
           .join(' | ');
@@ -9948,9 +7592,8 @@ const exportQuestionBankDetails = async (req, res) => {
     );
 
     // Set response headers for file download
-    const filename = `questionbank-${
-      questionBank.bankCode
-    }-${questionBank.name.replace(/[^a-zA-Z0-9]/g, '-')}-questions.xlsx`;
+    const filename = `questionbank-${questionBank.bankCode
+      }-${questionBank.name.replace(/[^a-zA-Z0-9]/g, '-')}-questions.xlsx`;
     res.setHeader(
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -10026,9 +7669,9 @@ const exportQuizDetails = async (req, res) => {
         const averageScore =
           completedAttempts.length > 0
             ? completedAttempts.reduce(
-                (sum, attempt) => sum + (attempt.score || 0),
-                0
-              ) / completedAttempts.length
+              (sum, attempt) => sum + (attempt.score || 0),
+              0
+            ) / completedAttempts.length
             : 0;
 
         const totalTimeSpent = completedAttempts.reduce(
@@ -10076,30 +7719,30 @@ const exportQuizDetails = async (req, res) => {
       averageScore:
         participantDetails.length > 0
           ? Math.round(
-              (participantDetails.reduce((sum, p) => sum + p.bestScore, 0) /
-                participantDetails.length) *
-                100
-            ) / 100
+            (participantDetails.reduce((sum, p) => sum + p.bestScore, 0) /
+              participantDetails.length) *
+            100
+          ) / 100
           : 0,
       passRate:
         participantDetails.length > 0
           ? Math.round(
-              (participantDetails.filter((p) => p.passed).length /
-                participantDetails.length) *
-                100 *
-                100
-            ) / 100
+            (participantDetails.filter((p) => p.passed).length /
+              participantDetails.length) *
+            100 *
+            100
+          ) / 100
           : 0,
       averageTimeSpent:
         participantDetails.length > 0
           ? Math.round(
-              (participantDetails.reduce(
-                (sum, p) => sum + p.totalTimeSpent,
-                0
-              ) /
-                participantDetails.length) *
-                100
-            ) / 100
+            (participantDetails.reduce(
+              (sum, p) => sum + p.totalTimeSpent,
+              0
+            ) /
+              participantDetails.length) *
+            100
+          ) / 100
           : 0,
       scoreDistribution: {
         excellent: participantDetails.filter((p) => p.bestScore >= 90).length,
@@ -10201,20 +7844,18 @@ const exportQuizDetails = async (req, res) => {
           correctAnswerText =
             question.correctAnswers && question.correctAnswers.length > 0
               ? question.correctAnswers
-                  .map((ans) => {
-                    if (typeof ans === 'string') return ans;
-                    return `${ans.text || ''}${
-                      ans.isMandatory !== false ? ' (Mandatory)' : ' (Optional)'
+                .map((ans) => {
+                  if (typeof ans === 'string') return ans;
+                  return `${ans.text || ''}${ans.isMandatory !== false ? ' (Mandatory)' : ' (Optional)'
                     }`;
-                  })
-                  .join('; ')
+                })
+                .join('; ')
               : 'N/A';
         } else if (question.options && question.options.length > 0) {
           optionsText = question.options
             .map(
               (opt, idx) =>
-                `${String.fromCharCode(65 + idx)}. ${opt.text}${
-                  opt.isCorrect ? ' ✓' : ''
+                `${String.fromCharCode(65 + idx)}. ${opt.text}${opt.isCorrect ? ' ✓' : ''
                 }`
             )
             .join(' | ');
@@ -10243,9 +7884,8 @@ const exportQuizDetails = async (req, res) => {
 
     // Generate buffer and send
     const buffer = await workbook.xlsx.writeBuffer();
-    const filename = `Quiz_${quiz.code}_Details_${
-      new Date().toISOString().split('T')[0]
-    }.xlsx`;
+    const filename = `Quiz_${quiz.code}_Details_${new Date().toISOString().split('T')[0]
+      }.xlsx`;
 
     res.setHeader(
       'Content-Type',
@@ -10305,8 +7945,8 @@ const calculateContentInteractionRate = (student, progressData) => {
   const totalCourses = student.enrolledCourses.length;
   const coursesWithProgress = progressData
     ? new Set(
-        progressData.map((p) => p.course?._id || p.course).filter(Boolean)
-      ).size
+      progressData.map((p) => p.course?._id || p.course).filter(Boolean)
+    ).size
     : 0;
 
   return totalCourses > 0
@@ -10863,15 +8503,15 @@ const endZoomMeeting = async (req, res) => {
                   const course = await Course.findById(courseId);
                   const meetingDate = zoomMeeting.actualStartTime
                     ? new Date(zoomMeeting.actualStartTime).toLocaleDateString(
-                        'en-US',
-                        {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        }
-                      )
+                      'en-US',
+                      {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      }
+                    )
                     : 'N/A';
 
                   const meetingDuration = zoomMeeting.actualDuration || 0;
@@ -10988,14 +8628,12 @@ const endZoomMeeting = async (req, res) => {
                     cameraOpened = cameraOnPercentage >= 80;
 
                     console.log(
-                      `📹 Camera status for ${
-                        student.firstName
+                      `📹 Camera status for ${student.firstName
                       }: ${cameraOnPercentage.toFixed(
                         1
                       )}% ON (${totalCameraOnTime.toFixed(
                         1
-                      )}/${timeSpent.toFixed(1)} min) - Status: ${
-                        cameraOpened ? 'ON' : 'OFF'
+                      )}/${timeSpent.toFixed(1)} min) - Status: ${cameraOpened ? 'ON' : 'OFF'
                       }`
                     );
                   }
@@ -11004,12 +8642,12 @@ const endZoomMeeting = async (req, res) => {
                   let joinedLate = false;
                   const meetingActualStartTime = zoomMeeting.actualStartTime || refreshedMeeting.actualStartTime;
                   const studentFirstJoinTime = attendance.firstJoinTime;
-                  
+
                   if (meetingActualStartTime && studentFirstJoinTime) {
                     const lateThresholdMs = 30 * 60 * 1000; // 30 minutes in milliseconds
                     const joinDelayMs = new Date(studentFirstJoinTime) - new Date(meetingActualStartTime);
                     joinedLate = joinDelayMs >= lateThresholdMs;
-                    
+
                     if (joinedLate) {
                       const minutesLate = Math.round(joinDelayMs / (1000 * 60));
                       console.log(`⏰ Student ${student.firstName} joined ${minutesLate} minutes late (threshold: 30 min)`);
@@ -11126,10 +8764,8 @@ const endZoomMeeting = async (req, res) => {
                 );
 
                 console.log(
-                  `📱 Sent non-attendance SMS to parent of ${
-                    enrolledStudent.firstName
-                  } ${enrolledStudent.lastName} (${
-                    watchedRecording ? 'watched recording' : 'did not attend'
+                  `📱 Sent non-attendance SMS to parent of ${enrolledStudent.firstName
+                  } ${enrolledStudent.lastName} (${watchedRecording ? 'watched recording' : 'did not attend'
                   })`
                 );
               } catch (smsError) {
@@ -11217,20 +8853,17 @@ const endZoomMeeting = async (req, res) => {
         `📊 Zoom Meeting Attendance Report\n\n` +
         `Meeting: ${zoomMeeting.meetingName}\n` +
         `Course: ${course.title}\n` +
-        `Date: ${
-          zoomMeeting.actualStartTime
-            ? new Date(zoomMeeting.actualStartTime).toLocaleDateString()
-            : 'N/A'
+        `Date: ${zoomMeeting.actualStartTime
+          ? new Date(zoomMeeting.actualStartTime).toLocaleDateString()
+          : 'N/A'
         }\n` +
         `Total Enrolled: ${enrolledStudents.length}\n` +
-        `Attended: ${
-          zoomMeeting.studentsAttended ? zoomMeeting.studentsAttended.length : 0
+        `Attended: ${zoomMeeting.studentsAttended ? zoomMeeting.studentsAttended.length : 0
         }\n` +
-        `Not Attended: ${
-          enrolledStudents.length -
-          (zoomMeeting.studentsAttended
-            ? zoomMeeting.studentsAttended.length
-            : 0)
+        `Not Attended: ${enrolledStudents.length -
+        (zoomMeeting.studentsAttended
+          ? zoomMeeting.studentsAttended.length
+          : 0)
         }`;
 
       console.log(
@@ -11674,24 +9307,6 @@ const bulkImportStudents = async (req, res) => {
       fs.unlinkSync(req.file.path);
     }
 
-    // Log admin action
-    await createLog(req, {
-      action: 'BULK_IMPORT_STUDENTS',
-      actionCategory: 'STUDENT_MANAGEMENT',
-      description: `Bulk imported ${results.success.length} students (${results.failed.length} failed)`,
-      targetModel: 'User',
-      targetId: 'multiple',
-      targetName: `${results.success.length} students`,
-      status: results.failed.length > 0 ? 'PARTIAL' : 'SUCCESS',
-      metadata: {
-        total: results.total,
-        successful: results.success.length,
-        failed: results.failed.length,
-        successDetails: results.success.slice(0, 10), // First 10 for reference
-        failedDetails: results.failed.slice(0, 10), // First 10 for reference
-      },
-    });
-
     return res.json({
       success: true,
       message: `Import completed: ${results.success.length} successful, ${results.failed.length} failed`,
@@ -11769,7 +9384,7 @@ const downloadBulkImportSample = async (req, res) => {
 const downloadEnrollmentTemplate = async (req, res) => {
   try {
     const XLSX = require('xlsx');
-    
+
     // Excel template with sample data
     // Users can use any one of: Email, Phone, or Code columns
     const sampleRows = [
@@ -11912,26 +9527,9 @@ const enrollStudentsToCourse = async (req, res) => {
 
     const message =
       finalStartingOrder !== null
-        ? `Successfully enrolled ${
-            enrolledStudents.length
-          } student(s) from week ${finalStartingOrder + 1}`
+        ? `Successfully enrolled ${enrolledStudents.length
+        } student(s) from week ${finalStartingOrder + 1}`
         : `Successfully enrolled ${enrolledStudents.length} student(s)`;
-
-    // Log admin action
-    await createLog(req, {
-      action: 'ENROLL_STUDENT',
-      actionCategory: 'STUDENT_MANAGEMENT',
-      description: `Enrolled ${enrolledStudents.length} student(s) to course "${course.title}" (${course.courseCode})`,
-      targetModel: 'Course',
-      targetId: courseId,
-      targetName: course.title,
-      metadata: {
-        courseCode: course.courseCode,
-        studentCount: enrolledStudents.length,
-        studentNames: enrolledStudents,
-        startingOrder: finalStartingOrder,
-      },
-    });
 
     res.json({
       success: true,
@@ -11941,150 +9539,6 @@ const enrollStudentsToCourse = async (req, res) => {
     });
   } catch (error) {
     console.error('Error enrolling students to course:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to enroll students',
-    });
-  }
-};
-
-// Enroll students manually to a bundle
-const enrollStudentsToBundle = async (req, res) => {
-  try {
-    const { bundleId } = req.params;
-    const { studentIds } = req.body; // Array of student IDs
-
-    if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please select at least one student',
-      });
-    }
-
-    const bundle = await BundleCourse.findById(bundleId);
-    if (!bundle) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bundle not found',
-      });
-    }
-
-    const students = await User.find({
-      _id: { $in: studentIds },
-      role: 'student',
-    });
-
-    if (students.length !== studentIds.length) {
-      return res.status(400).json({
-        success: false,
-        message: 'Some students not found',
-      });
-    }
-
-    // Check if any students are already enrolled
-    const alreadyEnrolledStudents = students.filter((student) =>
-      student.purchasedBundles.some(
-        (purchase) => purchase.bundle && purchase.bundle.toString() === bundleId
-      )
-    );
-
-    if (alreadyEnrolledStudents.length > 0) {
-      const alreadyEnrolledNames = alreadyEnrolledStudents.map(
-        (student) => student.name || `${student.firstName} ${student.lastName}`
-      );
-
-      return res.status(400).json({
-        success: false,
-        message: `Cannot enroll students who are already enrolled in this bundle`,
-        alreadyEnrolled: alreadyEnrolledNames,
-        error: 'ALREADY_ENROLLED',
-      });
-    }
-
-    // Enroll all students to bundle
-    const enrolledStudents = [];
-    const enrolledStudentIds = [];
-
-    // Get unique course IDs from bundle (handle both ObjectId and string formats)
-    const uniqueCourseIds = [...new Set(
-      bundle.courses.map(courseId => 
-        (courseId && courseId._id ? courseId._id : courseId).toString()
-      )
-    )].map(id => new mongoose.Types.ObjectId(id));
-
-    // Verify courses exist and filter out invalid ones
-    const Course = mongoose.model('Course');
-    const existingCourses = await Course.find({ _id: { $in: uniqueCourseIds } }).select('_id');
-    const validCourseIds = existingCourses.map(c => c._id);
-    
-    console.log(`📦 Bundle ${bundle.bundleCode} has ${bundle.courses.length} courses in array, ${uniqueCourseIds.length} unique, ${validCourseIds.length} valid courses`);
-
-    for (const student of students) {
-      // Add bundle to student's purchasedBundles
-      student.purchasedBundles.push({
-        bundle: bundleId,
-        purchasedAt: new Date(),
-        price: bundle.discountPrice || bundle.price || 0,
-        orderNumber: `ADMIN-${Date.now()}-${student._id}`,
-        status: 'active',
-      });
-
-      // Also enroll in all unique valid courses in the bundle using safe enrollment
-      for (const courseId of validCourseIds) {
-        await student.safeEnrollInCourse(courseId);
-      }
-
-      await student.save();
-
-      enrolledStudents.push(
-        student.name || `${student.firstName} ${student.lastName}`
-      );
-      enrolledStudentIds.push(student._id);
-
-      // Send WhatsApp notification for bundle enrollment
-      try {
-        const whatsappSMSNotificationService = require('../utils/whatsappSMSNotificationService');
-        await whatsappSMSNotificationService.sendBundleEnrollmentNotification(
-          student._id,
-          bundle
-        );
-      } catch (whatsappError) {
-        console.error(
-          'WhatsApp bundle enrollment notification error:',
-          whatsappError
-        );
-        // Don't fail the enrollment if WhatsApp fails
-      }
-    }
-
-    // Update bundle's enrolledStudents list
-    bundle.enrolledStudents.push(...enrolledStudentIds);
-    await bundle.save();
-
-    // Log admin action
-    await createLog(req, {
-      action: 'ENROLL_STUDENT',
-      actionCategory: 'STUDENT_MANAGEMENT',
-      description: `Enrolled ${enrolledStudents.length} student(s) to bundle "${bundle.title}" (${bundle.bundleCode})`,
-      targetModel: 'BundleCourse',
-      targetId: bundleId,
-      targetName: bundle.title,
-        metadata: {
-        bundleCode: bundle.bundleCode,
-        studentCount: enrolledStudents.length,
-        studentNames: enrolledStudents,
-        coursesCount: bundle.courses.length,
-        uniqueCoursesEnrolled: validCourseIds.length,
-      },
-    });
-
-    res.json({
-      success: true,
-      message: `Successfully enrolled ${enrolledStudents.length} student(s) to bundle`,
-      enrolled: enrolledStudents,
-    });
-  } catch (error) {
-    console.error('Error enrolling students to bundle:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to enroll students',
@@ -12114,7 +9568,6 @@ const cleanupUserDuplicates = async (req, res) => {
         duplicatesRemoved: result.duplicatesRemoved,
         enrollmentsRemoved: result.enrollmentsRemoved,
         coursePurchasesRemoved: result.coursePurchasesRemoved,
-        bundlePurchasesRemoved: result.bundlePurchasesRemoved,
       },
     });
   } catch (error) {
@@ -12312,24 +9765,6 @@ const bulkEnrollStudentsToCourse = async (req, res) => {
       // Don't fail the request if cleanup fails
     }
 
-    // Log admin action
-    await createLog(req, {
-      action: 'BULK_ENROLL_STUDENTS',
-      actionCategory: 'STUDENT_MANAGEMENT',
-      description: `Bulk enrolled ${results.success.length} student(s) to course "${course.title}" (${results.failed.length} failed, ${results.alreadyEnrolled.length} already enrolled)`,
-      targetModel: 'Course',
-      targetId: courseId,
-      targetName: course.title,
-      status: results.failed.length > 0 ? 'PARTIAL' : 'SUCCESS',
-      metadata: {
-        courseCode: course.courseCode,
-        successful: results.success.length,
-        failed: results.failed.length,
-        alreadyEnrolled: results.alreadyEnrolled.length,
-        total: results.total,
-      },
-    });
-
     res.json({
       success: true,
       message: `Enrollment completed: ${results.success.length} successful, ${results.failed.length} failed, ${results.alreadyEnrolled.length} already enrolled`,
@@ -12337,269 +9772,7 @@ const bulkEnrollStudentsToCourse = async (req, res) => {
     });
   } catch (error) {
     console.error('Error bulk enrolling students:', error);
-    
-    // Clean up uploaded file on error
-    try {
-      if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
-    } catch (cleanupError) {
-      console.error('Error cleaning up file on error:', cleanupError);
-    }
 
-    // Ensure we always return JSON, not HTML
-    res.status(500).json({
-      success: false,
-      message: 'Failed to bulk enroll students',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-    });
-  }
-};
-
-// Bulk enroll students to a bundle via Excel
-const bulkEnrollStudentsToBundle = async (req, res) => {
-  try {
-    const { bundleId } = req.params;
-
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: 'No file uploaded',
-      });
-    }
-
-    const bundle = await BundleCourse.findById(bundleId);
-    if (!bundle) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bundle not found',
-      });
-    }
-
-    // Validate file path exists
-    if (!fs.existsSync(req.file.path)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Uploaded file not found',
-      });
-    }
-
-    const XLSX = require('xlsx');
-    let workbook;
-    try {
-      workbook = XLSX.readFile(req.file.path);
-    } catch (xlsxError) {
-      console.error('Error reading Excel file:', xlsxError);
-      // Clean up file
-      if (fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
-      return res.status(400).json({
-        success: false,
-        message: 'Failed to read Excel file. Please ensure it is a valid Excel file.',
-      });
-    }
-
-    if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
-      // Clean up file
-      if (fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
-      return res.status(400).json({
-        success: false,
-        message: 'Excel file is empty or invalid',
-      });
-    }
-
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const data = XLSX.utils.sheet_to_json(worksheet);
-
-    const results = {
-      success: [],
-      failed: [],
-      alreadyEnrolled: [],
-      total: data.length,
-    };
-
-    // Get unique course IDs from bundle (handle both ObjectId and string formats) - do this once outside the loop
-    const uniqueCourseIds = [...new Set(
-      bundle.courses.map(courseId => 
-        (courseId && courseId._id ? courseId._id : courseId).toString()
-      )
-    )].map(id => new mongoose.Types.ObjectId(id));
-
-    // Verify courses exist and filter out invalid ones - do this once outside the loop
-    const Course = mongoose.model('Course');
-    const existingCourses = await Course.find({ _id: { $in: uniqueCourseIds } }).select('_id');
-    const validCourseIds = existingCourses.map(c => c._id);
-    
-    console.log(`📦 Bulk enrollment: Bundle ${bundle.bundleCode} has ${bundle.courses.length} courses in array, ${uniqueCourseIds.length} unique, ${validCourseIds.length} valid courses`);
-
-    // Helper function to get value by key
-    const getValueByKey = (obj, possibleKeys) => {
-      for (const key of possibleKeys) {
-        if (obj[key] !== undefined) return obj[key];
-        const lowerKey = key.toLowerCase();
-        for (const objKey in obj) {
-          if (objKey.toLowerCase() === lowerKey) return obj[objKey];
-        }
-        for (const objKey in obj) {
-          if (objKey.trim() === key) return obj[objKey];
-        }
-      }
-      return undefined;
-    };
-
-    for (let i = 0; i < data.length; i++) {
-      const row = data[i];
-      const rowNumber = i + 2;
-
-      try {
-        // Extract identifier (email, phone, or code)
-        const identifier = getValueByKey(row, [
-          'Email',
-          'email',
-          'Student Email',
-          'student email',
-          'Phone',
-          'phone',
-          'Student Phone',
-          'student phone',
-          'Student Number',
-          'student number',
-          'Code',
-          'code',
-          'Student Code',
-          'student code',
-        ]);
-
-        if (!identifier) {
-          results.failed.push({
-            row: rowNumber,
-            reason: 'Missing identifier (Email, Phone, or Code)',
-          });
-          continue;
-        }
-
-        // Find student by email, phone, or code
-        let student = await User.findOne({
-          $or: [
-            { studentEmail: identifier.toLowerCase() },
-            { studentNumber: identifier },
-            { studentCode: identifier },
-            { username: identifier },
-          ],
-          role: 'student',
-        });
-
-        if (!student) {
-          results.failed.push({
-            row: rowNumber,
-            identifier,
-            reason: 'Student not found',
-          });
-          continue;
-        }
-
-        // Check if already enrolled
-        const isAlreadyEnrolled = student.purchasedBundles.some(
-          (purchase) =>
-            purchase.bundle && purchase.bundle.toString() === bundleId
-        );
-
-        if (isAlreadyEnrolled) {
-          results.alreadyEnrolled.push({
-            row: rowNumber,
-            studentName:
-              student.name || `${student.firstName} ${student.lastName}`,
-            identifier,
-          });
-          continue;
-        }
-
-        // Enroll student to bundle
-        student.purchasedBundles.push({
-          bundle: bundleId,
-          purchasedAt: new Date(),
-          price: bundle.discountPrice || bundle.price || 0,
-          orderNumber: `BULK-${Date.now()}-${rowNumber}`,
-          status: 'active',
-        });
-
-        // Also enroll in all unique valid courses in the bundle (validCourseIds already computed outside loop)
-        for (const courseId of validCourseIds) {
-          const isAlreadyEnrolledInCourse = student.enrolledCourses.some(
-            (enrollment) =>
-              enrollment.course &&
-              enrollment.course.toString() === courseId.toString()
-          );
-
-          if (!isAlreadyEnrolledInCourse) {
-            student.enrolledCourses.push({
-              course: courseId,
-              enrolledAt: new Date(),
-              progress: 0,
-              lastAccessed: new Date(),
-              completedTopics: [],
-              status: 'active',
-              contentProgress: [],
-            });
-
-            // Update course's enrolledStudents array
-            const course = await Course.findById(courseId);
-            if (course && !course.enrolledStudents.includes(student._id)) {
-              course.enrolledStudents.push(student._id);
-              await course.save();
-            }
-          }
-        }
-
-        await student.save();
-
-        // Add student to bundle's enrolledStudents list
-        if (!bundle.enrolledStudents.includes(student._id)) {
-          bundle.enrolledStudents.push(student._id);
-        }
-
-        results.success.push({
-          row: rowNumber,
-          studentName:
-            student.name || `${student.firstName} ${student.lastName}`,
-          identifier,
-        });
-      } catch (error) {
-        console.error(`Error processing row ${rowNumber}:`, error);
-        results.failed.push({
-          row: rowNumber,
-          reason: error.message,
-        });
-      }
-    }
-
-    // Save bundle with updated enrolledStudents
-    if (results.success.length > 0) {
-      await bundle.save();
-    }
-
-    // Clean up uploaded file
-    try {
-      if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
-    } catch (cleanupError) {
-      console.error('Error cleaning up uploaded file:', cleanupError);
-      // Don't fail the request if cleanup fails
-    }
-
-    res.json({
-      success: true,
-      message: `Enrollment completed: ${results.success.length} successful, ${results.failed.length} failed, ${results.alreadyEnrolled.length} already enrolled`,
-      results,
-    });
-  } catch (error) {
-    console.error('Error bulk enrolling students to bundle:', error);
-    
     // Clean up uploaded file on error
     try {
       if (req.file && req.file.path && fs.existsSync(req.file.path)) {
@@ -12621,7 +9794,7 @@ const bulkEnrollStudentsToBundle = async (req, res) => {
 // Get students for enrollment modal
 const getStudentsForEnrollment = async (req, res) => {
   try {
-    const { search, page = 1, limit = 20, courseId, bundleId } = req.query;
+    const { search, page = 1, limit = 20, courseId } = req.query;
     const query = { role: 'student', isActive: true };
 
     if (search) {
@@ -12638,7 +9811,7 @@ const getStudentsForEnrollment = async (req, res) => {
     // Get all students matching the search
     let students = await User.find(query)
       .select(
-        'firstName lastName studentEmail studentNumber studentCode username grade schoolName enrolledCourses purchasedBundles'
+        'firstName lastName studentEmail studentNumber studentCode username grade schoolName enrolledCourses'
       )
       .sort({ firstName: 1, lastName: 1 });
 
@@ -12649,16 +9822,6 @@ const getStudentsForEnrollment = async (req, res) => {
         return !student.enrolledCourses.some(
           (enrollment) =>
             enrollment.course && enrollment.course.toString() === courseId
-        );
-      });
-    }
-
-    if (bundleId) {
-      students = students.filter((student) => {
-        // Check if student has this bundle in their purchasedBundles array
-        return !student.purchasedBundles.some(
-          (purchase) =>
-            purchase.bundle && purchase.bundle.toString() === bundleId
         );
       });
     }
@@ -12724,97 +9887,6 @@ const removeStudentFromCourse = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to remove student from course',
-    });
-  }
-};
-
-// Remove student from bundle
-const removeStudentFromBundle = async (req, res) => {
-  try {
-    const { bundleId, studentId } = req.params;
-
-    const bundle = await BundleCourse.findById(bundleId);
-    if (!bundle) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bundle not found',
-      });
-    }
-
-    const student = await User.findById(studentId);
-    if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: 'Student not found',
-      });
-    }
-
-    // Find and remove the bundle purchase
-    const bundleIndex = student.purchasedBundles.findIndex(
-      (purchase) => purchase.bundle && purchase.bundle.toString() === bundleId
-    );
-
-    if (bundleIndex === -1) {
-      return res.status(400).json({
-        success: false,
-        message: 'Student has not purchased this bundle',
-      });
-    }
-
-    // Remove the bundle purchase
-    student.purchasedBundles.splice(bundleIndex, 1);
-
-    // Also remove student from all courses in the bundle
-    const removedCourses = [];
-    for (const courseId of bundle.courses) {
-      const courseIndex = student.enrolledCourses.findIndex(
-        (enrollment) =>
-          enrollment.course &&
-          enrollment.course.toString() === courseId.toString()
-      );
-
-      if (courseIndex !== -1) {
-        student.enrolledCourses.splice(courseIndex, 1);
-        removedCourses.push(courseId.toString());
-      }
-    }
-
-    await student.save();
-
-    // Remove student from bundle's enrolledStudents list
-    const studentIndexInBundle = bundle.enrolledStudents.indexOf(studentId);
-    if (studentIndexInBundle !== -1) {
-      bundle.enrolledStudents.splice(studentIndexInBundle, 1);
-      await bundle.save();
-    }
-
-    // Log admin action
-    await createLog(req, {
-      action: 'REMOVE_STUDENT',
-      actionCategory: 'STUDENT_MANAGEMENT',
-      description: `Removed student "${
-        student.name || `${student.firstName} ${student.lastName}`
-      }" from bundle "${bundle.title}" (${bundle.bundleCode})`,
-      targetModel: 'BundleCourse',
-      targetId: bundleId,
-      targetName: bundle.title,
-      metadata: {
-        studentId,
-        studentName: student.name || `${student.firstName} ${student.lastName}`,
-        removedCoursesCount: removedCourses.length,
-      },
-    });
-
-    res.json({
-      success: true,
-      message: `Student successfully removed from bundle and ${removedCourses.length} course(s)`,
-      removedCourses: removedCourses.length,
-    });
-  } catch (error) {
-    console.error('Error removing student from bundle:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to remove student from bundle',
     });
   }
 };
@@ -13053,30 +10125,6 @@ const createPromoCode = async (req, res) => {
 
     await promoCode.save();
 
-    // Log admin action
-    await createLog(req, {
-      action: 'CREATE_PROMO_CODE',
-      actionCategory: 'PROMO_CODE_MANAGEMENT',
-      description: `Created promo code "${promoCode.code}" - ${
-        promoCode.discountType === 'percentage'
-          ? promoCode.discountValue + '%'
-          : promoCode.discountValue + ' EGP'
-      } discount`,
-      targetModel: 'PromoCode',
-      targetId: promoCode._id.toString(),
-      targetName: promoCode.code,
-      metadata: {
-        code: promoCode.code,
-        discountType: promoCode.discountType,
-        discountValue: promoCode.discountValue,
-        maxUses: promoCode.maxUses,
-        validFrom: promoCode.validFrom,
-        validUntil: promoCode.validUntil,
-        applicableTo: promoCode.applicableTo,
-        restrictToStudents: promoCode.restrictToStudents,
-      },
-    });
-
     res.json({
       success: true,
       message: 'Promo code created successfully',
@@ -13187,21 +10235,6 @@ const deletePromoCode = async (req, res) => {
 
     await PromoCode.findByIdAndDelete(id);
 
-    // Log admin action
-    await createLog(req, {
-      action: 'DELETE_PROMO_CODE',
-      actionCategory: 'PROMO_CODE_MANAGEMENT',
-      description: `Deleted promo code "${promoCodeData.code}"`,
-      targetModel: 'PromoCode',
-      targetId: id,
-      targetName: promoCodeData.code,
-      metadata: {
-        code: promoCodeData.code,
-        name: promoCodeData.name,
-        currentUses: promoCodeData.currentUses,
-      },
-    });
-
     res.json({
       success: true,
       message: 'Promo code deleted successfully',
@@ -13307,25 +10340,6 @@ const updatePromoCode = async (req, res) => {
     });
 
     await promoCode.save();
-
-    // Log admin action
-    await createLog(req, {
-      action: 'UPDATE_PROMO_CODE',
-      actionCategory: 'PROMO_CODE_MANAGEMENT',
-      description: `Updated promo code "${promoCode.code}"`,
-      targetModel: 'PromoCode',
-      targetId: id,
-      targetName: promoCode.code,
-      metadata: {
-        code: promoCode.code,
-        discountType: promoCode.discountType,
-        discountValue: promoCode.discountValue,
-        maxUses: promoCode.maxUses,
-        currentUses: promoCode.currentUses,
-        validFrom: promoCode.validFrom,
-        validUntil: promoCode.validUntil,
-      },
-    });
 
     res.json({
       success: true,
@@ -14006,9 +11020,8 @@ const toggleAdminStatus = async (req, res) => {
       currentPage: 'create-admin',
       theme: req.cookies.theme || 'light',
       user: req.user,
-      success: `Admin account ${
-        admin.isActive ? 'activated' : 'deactivated'
-      } successfully!`,
+      success: `Admin account ${admin.isActive ? 'activated' : 'deactivated'
+        } successfully!`,
       admins: admins || [],
     });
   } catch (error) {
@@ -14267,10 +11280,8 @@ const exportTeamMembers = async (req, res) => {
     const csvData = teamMembers
       .map(
         (member) =>
-          `"${member.name}","${member.position}","${member.image || ''}","${
-            member.fallbackInitials
-          }",${member.displayOrder},${
-            member.isActive
+          `"${member.name}","${member.position}","${member.image || ''}","${member.fallbackInitials
+          }",${member.displayOrder},${member.isActive
           },"${member.createdAt.toISOString()}"`
       )
       .join('\n');
@@ -14280,8 +11291,7 @@ const exportTeamMembers = async (req, res) => {
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename="team-members-${
-        new Date().toISOString().split('T')[0]
+      `attachment; filename="team-members-${new Date().toISOString().split('T')[0]
       }.csv"`
     );
     res.send(csv);
@@ -14305,7 +11315,6 @@ const getBulkSMSPage = async (req, res) => {
         isActive: true,
       }),
       totalCourses: await Course.countDocuments(),
-      totalBundles: await BundleCourse.countDocuments(),
     };
 
     res.render('admin/bulk-sms', {
@@ -14413,59 +11422,6 @@ const getCoursesForSMS = async (req, res) => {
   }
 };
 
-// Get Bundles for SMS
-const getBundlesForSMS = async (req, res) => {
-  try {
-    const bundles = await BundleCourse.find({})
-      .select('_id title')
-      .sort({ title: 1 });
-
-    // Get student count for each bundle (students enrolled in any course in the bundle)
-    const bundlesWithCount = await Promise.all(
-      bundles.map(async (bundle) => {
-        // Get all courses in the bundle
-        const bundleDoc = await BundleCourse.findById(bundle._id).populate(
-          'courses'
-        );
-        if (
-          !bundleDoc ||
-          !bundleDoc.courses ||
-          bundleDoc.courses.length === 0
-        ) {
-          return {
-            _id: bundle._id,
-            title: bundle.title,
-            studentCount: 0,
-          };
-        }
-
-        const courseIds = bundleDoc.courses.map((c) => c._id);
-        // Get unique students enrolled in any course in this bundle
-        const studentIds = await Progress.find({
-          course: { $in: courseIds },
-        }).distinct('student');
-        const studentCount = studentIds.length;
-        return {
-          _id: bundle._id,
-          title: bundle.title,
-          studentCount,
-        };
-      })
-    );
-
-    res.json({
-      success: true,
-      bundles: bundlesWithCount,
-    });
-  } catch (error) {
-    console.error('Error fetching bundles for SMS:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch bundles',
-    });
-  }
-};
-
 // Get student count for a specific course
 const getCourseStudentsCount = async (req, res) => {
   try {
@@ -14483,48 +11439,6 @@ const getCourseStudentsCount = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching course student count:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch student count',
-    });
-  }
-};
-
-// Get student count for a specific bundle
-const getBundleStudentsCount = async (req, res) => {
-  try {
-    const { bundleId } = req.params;
-
-    // Get bundle with courses
-    const bundle = await BundleCourse.findById(bundleId).populate('courses');
-    if (!bundle) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bundle not found',
-      });
-    }
-
-    if (!bundle.courses || bundle.courses.length === 0) {
-      return res.json({
-        success: true,
-        count: 0,
-      });
-    }
-
-    const courseIds = bundle.courses.map((c) => c._id);
-    // Get unique students enrolled in any course in this bundle
-    const studentIds = await Progress.find({
-      course: { $in: courseIds },
-    }).distinct('student');
-
-    const count = studentIds.length;
-
-    res.json({
-      success: true,
-      count,
-    });
-  } catch (error) {
-    console.error('Error fetching bundle student count:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch student count',
@@ -14552,9 +11466,8 @@ const sendBulkSMS = async (req, res) => {
     if (message.length > maxChars) {
       return res.status(400).json({
         success: false,
-        message: `Message exceeds ${maxChars} character limit for ${
-          containsArabic ? 'Arabic' : 'English'
-        } messages`,
+        message: `Message exceeds ${maxChars} character limit for ${containsArabic ? 'Arabic' : 'English'
+          } messages`,
       });
     }
 
@@ -14679,60 +11592,6 @@ const sendBulkSMS = async (req, res) => {
             recipients.push({
               phoneNumber: student.studentNumber,
               countryCode: student.studentCountryCode || null,
-              name: `${student.firstName} ${student.lastName}`,
-              type: 'student',
-            });
-          }
-        }
-      });
-    } else if (targetType === 'bundle' && targetId) {
-      // Get students enrolled in bundle
-      const bundle = await BundleCourse.findById(targetId);
-      if (!bundle) {
-        return res.status(404).json({
-          success: false,
-          message: 'Bundle not found',
-        });
-      }
-
-      const enrollments = await Progress.find({ bundleId: targetId })
-        .populate(
-          'studentId',
-          'firstName lastName parentNumber parentCountryCode studentNumber studentCountryCode'
-        )
-        .select('studentId');
-
-      const studentIds = [
-        ...new Set(enrollments.map((e) => e.studentId?._id).filter(Boolean)),
-      ];
-      const students = await User.find({
-        _id: { $in: studentIds },
-        role: 'student',
-        isActive: true,
-      }).select(
-        'firstName lastName parentNumber parentCountryCode studentNumber studentCountryCode'
-      );
-
-      students.forEach((student) => {
-        if (recipientType === 'parents' || recipientType === 'both') {
-          const parentPhone = student.parentCountryCode
-            ? `${student.parentCountryCode}${student.parentNumber}`
-            : student.parentNumber;
-          if (parentPhone) {
-            recipients.push({
-              phone: parentPhone,
-              name: `${student.firstName} ${student.lastName}'s Parent`,
-              type: 'parent',
-            });
-          }
-        }
-        if (recipientType === 'students' || recipientType === 'both') {
-          const studentPhone = student.studentCountryCode
-            ? `${student.studentCountryCode}${student.studentNumber}`
-            : student.studentNumber;
-          if (studentPhone) {
-            recipients.push({
-              phone: studentPhone,
               name: `${student.firstName} ${student.lastName}`,
               type: 'student',
             });
@@ -15101,10 +11960,10 @@ const getOTPMasterGenerator = async (req, res) => {
 const generateMasterOTP = async (req, res) => {
   try {
     const { purpose } = req.body;
-    
+
     // Always fetch admin from database to get the correct userName
     let generatedBy = 'Unknown Admin';
-    
+
     if (req.session?.user?.id) {
       try {
         const admin = await Admin.findById(req.session.user.id);
@@ -15115,35 +11974,22 @@ const generateMasterOTP = async (req, res) => {
       } catch (err) {
         console.error('Error fetching admin:', err);
         // Fallback to session data if database fetch fails
-        generatedBy = req.session?.user?.name || 
-                      req.user?.userName || 
-                      req.user?.email || 
-                      'Unknown Admin';
+        generatedBy = req.session?.user?.name ||
+          req.user?.userName ||
+          req.user?.email ||
+          'Unknown Admin';
       }
     } else {
       // Fallback if no session ID
-      generatedBy = req.session?.user?.name || 
-                    req.user?.userName || 
-                    req.user?.email || 
-                    'Unknown Admin';
+      generatedBy = req.session?.user?.name ||
+        req.user?.userName ||
+        req.user?.email ||
+        'Unknown Admin';
     }
 
     const otpData = otpMasterUtil.generateMasterOTP(generatedBy, purpose);
 
     // Log the action
-    await createLog(req, {
-      action: 'OTP_GENERATED',
-      actionCategory: 'SYSTEM',
-      description: `Generated master OTP${purpose ? ` for: ${purpose}` : ''}`,
-      targetModel: 'OTP',
-      targetId: otpData.id,
-      metadata: {
-        otpId: otpData.id,
-        purpose: purpose || 'No purpose specified',
-        expiresAt: otpData.expiresAt,
-        generatedBy: generatedBy,
-      },
-    });
 
     res.json({
       success: true,
@@ -15179,18 +12025,6 @@ const validateMasterOTP = async (req, res) => {
     const validationResult = otpMasterUtil.validateMasterOTP(otpCode);
 
     // Log the validation attempt
-    await createLog(req, {
-      action: validationResult.valid ? 'OTP_VALIDATED' : 'OTP_VALIDATION_FAILED',
-      actionCategory: 'SYSTEM',
-      description: `OTP validation ${validationResult.valid ? 'succeeded' : 'failed'}: ${validationResult.message}`,
-      targetModel: 'OTP',
-      status: validationResult.valid ? 'SUCCESS' : 'FAILED',
-      metadata: {
-        otpCode: otpCode,
-        result: validationResult.message,
-        otpData: validationResult.otpData || null,
-      },
-    });
 
     res.json({
       success: validationResult.valid,
@@ -15239,16 +12073,6 @@ const revokeMasterOTP = async (req, res) => {
 
     if (success) {
       // Log the action
-      await createLog(req, {
-        action: 'OTP_REVOKED',
-        actionCategory: 'SYSTEM',
-        description: `Revoked master OTP: ${otpId}`,
-        targetModel: 'OTP',
-        targetId: otpId,
-        metadata: {
-          otpId: otpId,
-        },
-      });
 
       res.json({
         success: true,
@@ -15275,7 +12099,7 @@ const revokeMasterOTP = async (req, res) => {
 const getTeachersPage = async (req, res) => {
   try {
     const teachers = await Teacher.find({}).sort({ createdAt: -1 });
-    
+
     res.render('admin/teachers', {
       title: 'Teachers Management | G-Teacher Admin',
       user: req.user,
@@ -15306,14 +12130,14 @@ const getTeacherData = async (req, res) => {
   try {
     const { teacherId } = req.params;
     const teacher = await Teacher.findById(teacherId);
-    
+
     if (!teacher) {
       return res.status(404).json({
         success: false,
         message: 'Teacher not found',
       });
     }
-    
+
     res.json({
       success: true,
       teacher,
@@ -15341,27 +12165,27 @@ const createTeacher = async (req, res) => {
       isActive,
       croppedImage,
     } = req.body;
-    
+
     // Validate required fields
     if (!firstName || !lastName || !email || !subject) {
       return res.redirect('/admin/teachers?error=Please fill in all required fields (First Name, Last Name, Email, Subject)');
     }
-    
+
     // Check for existing email
     const existingTeacher = await Teacher.findOne({
       email: email.toLowerCase(),
     });
-    
+
     if (existingTeacher) {
       return res.redirect('/admin/teachers?error=A teacher with this email already exists');
     }
-    
+
     // Handle profile picture (base64 cropped image)
     let profilePicture = '';
     if (croppedImage && croppedImage.startsWith('data:image')) {
       profilePicture = croppedImage;
     }
-    
+
     // Create new teacher
     const newTeacher = new Teacher({
       firstName: firstName.trim(),
@@ -15374,20 +12198,11 @@ const createTeacher = async (req, res) => {
       isActive: isActive === 'on' || isActive === true,
       profilePicture: profilePicture,
     });
-    
+
     await newTeacher.save();
-    
+
     // Log the action
-    await createLog(req, 'create', 'Teacher', {
-      targetId: newTeacher._id,
-      targetName: `${newTeacher.firstName} ${newTeacher.lastName}`,
-      details: {
-        teacherCode: newTeacher.teacherCode,
-        email: newTeacher.email,
-        subject: newTeacher.subject,
-      },
-    });
-    
+
     res.redirect('/admin/teachers?success=Teacher created successfully');
   } catch (error) {
     console.error('Error creating teacher:', error);
@@ -15410,23 +12225,23 @@ const updateTeacher = async (req, res) => {
       isActive,
       croppedImage,
     } = req.body;
-    
+
     const teacher = await Teacher.findById(teacherId);
-    
+
     if (!teacher) {
       return res.redirect('/admin/teachers?error=Teacher not found');
     }
-    
+
     // Check if email is taken by another teacher
     const existingTeacher = await Teacher.findOne({
       _id: { $ne: teacherId },
       email: email.toLowerCase(),
     });
-    
+
     if (existingTeacher) {
       return res.redirect('/admin/teachers?error=Email is already taken by another teacher');
     }
-    
+
     // Update teacher fields
     teacher.firstName = firstName.trim();
     teacher.lastName = lastName.trim();
@@ -15436,25 +12251,16 @@ const updateTeacher = async (req, res) => {
     teacher.subject = subject ? subject.trim() : teacher.subject;
     teacher.bio = bio ? bio.trim() : teacher.bio;
     teacher.isActive = isActive === 'on' || isActive === true;
-    
+
     // Handle profile picture update (base64 cropped image)
     if (croppedImage && croppedImage.startsWith('data:image')) {
       teacher.profilePicture = croppedImage;
     }
-    
+
     await teacher.save();
-    
+
     // Log the action
-    await createLog(req, 'update', 'Teacher', {
-      targetId: teacher._id,
-      targetName: `${teacher.firstName} ${teacher.lastName}`,
-      details: {
-        teacherCode: teacher.teacherCode,
-        email: teacher.email,
-        subject: teacher.subject,
-      },
-    });
-    
+
     res.redirect('/admin/teachers?success=Teacher updated successfully');
   } catch (error) {
     console.error('Error updating teacher:', error);
@@ -15466,29 +12272,21 @@ const updateTeacher = async (req, res) => {
 const toggleTeacherStatus = async (req, res) => {
   try {
     const { teacherId } = req.params;
-    
+
     const teacher = await Teacher.findById(teacherId);
-    
+
     if (!teacher) {
       return res.status(404).json({
         success: false,
         message: 'Teacher not found',
       });
     }
-    
+
     teacher.isActive = !teacher.isActive;
     await teacher.save();
-    
+
     // Log the action
-    await createLog(req, 'update', 'Teacher', {
-      targetId: teacher._id,
-      targetName: `${teacher.firstName} ${teacher.lastName}`,
-      details: {
-        action: teacher.isActive ? 'activated' : 'deactivated',
-        teacherCode: teacher.teacherCode,
-      },
-    });
-    
+
     res.json({
       success: true,
       message: `Teacher ${teacher.isActive ? 'activated' : 'deactivated'} successfully`,
@@ -15507,42 +12305,30 @@ const toggleTeacherStatus = async (req, res) => {
 const deleteTeacher = async (req, res) => {
   try {
     const { teacherId } = req.params;
-    
+
     const teacher = await Teacher.findById(teacherId);
-    
+
     if (!teacher) {
       return res.status(404).json({
         success: false,
         message: 'Teacher not found',
       });
     }
-    
+
     // Check if teacher has any courses
     const coursesCount = await Course.countDocuments({ teacher: teacherId });
-    
+
     if (coursesCount > 0) {
       return res.status(400).json({
         success: false,
         message: `Cannot delete teacher. They have ${coursesCount} course(s) assigned. Please reassign or delete the courses first.`,
       });
     }
-    
+
     // Log the action before deletion
-    await createLog(req, {
-      action: 'DELETE_TEACHER',
-      actionCategory: 'TEACHER_MANAGEMENT',
-      description: `Deleted teacher: ${teacher.firstName} ${teacher.lastName} (${teacher.teacherCode})`,
-      targetModel: 'Teacher',
-      targetId: teacher._id.toString(),
-      targetName: `${teacher.firstName} ${teacher.lastName}`,
-      metadata: {
-        teacherCode: teacher.teacherCode,
-        email: teacher.email,
-      },
-    });
-    
+
     await Teacher.findByIdAndDelete(teacherId);
-    
+
     res.json({
       success: true,
       message: 'Teacher deleted successfully',
@@ -15564,11 +12350,54 @@ const getExamPeriods = async (req, res) => {
     const ExamPeriod = require('../models/ExamPeriod');
     const periods = await ExamPeriod.find({})
       .sort({ order: 1, startDate: 1 });
-    
+
     res.json(periods);
   } catch (error) {
     console.error('Error fetching exam periods:', error);
     res.status(500).json({ success: false, message: 'Error fetching exam periods' });
+  }
+};
+
+// Get single exam period
+const getExamPeriod = async (req, res) => {
+  try {
+    const ExamPeriod = require('../models/ExamPeriod');
+    const { periodId } = req.params;
+
+    const period = await ExamPeriod.findById(periodId);
+    if (!period) {
+      return res.status(404).json({ error: 'Exam period not found' });
+    }
+
+    res.json(period);
+  } catch (error) {
+    console.error('Error fetching exam period:', error);
+    res.status(500).json({ error: 'Error fetching exam period' });
+  }
+};
+
+// Toggle exam period active status
+const toggleExamPeriodStatus = async (req, res) => {
+  try {
+    const ExamPeriod = require('../models/ExamPeriod');
+    const { periodId } = req.params;
+
+    const period = await ExamPeriod.findById(periodId);
+    if (!period) {
+      return res.status(404).json({ success: false, message: 'Exam period not found' });
+    }
+
+    period.isActive = !period.isActive;
+    await period.save();
+
+    res.json({
+      success: true,
+      message: `Exam period ${period.isActive ? 'activated' : 'deactivated'} successfully`,
+      period
+    });
+  } catch (error) {
+    console.error('Error toggling exam period status:', error);
+    res.status(500).json({ success: false, message: 'Error updating exam period' });
   }
 };
 
@@ -15592,21 +12421,12 @@ const createExamPeriod = async (req, res) => {
 
     await period.save();
 
-    await createLog(req, {
-      action: 'CREATE_EXAM_PERIOD',
-      actionCategory: 'SYSTEM',
-      description: `Created exam period: ${name}`,
-      targetModel: 'ExamPeriod',
-      targetId: period._id.toString(),
-      targetName: name,
-    });
-
     res.json({ success: true, message: 'Exam period created successfully', period });
   } catch (error) {
     console.error('Error creating exam period:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: error.code === 11000 ? 'An exam period with this name already exists' : 'Error creating exam period' 
+    res.status(500).json({
+      success: false,
+      message: error.code === 11000 ? 'An exam period with this name already exists' : 'Error creating exam period'
     });
   }
 };
@@ -15635,15 +12455,6 @@ const updateExamPeriod = async (req, res) => {
     if (isActive !== undefined) period.isActive = isActive;
 
     await period.save();
-
-    await createLog(req, {
-      action: 'UPDATE_EXAM_PERIOD',
-      actionCategory: 'SYSTEM',
-      description: `Updated exam period: ${period.name}`,
-      targetModel: 'ExamPeriod',
-      targetId: period._id.toString(),
-      targetName: period.name,
-    });
 
     res.json({ success: true, message: 'Exam period updated successfully', period });
   } catch (error) {
@@ -15697,20 +12508,11 @@ const deleteExamPeriod = async (req, res) => {
       );
     }
 
-    await createLog(req, {
-      action: 'DELETE_EXAM_PERIOD',
-      actionCategory: 'SYSTEM',
-      description: `Deleted exam period: ${period.name}${coursesCount > 0 ? ` (unassigned from ${coursesCount} courses)` : ''}`,
-      targetModel: 'ExamPeriod',
-      targetId: period._id.toString(),
-      targetName: period.name,
-    });
-
     await ExamPeriod.findByIdAndDelete(periodId);
 
-    res.json({ 
-      success: true, 
-      message: `Exam period deleted successfully${coursesCount > 0 ? `. ${coursesCount} courses were unassigned from this period.` : ''}` 
+    res.json({
+      success: true,
+      message: `Exam period deleted successfully${coursesCount > 0 ? `. ${coursesCount} courses were unassigned from this period.` : ''}`
     });
   } catch (error) {
     console.error('Error deleting exam period:', error);
@@ -15725,7 +12527,7 @@ const getTeachersAPI = async (req, res) => {
     const teachers = await Teacher.find({})
       .select('firstName lastName teacherCode email phoneNumber isActive')
       .sort({ firstName: 1, lastName: 1 });
-    
+
     res.json(teachers);
   } catch (error) {
     console.error('Error fetching teachers:', error);
@@ -15844,8 +12646,10 @@ module.exports = {
   getTeachersAPI,
   // Exam Period Management
   getExamPeriods,
+  getExamPeriod,
   createExamPeriod,
   updateExamPeriod,
   toggleExamPeriodCurrent,
+  toggleExamPeriodStatus,
   deleteExamPeriod,
 };
