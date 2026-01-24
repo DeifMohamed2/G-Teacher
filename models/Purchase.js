@@ -39,6 +39,28 @@ const PurchaseSchema = new mongoose.Schema(
           min: 1,
           max: 1, // Only allow 1 quantity per course
         },
+        // G-Teacher Commission Tracking
+        teacher: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Teacher',
+          default: null,
+        },
+        gTeacherPercentage: {
+          type: Number,
+          min: 0,
+          max: 100,
+          default: 0,
+        },
+        gTeacherCommission: {
+          type: Number,
+          min: 0,
+          default: 0, // The amount G-Teacher takes
+        },
+        teacherNet: {
+          type: Number,
+          min: 0,
+          default: 0, // The amount the teacher receives after commission
+        },
       },
     ],
     subtotal: {
@@ -50,6 +72,18 @@ const PurchaseSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 0,
+    },
+    // Total G-Teacher Commission for this order
+    totalGTeacherCommission: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    // Total Teacher Net for this order (what all teachers receive combined)
+    totalTeacherNet: {
+      type: Number,
+      min: 0,
+      default: 0,
     },
     // Promo Code fields
     appliedPromoCode: {

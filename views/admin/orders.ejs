@@ -35,53 +35,129 @@
 
         <!-- Analytics Cards -->
         <div class="row g-4 mb-4 orders-kpi">
-          <div class="col-12 col-lg-3">
-            <div class="card shadow-sm h-100">
-              <div class="card-body">
+          <!-- Row 1: Revenue Cards -->
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100" style="border-radius: 16px; border: 1px solid rgba(16, 185, 129, 0.2); overflow: hidden;">
+              <div class="card-body" style="padding: 20px;">
                 <div class="d-flex align-items-center">
-                  <i class="fas fa-receipt fa-2x me-3"></i>
-                  <div>
-                    <div class="text-muted small">Total Orders</div>
-                    <div class="fs-4 fw-bold"><%= analytics.totalOrders %></div>
+                  <div style="width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                    <i class="fas fa-coins" style="font-size: 24px; color: white;"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Total Revenue</div>
+                    <div style="font-size: 24px; font-weight: 700; color: #10b981;">EGP <%= analytics.totalRevenue.toFixed(2) %></div>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;"><%= analytics.totalOrders %> orders</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-12 col-lg-3">
-            <div class="card shadow-sm h-100">
-              <div class="card-body">
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100" style="border-radius: 16px; border: 1px solid rgba(34, 197, 94, 0.2); overflow: hidden;">
+              <div class="card-body" style="padding: 20px;">
                 <div class="d-flex align-items-center">
-                   <i class="fas fa-coins fa-2x me-3"></i>
-                  <div>
-                    <div class="text-muted small">Total </div>
-                    <div class="fs-4 fw-bold"><%= analytics.totalRevenue.toFixed(2) %> <span class="text-muted"><%= analytics.currency || '' %></span></div>
+                  <div style="width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, #22c55e, #16a34a); display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                    <i class="fas fa-check-circle" style="font-size: 24px; color: white;"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Completed Revenue</div>
+                    <div style="font-size: 24px; font-weight: 700; color: #22c55e;">EGP <%= analytics.completedRevenue.toFixed(2) %></div>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;"><%= analytics.completed || 0 %> completed</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-12 col-lg-3">
-            <div class="card shadow-sm h-100">
-              <div class="card-body">
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100" style="border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.2); overflow: hidden;">
+              <div class="card-body" style="padding: 20px;">
                 <div class="d-flex align-items-center">
-                  <i class="fas fa-check-circle fa-2x me-3"></i>
-                  <div>
-                    <div class="text-muted small">Completed Revenue</div>
-                    <div class="fs-4 fw-bold"><%= analytics.completedRevenue.toFixed(2) %></div>
+                  <div style="width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, #ef4444, #dc2626); display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                    <i class="fas fa-undo" style="font-size: 24px; color: white;"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Refunded</div>
+                    <div style="font-size: 24px; font-weight: 700; color: #ef4444;">EGP <%= analytics.refundedAmount.toFixed(2) %></div>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;"><%= analytics.refunded || 0 %> refunds</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-12 col-lg-3">
-            <div class="card shadow-sm h-100">
-              <div class="card-body">
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100" style="border-radius: 16px; border: 1px solid rgba(139, 92, 246, 0.2); overflow: hidden;">
+              <div class="card-body" style="padding: 20px;">
                 <div class="d-flex align-items-center">
-                  <i class="fas fa-undo fa-2x me-3"></i>
-                  <div>
-                    <div class="text-muted small">Refunded</div>
-                    <div class="fs-4 fw-bold"><%= analytics.refundedAmount.toFixed(2) %></div>
+                  <div style="width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                    <i class="fas fa-calculator" style="font-size: 24px; color: white;"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Avg Order Value</div>
+                    <div style="font-size: 24px; font-weight: 700; color: #8b5cf6;">EGP <%= analytics.averageOrderValue.toFixed(2) %></div>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">per order</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Commission Analytics Cards -->
+        <div class="row g-4 mb-4">
+          <div class="col-12">
+            <div class="card shadow-sm" style="border-radius: 16px; border: 1px solid rgba(58, 146, 189, 0.15); overflow: hidden;">
+              <div class="card-header" style="background: linear-gradient(135deg, #3a92bd, #0c5374); border-bottom: none; padding: 16px 24px;">
+                <h6 class="mb-0" style="color: white; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                  <i class="fas fa-percentage"></i> Commission Breakdown
+                </h6>
+              </div>
+              <div class="card-body" style="padding: 20px 24px;">
+                <div class="row g-4">
+                  <div class="col-12 col-md-4">
+                    <div style="background: linear-gradient(135deg, rgba(58, 146, 189, 0.08), rgba(58, 146, 189, 0.02)); border-radius: 12px; padding: 20px; border: 1px solid rgba(58, 146, 189, 0.15); height: 100%;">
+                      <div class="d-flex align-items-center gap-3">
+                        <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #3a92bd, #0c5374); display: flex; align-items: center; justify-content: center;">
+                          <i class="fas fa-percentage" style="color: white; font-size: 20px;"></i>
+                        </div>
+                        <div>
+                          <div style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">G-Teacher Commission</div>
+                          <div style="font-size: 26px; font-weight: 700; color: #3a92bd;">EGP <%= (analytics.totalGTeacherCommission || 0).toLocaleString() %></div>
+                          <div style="font-size: 11px; color: #94a3b8;">Platform earnings</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-12 col-md-4">
+                    <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.02)); border-radius: 12px; padding: 20px; border: 1px solid rgba(245, 158, 11, 0.15); height: 100%;">
+                      <div class="d-flex align-items-center gap-3">
+                        <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center;">
+                          <i class="fas fa-hand-holding-usd" style="color: white; font-size: 20px;"></i>
+                        </div>
+                        <div>
+                          <div style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Teacher Net Payout</div>
+                          <div style="font-size: 26px; font-weight: 700; color: #f59e0b;">EGP <%= (analytics.totalTeacherNet || 0).toLocaleString() %></div>
+                          <div style="font-size: 11px; color: #94a3b8;">To be paid to teachers</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-12 col-md-4">
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02)); border-radius: 12px; padding: 20px; border: 1px solid rgba(16, 185, 129, 0.15); height: 100%;">
+                      <div class="d-flex align-items-center gap-3">
+                        <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center;">
+                          <i class="fas fa-chart-pie" style="color: white; font-size: 20px;"></i>
+                        </div>
+                        <div>
+                          <div style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Commission Rate</div>
+                          <% 
+                            const totalRev = analytics.totalGTeacherCommission + analytics.totalTeacherNet || 0;
+                            const commissionRate = totalRev > 0 ? ((analytics.totalGTeacherCommission / totalRev) * 100).toFixed(1) : 0;
+                          %>
+                          <div style="font-size: 26px; font-weight: 700; color: #10b981;"><%= commissionRate %>%</div>
+                          <div style="font-size: 11px; color: #94a3b8;">Average platform rate</div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -103,63 +179,143 @@
           </div>
         </div>
 
-        <!-- Filters -->
-        <div class="card shadow-sm mb-4 orders-filter-card">
-          <div class="card-header" style="background: linear-gradient(135deg, #3a92bd, #0c5374); border-bottom: none;">
-            <h5 class="mb-0" style="color: #ffffff; font-weight: 700; display: flex; align-items: center; gap: 12px;">
-              <i class="fas fa-filter"></i> Filter Orders
-            </h5>
+        <!-- Advanced Filters (Exam Period, Teacher, Course, Invoices/Type, etc.) -->
+        <div class="orders-filters-panel">
+          <div class="orders-filters-header">
+            <div class="orders-filters-title-wrap">
+              <span class="orders-filters-icon"><i class="fas fa-sliders-h"></i></span>
+              <div>
+                <h2 class="orders-filters-title">Advanced Filters</h2>
+                <p class="orders-filters-desc">By exam period, teacher, course, invoice type, promo & date</p>
+              </div>
+            </div>
+            <button type="button" class="orders-filters-toggle" id="ordersFiltersToggle" aria-expanded="true" aria-controls="ordersFiltersBody">
+              <i class="fas fa-chevron-up"></i>
+              <span>Toggle</span>
+            </button>
           </div>
-          <div class="card-body" style="padding: 24px;">
-            <form class="row g-3" method="get">
-              <div class="col-12 col-md-3">
-                <label class="form-label" style="color: var(--admin-text-light); font-weight: 600; font-size: 14px; margin-bottom: 8px;">Search</label>
-                <div class="input-group">
-                  <span class="input-group-text" style="background: var(--admin-primary); border: 2px solid var(--admin-primary); color: white; border-radius: 12px 0 0 12px;">
-                    <i class="fas fa-search"></i>
-                  </span>
-                  <input type="text" class="form-control" name="search" placeholder="Order #, email, name, phone, username" value="<%= (currentFilters.search||'') %>" style="border: 2px solid var(--admin-border-light); border-radius: 0 12px 12px 0; padding: 12px 16px; font-size: 14px; transition: all 0.3s ease; background: var(--admin-card-light); color: var(--admin-text-light);">
+          <form method="get" class="orders-filters-form" id="ordersFiltersForm">
+            <input type="hidden" name="examPeriod" id="examPeriodInput" value="<%= (currentFilters.examPeriod || 'all') %>">
+            <div class="orders-filters-body" id="ordersFiltersBody">
+              <!-- Quick Type chips: All | Invoiced | Pending | Failed | Refunded -->
+              <div class="orders-filter-step">
+                <h4 class="orders-filter-step-title"><i class="fas fa-file-invoice-dollar"></i> By type</h4>
+                <div class="orders-type-chips">
+                  <button type="button" class="orders-type-chip <%= (!currentFilters.status || currentFilters.status==='all') ? 'active' : '' %>" data-status="all">All</button>
+                  <button type="button" class="orders-type-chip <%= (currentFilters.status==='completed') ? 'active' : '' %>" data-status="completed"><i class="fas fa-receipt"></i> Invoiced</button>
+                  <button type="button" class="orders-type-chip <%= (currentFilters.status==='pending') ? 'active' : '' %>" data-status="pending">Pending</button>
+                  <button type="button" class="orders-type-chip <%= (currentFilters.status==='failed') ? 'active' : '' %>" data-status="failed">Failed</button>
+                  <button type="button" class="orders-type-chip <%= (currentFilters.status==='refunded') ? 'active' : '' %>" data-status="refunded">Refunded</button>
                 </div>
               </div>
-              <div class="col-6 col-md-2">
-                <label class="form-label" style="color: var(--admin-text-light); font-weight: 600; font-size: 14px; margin-bottom: 8px;">Order Status</label>
-                <select class="form-select" name="status" style="border: 2px solid var(--admin-border-light); border-radius: 12px; padding: 12px 16px; font-size: 14px; transition: all 0.3s ease; background: var(--admin-card-light); color: var(--admin-text-light);">
-                  <option value="all">All Statuses</option>
-                  <%- ['pending','processing','completed','failed','cancelled','refunded'].map(s=>`<option value="${s}" ${currentFilters.status===s?'selected':''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join('') %>
-                </select>
+              <!-- Exam period pills (like courses) -->
+              <div class="orders-filter-step">
+                <h4 class="orders-filter-step-title"><i class="fas fa-calendar-alt"></i> Exam period</h4>
+                <div class="orders-exam-pills">
+                  <button type="button" class="orders-exam-pill <%= (!currentFilters.examPeriod || currentFilters.examPeriod==='all') ? 'active' : '' %>" data-exam-period="all">All</button>
+                  <% (examPeriods || []).forEach(function(p) { %>
+                  <button type="button" class="orders-exam-pill <%= (currentFilters.examPeriod==p._id || currentFilters.examPeriod==p._id.toString()) ? 'active' : '' %>" data-exam-period="<%= p._id %>"><%= p.displayName || p.name %></button>
+                  <% }); %>
+                </div>
               </div>
-              <div class="col-6 col-md-2">
-                <label class="form-label" style="color: var(--admin-text-light); font-weight: 600; font-size: 14px; margin-bottom: 8px;">Payment Status</label>
-                <select class="form-select" name="paymentStatus" style="border: 2px solid var(--admin-border-light); border-radius: 12px; padding: 12px 16px; font-size: 14px; transition: all 0.3s ease; background: var(--admin-card-light); color: var(--admin-text-light);">
-                  <option value="all">All Statuses</option>
-                  <%- ['pending','processing','completed','failed','cancelled','refunded'].map(s=>`<option value="${s}" ${currentFilters.paymentStatus===s?'selected':''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join('') %>
-                </select>
+              <!-- Search -->
+              <div class="orders-filters-row orders-filters-search-row">
+                <div class="orders-filter-item orders-filter-search">
+                  <label class="orders-filter-label" for="ordersSearch">Search</label>
+                  <div class="orders-search-wrap">
+                    <i class="fas fa-search orders-search-icon"></i>
+                    <input type="text" id="ordersSearch" name="search" class="orders-search-input" placeholder="Order #, email, name, phone" value="<%= (currentFilters.search || '') %>" autocomplete="off">
+                  </div>
+                </div>
               </div>
-              <div class="col-6 col-md-2">
-                <label class="form-label" style="color: var(--admin-text-light); font-weight: 600; font-size: 14px; margin-bottom: 8px;">Payment Method</label>
-                <select class="form-select" name="paymentMethod" style="border: 2px solid var(--admin-border-light); border-radius: 12px; padding: 12px 16px; font-size: 14px; transition: all 0.3s ease; background: var(--admin-card-light); color: var(--admin-text-light);">
-                  <option value="all">All Methods</option>
-                  <%- ['credit_card','paypal','stripe','bank_transfer'].map(s=>`<option value="${s}" ${currentFilters.paymentMethod===s?'selected':''}>${s.replace('_', ' ').toUpperCase()}</option>`).join('') %>
-                </select>
+              <!-- Row: Status, Payment Status, Payment Method, Teacher, Course, Has Promo -->
+              <div class="orders-filters-row orders-filters-dropdowns">
+                <div class="orders-filter-item">
+                  <label class="orders-filter-label" for="ordersStatus">Order status</label>
+                  <select id="ordersStatus" name="status" class="orders-filter-select">
+                    <option value="all">All</option>
+                    <%- ['pending','processing','completed','failed','cancelled','refunded'].map(s=>`<option value="${s}" ${(currentFilters.status===s)?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('') %>
+                  </select>
+                </div>
+                <div class="orders-filter-item">
+                  <label class="orders-filter-label" for="ordersPaymentStatus">Payment status</label>
+                  <select id="ordersPaymentStatus" name="paymentStatus" class="orders-filter-select">
+                    <option value="all">All</option>
+                    <%- ['pending','processing','completed','failed','cancelled','refunded'].map(s=>`<option value="${s}" ${(currentFilters.paymentStatus===s)?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('') %>
+                  </select>
+                </div>
+                <div class="orders-filter-item">
+                  <label class="orders-filter-label" for="ordersPaymentMethod">Payment method</label>
+                  <select id="ordersPaymentMethod" name="paymentMethod" class="orders-filter-select">
+                    <option value="all">All</option>
+                    <%- ['credit_card','paypal','stripe','bank_transfer','paymob'].map(s=>`<option value="${s}" ${(currentFilters.paymentMethod===s)?'selected':''}>${(s||'').replace('_',' ').toUpperCase()}</option>`).join('') %>
+                  </select>
+                </div>
+                <div class="orders-filter-item">
+                  <label class="orders-filter-label" for="ordersTeacher">Teacher</label>
+                  <select id="ordersTeacher" name="teacher" class="orders-filter-select">
+                    <option value="all">All teachers</option>
+                    <% (teachers || []).forEach(function(t) { %>
+                    <option value="<%= t._id %>" <%= (currentFilters.teacher==t._id || (currentFilters.teacher&&currentFilters.teacher.toString())==(t._id&&t._id.toString()))?'selected':'' %>><%= t.firstName %> <%= t.lastName %><% if (t.teacherCode) { %> (<%= t.teacherCode %>)<% } %></option>
+                    <% }); %>
+                  </select>
+                </div>
+                <div class="orders-filter-item">
+                  <label class="orders-filter-label" for="ordersCourse">Course</label>
+                  <select id="ordersCourse" name="course" class="orders-filter-select">
+                    <option value="all">All courses</option>
+                    <% (courses || []).forEach(function(c) { %>
+                    <option value="<%= c._id %>" <%= (currentFilters.course==c._id || (currentFilters.course&&currentFilters.course.toString())==(c._id&&c._id.toString()))?'selected':'' %>><%= (c.courseCode||'') %> – <%= (c.title||'').slice(0,50) %><%= (c.title&&c.title.length>50)?'…':'' %></option>
+                    <% }); %>
+                  </select>
+                </div>
+                <div class="orders-filter-item">
+                  <label class="orders-filter-label" for="ordersHasPromo">Promo</label>
+                  <select id="ordersHasPromo" name="hasPromo" class="orders-filter-select">
+                    <option value="all">All</option>
+                    <option value="yes" <%= (currentFilters.hasPromo==='yes')?'selected':'' %>>With promo</option>
+                    <option value="no" <%= (currentFilters.hasPromo==='no')?'selected':'' %>>No promo</option>
+                  </select>
+                </div>
               </div>
-              <div class="col-6 col-md-2">
-                <label class="form-label" style="color: var(--admin-text-light); font-weight: 600; font-size: 14px; margin-bottom: 8px;">Date From</label>
-                <input type="date" class="form-control" name="dateFrom" value="<%= currentFilters.dateFrom||'' %>" style="border: 2px solid var(--admin-border-light); border-radius: 12px; padding: 12px 16px; font-size: 14px; transition: all 0.3s ease; background: var(--admin-card-light); color: var(--admin-text-light);">
+              <!-- Row: Sort, Date From, Date To -->
+              <div class="orders-filters-row orders-filters-dates">
+                <div class="orders-filter-item">
+                  <label class="orders-filter-label" for="ordersSort">Sort</label>
+                  <select id="ordersSort" name="sort" class="orders-filter-select">
+                    <option value="newest" <%= ((currentFilters.sort||'newest')==='newest')?'selected':'' %>>Newest first</option>
+                    <option value="oldest" <%= (currentFilters.sort==='oldest')?'selected':'' %>>Oldest first</option>
+                    <option value="total_high" <%= (currentFilters.sort==='total_high')?'selected':'' %>>Total: High–Low</option>
+                    <option value="total_low" <%= (currentFilters.sort==='total_low')?'selected':'' %>>Total: Low–High</option>
+                  </select>
+                </div>
+                <div class="orders-filter-item orders-filter-date">
+                  <label class="orders-filter-label" for="ordersDateFrom">From <span class="orders-filter-hint">(dd/mm/yyyy)</span></label>
+                  <input type="date" id="ordersDateFrom" name="dateFrom" class="orders-filter-date-input" value="<%= currentFilters.dateFrom || '' %>">
+                </div>
+                <div class="orders-filter-item orders-filter-date">
+                  <label class="orders-filter-label" for="ordersDateTo">To <span class="orders-filter-hint">(dd/mm/yyyy)</span></label>
+                  <input type="date" id="ordersDateTo" name="dateTo" class="orders-filter-date-input" value="<%= currentFilters.dateTo || '' %>">
+                </div>
               </div>
-              <div class="col-6 col-md-2">
-                <label class="form-label" style="color: var(--admin-text-light); font-weight: 600; font-size: 14px; margin-bottom: 8px;">Date To</label>
-                <input type="date" class="form-control" name="dateTo" value="<%= currentFilters.dateTo||'' %>" style="border: 2px solid var(--admin-border-light); border-radius: 12px; padding: 12px 16px; font-size: 14px; transition: all 0.3s ease; background: var(--admin-card-light); color: var(--admin-text-light);">
+              <% 
+                var _act = [currentFilters.status, currentFilters.paymentStatus, currentFilters.paymentMethod, currentFilters.teacher, currentFilters.examPeriod, currentFilters.course, currentFilters.hasPromo].filter(function(x){ return x && x !== 'all'; }).length;
+                if (currentFilters.search) _act++;
+                if (currentFilters.dateFrom) _act++;
+                if (currentFilters.dateTo) _act++;
+              %>
+              <% if (_act > 0) { %>
+              <div class="orders-active-filters">
+                <span class="orders-active-count"><i class="fas fa-filter"></i> <strong><%= _act %></strong> active</span>
+                <a href="/admin/orders" class="orders-clear-all">Clear all</a>
               </div>
-              <div class="col-12 d-flex justify-content-end gap-2 mt-4">
-                <a href="/admin/orders" class="btn btn-outline-secondary" style="padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; border: 2px solid var(--admin-border-light); color: var(--admin-text-light);">
-                  <i class="fas fa-times me-1"></i> Clear
-                </a>
-                <button class="btn btn-primary" type="submit" style="padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; background: var(--admin-primary); border-color: var(--admin-primary);">
-                  <i class="fas fa-filter me-1"></i> Apply Filters
-                </button>
+              <% } %>
+              <div class="orders-filters-actions">
+                <a href="/admin/orders" class="orders-filter-btn orders-filter-btn-clear"><i class="fas fa-times"></i> Clear</a>
+                <button type="submit" class="orders-filter-btn orders-filter-btn-apply"><i class="fas fa-filter"></i> Apply</button>
               </div>
-            </form>
-          </div>
+            </div>
+          </form>
         </div>
 
         <!-- Orders Table -->
@@ -174,117 +330,83 @@
               </div>
             </div>
           </div>
-          <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" style="background: transparent; border: none; margin: 0;">
+          <div class="table-responsive orders-table-wrap">
+            <table class="table table-hover align-middle mb-0 orders-table-grid">
               <thead>
                 <tr>
-                  <th style="background: transparent; color: var(--admin-text-light); padding: 20px 24px; text-align: left; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; border-bottom: 2px solid var(--admin-border-light); position: sticky; top: 0; z-index: 10;">Order #</th>
-                  <th style="background: transparent; color: var(--admin-text-light); padding: 20px 24px; text-align: left; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; border-bottom: 2px solid var(--admin-border-light); position: sticky; top: 0; z-index: 10;">Customer</th>
-                  <th style="background: transparent; color: var(--admin-text-light); padding: 20px 24px; text-align: left; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; border-bottom: 2px solid var(--admin-border-light); position: sticky; top: 0; z-index: 10;">Items</th>
-                  <th style="background: transparent; color: var(--admin-text-light); padding: 20px 24px; text-align: left; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; border-bottom: 2px solid var(--admin-border-light); position: sticky; top: 0; z-index: 10;">Total</th>
-                  <th style="background: transparent; color: var(--admin-text-light); padding: 20px 24px; text-align: left; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; border-bottom: 2px solid var(--admin-border-light); position: sticky; top: 0; z-index: 10;">Status</th>
-                  <th style="background: transparent; color: var(--admin-text-light); padding: 20px 24px; text-align: left; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; border-bottom: 2px solid var(--admin-border-light); position: sticky; top: 0; z-index: 10;">Payment</th>
-                  <th style="background: transparent; color: var(--admin-text-light); padding: 20px 24px; text-align: left; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; border-bottom: 2px solid var(--admin-border-light); position: sticky; top: 0; z-index: 10;">Date</th>
-                  <th class="text-end" style="background: transparent; color: var(--admin-text-light); padding: 20px 24px; text-align: left; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; border-bottom: 2px solid var(--admin-border-light); position: sticky; top: 0; z-index: 10;">Actions</th>
+                  <th class="orders-th orders-th-order">Order #</th>
+                  <th class="orders-th orders-th-customer">Customer</th>
+                  <th class="orders-th orders-th-items">Items</th>
+                  <th class="orders-th orders-th-teacher">Teacher</th>
+                  <th class="orders-th orders-th-total">Total</th>
+                  <th class="orders-th orders-th-fee">G-Teacher Fee</th>
+                  <th class="orders-th orders-th-net">Teacher Net</th>
+                  <th class="orders-th orders-th-status">Status</th>
+                  <th class="orders-th orders-th-date">Date</th>
+                  <th class="orders-th orders-th-actions text-end">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <% if (!orders || orders.length === 0) { %>
                 <tr>
-                  <td colspan="8" class="text-center py-5" style="padding: 20px 24px; border-bottom: 1px solid var(--admin-border-light); vertical-align: middle; color: var(--admin-text-light);">
+                  <td colspan="10" class="orders-empty-cell">
                     <div class="orders-empty-state">
-                      <div class="orders-empty-icon">
-                        <i class="fas fa-shopping-cart"></i>
-                      </div>
+                      <div class="orders-empty-icon"><i class="fas fa-shopping-cart"></i></div>
                       <div class="orders-empty-title">No Orders Found</div>
                       <div class="orders-empty-description">No orders match your current filters.</div>
                     </div>
                   </td>
                 </tr>
                 <% } %>
-                <% (orders||[]).forEach(o => { %>
-                <tr style="transition: all 0.3s ease;">
-                  <td style="padding: 20px 24px; border-bottom: 1px solid var(--admin-border-light); vertical-align: middle; color: var(--admin-text-light);">
-                    <a href="/admin/orders/<%= o.orderNumber %>" class="order-number-link">
-                      #<%= o.orderNumber %>
-                    </a>
-                    <div class="text-muted small" style="margin-top: 4px;">
-                      <span class="badge" style="background: rgba(107, 114, 128, 0.1); color: #6b7280; border: 1px solid rgba(107, 114, 128, 0.2); padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                        <%= o.paymentMethod.replace('_', ' ') %>
-                      </span>
-                    </div>
+                <% (orders||[]).forEach(o => { 
+                  const orderGTeacherCommission = o.totalGTeacherCommission || (o.items || []).reduce((sum, item) => sum + (item.gTeacherCommission || 0), 0);
+                  const orderTeacherNet = o.totalTeacherNet || (o.items || []).reduce((sum, item) => sum + (item.teacherNet || 0), 0);
+                  const itemTitles = (o.items && o.items.length > 0) ? o.items.map(i => i.title) : [];
+                  // Teacher: from items.teacher first, else from items.item.teacher (course) for older orders
+                  const teacherNames = (o.items || [])
+                    .map(i => {
+                      const t = (i.teacher && (i.teacher.firstName || i.teacher.lastName))
+                        ? i.teacher
+                        : (i.item?.teacher && (i.item.teacher.firstName || i.item.teacher.lastName))
+                          ? i.item.teacher
+                          : null;
+                      return t ? [t.firstName, t.lastName].filter(Boolean).join(' ').trim() : null;
+                    })
+                    .filter(Boolean);
+                  const teacherDisplay = teacherNames.length ? [...new Set(teacherNames)].join(', ') : '—';
+                %>
+                <tr class="orders-row">
+                  <td class="orders-td orders-td-order">
+                    <a href="/admin/orders/<%= o.orderNumber %>" class="order-number-link">#<%= o.orderNumber %></a>
+                    <span class="order-payment-badge"><%= (o.paymentMethod || '').replace(/_/g, ' ') %></span>
                   </td>
-                  <td style="padding: 20px 24px; border-bottom: 1px solid var(--admin-border-light); vertical-align: middle; color: var(--admin-text-light);">
-                    <div class="order-customer-info">
-                      <div class="fw-semibold" style="color: var(--admin-text-light); font-weight: 600; font-size: 14px;">
-                        <%= (o.user?.firstName||'') %> <%= (o.user?.lastName||'') %>
-                      </div>
-                      <div class="text-muted small" style="color: #64748b; font-size: 12px; display: flex; align-items: center; gap: 4px;">
-                        <i class="fas fa-envelope"></i> <%= o.billingAddress?.email %>
-                      </div>
-                      <% if (o.user?.parentNumber) { %>
-                      <div class="text-muted small" style="color: #64748b; font-size: 12px; display: flex; align-items: center; gap: 4px;">
-                        <i class="fas fa-phone"></i> <%= o.user.parentCountryCode %> <%= o.user.parentNumber %>
-                      </div>
+                  <td class="orders-td orders-td-customer">
+                    <div class="order-customer-name"><%= (o.user?.firstName||'') %> <%= (o.user?.lastName||'') %></div>
+                    <div class="order-customer-email"><i class="fas fa-envelope"></i> <%= o.billingAddress?.email %></div>
+                  </td>
+                  <td class="orders-td orders-td-items">
+                    <div class="order-items-count"><i class="fas fa-box"></i> <%= itemTitles.length %> item(s)</div>
+                    <div class="order-items-preview"><%= itemTitles.slice(0,2).join(', ') %><%= itemTitles.length>2?' …':'' %></div>
+                  </td>
+                  <td class="orders-td orders-td-teacher">
+                    <div class="order-teacher-name"><i class="fas fa-chalkboard-teacher"></i> <%= teacherDisplay %></div>
+                  </td>
+                  <td class="orders-td orders-td-total"><span class="order-amount order-amount-total">EGP <%= (o.total||0).toFixed(2) %></span></td>
+                  <td class="orders-td orders-td-fee"><span class="order-amount order-amount-fee">EGP <%= orderGTeacherCommission.toFixed(2) %></span></td>
+                  <td class="orders-td orders-td-net"><span class="order-amount order-amount-net">EGP <%= orderTeacherNet.toFixed(2) %></span></td>
+                  <td class="orders-td orders-td-status"><span class="status-badge status-<%= o.status %>"><%= (o.status||'').charAt(0).toUpperCase() + (o.status||'').slice(1) %></span></td>
+                  <td class="orders-td orders-td-date">
+                    <div class="order-date-line"><i class="far fa-calendar-alt"></i> <%= new Date(o.createdAt).toLocaleDateString() %></div>
+                    <div class="order-time-line"><i class="far fa-clock"></i> <%= new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %></div>
+                  </td>
+                  <td class="orders-td orders-td-actions">
+                    <div class="orders-row-actions">
+                      <a class="order-action-btn order-action-view" href="/admin/orders/<%= o.orderNumber %>" title="View Order Details"><i class="fas fa-eye"></i></a>
+                      <% if (o.status === 'completed') { %>
+                      <a class="order-action-btn order-action-refund" href="/admin/orders/<%= o.orderNumber %>#refund" title="Refund"><i class="fas fa-undo"></i></a>
                       <% } %>
-                    </div>
-                  </td>
-                  <td style="padding: 20px 24px; border-bottom: 1px solid var(--admin-border-light); vertical-align: middle; color: var(--admin-text-light);">
-                    <% 
-                      const itemTitles = (o.items && o.items.length > 0)
-                        ? o.items.map(i => i.title)
-                        : [];
-                    %>
-                    <div class="text-muted small" style="color: #64748b; font-size: 12px; display: flex; align-items: center; gap: 4px;">
-                      <i class="fas fa-shopping-cart"></i> <%= itemTitles.length %> item(s)
-                    </div>
-                    <div class="order-item-preview" style="color: var(--admin-text-light); font-size: 13px; font-weight: 500; margin-top: 4px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                      <%= itemTitles.slice(0,2).join(', ') %><%= itemTitles.length>2?' …':'' %>
-                    </div>
-                  </td>
-                  <td class="fw-bold" style="padding: 20px 24px; border-bottom: 1px solid var(--admin-border-light); vertical-align: middle; color: var(--admin-primary); font-weight: 700; font-size: 16px;">
-                    <%= o.currency || '' %> <%= o.total.toFixed(2) %>
-                  </td>
-                  <td style="padding: 20px 24px; border-bottom: 1px solid var(--admin-border-light); vertical-align: middle; width: 120px;">
-                    <div class="d-flex flex-column gap-1">
-                      <span class="status-badge status-<%= o.status %>" style="display: inline-block; width: fit-content;">
-                        <%= o.status.charAt(0).toUpperCase() + o.status.slice(1) %>
-                      </span>
-                    </div>
-                  </td>
-                  <td style="padding: 20px 24px; border-bottom: 1px solid var(--admin-border-light); vertical-align: middle; width: 120px;">
-                    <div class="d-flex flex-column gap-1">
-                      <span class="status-badge status-<%= o.paymentMethod %>" style="display: inline-block; width: fit-content;">
-                        <%= o.paymentMethod.charAt(0).toUpperCase() + o.paymentMethod.slice(1) %>
-                      </span>
-                    </div>
-                  </td>
-                  <td style="padding: 20px 24px; border-bottom: 1px solid var(--admin-border-light); vertical-align: middle; color: var(--admin-text-light);">
-                    <div class="text-muted small" style="color: #64748b; font-size: 12px; display: flex; align-items: center; gap: 4px;">
-                      <i class="far fa-calendar-alt"></i> <%= new Date(o.createdAt).toLocaleDateString() %>
-                    </div>
-                    <div class="text-muted small" style="color: #64748b; font-size: 12px; display: flex; align-items: center; gap: 4px;">
-                      <i class="far fa-clock"></i> <%= new Date(o.createdAt).toLocaleTimeString() %>
-                    </div>
-                  </td>
-                  <td style="padding: 20px 24px; border-bottom: 1px solid var(--admin-border-light); vertical-align: middle;">
-                    <div class="d-flex justify-content-end gap-2">
-                      <a class="btn btn-sm btn-outline-primary order-action-button" href="/admin/orders/<%= o.orderNumber %>" title="View Order Details">
-                        <i class="fas fa-eye"></i>
-                      </a>
                       <% if (o.status === 'failed' && o.paymentStatus === 'failed') { %>
-                      <button class="btn btn-sm order-action-button-complete" 
-                              onclick="openCompletePaymentModal('<%= o.orderNumber %>', '<%= o._id %>')" 
-                              title="Complete Failed Payment & Enroll Student"
-                      >
-                        <i class="fas fa-magic"></i>
-                        <span>Fix Payment</span>
-                      </button>
-                      <% } %>
-                      <% if (o.status !== 'refunded' && o.paymentStatus === 'completed') { %>
-                      <a class="btn btn-sm btn-outline-danger order-action-button" href="/admin/orders/<%= o.orderNumber %>" title="Process Refund" onclick="return confirm('Navigate to order details to process refund?')">
-                        <i class="fas fa-undo"></i>
-                      </a>
+                      <button type="button" class="order-action-btn order-action-complete" onclick="openCompletePaymentModal('<%= o.orderNumber %>', '<%= o._id %>')" title="Complete Failed Payment & Enroll Student"><i class="fas fa-magic"></i></button>
                       <% } %>
                     </div>
                   </td>
@@ -525,6 +647,39 @@
   const monthlyData = <%- JSON.stringify(analytics.monthlySalesData || { labels: [], revenue: [], orderCount: [] }) %>;
 
   document.addEventListener('DOMContentLoaded', function() {
+    // Filters toggle (form gets is-collapsed; .orders-filters-body is hidden via CSS)
+    (function(){
+      var t = document.getElementById('ordersFiltersToggle');
+      var f = document.getElementById('ordersFiltersForm');
+      if (t && f) {
+        t.addEventListener('click', function() {
+          var c = f.classList.toggle('is-collapsed');
+          t.setAttribute('aria-expanded', c ? 'false' : 'true');
+          var i = t.querySelector('i');
+          if (i) i.className = c ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+        });
+      }
+    })();
+
+    // Type chips: set status and submit
+    document.querySelectorAll('.orders-type-chip').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var s = document.getElementById('ordersStatus');
+        if (s) { s.value = this.getAttribute('data-status') || 'all'; }
+        var form = document.getElementById('ordersFiltersForm');
+        if (form && form.tagName === 'FORM') form.submit();
+      });
+    });
+    // Exam period pills: set hidden and submit
+    document.querySelectorAll('.orders-exam-pill').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var h = document.getElementById('examPeriodInput');
+        if (h) h.value = this.getAttribute('data-exam-period') || 'all';
+        var form = document.getElementById('ordersFiltersForm');
+        if (form && form.tagName === 'FORM') form.submit();
+      });
+    });
+
     // Sales Analytics Chart
     const chartElement = document.getElementById('ordersSalesChart');
     if (!chartElement) {

@@ -327,12 +327,15 @@
                 </div>
 
                 <div class="course-actions-enhanced">
-                  <% // Check if user has purchased this course let isPurchased=false; if (user && user.enrolledCourses)
-                    { isPurchased=user.enrolledCourses.some(e=>
-                    e.course && e.course.toString() === course.id.toString()
-                    );
+                  <% 
+                    // Check if user has purchased this course
+                    let isPurchased = false;
+                    if (user && user.enrolledCourses && Array.isArray(user.enrolledCourses)) {
+                      isPurchased = user.enrolledCourses.some(e =>
+                        e.course && e.course.toString() === course.id.toString()
+                      );
                     }
-                    %>
+                  %>
 
                     <% if (isPurchased) { %>
                       <button class="btn-already-purchased" disabled>

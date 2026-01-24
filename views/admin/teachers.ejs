@@ -194,9 +194,9 @@
                   <th>Teacher</th>
                   <th style="text-align: center;">Code</th>
                   <th style="text-align: center;">Subject</th>
+                  <th style="text-align: center;">Commission</th>
                   <th style="text-align: center;">Contact</th>
                   <th style="text-align: center;">Status</th>
-                  <th style="text-align: center;">Joined</th>
                   <th style="text-align: center;">Actions</th>
                 </tr>
               </thead>
@@ -238,6 +238,11 @@
                     <% } %>
                   </td>
                   <td style="text-align: center;">
+                    <span class="badge bg-info" style="font-size: 0.85rem; padding: 6px 12px;">
+                      <i class="fas fa-percent me-1"></i> <%= teacher.gTeacherPercentage || 0 %>%
+                    </span>
+                  </td>
+                  <td style="text-align: center;">
                     <div class="contact-cell">
                       <% if (teacher.phoneNumber) { %>
                         <span class="phone-badge">
@@ -254,12 +259,6 @@
                       <span class="status-icon"></span>
                       <%= teacher.isActive ? 'Active' : 'Inactive' %>
                     </span>
-                  </td>
-                  <td style="text-align: center;">
-                    <div class="date-cell">
-                      <span class="date-main"><%= teacher.createdAt ? new Date(teacher.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A' %></span>
-                      <span class="date-sub"><%= teacher.createdAt ? new Date(teacher.createdAt).getFullYear() : '' %></span>
-                    </div>
                   </td>
                   <td>
                     <div class="teacher-actions">
@@ -505,6 +504,24 @@
             </div>
           </div>
           
+          <!-- G-Teacher Commission Percentage -->
+          <div class="col-12">
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fas fa-percent"></i> G-Teacher Commission (%)
+              </label>
+              <div class="input-group">
+                <input type="number" name="gTeacherPercentage" id="gTeacherPercentage" class="form-control" 
+                       placeholder="Enter commission percentage" min="0" max="100" step="0.5" value="0">
+                <span class="input-group-text">%</span>
+              </div>
+              <p class="form-text">
+                <i class="fas fa-info-circle me-1"></i>
+                Platform commission deducted from course sales. Teacher receives the remaining amount.
+              </p>
+            </div>
+          </div>
+          
           <!-- Active Status -->
           <div class="col-12">
             <div class="form-group">
@@ -622,6 +639,7 @@
     document.getElementById('isActive').checked = true;
     document.getElementById('statusText').textContent = 'Active';
     document.getElementById('statusDesc').textContent = 'Teacher can be assigned to courses';
+    document.getElementById('gTeacherPercentage').value = '0';
     
     // Reset profile picture
     const profilePreview = document.getElementById('profilePreview');
@@ -668,6 +686,7 @@
         document.getElementById('subject').value = teacher.subject || '';
         document.getElementById('bio').value = teacher.bio || '';
         document.getElementById('isActive').checked = teacher.isActive;
+        document.getElementById('gTeacherPercentage').value = teacher.gTeacherPercentage || 0;
         
         // Populate profile picture if exists
         const profilePreview = document.getElementById('profilePreview');
@@ -745,6 +764,10 @@
             <div class="view-info-item">
               <label><i class="fas fa-book"></i> Subject</label>
               <p>${teacher.subject || 'Not set'}</p>
+            </div>
+            <div class="view-info-item">
+              <label><i class="fas fa-percent"></i> G-Teacher Commission</label>
+              <p><span class="badge bg-info">${teacher.gTeacherPercentage || 0}%</span></p>
             </div>
             <div class="view-info-item">
               <label><i class="fas fa-toggle-on"></i> Status</label>

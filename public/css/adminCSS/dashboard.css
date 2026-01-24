@@ -2791,6 +2791,117 @@
 }
 
 /* ========================================
+   DASHBOARD TOP PERFORMING TEACHERS CARD
+   ======================================== */
+
+.dashboard-teachers-card .card-body {
+  background: var(--admin-card-light);
+}
+
+.dark-theme .dashboard-teachers-card .card-body {
+  background: var(--admin-card-dark);
+}
+
+.dark-theme .dashboard-teachers-card {
+  border-color: var(--admin-border-dark) !important;
+}
+
+/* Commission summary section - dark background */
+.dark-theme .dashboard-teachers-commission-wrap {
+  background: rgba(58, 146, 189, 0.08) !important;
+  border-bottom-color: var(--admin-border-dark) !important;
+}
+
+/* Metric cards - dark card style */
+.dark-theme .dashboard-teachers-metric-card {
+  background: linear-gradient(135deg, var(--admin-card-dark), #1e293b) !important;
+  border-color: var(--admin-border-dark) !important;
+}
+
+.dark-theme .dashboard-teachers-metric-label {
+  color: var(--admin-text-dark) !important;
+  opacity: 0.85;
+}
+
+/* Filter & sort bar */
+.dark-theme .dashboard-teachers-filters {
+  background: var(--admin-card-dark) !important;
+  border-bottom-color: var(--admin-border-dark) !important;
+}
+
+.dark-theme .dashboard-teachers-sort-label {
+  color: var(--admin-text-dark) !important;
+}
+
+.dark-theme .dashboard-teachers-filters .teacher-sort-btn:not(.active) {
+  background: var(--admin-card-dark) !important;
+  color: #5ba9d1 !important;
+  border-color: var(--admin-border-dark) !important;
+}
+
+.dark-theme .dashboard-teachers-filters .teacher-sort-btn:not(.active):hover {
+  background: rgba(58, 146, 189, 0.15) !important;
+  border-color: rgba(58, 146, 189, 0.4) !important;
+}
+
+.dark-theme .dashboard-teachers-search-input,
+.dark-theme .dashboard-teachers-subject-select {
+  background: var(--admin-card-dark) !important;
+  border-color: var(--admin-border-dark) !important;
+  color: var(--admin-text-dark) !important;
+}
+
+.dark-theme .dashboard-teachers-search-input::placeholder {
+  color: var(--admin-text-dark);
+  opacity: 0.6;
+}
+
+.dark-theme .dashboard-teachers-search-icon {
+  color: var(--admin-text-dark) !important;
+  opacity: 0.7;
+}
+
+/* Table header */
+.dark-theme .dashboard-teachers-thead,
+.dark-theme .dashboard-teachers-table thead {
+  background: rgba(58, 146, 189, 0.12) !important;
+}
+
+.dark-theme .dashboard-teachers-table thead th {
+  color: var(--admin-text-dark) !important;
+}
+
+.dark-theme .dashboard-teachers-table tbody tr {
+  border-bottom-color: var(--admin-border-dark) !important;
+}
+
+/* Table body - primary and muted text */
+.dark-theme .dashboard-teachers-text-primary {
+  color: var(--admin-text-dark) !important;
+}
+
+.dark-theme .dashboard-teachers-text-muted {
+  color: var(--admin-text-dark) !important;
+  opacity: 0.8;
+}
+
+.dark-theme .dashboard-teachers-badge {
+  background: rgba(58, 146, 189, 0.2) !important;
+  color: #5ba9d1 !important;
+}
+
+/* Empty state */
+.dark-theme .dashboard-teachers-empty {
+  color: var(--admin-text-dark) !important;
+  opacity: 0.9;
+}
+
+.dark-theme .dashboard-teachers-empty p {
+  color: var(--admin-text-dark) !important;
+  opacity: 0.85;
+}
+
+/* ========================================
    SYSTEM STATUS SECTION
    ======================================== */
 

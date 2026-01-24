@@ -352,7 +352,7 @@
                   <!-- KPI Stats Cards (Horizontal Layout) -->
                   <div class="row g-4 mb-4 dashboard-kpi">
                     <!-- Total Students -->
-                    <div class="col-12 col-lg-3 col-md-6">
+                    <div class="col-12 col-lg-4 col-md-6">
                       <div class="card shadow-sm h-100"
                         style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05); transition: all 0.3s ease;">
                         <div class="card-body" style="padding: 24px;">
@@ -365,19 +365,31 @@
                               <div class="text-muted small"
                                 style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
                                 Total Students</div>
-                              <div class="d-flex align-items-center gap-2">
+                              <div class="d-flex align-items-center gap-2 flex-wrap">
                                 <span class="fs-4 fw-bold"
                                   style="color: var(--admin-text-light); font-size: 28px; font-weight: 700;">
                                   <%= dashboardData.students.total || 0 %>
                                 </span>
-                                <span class="badge"
-                                  style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
-                                  <i class="fas fa-arrow-up" style="font-size: 9px;"></i> +<%=
-                                    dashboardData.students.growth || 12 %>%
-                                </span>
+                                <% const studentGrowth = dashboardData.students.growth; %>
+                                <% if (studentGrowth > 0) { %>
+                                  <span class="badge"
+                                    style="background: rgba(16, 185, 129, 0.12); color: #0f9f6e; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
+                                    ▲ <%= studentGrowth %>% vs prev 30d
+                                  </span>
+                                  <% } else if (studentGrowth < 0) { %>
+                                    <span class="badge"
+                                      style="background: rgba(239, 68, 68, 0.1); color: #dc2626; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
+                                      ▼ <%= Math.abs(studentGrowth) %>% vs prev 30d
+                                    </span>
+                                    <% } else { %>
+                                      <span class="badge"
+                                        style="background: rgba(100, 116, 139, 0.1); color: #475569; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
+                                        • Stable vs prev 30d
+                                      </span>
+                                      <% } %>
                               </div>
-                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">Active: <%=
-                                  dashboardData.students.active || 0 %> | New: <%= dashboardData.students.newThisMonth
+                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">Active: <%= 
+                                  dashboardData.students.active || 0 %> • New (30d): <%= dashboardData.students.newThisMonth
                                     || 0 %>
                               </div>
                             </div>
@@ -387,32 +399,44 @@
                     </div>
 
                     <!-- Total Courses -->
-                    <div class="col-12 col-lg-3 col-md-6">
+                    <div class="col-12 col-lg-4 col-md-6">
                       <div class="card shadow-sm h-100"
                         style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05); transition: all 0.3s ease;">
                         <div class="card-body" style="padding: 24px;">
                           <div class="d-flex align-items-center">
                             <div class="kpi-icon"
-                              style="background-color: rgba(139, 92, 246, 0.1); color: #8b5cf6; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.5rem; margin-right: 16px;">
+                              style="background-color: rgba(58, 146, 189, 0.12); color: #3a92bd; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.5rem; margin-right: 16px;">
                               <i class="fas fa-graduation-cap"></i>
                             </div>
                             <div class="flex-grow-1">
                               <div class="text-muted small"
                                 style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
                                 Total Courses</div>
-                              <div class="d-flex align-items-center gap-2">
+                              <div class="d-flex align-items-center gap-2 flex-wrap">
                                 <span class="fs-4 fw-bold"
                                   style="color: var(--admin-text-light); font-size: 28px; font-weight: 700;">
                                   <%= dashboardData.courses.total || 0 %>
                                 </span>
-                                <span class="badge"
-                                  style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
-                                  <i class="fas fa-arrow-up" style="font-size: 9px;"></i> +<%=
-                                    dashboardData.courses.growth || 8 %>%
-                                </span>
+                                <% const courseGrowth = dashboardData.courses.growth; %>
+                                <% if (courseGrowth > 0) { %>
+                                  <span class="badge"
+                                    style="background: rgba(16, 185, 129, 0.12); color: #0f9f6e; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
+                                    ▲ <%= courseGrowth %>% vs prev 30d
+                                  </span>
+                                  <% } else if (courseGrowth < 0) { %>
+                                    <span class="badge"
+                                      style="background: rgba(239, 68, 68, 0.1); color: #dc2626; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
+                                      ▼ <%= Math.abs(courseGrowth) %>% vs prev 30d
+                                    </span>
+                                    <% } else { %>
+                                      <span class="badge"
+                                        style="background: rgba(100, 116, 139, 0.1); color: #475569; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
+                                        • Stable vs prev 30d
+                                      </span>
+                                      <% } %>
                               </div>
-                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">Published: <%=
-                                  dashboardData.courses.published || 0 %> | Draft: <%= dashboardData.courses.draft || 0
+                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">Published: <%= 
+                                  dashboardData.courses.published || 0 %> • Draft: <%= dashboardData.courses.draft || 0
                                     %>
                               </div>
                             </div>
@@ -421,47 +445,14 @@
                       </div>
                     </div>
 
-                    <!-- Total Revenue -->
-                    <div class="col-12 col-lg-3 col-md-6">
-                      <div class="card shadow-sm h-100"
-                        style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05); transition: all 0.3s ease;">
-                        <div class="card-body" style="padding: 24px;">
-                          <div class="d-flex align-items-center">
-                            <div class="kpi-icon"
-                              style="background-color: rgba(16, 185, 129, 0.1); color: #10b981; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.5rem; margin-right: 16px;">
-                              <i class="fas fa-coins"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                              <div class="text-muted small"
-                                style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
-                                Total Revenue</div>
-                              <div class="d-flex align-items-center gap-2">
-                                <span class="fs-4 fw-bold"
-                                  style="color: var(--admin-text-light); font-size: 28px; font-weight: 700;">EGP <%=
-                                    dashboardData.revenue.total || 0 %></span>
-                                <span class="badge"
-                                  style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
-                                  <i class="fas fa-arrow-up" style="font-size: 9px;"></i> +<%=
-                                    dashboardData.revenue.growth || 15 %>%
-                                </span>
-                              </div>
-                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">This month: EGP <%=
-                                  dashboardData.revenue.thisMonth || 0 %>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
                     <!-- Engagement Score -->
-                    <div class="col-12 col-lg-3 col-md-6">
+                    <div class="col-12 col-lg-4 col-md-6">
                       <div class="card shadow-sm h-100"
                         style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05); transition: all 0.3s ease;">
                         <div class="card-body" style="padding: 24px;">
                           <div class="d-flex align-items-center">
                             <div class="kpi-icon"
-                              style="background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.5rem; margin-right: 16px;">
+                              style="background-color: rgba(58, 146, 189, 0.12); color: #3a92bd; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.5rem; margin-right: 16px;">
                               <i class="fas fa-chart-line"></i>
                             </div>
                             <div class="flex-grow-1">
@@ -498,34 +489,32 @@
 
                   <!-- Additional Stats Row -->
                   <div class="row g-4 mb-4">
-                    <!-- Brilliant Students -->
+                    <!-- Teachers Overview -->
                     <div class="col-12 col-lg-6">
                       <div class="card shadow-sm h-100"
                         style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05);">
                         <div class="card-body" style="padding: 24px;">
                           <div class="d-flex align-items-center">
                             <div class="kpi-icon"
-                              style="background-color: rgba(251, 191, 36, 0.1); color: #fbbf24; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.5rem; margin-right: 16px;">
-                              <i class="fas fa-trophy"></i>
+                              style="background-color: rgba(58, 146, 189, 0.12); color: #3a92bd; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.5rem; margin-right: 16px;">
+                              <i class="fas fa-chalkboard-teacher"></i>
                             </div>
                             <div class="flex-grow-1">
                               <div class="text-muted small"
                                 style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
-                                Brilliant Students</div>
-                              <div class="d-flex align-items-center gap-2">
+                                Teachers</div>
+                              <div class="d-flex align-items-center gap-2 flex-wrap">
                                 <span class="fs-4 fw-bold"
                                   style="color: var(--admin-text-light); font-size: 28px; font-weight: 700;">
-                                  <%= dashboardData.brilliantStudents.total || 0 %>
+                                  <%= (dashboardData.teachers && dashboardData.teachers.total) || 0 %>
                                 </span>
                                 <span class="badge"
-                                  style="background: rgba(251, 191, 36, 0.1); color: #d97706; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
-                                  <i class="fas fa-star" style="font-size: 9px;"></i> Excellence
+                                  style="background: rgba(16, 185, 129, 0.12); color: #0f9f6e; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
+                                  Active: <%= (dashboardData.teachers && dashboardData.teachers.active) || 0 %>
                                 </span>
                               </div>
-                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">EST: <%=
-                                  dashboardData.brilliantStudents.est || 0 %> | DSAT: <%=
-                                    dashboardData.brilliantStudents.dsat || 0 %> | ACT: <%=
-                                      dashboardData.brilliantStudents.act || 0 %>
+                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">New (30d): <%=
+                                  (dashboardData.teachers && dashboardData.teachers.newThisMonth) || 0 %>
                               </div>
                             </div>
                           </div>
@@ -540,14 +529,14 @@
                         <div class="card-body" style="padding: 24px;">
                           <div class="d-flex align-items-center">
                             <div class="kpi-icon"
-                              style="background-color: rgba(236, 72, 153, 0.1); color: #ec4899; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.5rem; margin-right: 16px;">
+                              style="background-color: rgba(58, 146, 189, 0.12); color: #3a92bd; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 1.5rem; margin-right: 16px;">
                               <i class="fas fa-shopping-cart"></i>
                             </div>
                             <div class="flex-grow-1">
                               <div class="text-muted small"
                                 style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
-                                Total Orders</div>
-                              <div class="d-flex align-items-center gap-2">
+                                Orders</div>
+                              <div class="d-flex align-items-center gap-2 flex-wrap">
                                 <span class="fs-4 fw-bold"
                                   style="color: var(--admin-text-light); font-size: 28px; font-weight: 700;">
                                   <%= dashboardData.revenue.orders || 0 %>
@@ -555,11 +544,11 @@
                                 <% if (dashboardData.newOrdersCount> 0) { %>
                                   <span class="badge"
                                     style="background: rgba(239, 68, 68, 0.1); color: #ef4444; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;">
-                                    <%= dashboardData.newOrdersCount %> New
+                                    <%= dashboardData.newOrdersCount %> new (24h)
                                   </span>
                                   <% } %>
                               </div>
-                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">Revenue this month: EGP
+                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">Revenue last 30 days: EGP
                                 <%= dashboardData.revenue.thisMonth || 0 %>
                               </div>
                             </div>
@@ -569,216 +558,301 @@
                     </div>
                   </div>
 
-                  <!-- Teacher Performance Section -->
-                  <div class="card shadow-sm mb-4"
-                    style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05); overflow: hidden;">
-                    <div class="card-header"
-                      style="background: linear-gradient(135deg, #3a92bd, #0c5374); border-bottom: none; padding: 20px 24px;">
-                      <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"
-                          style="color: #ffffff; font-weight: 700; display: flex; align-items: center; gap: 12px;">
-                          <i class="fas fa-chalkboard-teacher"></i> Teacher Performance
+1                  <!-- Top Performing Teachers (at top) -->
+                  <div class="card shadow-sm mb-4 dashboard-teachers-card" style="border-radius: 16px; border: 1px solid rgba(58, 146, 189, 0.15); overflow: hidden;">
+                    <div class="card-header" style="background: linear-gradient(135deg, #3a92bd, #0c5374); border-bottom: none; padding: 20px 24px;">
+                      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <h5 class="mb-0" style="color: #ffffff; font-weight: 700; display: flex; align-items: center; gap: 12px;">
+                          <i class="fas fa-chalkboard-teacher"></i> Top Performing Teachers
                         </h5>
-                        <span class="badge"
-                          style="background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.3); padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;">
-                          Monitor your teaching staff
-                        </span>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                          <span class="badge" style="background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.3); padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                            <%= (dashboardData.teachers && dashboardData.teachers.total) || 0 %> Total Teachers
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <div class="card-body" style="padding: 24px;">
-                      <div class="row g-4">
-                        <!-- Top Performing Teachers -->
-                        <div class="col-12 col-lg-6">
-                          Top Performing Teachers
-                          </h3>
-                          <span class="performance-badge success">Top 3</span>
+                    
+                    <!-- Commission Summary Cards -->
+                    <div class="dashboard-teachers-commission-wrap" style="background: rgba(58, 146, 189, 0.03); padding: 20px 24px; border-bottom: 1px solid rgba(58, 146, 189, 0.1);">
+                      <div class="row g-3">
+                        <div class="col-12 col-sm-6 col-lg-3">
+                          <div class="dashboard-teachers-metric-card" style="background: linear-gradient(135deg, #ffffff, #f8fafc); border-radius: 12px; padding: 16px; border: 1px solid rgba(58, 146, 189, 0.15); height: 100%;">
+                            <div class="d-flex align-items-center gap-3">
+                              <div style="width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-coins" style="color: white; font-size: 18px;"></i>
+                              </div>
+                              <div>
+                                <div class="dashboard-teachers-metric-label" style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Revenue</div>
+                                <div style="font-size: 20px; font-weight: 700; color: #10b981;">EGP <%= ((dashboardData.teachers?.commissionTotals?.totalRevenue) || 0).toLocaleString() %></div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-
-                        <div class="teacher-leaderboard">
-                          <div class="teacher-leaderboard-card rank-1">
-                            <div class="teacher-rank">
-                              <span class="rank-number">1</span>
-                              <i class="fas fa-crown rank-icon gold"></i>
-                            </div>
-                            <div class="teacher-avatar">
-                              <div class="avatar-placeholder">AM</div>
-                            </div>
-                            <div class="teacher-info">
-                              <h4 class="teacher-name">Ahmed Mohamed</h4>
-                              <span class="teacher-subject">Chemistry</span>
-                            </div>
-                            <div class="teacher-stats">
-                              <div class="stat-item">
-                                <i class="fas fa-users"></i>
-                                <span>142 students</span>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                          <div class="dashboard-teachers-metric-card" style="background: linear-gradient(135deg, #ffffff, #f8fafc); border-radius: 12px; padding: 16px; border: 1px solid rgba(58, 146, 189, 0.15); height: 100%;">
+                            <div class="d-flex align-items-center gap-3">
+                              <div style="width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, #3a92bd, #0c5374); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-percentage" style="color: white; font-size: 18px;"></i>
                               </div>
-                              <div class="stat-item">
-                                <i class="fas fa-star text-gold"></i>
-                                <span>4.9 rating</span>
+                              <div>
+                                <div class="dashboard-teachers-metric-label" style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">G-Teacher Commission</div>
+                                <div style="font-size: 20px; font-weight: 700; color: #3a92bd;">EGP <%= ((dashboardData.teachers?.commissionTotals?.totalGTeacherCommission) || 0).toLocaleString() %></div>
                               </div>
-                              <div class="stat-item">
-                                <i class="fas fa-check-circle text-success"></i>
-                                <span>98% completion</span>
-                              </div>
-                            </div>
-                            <div class="teacher-trend positive">
-                              <i class="fas fa-arrow-up"></i>
-                              <span>+12%</span>
                             </div>
                           </div>
-
-                          <div class="teacher-leaderboard-card rank-2">
-                            <div class="teacher-rank">
-                              <span class="rank-number">2</span>
-                              <i class="fas fa-medal rank-icon silver"></i>
-                            </div>
-                            <div class="teacher-avatar">
-                              <div class="avatar-placeholder">SK</div>
-                            </div>
-                            <div class="teacher-info">
-                              <h4 class="teacher-name">Sarah Khalil</h4>
-                              <span class="teacher-subject">Mathematics</span>
-                            </div>
-                            <div class="teacher-stats">
-                              <div class="stat-item">
-                                <i class="fas fa-users"></i>
-                                <span>128 students</span>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                          <div class="dashboard-teachers-metric-card" style="background: linear-gradient(135deg, #ffffff, #f8fafc); border-radius: 12px; padding: 16px; border: 1px solid rgba(58, 146, 189, 0.15); height: 100%;">
+                            <div class="d-flex align-items-center gap-3">
+                              <div style="width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-hand-holding-usd" style="color: white; font-size: 18px;"></i>
                               </div>
-                              <div class="stat-item">
-                                <i class="fas fa-star text-gold"></i>
-                                <span>4.8 rating</span>
+                              <div>
+                                <div class="dashboard-teachers-metric-label" style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Teacher Net</div>
+                                <div style="font-size: 20px; font-weight: 700; color: #f59e0b;">EGP <%= ((dashboardData.teachers?.commissionTotals?.totalTeacherNet) || 0).toLocaleString() %></div>
                               </div>
-                              <div class="stat-item">
-                                <i class="fas fa-check-circle text-success"></i>
-                                <span>95% completion</span>
-                              </div>
-                            </div>
-                            <div class="teacher-trend positive">
-                              <i class="fas fa-arrow-up"></i>
-                              <span>+8%</span>
                             </div>
                           </div>
-
-                          <div class="teacher-leaderboard-card rank-3">
-                            <div class="teacher-rank">
-                              <span class="rank-number">3</span>
-                              <i class="fas fa-award rank-icon bronze"></i>
-                            </div>
-                            <div class="teacher-avatar">
-                              <div class="avatar-placeholder">OE</div>
-                            </div>
-                            <div class="teacher-info">
-                              <h4 class="teacher-name">Omar Essam</h4>
-                              <span class="teacher-subject">Physics</span>
-                            </div>
-                            <div class="teacher-stats">
-                              <div class="stat-item">
-                                <i class="fas fa-users"></i>
-                                <span>115 students</span>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                          <div class="dashboard-teachers-metric-card" style="background: linear-gradient(135deg, #ffffff, #f8fafc); border-radius: 12px; padding: 16px; border: 1px solid rgba(58, 146, 189, 0.15); height: 100%;">
+                            <div class="d-flex align-items-center gap-3">
+                              <div style="width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-receipt" style="color: white; font-size: 18px;"></i>
                               </div>
-                              <div class="stat-item">
-                                <i class="fas fa-star text-gold"></i>
-                                <span>4.7 rating</span>
+                              <div>
+                                <div class="dashboard-teachers-metric-label" style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Sales</div>
+                                <div style="font-size: 20px; font-weight: 700; color: #8b5cf6;"><%= ((dashboardData.teachers?.commissionTotals?.totalOrders) || 0).toLocaleString() %></div>
                               </div>
-                              <div class="stat-item">
-                                <i class="fas fa-check-circle text-success"></i>
-                                <span>92% completion</span>
-                              </div>
-                            </div>
-                            <div class="teacher-trend positive">
-                              <i class="fas fa-arrow-up"></i>
-                              <span>+5%</span>
                             </div>
                           </div>
                         </div>
                       </div>
-
-                      <!-- Teachers Needing Support -->
-                      <div class="teacher-performance-card">
-                        <div class="performance-card-header">
-                          <h3 class="performance-card-title">
-                            <i class="fas fa-hand-holding-heart text-orange"></i>
-                            Teachers Needing Support
-                          </h3>
-                          <span class="performance-badge warning">Attention</span>
+                    </div>
+                    
+                    <!-- Filter & Sort Controls -->
+                    <div class="dashboard-teachers-filters" style="padding: 16px 24px; background: white; border-bottom: 1px solid rgba(226, 232, 240, 0.8);">
+                      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                          <span class="dashboard-teachers-sort-label" style="font-size: 12px; color: #64748b; font-weight: 600;">Sort by:</span>
+                          <div class="btn-group" role="group" id="teacherSortBtns">
+                            <button type="button" class="btn btn-sm teacher-sort-btn active" data-sort="revenue" style="padding: 6px 12px; font-size: 12px; border-radius: 6px 0 0 6px; background: #3a92bd; color: white; border: 1px solid #3a92bd;">
+                              <i class="fas fa-coins me-1"></i> Revenue
+                            </button>
+                            <button type="button" class="btn btn-sm teacher-sort-btn" data-sort="commission" style="padding: 6px 12px; font-size: 12px; background: white; color: #3a92bd; border: 1px solid #e2e8f0;">
+                              <i class="fas fa-percentage me-1"></i> Commission
+                            </button>
+                            <button type="button" class="btn btn-sm teacher-sort-btn" data-sort="net" style="padding: 6px 12px; font-size: 12px; background: white; color: #3a92bd; border: 1px solid #e2e8f0;">
+                              <i class="fas fa-hand-holding-usd me-1"></i> Net
+                            </button>
+                            <button type="button" class="btn btn-sm teacher-sort-btn" data-sort="students" style="padding: 6px 12px; font-size: 12px; border-radius: 0 6px 6px 0; background: white; color: #3a92bd; border: 1px solid #e2e8f0;">
+                              <i class="fas fa-users me-1"></i> Students
+                            </button>
+                          </div>
                         </div>
-
-                        <div class="teacher-support-list">
-                          <div class="teacher-support-card">
-                            <div class="teacher-avatar">
-                              <div class="avatar-placeholder warning">MA</div>
-                            </div>
-                            <div class="teacher-info">
-                              <h4 class="teacher-name">Mohamed Ali</h4>
-                              <span class="teacher-subject">Biology</span>
-                            </div>
-                            <div class="support-metrics">
-                              <div class="metric-item low">
-                                <span class="metric-label">Students</span>
-                                <span class="metric-value">23</span>
-                              </div>
-                              <div class="metric-item low">
-                                <span class="metric-label">Rating</span>
-                                <span class="metric-value">3.2</span>
-                              </div>
-                              <div class="metric-item low">
-                                <span class="metric-label">Completion</span>
-                                <span class="metric-value">45%</span>
-                              </div>
-                            </div>
-                            <div class="teacher-trend negative">
-                              <i class="fas fa-arrow-down"></i>
-                              <span>-15%</span>
-                            </div>
-                            <div class="support-actions">
-                              <button class="support-btn" title="Send Feedback">
-                                <i class="fas fa-comment"></i>
-                              </button>
-                              <button class="support-btn primary" title="Schedule Review">
-                                <i class="fas fa-calendar-check"></i>
-                              </button>
-                            </div>
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="position-relative">
+                            <input type="text" id="teacherSearchInput" class="form-control form-control-sm dashboard-teachers-search-input" placeholder="Search teachers..." 
+                              style="padding: 6px 12px 6px 32px; font-size: 12px; border-radius: 6px; border: 1px solid #e2e8f0; min-width: 200px;">
+                            <i class="fas fa-search dashboard-teachers-search-icon" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 12px;"></i>
                           </div>
-
-                          <div class="teacher-support-card">
-                            <div class="teacher-avatar">
-                              <div class="avatar-placeholder warning">NA</div>
-                            </div>
-                            <div class="teacher-info">
-                              <h4 class="teacher-name">Nour Ahmed</h4>
-                              <span class="teacher-subject">English</span>
-                            </div>
-                            <div class="support-metrics">
-                              <div class="metric-item low">
-                                <span class="metric-label">Students</span>
-                                <span class="metric-value">31</span>
-                              </div>
-                              <div class="metric-item medium">
-                                <span class="metric-label">Rating</span>
-                                <span class="metric-value">3.8</span>
-                              </div>
-                              <div class="metric-item low">
-                                <span class="metric-label">Completion</span>
-                                <span class="metric-value">52%</span>
-                              </div>
-                            </div>
-                            <div class="teacher-trend negative">
-                              <i class="fas fa-arrow-down"></i>
-                              <span>-8%</span>
-                            </div>
-                            <div class="support-actions">
-                              <button class="support-btn" title="Send Feedback">
-                                <i class="fas fa-comment"></i>
-                              </button>
-                              <button class="support-btn primary" title="Schedule Review">
-                                <i class="fas fa-calendar-check"></i>
-                              </button>
-                            </div>
-                          </div>
+                          <select id="teacherSubjectFilter" class="form-select form-select-sm dashboard-teachers-subject-select" style="padding: 6px 32px 6px 12px; font-size: 12px; border-radius: 6px; border: 1px solid #e2e8f0; min-width: 120px;">
+                            <option value="">All Subjects</option>
+                            <% const subjects = [...new Set((dashboardData.teachers?.allTeachers || []).map(t => t.subject).filter(Boolean))]; %>
+                            <% subjects.forEach(subject => { %>
+                              <option value="<%= subject %>"><%= subject %></option>
+                            <% }); %>
+                          </select>
                         </div>
                       </div>
+                    </div>
+
+                    <div class="card-body" style="padding: 0;">
+                      <% const teachersList = (dashboardData.teachers && dashboardData.teachers.list) || []; %>
+                      <% if (teachersList.length > 0) { %>
+                        <div class="table-responsive">
+                          <table class="table table-hover mb-0 dashboard-teachers-table" id="teachersPerformanceTable" style="margin: 0;">
+                            <thead class="dashboard-teachers-thead" style="background: rgba(58, 146, 189, 0.06);">
+                              <tr>
+                                <th style="padding: 16px 20px; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border: none; width: 50px;">#</th>
+                                <th style="padding: 16px 20px; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border: none;">Teacher</th>
+                                <th style="padding: 16px 20px; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border: none; text-align: center;">Subject</th>
+                                <th style="padding: 16px 20px; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border: none; text-align: center;">Courses</th>
+                                <th style="padding: 16px 20px; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border: none; text-align: center;">Students</th>
+                                <th style="padding: 16px 20px; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border: none; text-align: right;">Revenue</th>
+                                <th style="padding: 16px 20px; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border: none; text-align: center;">Commission %</th>
+                                <th style="padding: 16px 20px; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border: none; text-align: right;">G-Teacher Fee</th>
+                                <th style="padding: 16px 20px; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border: none; text-align: right;">Teacher Net</th>
+                              </tr>
+                            </thead>
+                            <tbody id="teachersTableBody">
+                              <% teachersList.forEach((teacher, index) => { %>
+                                <tr class="teacher-row" 
+                                    data-name="<%= teacher.name.toLowerCase() %>" 
+                                    data-subject="<%= teacher.subject %>" 
+                                    data-revenue="<%= teacher.revenue || 0 %>" 
+                                    data-commission="<%= teacher.gTeacherCommission || 0 %>"
+                                    data-net="<%= teacher.teacherNet || 0 %>"
+                                    data-students="<%= teacher.studentsCount || 0 %>"
+                                    style="border-bottom: 1px solid rgba(226, 232, 240, 0.8);">
+                                  <td style="padding: 16px 20px; vertical-align: middle; border: none;">
+                                    <% if (index === 0) { %>
+                                      <span class="rank-badge rank-1" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);">
+                                        <i class="fas fa-crown" style="font-size: 12px;"></i>
+                                      </span>
+                                    <% } else if (index === 1) { %>
+                                      <span class="rank-badge rank-2" style="background: linear-gradient(135deg, #94a3b8, #64748b); color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">2</span>
+                                    <% } else if (index === 2) { %>
+                                      <span class="rank-badge rank-3" style="background: linear-gradient(135deg, #cd7f32, #b8860b); color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">3</span>
+                                    <% } else { %>
+                                      <span style="background: rgba(58, 146, 189, 0.1); color: #3a92bd; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px;"><%= index + 1 %></span>
+                                    <% } %>
+                                  </td>
+                                  <td style="padding: 16px 20px; vertical-align: middle; border: none;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                      <% if (teacher.profilePicture) { %>
+                                        <img src="<%= teacher.profilePicture %>" alt="<%= teacher.name %>" style="width: 44px; height: 44px; border-radius: 12px; object-fit: cover; border: 2px solid rgba(58, 146, 189, 0.2);">
+                                      <% } else { %>
+                                        <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #3a92bd, #0c5374); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">
+                                          <%= teacher.initials %>
+                                        </div>
+                                      <% } %>
+                                      <div>
+                                        <div class="dashboard-teachers-text-primary" style="font-weight: 600; color: #1e293b; font-size: 14px;"><%= teacher.name %></div>
+                                        <div class="dashboard-teachers-text-muted" style="font-size: 12px; color: #94a3b8;"><%= teacher.teacherCode %></div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td style="padding: 16px 20px; vertical-align: middle; border: none; text-align: center;">
+                                    <span class="dashboard-teachers-badge" style="background: rgba(58, 146, 189, 0.12); color: #0c5374; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                                      <%= teacher.subject %>
+                                    </span>
+                                  </td>
+                                  <td style="padding: 16px 20px; vertical-align: middle; border: none; text-align: center;">
+                                    <div class="dashboard-teachers-text-primary" style="font-weight: 700; color: #1e293b; font-size: 16px;"><%= teacher.coursesCount %></div>
+                                    <div class="dashboard-teachers-text-muted" style="font-size: 11px; color: #94a3b8;"><%= teacher.publishedCourses %> published</div>
+                                  </td>
+                                  <td style="padding: 16px 20px; vertical-align: middle; border: none; text-align: center;">
+                                    <div class="dashboard-teachers-text-primary" style="font-weight: 700; color: #1e293b; font-size: 16px;"><%= teacher.studentsCount %></div>
+                                    <div class="dashboard-teachers-text-muted" style="font-size: 11px; color: #94a3b8;">enrolled</div>
+                                  </td>
+                                  <td style="padding: 16px 20px; vertical-align: middle; border: none; text-align: right;">
+                                    <div style="font-weight: 700; color: #10b981; font-size: 15px;">EGP <%= (teacher.revenue || 0).toLocaleString() %></div>
+                                  </td>
+                                  <td style="padding: 16px 20px; vertical-align: middle; border: none; text-align: center;">
+                                    <span style="background: rgba(139, 92, 246, 0.12); color: #7c3aed; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 700;">
+                                      <%= teacher.gTeacherPercentage || 0 %>%
+                                    </span>
+                                  </td>
+                                  <td style="padding: 16px 20px; vertical-align: middle; border: none; text-align: right;">
+                                    <div style="font-weight: 700; color: #3a92bd; font-size: 15px;">EGP <%= (teacher.gTeacherCommission || 0).toLocaleString() %></div>
+                                  </td>
+                                  <td style="padding: 16px 20px; vertical-align: middle; border: none; text-align: right;">
+                                    <div style="font-weight: 700; color: #f59e0b; font-size: 15px;">EGP <%= (teacher.teacherNet || 0).toLocaleString() %></div>
+                                  </td>
+                                </tr>
+                              <% }); %>
+                            </tbody>
+                          </table>
+                        </div>
+                      <% } else { %>
+                        <div class="dashboard-teachers-empty" style="padding: 48px; text-align: center; color: #64748b;">
+                          <i class="fas fa-chalkboard-teacher" style="font-size: 48px; color: rgba(58, 146, 189, 0.3); margin-bottom: 16px;"></i>
+                          <p style="margin: 0; font-size: 14px;">No teachers found. Add teachers to see performance data.</p>
+                        </div>
+                      <% } %>
                     </div>
                   </div>
+
+                  <!-- Teacher Table Sorting/Filtering Script -->
+                  <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                      const sortBtns = document.querySelectorAll('.teacher-sort-btn');
+                      const searchInput = document.getElementById('teacherSearchInput');
+                      const subjectFilter = document.getElementById('teacherSubjectFilter');
+                      const tableBody = document.getElementById('teachersTableBody');
+                      
+                      if (!tableBody) return;
+                      
+                      // Function to update rank badges based on current visible order
+                      function updateRankBadges(visibleRows) {
+                        visibleRows.forEach((row, index) => {
+                          const rankCell = row.querySelector('td:first-child');
+                          if (!rankCell) return;
+                          
+                          let badgeHtml = '';
+                          if (index === 0) {
+                            badgeHtml = '<span class="rank-badge rank-1" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);"><i class="fas fa-crown" style="font-size: 12px;"></i></span>';
+                          } else if (index === 1) {
+                            badgeHtml = '<span class="rank-badge rank-2" style="background: linear-gradient(135deg, #94a3b8, #64748b); color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">2</span>';
+                          } else if (index === 2) {
+                            badgeHtml = '<span class="rank-badge rank-3" style="background: linear-gradient(135deg, #cd7f32, #b8860b); color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">3</span>';
+                          } else {
+                            badgeHtml = '<span style="background: rgba(58, 146, 189, 0.1); color: #3a92bd; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px;">' + (index + 1) + '</span>';
+                          }
+                          rankCell.innerHTML = badgeHtml;
+                        });
+                      }
+                      
+                      function filterAndSortTable() {
+                        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+                        const selectedSubject = subjectFilter ? subjectFilter.value : '';
+                        const activeSort = document.querySelector('.teacher-sort-btn.active');
+                        const sortBy = activeSort ? activeSort.dataset.sort : 'revenue';
+                        
+                        const rows = Array.from(tableBody.querySelectorAll('.teacher-row'));
+                        
+                        // Filter rows
+                        rows.forEach(row => {
+                          const name = row.dataset.name || '';
+                          const subject = row.dataset.subject || '';
+                          const matchesSearch = name.includes(searchTerm);
+                          const matchesSubject = !selectedSubject || subject === selectedSubject;
+                          row.style.display = (matchesSearch && matchesSubject) ? '' : 'none';
+                        });
+                        
+                        // Sort visible rows
+                        const visibleRows = rows.filter(r => r.style.display !== 'none');
+                        visibleRows.sort((a, b) => {
+                          const aVal = parseFloat(a.dataset[sortBy]) || 0;
+                          const bVal = parseFloat(b.dataset[sortBy]) || 0;
+                          return bVal - aVal;
+                        });
+                        
+                        // Re-append in sorted order
+                        visibleRows.forEach((row) => {
+                          tableBody.appendChild(row);
+                        });
+                        
+                        // Update rank badges based on new order
+                        updateRankBadges(visibleRows);
+                      }
+                      
+                      // Bind events
+                      sortBtns.forEach(btn => {
+                        btn.addEventListener('click', function() {
+                          sortBtns.forEach(b => {
+                            b.classList.remove('active');
+                            b.style.background = 'white';
+                            b.style.color = '#3a92bd';
+                          });
+                          this.classList.add('active');
+                          this.style.background = '#3a92bd';
+                          this.style.color = 'white';
+                          filterAndSortTable();
+                        });
+                      });
+                      
+                      if (searchInput) {
+                        searchInput.addEventListener('input', filterAndSortTable);
+                      }
+                      
+                      if (subjectFilter) {
+                        subjectFilter.addEventListener('change', filterAndSortTable);
+                      }
+                    });
+                  </script>
 
                   <!-- Analytics Charts Section -->
                   <div class="row g-4 mb-4">
@@ -870,8 +944,12 @@
                                     <% if (course.featured) { %> <span class="featured-badge">⭐</span>
                                       <% } %>
                                 </h4>
-                                <p>
-                                  <%= course.level %> • <%= course.category %>
+                                <p style="margin: 0; color: #6b7280; font-size: 12px;">
+                                  <i class="fas fa-user" style="margin-right: 6px;"></i>
+                                  <%= course.teacherName %>
+                                  <% if (course.teacherSubject) { %>
+                                    • <%= course.teacherSubject %>
+                                  <% } %>
                                 </p>
                               </div>
                               <div class="course-performance-badge">
@@ -896,6 +974,12 @@
                                 </div>
                                 <div class="course-stat-label">Completion</div>
                               </div>
+                              <div class="course-stat-item">
+                                <div class="course-stat-value">
+                                  EGP <%= course.revenue %>
+                                </div>
+                                <div class="course-stat-label">Revenue</div>
+                              </div>
                             </div>
                           </div>
                           <% }); %>
@@ -913,52 +997,100 @@
                   </div>
 
 
-                  <!-- Analytics Grid -->
-                  <div class="admin-analytics-grid">
-                    <div class="admin-chart-card">
-                      <div class="admin-chart-header">
-                        <h3 class="admin-chart-title">Student Engagement</h3>
+                  <!-- Platform Summary Cards -->
+                  <div class="row g-4 mb-4">
+                    <!-- Quiz & Content Stats -->
+                    <div class="col-12 col-lg-4">
+                      <div class="card shadow-sm h-100" style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05);">
+                        <div class="card-body" style="padding: 24px;">
+                          <div class="d-flex align-items-center mb-3">
+                            <div style="background-color: rgba(58, 146, 189, 0.12); color: #3a92bd; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 1.25rem; margin-right: 14px;">
+                              <i class="fas fa-book-open"></i>
+                            </div>
+                            <div>
+                              <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Content Progress</div>
+                              <div style="font-size: 24px; font-weight: 700; color: var(--admin-text-light);"><%= dashboardData.engagement.completion || 0 %>%</div>
+                            </div>
+                          </div>
+                          <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid #f1f5f9;">
+                            <div style="text-align: center;">
+                              <div style="font-size: 18px; font-weight: 700; color: #1e293b;"><%= dashboardData.engagement.totalEnrolled || 0 %></div>
+                              <div style="font-size: 11px; color: #94a3b8;">Enrolled</div>
+                            </div>
+                            <div style="text-align: center;">
+                              <div style="font-size: 18px; font-weight: 700; color: #1e293b;"><%= dashboardData.engagement.studentsWithProgress || 0 %></div>
+                              <div style="font-size: 11px; color: #94a3b8;">In Progress</div>
+                            </div>
+                            <div style="text-align: center;">
+                              <div style="font-size: 18px; font-weight: 700; color: #10b981;"><%= dashboardData.engagement.activeStudents || 0 %></div>
+                              <div style="font-size: 11px; color: #94a3b8;">Active</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div class="chart-loading" id="engagementChartLoading">
-                        <i class="fas fa-chart-pie"></i>
-                        <span>Loading engagement data...</span>
-                      </div>
-                      <canvas id="engagementChart" class="chart-canvas" style="display: none;"></canvas>
                     </div>
 
-                    <div class="admin-activity-card">
-                      <div class="admin-chart-header">
-                        <h3 class="admin-chart-title">Recent Activity</h3>
-                      </div>
-
-                      <div class="admin-activity-content">
-                        <% if (dashboardData.recentActivity && dashboardData.recentActivity.length> 0) { %>
-                          <% dashboardData.recentActivity.forEach((activity, index)=> { %>
-                            <div class="admin-activity-item">
-                              <div class="admin-activity-icon">
-                                <i class="fas fa-<%= activity.icon %>"></i>
-                              </div>
-                              <div class="admin-activity-content">
-                                <p class="admin-activity-text">
-                                  <%= activity.message %>
-                                </p>
-                                <p class="admin-activity-time">
-                                  <%= activity.time %>
-                                </p>
+                    <!-- WhatsApp Status -->
+                    <div class="col-12 col-lg-4">
+                      <div class="card shadow-sm h-100" style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05);">
+                        <div class="card-body" style="padding: 24px;">
+                          <div class="d-flex align-items-center mb-3">
+                            <div style="background-color: rgba(37, 211, 102, 0.1); color: #25d366; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 1.25rem; margin-right: 14px;">
+                              <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                              <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">WhatsApp Integration</div>
+                              <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                                <% if (dashboardData.whatsappStatus === 'connected') { %>
+                                  <span style="width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block;"></span>
+                                  <span style="font-size: 16px; font-weight: 700; color: #10b981;">Connected</span>
+                                <% } else { %>
+                                  <span style="width: 10px; height: 10px; background: #ef4444; border-radius: 50%; display: inline-block;"></span>
+                                  <span style="font-size: 16px; font-weight: 700; color: #ef4444;">Disconnected</span>
+                                <% } %>
                               </div>
                             </div>
-                            <% }); %>
-                              <% } else { %>
-                                <div class="admin-activity-item">
-                                  <div class="admin-activity-icon">
-                                    <i class="fas fa-info-circle"></i>
-                                  </div>
-                                  <div class="admin-activity-content">
-                                    <p class="admin-activity-text">No recent activity to display</p>
-                                    <p class="admin-activity-time">Check back later for updates</p>
-                                  </div>
-                                </div>
-                                <% } %>
+                          </div>
+                          <div style="display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid #f1f5f9;">
+                            <a href="/admin/bulk-sms" style="flex: 1; text-align: center; background: #25d366; color: white; padding: 10px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600;">
+                              <i class="fas fa-paper-plane" style="margin-right: 6px;"></i> Send SMS
+                            </a>
+                            <a href="/admin/whatsapp" style="flex: 1; text-align: center; background: #f1f5f9; color: #475569; padding: 10px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600;">
+                              <i class="fas fa-cog" style="margin-right: 6px;"></i> Settings
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="col-12 col-lg-4">
+                      <div class="card shadow-sm h-100" style="border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.05);">
+                        <div class="card-body" style="padding: 24px;">
+                          <div class="d-flex align-items-center mb-3">
+                            <div style="background-color: rgba(58, 146, 189, 0.12); color: #3a92bd; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 1.25rem; margin-right: 14px;">
+                              <i class="fas fa-bolt"></i>
+                            </div>
+                            <div>
+                              <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Quick Actions</div>
+                              <div style="font-size: 14px; color: #64748b;">Manage your platform</div>
+                            </div>
+                          </div>
+                          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-top: 12px; border-top: 1px solid #f1f5f9;">
+                            <a href="/admin/courses/new" style="text-align: center; background: #f1f5f9; color: #475569; padding: 12px 8px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 600;">
+                              <i class="fas fa-plus" style="display: block; margin-bottom: 4px; color: #3b82f6;"></i> New Course
+                            </a>
+                            <a href="/admin/students" style="text-align: center; background: #f1f5f9; color: #475569; padding: 12px 8px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 600;">
+                              <i class="fas fa-users" style="display: block; margin-bottom: 4px; color: #10b981;"></i> Students
+                            </a>
+                            <a href="/admin/orders" style="text-align: center; background: #f1f5f9; color: #475569; padding: 12px 8px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 600;">
+                              <i class="fas fa-receipt" style="display: block; margin-bottom: 4px; color: #f59e0b;"></i> Orders
+                            </a>
+                            <a href="/admin/promo-codes" style="text-align: center; background: #f1f5f9; color: #475569; padding: 12px 8px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 600;">
+                              <i class="fas fa-tags" style="display: block; margin-bottom: 4px; color: #ec4899;"></i> Promo Codes
+                            </a>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -987,12 +1119,11 @@
       // Global chart instances
       let growthChartInstance = null;
       let revenueChartInstance = null;
-      let engagementChartInstance = null;
 
       // Chart initialization with real data
       function initializeCharts() {
         // Get real data from the server
-        const dashboardData = <% - JSON.stringify(dashboardData) %>;
+        const dashboardData = <%- JSON.stringify(dashboardData) %>;
 
         // Initialize with 30 days period by default
         loadChartData(30, dashboardData);
@@ -1014,7 +1145,6 @@
           // Update charts with new data
           updateGrowthChart(data.studentGrowth || []);
           updateRevenueChart(data.revenueData || []);
-          updateEngagementChart(cachedData || data);
 
         } catch (error) {
           console.error('Error loading chart data:', error);
@@ -1022,7 +1152,6 @@
           if (cachedData) {
             updateGrowthChart(cachedData.charts?.studentGrowth || []);
             updateRevenueChart(cachedData.charts?.revenueData || []);
-            updateEngagementChart(cachedData);
           }
         }
       }
@@ -1252,147 +1381,6 @@
                   },
                   color: '#6b7280'
                 }
-              }
-            }
-          }
-        });
-      }
-
-      // Update Engagement Chart
-      function updateEngagementChart(dashboardData) {
-        const engagementCtx = document.getElementById('engagementChart');
-        if (!engagementCtx) return;
-
-        document.getElementById('engagementChartLoading').style.display = 'none';
-        engagementCtx.style.display = 'block';
-
-        // Calculate engagement data from real stats
-        const totalStudents = dashboardData.students.total || 0;
-        const activeStudents = dashboardData.students.active || 0;
-        const newStudents = dashboardData.students.newThisMonth || 0;
-        const inactiveStudents = Math.max(0, totalStudents - activeStudents - newStudents);
-
-        // Destroy existing chart if it exists
-        if (engagementChartInstance) {
-          engagementChartInstance.destroy();
-        }
-
-        // Create new chart with high DPI support
-        engagementChartInstance = new Chart(engagementCtx, {
-          type: 'doughnut',
-          data: {
-            labels: ['Active Students', 'Inactive Students', 'New Students'],
-            datasets: [{
-              data: [activeStudents, inactiveStudents, newStudents],
-              backgroundColor: [
-                '#10b981',
-                '#ef4444',
-                '#f59e0b'
-              ],
-              borderWidth: 4,
-              borderColor: '#ffffff',
-              hoverOffset: 12,
-              hoverBorderWidth: 6,
-              hoverBackgroundColor: [
-                '#059669',
-                '#dc2626',
-                '#d97706'
-              ]
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '50%',
-            devicePixelRatio: window.devicePixelRatio || 1,
-            animation: {
-              animateRotate: true,
-              animateScale: true,
-              duration: 1000,
-              easing: 'easeOutQuart'
-            },
-            plugins: {
-              legend: {
-                position: 'bottom',
-                align: 'center',
-                labels: {
-                  padding: 15,
-                  usePointStyle: true,
-                  pointStyle: 'circle',
-                  font: {
-                    size: 12,
-                    weight: '600',
-                    family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-                  },
-                  color: '#1e293b',
-                  generateLabels: function (chart) {
-                    const data = chart.data;
-                    if (data.labels.length && data.datasets.length) {
-                      return data.labels.map((label, i) => {
-                        const dataset = data.datasets[0];
-                        const value = dataset.data[i];
-                        const total = dataset.data.reduce((a, b) => a + b, 0);
-                        const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
-
-                        return {
-                          text: `${label}: ${value} (${percentage}%)`,
-                          fillStyle: dataset.backgroundColor[i],
-                          strokeStyle: dataset.borderColor,
-                          lineWidth: dataset.borderWidth,
-                          pointStyle: 'circle',
-                          hidden: false,
-                          index: i
-                        };
-                      });
-                    }
-                    return [];
-                  }
-                }
-              },
-              tooltip: {
-                enabled: true,
-                backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                titleColor: '#ffffff',
-                bodyColor: '#ffffff',
-                borderColor: '#3a92bd',
-                borderWidth: 2,
-                cornerRadius: 12,
-                displayColors: true,
-                padding: 16,
-                titleFont: {
-                  size: 16,
-                  weight: 'bold',
-                  family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-                },
-                bodyFont: {
-                  size: 14,
-                  weight: '500',
-                  family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-                },
-                callbacks: {
-                  title: function (context) {
-                    return context[0].label;
-                  },
-                  label: function (context) {
-                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                    const percentage = total > 0 ? Math.round((context.parsed / total) * 100) : 0;
-                    return `${context.parsed} students (${percentage}%)`;
-                  }
-                }
-              }
-            },
-            layout: {
-              padding: {
-                top: 10,
-                bottom: 10,
-                left: 10,
-                right: 10
-              }
-            },
-            elements: {
-              arc: {
-                borderWidth: 4,
-                borderColor: '#ffffff'
               }
             }
           }

@@ -6,6 +6,9 @@
 /* Import the main admin layout and variables */
 @import url('../allAdmin.css');
 
+/* Import redesigned admin sidebar (overrides allAdmin sidebar styles) */
+@import url('./admin-sidebar.css');
+
 /* Import all separated admin CSS files */
 @import url('./dashboard.css');
 @import url('./courses.css');

@@ -23,18 +23,36 @@ const otpMasterUtil = require('../utils/otpMasterGenerator');
 // Admin Dashboard with Real Data
 const getAdminDashboard = async (req, res) => {
   try {
-    console.log('Fetching dashboard data...');
+
+    const now = new Date();
+    const last30 = new Date(now);
+    last30.setDate(now.getDate() - 30);
+    const prev30End = new Date(now);
+    prev30End.setDate(now.getDate() - 30);
+    const prev30Start = new Date(now);
+    prev30Start.setDate(now.getDate() - 60);
+
+    const calcGrowth = (current, previous) => {
+      if (previous === 0) {
+        return current > 0 ? 100 : 0;
+      }
+      return Math.round(((current - previous) / previous) * 100);
+    };
 
     // Fetch real data from database using correct field names
     const [
       totalStudents,
       activeStudents,
       newStudentsThisMonth,
+      prevStudentsCount,
       totalCourses,
       publishedCourses,
       draftCourses,
+      newCoursesThisMonth,
+      prevCoursesCount,
       totalRevenue,
       monthlyRevenue,
+      prevMonthlyRevenue,
       totalOrders,
       recentStudents,
       newOrders,
@@ -42,21 +60,28 @@ const getAdminDashboard = async (req, res) => {
       studentGrowth,
       revenueData,
       progressStats,
+      totalTeachers,
+      activeTeachersCount,
+      newTeachersThisMonth,
     ] = await Promise.all([
       // Student statistics - using correct field names from User model
       User.countDocuments({ role: 'student' }),
       User.countDocuments({ role: 'student', isActive: true }),
       User.countDocuments({
         role: 'student',
-        createdAt: {
-          $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)),
-        },
+        createdAt: { $gte: last30 },
+      }),
+      User.countDocuments({
+        role: 'student',
+        createdAt: { $gte: prev30Start, $lt: prev30End },
       }),
 
       // Course statistics
       Course.countDocuments(),
       Course.countDocuments({ status: 'published' }),
       Course.countDocuments({ status: 'draft' }),
+      Course.countDocuments({ createdAt: { $gte: last30 } }),
+      Course.countDocuments({ createdAt: { $gte: prev30Start, $lt: prev30End } }),
 
       // Revenue statistics - excluding refunded orders
       Purchase.aggregate([
@@ -71,9 +96,17 @@ const getAdminDashboard = async (req, res) => {
       Purchase.aggregate([
         {
           $match: {
-            createdAt: {
-              $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)),
-            },
+            createdAt: { $gte: last30 },
+            status: { $in: ['completed', 'paid'] },
+            $or: [{ refundedAt: { $exists: false } }, { refundedAt: null }],
+          },
+        },
+        { $group: { _id: null, total: { $sum: '$total' } } },
+      ]),
+      Purchase.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: prev30Start, $lt: prev30End },
             status: { $in: ['completed', 'paid'] },
             $or: [{ refundedAt: { $exists: false } }, { refundedAt: null }],
           },
@@ -102,7 +135,7 @@ const getAdminDashboard = async (req, res) => {
 
       // Top performing courses (including featured) - Get courses with enrollment data
       Course.find({ status: { $in: ['published', 'draft'] } })
-        .populate('teacher', 'firstName lastName teacherCode')
+        .populate('teacher', 'firstName lastName teacherCode subject')
         .sort({ createdAt: -1 })
         .limit(6)
         .select('title status price featured teacher'),
@@ -155,7 +188,151 @@ const getAdminDashboard = async (req, res) => {
           },
         },
       ]),
+      // Teacher statistics
+      Teacher.countDocuments(),
+      Teacher.countDocuments({ isActive: true }),
+      Teacher.countDocuments({ createdAt: { $gte: last30 } }),
     ]);
+
+    // Fetch all teachers with their course data for performance metrics
+    const allTeachers = await Teacher.find({ isActive: true })
+      .select('firstName lastName teacherCode subject profilePicture gTeacherPercentage')
+      .lean();
+
+    // Calculate performance for each teacher using STORED commission data from purchases
+    const teacherPerformance = await Promise.all(
+      allTeachers.map(async (teacher) => {
+        try {
+          // Get courses for this teacher
+          const teacherCourses = await Course.find({ teacher: teacher._id })
+            .select('_id title status')
+            .lean();
+
+          const courseIds = teacherCourses.map((c) => c._id);
+
+          // Get enrolled students count
+          const enrolledStudentsCount = await User.countDocuments({
+            role: 'student',
+            'enrolledCourses.course': { $in: courseIds },
+          });
+
+          // Get revenue and STORED commission data from completed purchases
+          // Use items.teacher field to match teacher, fall back to course matching
+          // Revenue = actual amount paid (order.total after promo), allocated per item by (item.price*qty/subtotal)*total
+          const revenueResult = await Purchase.aggregate([
+            {
+              $match: {
+                status: { $in: ['completed', 'paid'] },
+                $or: [{ refundedAt: { $exists: false } }, { refundedAt: null }],
+              },
+            },
+            { $unwind: '$items' },
+            {
+              $match: {
+                'items.itemType': 'course',
+                $or: [
+                  { 'items.teacher': teacher._id },
+                  { 'items.item': { $in: courseIds } }
+                ]
+              },
+            },
+            {
+              $addFields: {
+                itemRevenue: {
+                  $cond: [
+                    { $gt: [{ $ifNull: ['$subtotal', 0] }, 0] },
+                    {
+                      $multiply: [
+                        { $divide: [
+                          { $multiply: [
+                            { $ifNull: ['$items.price', 0] },
+                            { $ifNull: ['$items.quantity', 1] }
+                          ]},
+                          '$subtotal'
+                        ]},
+                        '$total'
+                      ]
+                    },
+                    0
+                  ]
+                }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                totalRevenue: { $sum: '$itemRevenue' },
+                // Use ONLY the stored commission values - these were set at purchase time
+                totalGTeacherCommission: { $sum: { $ifNull: ['$items.gTeacherCommission', 0] } },
+                totalTeacherNet: { $sum: { $ifNull: ['$items.teacherNet', 0] } },
+                orderCount: { $sum: 1 },
+              },
+            },
+          ]);
+
+          const teacherRevenue = revenueResult[0]?.totalRevenue || 0;
+          // Use ONLY stored values - do not recalculate!
+          const gTeacherCommission = revenueResult[0]?.totalGTeacherCommission || 0;
+          const teacherNet = revenueResult[0]?.totalTeacherNet || 0;
+          const orderCount = revenueResult[0]?.orderCount || 0;
+
+          return {
+            _id: teacher._id,
+            name: `${teacher.firstName} ${teacher.lastName}`,
+            initials: `${teacher.firstName.charAt(0)}${teacher.lastName.charAt(0)}`.toUpperCase(),
+            teacherCode: teacher.teacherCode || '',
+            subject: teacher.subject || 'General',
+            profilePicture: teacher.profilePicture || '',
+            gTeacherPercentage: teacher.gTeacherPercentage || 0,
+            coursesCount: teacherCourses.length,
+            publishedCourses: teacherCourses.filter((c) => c.status === 'published').length,
+            studentsCount: enrolledStudentsCount,
+            orderCount: orderCount,
+            revenue: Math.round(teacherRevenue * 100) / 100,
+            // Use stored values directly - these are the actual commission amounts from each purchase
+            gTeacherCommission: Math.round(gTeacherCommission * 100) / 100,
+            teacherNet: Math.round(teacherNet * 100) / 100,
+          };
+        } catch (error) {
+          console.error('Error calculating teacher performance:', teacher.firstName, error);
+          return {
+            _id: teacher._id,
+            name: `${teacher.firstName} ${teacher.lastName}`,
+            initials: `${teacher.firstName.charAt(0)}${teacher.lastName.charAt(0)}`.toUpperCase(),
+            teacherCode: teacher.teacherCode || '',
+            subject: teacher.subject || 'General',
+            profilePicture: teacher.profilePicture || '',
+            gTeacherPercentage: teacher.gTeacherPercentage || 0,
+            coursesCount: 0,
+            publishedCourses: 0,
+            studentsCount: 0,
+            orderCount: 0,
+            revenue: 0,
+            gTeacherCommission: 0,
+            teacherNet: 0,
+          };
+        }
+      })
+    );
+
+    // Sort by revenue (max to lowest), then by students when revenue is tied
+    const topTeachers = teacherPerformance
+      .sort((a, b) => {
+        const revA = a.revenue ?? 0;
+        const revB = b.revenue ?? 0;
+        if (revB !== revA) return revB - revA;
+        return (b.studentsCount ?? 0) - (a.studentsCount ?? 0);
+      })
+      .slice(0, 10);
+
+    // Calculate teacher commission totals
+    const teacherCommissionTotals = teacherPerformance.reduce((acc, teacher) => {
+      acc.totalRevenue += teacher.revenue || 0;
+      acc.totalGTeacherCommission += teacher.gTeacherCommission || 0;
+      acc.totalTeacherNet += teacher.teacherNet || 0;
+      acc.totalOrders += teacher.orderCount || 0;
+      return acc;
+    }, { totalRevenue: 0, totalGTeacherCommission: 0, totalTeacherNet: 0, totalOrders: 0 });
 
     console.log('Data fetched successfully:', {
       totalStudents,
@@ -211,15 +388,12 @@ const getAdminDashboard = async (req, res) => {
       engagementScore = Math.round(activeEngagement + progressEngagement);
     }
 
-    // Calculate growth percentages (mock for now - would need historical data)
-    const studentGrowthPercent =
-      totalStudents > 0 ? Math.floor(Math.random() * 20) + 5 : 0;
-    const courseGrowthPercent =
-      totalCourses > 0 ? Math.floor(Math.random() * 15) + 3 : 0;
-    const revenueGrowthPercent =
-      (totalRevenue[0]?.total || 0) > 0
-        ? Math.floor(Math.random() * 25) + 10
-        : 0;
+    const revenueThisMonth = Math.round(monthlyRevenue[0]?.total || 0);
+    const revenuePrevMonth = Math.round(prevMonthlyRevenue[0]?.total || 0);
+
+    const studentGrowthPercent = calcGrowth(newStudentsThisMonth, prevStudentsCount);
+    const courseGrowthPercent = calcGrowth(newCoursesThisMonth, prevCoursesCount);
+    const revenueGrowthPercent = calcGrowth(revenueThisMonth, revenuePrevMonth);
 
     // Get WhatsApp status
     let whatsappStatus = 'disconnected';
@@ -256,9 +430,17 @@ const getAdminDashboard = async (req, res) => {
       },
       revenue: {
         total: Math.round(totalRevenue[0]?.total || 0),
-        thisMonth: Math.round(monthlyRevenue[0]?.total || 0),
+        thisMonth: revenueThisMonth,
         orders: totalOrders || 0,
         growth: revenueGrowthPercent,
+      },
+      teachers: {
+        total: totalTeachers || 0,
+        active: activeTeachersCount || 0,
+        newThisMonth: newTeachersThisMonth || 0,
+        list: topTeachers,
+        allTeachers: teacherPerformance,
+        commissionTotals: teacherCommissionTotals,
       },
       engagement: {
         score: engagementScore,
@@ -287,26 +469,22 @@ const getAdminDashboard = async (req, res) => {
         stats: {},
       },
       recentActivity: [
-        // Recent students
-        ...recentStudents.map((user, index) => ({
+        ...recentStudents.map((user) => ({
           icon: 'user-plus',
           message: `New student registered: ${user.firstName} ${user.lastName}`,
-          time: `${index + 1} hour${index > 0 ? 's' : ''} ago`,
-          type: 'student',
+          timestamp: user.createdAt,
+          meta: user.studentEmail || '',
         })),
-        // New orders
-        ...newOrders.map((order, index) => ({
+        ...newOrders.map((order) => ({
           icon: 'shopping-cart',
-          message: `New order: ${order.orderNumber} - EGP ${order.total}`,
-          time: `${index + 1} hour${index > 0 ? 's' : ''} ago`,
-          type: 'order',
-          orderId: order._id,
-          customer: order.user
+          message: `New order: ${order.orderNumber || order._id} - EGP ${order.total}`,
+          timestamp: order.createdAt,
+          meta: order.user
             ? `${order.user.firstName} ${order.user.lastName}`
-            : 'Unknown',
+            : 'Unknown student',
         })),
       ]
-        .sort((a, b) => new Date(b.time) - new Date(a.time))
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
         .slice(0, 10),
       topCourses: await Promise.all(
         topCourses.map(async (course) => {
@@ -318,35 +496,55 @@ const getAdminDashboard = async (req, res) => {
             }).select('enrolledCourses');
 
             // Calculate enrollments and completions
-            let enrollments = 0;
-            let completedStudents = 0;
-            let totalRevenue = 0;
+            let enrollments = enrolledStudents.length;
+            let completedStudents = enrolledStudents.filter((student) => {
+              const enrollment = student.enrolledCourses.find(
+                (ec) =>
+                  ec.course && ec.course.toString() === course._id.toString()
+              );
+              return enrollment && enrollment.status === 'completed';
+            }).length;
 
-            if (enrolledStudents.length > 0) {
-              enrollments = enrolledStudents.length;
-
-              // Count completed students
-              completedStudents = enrolledStudents.filter((student) => {
-                const enrollment = student.enrolledCourses.find(
-                  (ec) =>
-                    ec.course && ec.course.toString() === course._id.toString()
-                );
-                return enrollment && enrollment.status === 'completed';
-              }).length;
-
-              // Calculate revenue from individual course purchases
-              const coursePurchases = await User.find({
-                'purchasedCourses.course': course._id,
-                'purchasedCourses.status': 'active',
-              });
-
-              totalRevenue = coursePurchases.reduce((sum, user) => {
-                const purchase = user.purchasedCourses.find(
-                  (pc) => pc.course.toString() === course._id.toString()
-                );
-                return sum + (purchase ? purchase.price : 0);
-              }, 0);
-            }
+            // Revenue from Purchase model: actual amount paid (order.total after promo), allocated per item
+            const revenueResult = await Purchase.aggregate([
+              {
+                $match: {
+                  status: { $in: ['completed', 'paid'] },
+                  $or: [{ refundedAt: { $exists: false } }, { refundedAt: null }],
+                },
+              },
+              { $unwind: '$items' },
+              {
+                $match: {
+                  'items.itemType': 'course',
+                  'items.item': course._id,
+                },
+              },
+              {
+                $addFields: {
+                  itemRevenue: {
+                    $cond: [
+                      { $gt: [{ $ifNull: ['$subtotal', 0] }, 0] },
+                      {
+                        $multiply: [
+                          { $divide: [
+                            { $multiply: [
+                              { $ifNull: ['$items.price', 0] },
+                              { $ifNull: ['$items.quantity', 1] }
+                            ]},
+                            '$subtotal'
+                          ]},
+                          '$total'
+                        ]
+                      },
+                      0
+                    ]
+                  }
+                }
+              },
+              { $group: { _id: null, total: { $sum: '$itemRevenue' } } },
+            ]);
+            const totalRevenue = Math.round(revenueResult[0]?.total || 0);
 
             const completionRate =
               enrollments > 0
@@ -360,6 +558,11 @@ const getAdminDashboard = async (req, res) => {
               enrollments: enrollments,
               completionRate: completionRate,
               revenue: totalRevenue,
+              teacherName: course.teacher
+                ? `${course.teacher.firstName} ${course.teacher.lastName}`
+                : 'Unassigned',
+              teacherCode: course.teacher?.teacherCode || '',
+              teacherSubject: course.teacher?.subject || 'General',
             };
           } catch (error) {
             console.error('Error processing course:', course.title, error);
@@ -370,6 +573,11 @@ const getAdminDashboard = async (req, res) => {
               enrollments: 0,
               completionRate: 0,
               revenue: 0,
+              teacherName: course.teacher
+                ? `${course.teacher.firstName} ${course.teacher.lastName}`
+                : 'Unassigned',
+              teacherCode: course.teacher?.teacherCode || '',
+              teacherSubject: course.teacher?.subject || 'General',
             };
           }
         })
@@ -416,6 +624,7 @@ const getAdminDashboard = async (req, res) => {
         avgScore: 0,
         stats: {},
       },
+      teachers: { total: 0, active: 0, newThisMonth: 0, list: [] },
       recentActivity: [],
       topCourses: [],
       charts: { studentGrowth: [], revenueData: [] },
@@ -428,6 +637,42 @@ const getAdminDashboard = async (req, res) => {
       dashboardData: fallbackData,
     });
   }
+};
+
+// Helper: Get course statistics for admin courses page
+const getCourseStats = async () => {
+  const [
+    totalCourses,
+    publishedCourses,
+    draftCourses,
+    enrollmentResult,
+  ] = await Promise.all([
+    Course.countDocuments(),
+    Course.countDocuments({ status: 'published' }),
+    Course.countDocuments({ status: 'draft' }),
+    Purchase.aggregate([
+      {
+        $match: {
+          status: { $in: ['completed', 'paid'] },
+          $or: [{ refundedAt: { $exists: false } }, { refundedAt: null }],
+        },
+      },
+      { $unwind: '$items' },
+      { $match: { 'items.itemType': 'course' } },
+      { $count: 'total' },
+    ]),
+  ]);
+  const totalEnrollments = enrollmentResult[0]?.total || 0;
+  return { totalCourses, publishedCourses, draftCourses, totalEnrollments };
+};
+
+// Helper: Get filter options for courses (teachers, exam periods, etc.)
+const getFilterOptions = async () => {
+  const [teachers, examPeriods] = await Promise.all([
+    Teacher.find({ isActive: true }).select('firstName lastName teacherCode subject').sort('firstName'),
+    ExamPeriod.find({ isActive: true }).select('name displayName').sort('name'),
+  ]);
+  return { teachers, examPeriods };
 };
 
 // Get all courses with filtering
@@ -3594,11 +3839,31 @@ const getOrders = async (req, res) => {
       search,
       dateFrom,
       dateTo,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
+      sortBy: sortByQ = 'createdAt',
+      sortOrder: sortOrderQ = 'desc',
+      sort,
+      teacher,
+      examPeriod,
+      course,
+      hasPromo,
       page = 1,
       limit = 20,
     } = req.query;
+
+    // Resolve sort from shorthand "sort" param
+    let sortBy = sortByQ;
+    let sortOrder = sortOrderQ;
+    if (sort) {
+      const sortMap = { newest: ['createdAt', 'desc'], oldest: ['createdAt', 'asc'], total_high: ['total', 'desc'], total_low: ['total', 'asc'] };
+      if (sortMap[sort]) { sortBy = sortMap[sort][0]; sortOrder = sortMap[sort][1]; }
+    }
+
+    // Fetch filter options in parallel
+    const [teachers, examPeriods, courses] = await Promise.all([
+      Teacher.find({ isActive: true }).select('_id firstName lastName teacherCode').sort({ firstName: 1 }).lean(),
+      ExamPeriod.find({ isActive: true }).sort({ order: 1, startDate: -1 }).select('_id name displayName').lean(),
+      Course.find({ isActive: true }).select('_id title courseCode').sort({ title: 1 }).limit(400).lean(),
+    ]);
 
     const filter = {};
     if (status && status !== 'all') filter.status = status;
@@ -3608,7 +3873,7 @@ const getOrders = async (req, res) => {
       filter.paymentMethod = paymentMethod;
     if (gateway && gateway !== 'all') filter.paymentGateway = gateway;
     if (dateFrom || dateTo) {
-      filter.createdAt = {};
+      filter.createdAt = filter.createdAt || {};
       if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
       if (dateTo) filter.createdAt.$lte = new Date(dateTo);
     }
@@ -3618,20 +3883,37 @@ const getOrders = async (req, res) => {
         { 'billingAddress.email': { $regex: search, $options: 'i' } },
         { 'billingAddress.firstName': { $regex: search, $options: 'i' } },
         { 'billingAddress.lastName': { $regex: search, $options: 'i' } },
+        { 'billingAddress.phone': { $regex: search, $options: 'i' } },
       ];
     }
 
-    const sort = {};
-    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    // Teacher: orders that contain at least one item from this teacher
+    if (teacher && teacher !== 'all') filter['items.teacher'] = teacher;
+    // Course: orders that contain this course; else Exam period: orders that contain any course in this period
+    if (course && course !== 'all') {
+      filter['items.item'] = course;
+    } else if (examPeriod && examPeriod !== 'all') {
+      const courseIds = await Course.find({ examPeriod }).distinct('_id');
+      filter['items.item'] = { $in: courseIds };
+    }
+    // Has promo
+    if (hasPromo === 'yes') filter.promoCodeUsed = { $exists: true, $nin: [null, ''] };
+    if (hasPromo === 'no') {
+      filter.$and = (filter.$and || []).concat([{ $or: [ { promoCodeUsed: { $exists: false } }, { promoCodeUsed: null }, { promoCodeUsed: '' } ] }]);
+    }
+
+    const sortObj = {};
+    sortObj[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const [orders, totalOrders, revenueAgg, monthlySalesData] =
+    const [orders, totalOrders, revenueAgg, monthlySalesData, commissionAgg] =
       await Promise.all([
         Purchase.find(filter)
           .populate('user', 'firstName lastName studentEmail studentCode')
-          .populate('items.item')
-          .sort(sort)
+          .populate({ path: 'items.item', populate: { path: 'teacher', select: 'firstName lastName' } })
+          .populate('items.teacher', 'firstName lastName gTeacherPercentage')
+          .sort(sortObj)
           .skip(skip)
           .limit(parseInt(limit))
           .lean(),
@@ -3660,6 +3942,12 @@ const getOrders = async (req, res) => {
               refunded: {
                 $sum: { $cond: [{ $eq: ['$status', 'refunded'] }, 1, 0] },
               },
+              processing: {
+                $sum: { $cond: [{ $eq: ['$status', 'processing'] }, 1, 0] },
+              },
+              cancelled: {
+                $sum: { $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0] },
+              },
             },
           },
         ]),
@@ -3678,6 +3966,25 @@ const getOrders = async (req, res) => {
           },
           { $sort: { '_id.year': 1, '_id.month': 1 } },
         ]),
+        // Get commission totals for completed orders - use stored order-level totals
+        Purchase.aggregate([
+          { 
+            $match: { 
+              ...filter,
+              status: { $in: ['completed', 'paid'] },
+              $or: [{ refundedAt: { $exists: false } }, { refundedAt: null }]
+            } 
+          },
+          {
+            $group: {
+              _id: null,
+              // Use the stored order-level commission totals
+              totalGTeacherCommission: { $sum: { $ifNull: ['$totalGTeacherCommission', 0] } },
+              totalTeacherNet: { $sum: { $ifNull: ['$totalTeacherNet', 0] } },
+              totalItemsRevenue: { $sum: { $ifNull: ['$total', 0] } },
+            },
+          },
+        ]),
       ]);
 
     const totalPages = Math.ceil(totalOrders / parseInt(limit));
@@ -3689,24 +3996,65 @@ const getOrders = async (req, res) => {
       pending: 0,
       failed: 0,
       refunded: 0,
+      processing: 0,
+      cancelled: 0,
+    };
+
+    // Get commission totals
+    const commissionData = commissionAgg[0] || {
+      totalGTeacherCommission: 0,
+      totalTeacherNet: 0,
+      totalItemsRevenue: 0,
     };
 
     // Process monthly sales data for chart
     const chartData = processMonthlySalesData(monthlySalesData);
 
+    // Build queryString for pagination (exclude page)
+    const q = new URLSearchParams();
+    if (status && status !== 'all') q.set('status', status);
+    if (paymentStatus && paymentStatus !== 'all') q.set('paymentStatus', paymentStatus);
+    if (paymentMethod && paymentMethod !== 'all') q.set('paymentMethod', paymentMethod);
+    if (gateway && gateway !== 'all') q.set('gateway', gateway);
+    if (search) q.set('search', search);
+    if (dateFrom) q.set('dateFrom', dateFrom);
+    if (dateTo) q.set('dateTo', dateTo);
+    if (sortBy && sortBy !== 'createdAt') q.set('sortBy', sortBy);
+    if (sortOrder && sortOrder !== 'desc') q.set('sortOrder', sortOrder);
+    if (sort) q.set('sort', sort);
+    if (teacher && teacher !== 'all') q.set('teacher', teacher);
+    if (examPeriod && examPeriod !== 'all') q.set('examPeriod', examPeriod);
+    if (course && course !== 'all') q.set('course', course);
+    if (hasPromo && hasPromo !== 'all') q.set('hasPromo', hasPromo);
+    if (limit && parseInt(limit) !== 20) q.set('limit', limit);
+    const queryString = q.toString();
+
+    // Status distribution for pie chart
+    const statusDistribution = {
+      completed: revenue.completed || 0,
+      pending: revenue.pending || 0,
+      failed: revenue.failed || 0,
+      refunded: revenue.refunded || 0,
+      processing: revenue.processing || 0,
+      cancelled: revenue.cancelled || 0,
+    };
+
     return res.render('admin/orders', {
-      title: 'All Orders | ELKABLY',
+      title: 'Orders | G-Teacher',
       theme: req.cookies.theme || 'light',
       user: req.session.user,
       orders,
       analytics: {
         totalOrders,
         ...revenue,
+        totalGTeacherCommission: commissionData.totalGTeacherCommission,
+        totalTeacherNet: commissionData.totalTeacherNet,
         averageOrderValue:
           totalOrders > 0
             ? Math.round((revenue.totalRevenue / totalOrders) * 100) / 100
             : 0,
         monthlySalesData: chartData,
+        statusDistribution,
       },
       currentFilters: {
         status,
@@ -3718,7 +4066,17 @@ const getOrders = async (req, res) => {
         dateTo,
         sortBy,
         sortOrder,
+        sort,
+        teacher,
+        examPeriod,
+        course,
+        hasPromo,
+        limit,
+        queryString,
       },
+      teachers: teachers || [],
+      examPeriods: examPeriods || [],
+      courses: courses || [],
       pagination: {
         currentPage: parseInt(page),
         totalPages,
@@ -3746,7 +4104,12 @@ const getOrderDetails = async (req, res) => {
       )
       .populate({
         path: 'items.item',
-        select: 'title courseCode thumbnail description',
+        select: 'title courseCode thumbnail description teacher',
+        populate: { path: 'teacher', select: 'firstName lastName teacherCode' },
+      })
+      .populate({
+        path: 'items.teacher',
+        select: 'firstName lastName teacherCode gTeacherPercentage',
       });
 
     if (!order) {
@@ -3754,10 +4117,12 @@ const getOrderDetails = async (req, res) => {
       return res.redirect('/admin/orders');
     }
 
-    // Compute detailed item summaries with thumbnails and codes
+    // Compute detailed item summaries with thumbnails, codes, and commission info
+    // Fallback: use course.teacher when items.teacher is null (e.g. older orders)
     const itemsSummary = (order.items || []).map((it) => {
       const itemDetails = it.item || {};
       const thumbnail = itemDetails.thumbnail || null;
+      const teacherDetails = it.teacher || itemDetails.teacher || {};
 
       return {
         title: it.title,
@@ -3769,6 +4134,15 @@ const getOrderDetails = async (req, res) => {
         thumbnail,
         courseCode: itemDetails.courseCode || null,
         description: itemDetails.description || null,
+        // Commission breakdown; teacher from item or course
+        teacherId: (it.teacher || itemDetails.teacher) ? (it.teacher?._id || itemDetails.teacher?._id) : null,
+        teacherName: (teacherDetails.firstName || teacherDetails.lastName)
+          ? [teacherDetails.firstName, teacherDetails.lastName].filter(Boolean).join(' ').trim()
+          : 'N/A',
+        teacherCode: teacherDetails.teacherCode || null,
+        gTeacherPercentage: it.gTeacherPercentage || 0,
+        gTeacherCommission: it.gTeacherCommission || 0,
+        teacherNet: it.teacherNet || 0,
       };
     });
 
@@ -3788,14 +4162,16 @@ const getOrderDetails = async (req, res) => {
       0
     );
 
-    // Enhanced order summary
+    // Enhanced order summary with commission totals
     const itemCount = order.items ? order.items.length : 0;
     const summary = {
       subtotal: order.subtotal,
-      tax: order.tax,
+      tax: order.tax || 0,
       total: order.total,
       currency: order.currency || 'EGP',
       itemCount: itemCount,
+      totalGTeacherCommission: order.totalGTeacherCommission || 0,
+      totalTeacherNet: order.totalTeacherNet || 0,
       customerStats: {
         orderCount: customerPurchaseCount,
         totalSpent: totalSpent.toFixed(2),
@@ -3803,7 +4179,7 @@ const getOrderDetails = async (req, res) => {
     };
 
     return res.render('admin/order-details', {
-      title: `Order ${order.orderNumber} | ELKABLY`,
+      title: `Order #${order.orderNumber} | G-Teacher`,
       theme: req.cookies.theme || 'light',
       user: req.session.user,
       order,
@@ -6876,31 +7252,55 @@ const exportCourses = async (req, res) => {
   }
 };
 
-// Export orders data
+// Export orders data (respects same filters as getOrders, uses Purchase schema)
 const exportOrders = async (req, res) => {
   try {
-    const orders = await Purchase.find({})
-      .populate('student', 'studentCode firstName lastName studentEmail')
+    const { status, paymentStatus, paymentMethod, gateway, search, dateFrom, dateTo, teacher, examPeriod, course, hasPromo } = req.query;
+    const filter = {};
+    if (status && status !== 'all') filter.status = status;
+    if (paymentStatus && paymentStatus !== 'all') filter.paymentStatus = paymentStatus;
+    if (paymentMethod && paymentMethod !== 'all') filter.paymentMethod = paymentMethod;
+    if (gateway && gateway !== 'all') filter.paymentGateway = gateway;
+    if (dateFrom || dateTo) {
+      filter.createdAt = {};
+      if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) filter.createdAt.$lte = new Date(dateTo);
+    }
+    if (search) {
+      filter.$or = [
+        { orderNumber: { $regex: search, $options: 'i' } },
+        { 'billingAddress.email': { $regex: search, $options: 'i' } },
+        { 'billingAddress.firstName': { $regex: search, $options: 'i' } },
+        { 'billingAddress.lastName': { $regex: search, $options: 'i' } },
+        { 'billingAddress.phone': { $regex: search, $options: 'i' } },
+      ];
+    }
+    if (teacher && teacher !== 'all') filter['items.teacher'] = teacher;
+    if (course && course !== 'all') filter['items.item'] = course;
+    else if (examPeriod && examPeriod !== 'all') {
+      const courseIds = await Course.find({ examPeriod }).distinct('_id');
+      filter['items.item'] = { $in: courseIds };
+    }
+    if (hasPromo === 'yes') filter.promoCodeUsed = { $exists: true, $nin: [null, ''] };
+    if (hasPromo === 'no') filter.$and = (filter.$and || []).concat([{ $or: [ { promoCodeUsed: { $exists: false } }, { promoCodeUsed: null }, { promoCodeUsed: '' } ] }]);
+
+    const orders = await Purchase.find(filter)
+      .populate('user', 'firstName lastName studentEmail')
       .sort({ createdAt: -1 })
       .lean();
 
-    // Format orders data for export
     const formattedOrders = orders.map((order) => ({
       orderNumber: order.orderNumber,
-      studentName: order.student
-        ? `${order.student.firstName} ${order.student.lastName}`
-        : 'Unknown',
-      studentEmail: order.student?.studentEmail || '',
-      items: order.items?.map((item) => item.title).join(', ') || '',
-      totalAmount: order.totalAmount,
+      studentName: order.billingAddress
+        ? `${order.billingAddress.firstName || ''} ${order.billingAddress.lastName || ''}`.trim() || 'Unknown'
+        : (order.user ? `${order.user.firstName || ''} ${order.user.lastName || ''}`.trim() : 'Unknown'),
+      studentEmail: order.billingAddress?.email || order.user?.studentEmail || order.user?.email || '',
+      items: order.items?.map((i) => i.title).join(', ') || '',
+      totalAmount: order.total,
       paymentMethod: order.paymentMethod || '',
       status: order.status,
-      paymentStatus: order.paymentStatus || '',
-      paymobTransactionId: order.paymobTransactionId || '',
-      paymobOrderId: order.paymobOrderId || '',
-      failureReason: order.failureReason || '',
       createdAt: order.createdAt,
-      processedAt: order.processedAt || order.createdAt,
+      processedAt: order.updatedAt || order.createdAt,
     }));
 
     const exporter = new ExcelExporter();
@@ -12164,6 +12564,7 @@ const createTeacher = async (req, res) => {
       bio,
       isActive,
       croppedImage,
+      gTeacherPercentage,
     } = req.body;
 
     // Validate required fields
@@ -12186,6 +12587,10 @@ const createTeacher = async (req, res) => {
       profilePicture = croppedImage;
     }
 
+    // Parse and validate G-Teacher percentage
+    const parsedPercentage = parseFloat(gTeacherPercentage) || 0;
+    const validPercentage = Math.min(100, Math.max(0, parsedPercentage));
+
     // Create new teacher
     const newTeacher = new Teacher({
       firstName: firstName.trim(),
@@ -12197,6 +12602,7 @@ const createTeacher = async (req, res) => {
       bio: bio ? bio.trim() : '',
       isActive: isActive === 'on' || isActive === true,
       profilePicture: profilePicture,
+      gTeacherPercentage: validPercentage,
     });
 
     await newTeacher.save();
@@ -12224,6 +12630,7 @@ const updateTeacher = async (req, res) => {
       bio,
       isActive,
       croppedImage,
+      gTeacherPercentage,
     } = req.body;
 
     const teacher = await Teacher.findById(teacherId);
@@ -12251,6 +12658,12 @@ const updateTeacher = async (req, res) => {
     teacher.subject = subject ? subject.trim() : teacher.subject;
     teacher.bio = bio ? bio.trim() : teacher.bio;
     teacher.isActive = isActive === 'on' || isActive === true;
+
+    // Parse and validate G-Teacher percentage
+    if (gTeacherPercentage !== undefined) {
+      const parsedPercentage = parseFloat(gTeacherPercentage) || 0;
+      teacher.gTeacherPercentage = Math.min(100, Math.max(0, parsedPercentage));
+    }
 
     // Handle profile picture update (base64 cropped image)
     if (croppedImage && croppedImage.startsWith('data:image')) {

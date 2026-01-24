@@ -57,6 +57,15 @@ const TeacherSchema = new mongoose.Schema(
       default: '',
     },
 
+    // G-Teacher Platform Commission Percentage
+    // This is the percentage that G-Teacher takes from each sale for this teacher
+    gTeacherPercentage: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+
     // Status
     isActive: {
       type: Boolean,

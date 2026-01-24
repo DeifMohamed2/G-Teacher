@@ -284,10 +284,10 @@ async function recalculateCartFromDB(cart, userId = null) {
         }
       }
 
-      // Only handle courses now
-      const dbItem = await Course.findById(cartItem.id).select(
-        'title price discountPrice thumbnail status isActive'
-      );
+      // Only handle courses now - also fetch teacher info for commission calculation
+      const dbItem = await Course.findById(cartItem.id)
+        .select('title price discountPrice thumbnail status isActive teacher')
+        .populate('teacher', '_id firstName lastName gTeacherPercentage');
 
       // Only include valid, active items
       if (
@@ -305,6 +305,10 @@ async function recalculateCartFromDB(cart, userId = null) {
             originalPrice - originalPrice * (discountPercentage / 100);
         }
 
+        // Get teacher commission info
+        const teacherId = dbItem.teacher ? dbItem.teacher._id : null;
+        const gTeacherPercentage = dbItem.teacher ? (dbItem.teacher.gTeacherPercentage || 0) : 0;
+
         const validItem = {
           id: cartItem.id,
           type: 'course',
@@ -314,6 +318,10 @@ async function recalculateCartFromDB(cart, userId = null) {
           price: finalPrice, // Final price after discount
           image: dbItem.thumbnail || '/images/adad.png',
           addedAt: cartItem.addedAt,
+          // Teacher commission data
+          teacherId: teacherId,
+          teacherName: dbItem.teacher ? `${dbItem.teacher.firstName} ${dbItem.teacher.lastName}` : null,
+          gTeacherPercentage: gTeacherPercentage,
         };
 
         validItems.push(validItem);
@@ -1120,19 +1128,43 @@ const directCheckout = async (req, res) => {
       });
     }
 
-    // Create purchase record using validated cart data
-    const purchase = new Purchase({
-      user: user._id,
-      items: validatedCart.items.map((item) => ({
+    // Calculate commission breakdown for each item
+    let totalGTeacherCommission = 0;
+    let totalTeacherNet = 0;
+
+    const purchaseItems = validatedCart.items.map((item) => {
+      // Calculate commission based on the item price
+      const itemPrice = item.price;
+      const gTeacherPercentage = item.gTeacherPercentage || 0;
+      const gTeacherCommission = (itemPrice * gTeacherPercentage) / 100;
+      const teacherNet = itemPrice - gTeacherCommission;
+
+      totalGTeacherCommission += gTeacherCommission;
+      totalTeacherNet += teacherNet;
+
+      return {
         itemType: item.type,
         itemTypeModel: 'Course',
         item: item.id,
         title: item.title,
-        price: item.price, // Database-validated price
+        price: itemPrice, // Database-validated price
         quantity: 1,
-      })),
+        // G-Teacher Commission Tracking
+        teacher: item.teacherId || null,
+        gTeacherPercentage: gTeacherPercentage,
+        gTeacherCommission: Math.round(gTeacherCommission * 100) / 100,
+        teacherNet: Math.round(teacherNet * 100) / 100,
+      };
+    });
+
+    // Create purchase record using validated cart data with commission info
+    const purchase = new Purchase({
+      user: user._id,
+      items: purchaseItems,
       subtotal: validatedCart.subtotal,
       total: validatedCart.total,
+      totalGTeacherCommission: Math.round(totalGTeacherCommission * 100) / 100,
+      totalTeacherNet: Math.round(totalTeacherNet * 100) / 100,
       paymentMethod,
       billingAddress: finalBillingAddress,
       status: 'completed',
@@ -1140,7 +1172,12 @@ const directCheckout = async (req, res) => {
       paymentIntentId: `pi_${Date.now()}`,
     });
 
-    console.log('Creating purchase record:', purchase);
+    console.log('Creating purchase record with commission:', {
+      orderNumber: purchase.orderNumber,
+      total: validatedCart.total,
+      totalGTeacherCommission: purchase.totalGTeacherCommission,
+      totalTeacherNet: purchase.totalTeacherNet,
+    });
 
     try {
       await purchase.save();
@@ -1365,20 +1402,42 @@ const processPayment = async (req, res) => {
     const total = finalTotal;
 
     // Create purchase record with pending status using validated cart data
-    const purchaseItems = validatedCart.items.map((item) => ({
-      itemType: item.type,
-      itemTypeModel: 'Course',
-      item: item.id,
-      title: item.title,
-      price: item.price, // Database-validated price
-      quantity: 1,
-    }));
+    // Calculate commission breakdown for each item
+    let totalGTeacherCommission = 0;
+    let totalTeacherNet = 0;
+
+    const purchaseItems = validatedCart.items.map((item) => {
+      // Calculate commission based on the item price (after any course discount, before promo code)
+      const itemPrice = item.price;
+      const gTeacherPercentage = item.gTeacherPercentage || 0;
+      const gTeacherCommission = (itemPrice * gTeacherPercentage) / 100;
+      const teacherNet = itemPrice - gTeacherCommission;
+
+      totalGTeacherCommission += gTeacherCommission;
+      totalTeacherNet += teacherNet;
+
+      return {
+        itemType: item.type,
+        itemTypeModel: 'Course',
+        item: item.id,
+        title: item.title,
+        price: itemPrice, // Database-validated price
+        quantity: 1,
+        // G-Teacher Commission Tracking
+        teacher: item.teacherId || null,
+        gTeacherPercentage: gTeacherPercentage,
+        gTeacherCommission: Math.round(gTeacherCommission * 100) / 100, // Round to 2 decimal places
+        teacherNet: Math.round(teacherNet * 100) / 100, // Round to 2 decimal places
+      };
+    });
 
     const purchase = new Purchase({
       user: req.session.user.id,
       items: purchaseItems,
       subtotal: finalSubtotal,
       total: total,
+      totalGTeacherCommission: Math.round(totalGTeacherCommission * 100) / 100,
+      totalTeacherNet: Math.round(totalTeacherNet * 100) / 100,
       currency: 'EGP',
       paymentMethod: 'paymob',
       billingAddress,
@@ -1393,6 +1452,20 @@ const processPayment = async (req, res) => {
     });
 
     await purchase.save();
+
+    console.log('Purchase created with commission breakdown:', {
+      orderNumber: purchase.orderNumber,
+      total: total,
+      totalGTeacherCommission: purchase.totalGTeacherCommission,
+      totalTeacherNet: purchase.totalTeacherNet,
+      items: purchaseItems.map(item => ({
+        title: item.title,
+        price: item.price,
+        gTeacherPercentage: item.gTeacherPercentage,
+        gTeacherCommission: item.gTeacherCommission,
+        teacherNet: item.teacherNet,
+      })),
+    });
 
     // Create Paymob payment session using validated data
     const orderItems = validatedCart.items.map((item) => ({

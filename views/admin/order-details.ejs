@@ -54,15 +54,15 @@
             <div class="col-12 col-lg-4">
               <div class="order-actions">
                 <% if (order.status !== 'refunded') { %>
-                <form method="post" action="/admin/orders/<%= order.orderNumber %>/refund" onsubmit="return confirm('Are you sure you want to refund this order and revoke access? This action cannot be undone.')">
+                <form id="refund" method="post" action="/admin/orders/<%= order.orderNumber %>/refund" onsubmit="return confirm('Are you sure you want to refund this order and revoke access? This action cannot be undone.')">
                   <input type="hidden" name="amount" value="<%= order.total %>">
-                  <button class="btn btn-danger w-100 order-action-btn" type="submit">
+                  <button class="btn btn-danger w-100" type="submit">
                     <i class="fas fa-undo me-2"></i> Process Refund
                   </button>
                 </form>
                 <% } %>
           
-                <a href="/admin/orders" class="btn btn-outline-secondary w-100 order-action-btn">
+                <a href="/admin/orders" class="btn btn-outline-secondary w-100">
                   <i class="fas fa-arrow-left me-2"></i> Back to Orders
                 </a>
               </div>
@@ -88,8 +88,11 @@
                 <thead>
                   <tr>
                     <th>Product</th>
-                    <th>Type</th>
+                    <th>Teacher</th>
+                    <th class="text-center">Commission</th>
                     <th class="text-end">Price</th>
+                    <th class="text-end">Platform Fee</th>
+                    <th class="text-end">Teacher Net</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -100,25 +103,35 @@
                         <img src="<%= item.thumbnail || '/images/course-placeholder.png' %>" alt="<%= item.title %>" class="product-thumbnail me-3" onerror="this.src='https://via.placeholder.com/60x60?text=<%= item.type %>'">
                         <div class="product-details">
                           <h6 class="mb-1"><%= item.title %></h6>
-                          <% if (item.description) { %>
-                          <small class="text-muted"><%= item.description %></small>
-                          <% } %>
                           <% if (item.courseCode) { %>
-                          <br><small class="text-muted">Code: <%= item.courseCode %></small>
+                          <small class="text-muted">Code: <%= item.courseCode %></small>
                           <% } %>
                         </div>
                       </div>
                     </td>
                     <td>
-                      <span class="product-type <%= item.type.toLowerCase() %>">
-                        <%= item.type ? item.type.charAt(0).toUpperCase() + item.type.slice(1) : 'Item' %>
-                      </span>
-                      <% if (item.description) { %>
-                      <br><small class="text-muted"><%= item.description %></small>
+                      <% if (item.teacherName && item.teacherName !== 'N/A') { %>
+                        <div class="teacher-info-cell">
+                          <span class="fw-medium"><%= item.teacherName %></span>
+                          <% if (item.teacherCode) { %>
+                          <br><small class="text-muted"><%= item.teacherCode %></small>
+                          <% } %>
+                        </div>
+                      <% } else { %>
+                        <span class="text-muted">-</span>
                       <% } %>
+                    </td>
+                    <td class="text-center">
+                      <span class="badge bg-info"><%= item.gTeacherPercentage %>%</span>
                     </td>
                     <td class="text-end fw-bold">
                       <%= order.currency %> <%= item.price.toFixed(2) %>
+                    </td>
+                    <td class="text-end">
+                      <span class="text-danger"><%= order.currency %> <%= item.gTeacherCommission.toFixed(2) %></span>
+                    </td>
+                    <td class="text-end">
+                      <span class="text-success fw-bold"><%= order.currency %> <%= item.teacherNet.toFixed(2) %></span>
                     </td>
                   </tr>
                   <% }) %>
@@ -143,11 +156,47 @@
             </h5>
           </div>
           <div class="card-body">
+            <div class="summary-row">
+              <span class="summary-label">Subtotal</span>
+              <span class="summary-value"><%= order.currency %> <%= summary.subtotal.toFixed(2) %></span>
+            </div>
+            <% if (order.discountAmount && order.discountAmount > 0) { %>
+            <div class="summary-row text-success">
+              <span class="summary-label">
+                <i class="fas fa-tag me-1"></i> Promo Discount
+                <% if (order.promoCodeUsed) { %>
+                <small class="ms-1">(<%= order.promoCodeUsed %>)</small>
+                <% } %>
+              </span>
+              <span class="summary-value">- <%= order.currency %> <%= order.discountAmount.toFixed(2) %></span>
+            </div>
+            <% } %>
             <hr class="summary-divider">
             <div class="summary-row total-row">
-              <span class="summary-label">Total</span>
+              <span class="summary-label">Total Paid</span>
               <span class="summary-value total-amount"><%= order.currency %> <%= summary.total.toFixed(2) %></span>
             </div>
+            
+            <% if (summary.totalGTeacherCommission > 0 || summary.totalTeacherNet > 0) { %>
+            <hr class="summary-divider">
+            <div class="commission-breakdown">
+              <h6 class="mb-3">
+                <i class="fas fa-chart-pie me-2"></i> Commission Breakdown
+              </h6>
+              <div class="summary-row">
+                <span class="summary-label">
+                  <i class="fas fa-building me-1 text-danger"></i> G-Teacher Platform Fee
+                </span>
+                <span class="summary-value text-danger"><%= order.currency %> <%= summary.totalGTeacherCommission.toFixed(2) %></span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-label">
+                  <i class="fas fa-user-tie me-1 text-success"></i> Total Teacher Net
+                </span>
+                <span class="summary-value text-success fw-bold"><%= order.currency %> <%= summary.totalTeacherNet.toFixed(2) %></span>
+              </div>
+            </div>
+            <% } %>
           </div>
         </div>
 
