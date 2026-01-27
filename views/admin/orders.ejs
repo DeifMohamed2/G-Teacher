@@ -195,6 +195,7 @@
             </button>
           </div>
           <form method="get" class="orders-filters-form" id="ordersFiltersForm">
+            <input type="hidden" name="curriculumType" id="curriculumTypeInput" value="<%= (currentFilters.curriculumType || 'all') %>">
             <input type="hidden" name="examPeriod" id="examPeriodInput" value="<%= (currentFilters.examPeriod || 'all') %>">
             <div class="orders-filters-body" id="ordersFiltersBody">
               <!-- Quick Type chips: All | Invoiced | Pending | Failed | Refunded -->
@@ -208,13 +209,22 @@
                   <button type="button" class="orders-type-chip <%= (currentFilters.status==='refunded') ? 'active' : '' %>" data-status="refunded">Refunded</button>
                 </div>
               </div>
+              <!-- Curriculum Type pills -->
+              <div class="orders-filter-step">
+                <h4 class="orders-filter-step-title"><i class="fas fa-graduation-cap"></i> Curriculum type</h4>
+                <div class="orders-curriculum-pills">
+                  <button type="button" class="orders-curriculum-pill <%= (!currentFilters.curriculumType || currentFilters.curriculumType==='all') ? 'active' : '' %>" data-curriculum="all">All</button>
+                  <button type="button" class="orders-curriculum-pill <%= (currentFilters.curriculumType==='IGCSE') ? 'active' : '' %>" data-curriculum="IGCSE"><i class="fas fa-graduation-cap"></i> IGCSE</button>
+                  <button type="button" class="orders-curriculum-pill <%= (currentFilters.curriculumType==='American') ? 'active' : '' %>" data-curriculum="American"><i class="fas fa-flag-usa"></i> American</button>
+                </div>
+              </div>
               <!-- Exam period pills (like courses) -->
               <div class="orders-filter-step">
                 <h4 class="orders-filter-step-title"><i class="fas fa-calendar-alt"></i> Exam period</h4>
                 <div class="orders-exam-pills">
                   <button type="button" class="orders-exam-pill <%= (!currentFilters.examPeriod || currentFilters.examPeriod==='all') ? 'active' : '' %>" data-exam-period="all">All</button>
                   <% (examPeriods || []).forEach(function(p) { %>
-                  <button type="button" class="orders-exam-pill <%= (currentFilters.examPeriod==p._id || currentFilters.examPeriod==p._id.toString()) ? 'active' : '' %>" data-exam-period="<%= p._id %>"><%= p.displayName || p.name %></button>
+                  <button type="button" class="orders-exam-pill <%= (currentFilters.examPeriod==p._id || currentFilters.examPeriod==p._id.toString()) ? 'active' : '' %>" data-exam-period="<%= p._id %>" data-curriculum="<%= p.curriculumType || 'IGCSE' %>"><%= p.displayName || p.name %></button>
                   <% }); %>
                 </div>
               </div>
@@ -670,6 +680,47 @@
         if (form && form.tagName === 'FORM') form.submit();
       });
     });
+    
+    // Curriculum type pills: set hidden, filter exam periods, and submit
+    document.querySelectorAll('.orders-curriculum-pill').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var selectedCurriculum = this.getAttribute('data-curriculum') || 'all';
+        var h = document.getElementById('curriculumTypeInput');
+        if (h) h.value = selectedCurriculum;
+        
+        // Reset exam period to 'all' when curriculum changes
+        var examPeriodInput = document.getElementById('examPeriodInput');
+        if (examPeriodInput) examPeriodInput.value = 'all';
+        
+        // Filter exam period pills based on curriculum selection
+        document.querySelectorAll('.orders-exam-pill').forEach(function(pill) {
+          var pillCurriculum = pill.getAttribute('data-curriculum');
+          if (selectedCurriculum === 'all' || !pillCurriculum || pillCurriculum === selectedCurriculum) {
+            pill.style.display = '';
+          } else {
+            pill.style.display = 'none';
+            pill.classList.remove('active');
+          }
+        });
+        
+        // Make sure "All" is always visible
+        var allPill = document.querySelector('.orders-exam-pill[data-exam-period="all"]');
+        if (allPill) {
+          allPill.style.display = '';
+          allPill.classList.add('active');
+        }
+        
+        // Update active state for curriculum pills
+        document.querySelectorAll('.orders-curriculum-pill').forEach(function(p) {
+          p.classList.remove('active');
+        });
+        this.classList.add('active');
+        
+        var form = document.getElementById('ordersFiltersForm');
+        if (form && form.tagName === 'FORM') form.submit();
+      });
+    });
+    
     // Exam period pills: set hidden and submit
     document.querySelectorAll('.orders-exam-pill').forEach(function(btn) {
       btn.addEventListener('click', function() {

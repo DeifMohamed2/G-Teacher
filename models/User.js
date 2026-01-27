@@ -164,7 +164,7 @@ const UserSchema = new mongoose.Schema(
             },
             contentType: {
               type: String,
-              enum: ['video', 'pdf', 'assignment', 'reading', 'link', 'zoom'],
+              enum: ['video', 'pdf', 'assignment', 'reading', 'link', 'zoom', 'submission'],
               required: true,
             },
             completionStatus: {
@@ -390,6 +390,84 @@ UserSchema.methods.getCourseProgress = function (courseId) {
   return enrollment ? enrollment.progress : 0;
 };
 
+// Instance method to calculate course progress based on content completion
+// Instance method to calculate course progress based on content completion
+// This version works with populated course data (synchronous)
+UserSchema.methods.calculateCourseProgress = function (courseId) {
+  const enrollment = this.enrolledCourses.find(
+    (e) => e.course && e.course.toString() === courseId.toString()
+  );
+
+  if (!enrollment) return 0;
+
+  // If course is populated with topics, use the actual total content count
+  let totalContentItems = 0;
+
+  if (enrollment.course && enrollment.course.topics && Array.isArray(enrollment.course.topics)) {
+    // Course is populated - count all content items from published topics
+    for (const topic of enrollment.course.topics) {
+      if (topic && topic.isPublished !== false && topic.content && Array.isArray(topic.content)) {
+        totalContentItems += topic.content.length;
+      }
+    }
+  }
+
+  // If no content items found from populated data, check contentProgress
+  if (totalContentItems === 0) {
+    // Fallback: if we can't determine total, use contentProgress length
+    if (!enrollment.contentProgress || enrollment.contentProgress.length === 0) return 0;
+    totalContentItems = enrollment.contentProgress.length;
+  }
+
+  // Count completed content items
+  const completedContent = enrollment.contentProgress
+    ? enrollment.contentProgress.filter((cp) => cp.completionStatus === 'completed').length
+    : 0;
+
+  if (totalContentItems === 0) return 0;
+  return Math.round((completedContent / totalContentItems) * 100);
+};
+
+// Async version that queries the database for accurate content count
+// Always fetches fresh user data to ensure contentProgress is up-to-date
+UserSchema.methods.calculateCourseProgressAsync = async function (courseId) {
+  const Topic = require('mongoose').model('Topic');
+  const User = require('mongoose').model('User');
+
+  // Refetch user from database to get latest contentProgress
+  const freshUser = await User.findById(this._id).select('enrolledCourses');
+  if (!freshUser) return 0;
+
+  const enrollment = freshUser.enrolledCourses.find(
+    (e) => e.course && e.course.toString() === courseId.toString()
+  );
+
+  if (!enrollment) return 0;
+
+  // Get all published topics for this course
+  const topics = await Topic.find({
+    course: courseId,
+    isPublished: true
+  }).select('content');
+
+  // Count total content items across all topics
+  let totalContentItems = 0;
+  for (const topic of topics) {
+    if (topic.content && Array.isArray(topic.content)) {
+      totalContentItems += topic.content.length;
+    }
+  }
+
+  if (totalContentItems === 0) return 0;
+
+  // Count completed content items from contentProgress
+  const completedContent = enrollment.contentProgress
+    ? enrollment.contentProgress.filter((cp) => cp.completionStatus === 'completed').length
+    : 0;
+
+  return Math.round((completedContent / totalContentItems) * 100);
+};
+
 // Instance method to update course progress
 UserSchema.methods.updateCourseProgress = async function (courseId, progress, topicId = null) {
   const enrollment = this.enrolledCourses.find(
@@ -404,9 +482,8 @@ UserSchema.methods.updateCourseProgress = async function (courseId, progress, to
       enrollment.completedTopics.push(topicId);
     }
 
-    if (enrollment.progress === 100) {
-      enrollment.status = 'completed';
-    }
+    // Sync status with progress
+    enrollment.status = enrollment.progress === 100 ? 'completed' : 'active';
 
     return await this.save();
   }
@@ -587,70 +664,225 @@ UserSchema.methods.calculateTopicProgress = function (courseId, topicId, topicCo
   return Math.min(100, Math.round((completed / total) * 100));
 };
 
-// Check if content is unlocked (delegates to Progress model)
+// Check if content is unlocked (based on user's contentProgress)
 UserSchema.methods.isContentUnlocked = async function (courseId, contentId, contentData) {
-  const Progress = mongoose.model('Progress');
-  return Progress.isContentUnlocked(this._id, courseId, contentId, contentData);
+  // If content has no prerequisites, it's unlocked
+  if (!contentData.prerequisites || contentData.prerequisites.length === 0) {
+    return { unlocked: true, reason: 'No prerequisites' };
+  }
+
+  const Course = mongoose.model('Course');
+  const User = mongoose.model('User');
+
+  // Get the course with populated topics and content
+  const course = await Course.findById(courseId).populate({
+    path: 'topics',
+    populate: { path: 'content' }
+  });
+
+  if (!course) {
+    return { unlocked: false, reason: 'Course not found' };
+  }
+
+  // Refetch the user from DB to get the latest contentProgress
+  // This ensures we have the most up-to-date progress data
+  const freshUser = await User.findById(this._id).select('enrolledCourses');
+  const enrollment = freshUser ? freshUser.enrolledCourses.find(
+    (e) => e.course && e.course.toString() === courseId.toString()
+  ) : null;
+
+  const userContentProgress = enrollment && enrollment.contentProgress
+    ? enrollment.contentProgress
+    : [];
+
+  // Helper function to check if content is completed
+  const isContentCompleted = (checkContentId) => {
+    const userProgress = userContentProgress.find(
+      (cp) => cp.contentId && cp.contentId.toString() === checkContentId.toString()
+    );
+    return userProgress && userProgress.completionStatus === 'completed';
+  };
+
+  // Find all content items in order (only from published topics)
+  const allContent = [];
+  course.topics
+    .filter(topic => topic.isPublished !== false)
+    .forEach(topic => {
+      (topic.content || []).forEach(contentItem => {
+        allContent.push({
+          id: contentItem._id,
+          title: contentItem.title,
+          order: contentItem.order || 0,
+          topicOrder: topic.order || 0
+        });
+      });
+    });
+
+  // Sort by topic order, then content order
+  allContent.sort((a, b) => {
+    if (a.topicOrder !== b.topicOrder) {
+      return a.topicOrder - b.topicOrder;
+    }
+    return a.order - b.order;
+  });
+
+  // Find current content index
+  const currentIndex = allContent.findIndex(c => c.id.toString() === contentId.toString());
+  if (currentIndex === -1) {
+    return { unlocked: false, reason: 'Content not found' };
+  }
+
+  // Check if all previous content is completed (sequential unlocking)
+  for (let i = 0; i < currentIndex; i++) {
+    const prevContentId = allContent[i].id;
+    const prevContentTitle = allContent[i].title || 'previous content';
+
+    if (!isContentCompleted(prevContentId)) {
+      return {
+        unlocked: false,
+        reason: `Complete "${prevContentTitle}" first`,
+        missingContent: prevContentId
+      };
+    }
+  }
+
+  // Also check explicit prerequisites if any
+  if (contentData.prerequisites && contentData.prerequisites.length > 0) {
+    const missingPrerequisites = [];
+
+    for (const prereqId of contentData.prerequisites) {
+      if (!isContentCompleted(prereqId)) {
+        missingPrerequisites.push(prereqId.toString());
+      }
+    }
+
+    if (missingPrerequisites.length > 0) {
+      return {
+        unlocked: false,
+        reason: 'Prerequisites not met',
+        missingPrerequisites: missingPrerequisites
+      };
+    }
+  }
+
+  return { unlocked: true, reason: 'All prerequisites completed' };
 };
 
 // Update content progress for a course/topic/content
+// Uses retry mechanism to handle version conflicts (optimistic locking)
+// Also recalculates and updates the overall course progress
 UserSchema.methods.updateContentProgress = async function (
   courseId,
   topicId,
   contentId,
   contentType,
-  progressData
+  progressData,
+  maxRetries = 3
 ) {
-  const enrollment = this.enrolledCourses.find(
-    (e) => e.course && e.course.toString() === courseId.toString()
-  );
-  if (!enrollment) return null;
+  const User = mongoose.model('User');
+  const Topic = mongoose.model('Topic');
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      // On retry, refetch the document to get the latest version
+      const user = attempt === 0 ? this : await User.findById(this._id);
+      if (!user) return null;
 
-  if (!enrollment.contentProgress) {
-    enrollment.contentProgress = [];
-  }
+      const enrollment = user.enrolledCourses.find(
+        (e) => e.course && e.course.toString() === courseId.toString()
+      );
+      if (!enrollment) return null;
 
-  let cp = enrollment.contentProgress.find(
-    (p) =>
-      p.contentId && p.contentId.toString() === contentId.toString() &&
-      p.topicId && p.topicId.toString() === topicId.toString()
-  );
+      if (!enrollment.contentProgress) {
+        enrollment.contentProgress = [];
+      }
 
-  if (!cp) {
-    cp = {
-      topicId,
-      contentId,
-      contentType,
-      completionStatus: 'not_started',
-      progressPercentage: 0,
-      lastAccessed: new Date(),
-      timeSpent: 0,
-      attempts: 0,
-      lastPosition: 0,
-      watchCount: 0,
-      bestScore: 0,
-    };
-    enrollment.contentProgress.push(cp);
-  }
+      let cp = enrollment.contentProgress.find(
+        (p) =>
+          p.contentId && p.contentId.toString() === contentId.toString() &&
+          p.topicId && p.topicId.toString() === topicId.toString()
+      );
 
-  if (progressData) {
-    if (progressData.completionStatus != null) cp.completionStatus = progressData.completionStatus;
-    if (progressData.progressPercentage != null) cp.progressPercentage = progressData.progressPercentage;
-    if (progressData.lastAccessed != null) cp.lastAccessed = progressData.lastAccessed;
-    if (progressData.completedAt != null) cp.completedAt = progressData.completedAt;
-    if (progressData.score != null) cp.score = progressData.score;
-    if (progressData.timeSpent != null) cp.timeSpent = progressData.timeSpent;
-    if (progressData.attempts != null) cp.attempts = progressData.attempts;
-    if (progressData.lastPosition != null) cp.lastPosition = progressData.lastPosition;
-    if (progressData.bestScore != null) cp.bestScore = progressData.bestScore;
-    if (progressData.watchCount != null) cp.watchCount = progressData.watchCount;
-    if (progressData.watchData && typeof progressData.watchData.watchCount === 'number') {
-      cp.watchCount = progressData.watchData.watchCount;
+      if (!cp) {
+        cp = {
+          topicId,
+          contentId,
+          contentType,
+          completionStatus: 'not_started',
+          progressPercentage: 0,
+          lastAccessed: new Date(),
+          timeSpent: 0,
+          attempts: 0,
+          lastPosition: 0,
+          watchCount: 0,
+          bestScore: 0,
+        };
+        enrollment.contentProgress.push(cp);
+      }
+
+      if (progressData) {
+        if (progressData.completionStatus != null) cp.completionStatus = progressData.completionStatus;
+        if (progressData.progressPercentage != null) cp.progressPercentage = progressData.progressPercentage;
+        if (progressData.lastAccessed != null) cp.lastAccessed = progressData.lastAccessed;
+        if (progressData.completedAt != null) cp.completedAt = progressData.completedAt;
+        if (progressData.score != null) cp.score = progressData.score;
+        if (progressData.timeSpent != null) cp.timeSpent = progressData.timeSpent;
+        if (progressData.attempts != null) cp.attempts = progressData.attempts;
+        if (progressData.lastPosition != null) cp.lastPosition = progressData.lastPosition;
+        if (progressData.bestScore != null) cp.bestScore = progressData.bestScore;
+        if (progressData.watchCount != null) cp.watchCount = progressData.watchCount;
+        if (progressData.watchData && typeof progressData.watchData.watchCount === 'number') {
+          cp.watchCount = progressData.watchData.watchCount;
+        }
+      }
+
+      // Recalculate overall course progress and update it atomically
+      // Get all published topics for this course to count total content items
+      const topics = await Topic.find({
+        course: courseId,
+        isPublished: true
+      }).select('content');
+
+      let totalContentItems = 0;
+      for (const topic of topics) {
+        if (topic.content && Array.isArray(topic.content)) {
+          totalContentItems += topic.content.length;
+        }
+      }
+
+      // Count completed content items from contentProgress
+      const completedContent = enrollment.contentProgress
+        ? enrollment.contentProgress.filter((p) => p.completionStatus === 'completed').length
+        : 0;
+
+      // Calculate and update the course progress
+      const courseProgress = totalContentItems > 0 
+        ? Math.round((completedContent / totalContentItems) * 100)
+        : 0;
+      
+      enrollment.progress = courseProgress;
+      enrollment.lastAccessed = new Date();
+      
+      // Update status if completed
+      if (courseProgress === 100) {
+        enrollment.status = 'completed';
+      } else if (enrollment.status === 'completed') {
+        // Reset to active if progress dropped below 100
+        enrollment.status = 'active';
+      }
+
+      user.markModified('enrolledCourses');
+      return await user.save();
+    } catch (error) {
+      // If it's a version error and we have retries left, continue
+      if (error.name === 'VersionError' && attempt < maxRetries - 1) {
+        console.log(`updateContentProgress: Version conflict, retrying (attempt ${attempt + 2}/${maxRetries})...`);
+        continue;
+      }
+      // Otherwise, rethrow the error
+      throw error;
     }
   }
-
-  this.markModified('enrolledCourses');
-  return this.save();
 };
 
 // Indexes for better query performance (excluding fields with unique: true which auto-create indexes)

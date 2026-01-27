@@ -3,7 +3,7 @@ const Teacher = require('../models/Teacher');
 const Topic = require('../models/Topic');
 const User = require('../models/User');
 const Admin = require('../models/Admin');
-const Progress = require('../models/Progress');
+// Progress model removed - using User.contentProgress instead
 const Purchase = require('../models/Purchase');
 const ZoomMeeting = require('../models/ZoomMeeting');
 const PromoCode = require('../models/PromoCode');
@@ -174,15 +174,18 @@ const getAdminDashboard = async (req, res) => {
         { $sort: { _id: 1 } },
       ]),
 
-      // Progress statistics
-      Progress.aggregate([
+      // Progress statistics - from user contentProgress instead of Progress model
+      User.aggregate([
+        { $match: { role: 'student' } },
+        { $unwind: { path: '$enrolledCourses', preserveNullAndEmptyArrays: false } },
+        { $unwind: { path: '$enrolledCourses.contentProgress', preserveNullAndEmptyArrays: false } },
         {
           $group: {
             _id: null,
             total: { $sum: 1 },
             completed: {
               $sum: {
-                $cond: [{ $eq: ['$completed', true] }, 1, 0],
+                $cond: [{ $eq: ['$enrolledCourses.contentProgress.completionStatus', 'completed'] }, 1, 0],
               },
             },
           },
@@ -243,13 +246,17 @@ const getAdminDashboard = async (req, res) => {
                     { $gt: [{ $ifNull: ['$subtotal', 0] }, 0] },
                     {
                       $multiply: [
-                        { $divide: [
-                          { $multiply: [
-                            { $ifNull: ['$items.price', 0] },
-                            { $ifNull: ['$items.quantity', 1] }
-                          ]},
-                          '$subtotal'
-                        ]},
+                        {
+                          $divide: [
+                            {
+                              $multiply: [
+                                { $ifNull: ['$items.price', 0] },
+                                { $ifNull: ['$items.quantity', 1] }
+                              ]
+                            },
+                            '$subtotal'
+                          ]
+                        },
                         '$total'
                       ]
                     },
@@ -527,13 +534,17 @@ const getAdminDashboard = async (req, res) => {
                       { $gt: [{ $ifNull: ['$subtotal', 0] }, 0] },
                       {
                         $multiply: [
-                          { $divide: [
-                            { $multiply: [
-                              { $ifNull: ['$items.price', 0] },
-                              { $ifNull: ['$items.quantity', 1] }
-                            ]},
-                            '$subtotal'
-                          ]},
+                          {
+                            $divide: [
+                              {
+                                $multiply: [
+                                  { $ifNull: ['$items.price', 0] },
+                                  { $ifNull: ['$items.quantity', 1] }
+                                ]
+                              },
+                              '$subtotal'
+                            ]
+                          },
                           '$total'
                         ]
                       },
@@ -734,7 +745,7 @@ const getCourses = async (req, res) => {
       courses = await Course.find(filter)
         .populate('topics')
         .populate('teacher', 'firstName lastName teacherCode subject profilePicture')
-        .populate('examPeriod', 'name displayName')
+        .populate('examPeriod', 'name displayName curriculumType')
         .sort(sort);
     } else {
       // Filters applied: use pagination
@@ -745,7 +756,7 @@ const getCourses = async (req, res) => {
       courses = await Course.find(filter)
         .populate('topics')
         .populate('teacher', 'firstName lastName teacherCode subject profilePicture')
-        .populate('examPeriod', 'name displayName')
+        .populate('examPeriod', 'name displayName curriculumType')
         .sort(sort)
         .skip(skip)
         .limit(parseInt(limit));
@@ -1153,7 +1164,7 @@ const getCourseData = async (req, res) => {
 
     const course = await Course.findOne({ courseCode })
       .populate('teacher', 'firstName lastName teacherCode _id')
-      .populate('examPeriod', 'name displayName year _id')
+      .populate('examPeriod', 'name displayName year curriculumType _id')
       .lean();
 
     if (!course) {
@@ -1782,7 +1793,7 @@ const getCourseContent = async (req, res) => {
         },
       })
       .populate('teacher', 'firstName lastName teacherCode')
-      .populate('examPeriod', 'name displayName year months startDate endDate');
+      .populate('examPeriod', 'name displayName year months startDate endDate curriculumType');
 
     if (!course) {
       req.flash('error_msg', 'Course not found');
@@ -1807,9 +1818,9 @@ const getCourseContent = async (req, res) => {
       : 0;
     const totalContentItems = course.topics
       ? course.topics.reduce(
-          (total, topic) => total + (topic.content ? topic.content.length : 0),
-          0
-        )
+        (total, topic) => total + (topic.content ? topic.content.length : 0),
+        0
+      )
       : 0;
 
     // Get all topics for prerequisite selection
@@ -3899,7 +3910,7 @@ const getOrders = async (req, res) => {
     // Has promo
     if (hasPromo === 'yes') filter.promoCodeUsed = { $exists: true, $nin: [null, ''] };
     if (hasPromo === 'no') {
-      filter.$and = (filter.$and || []).concat([{ $or: [ { promoCodeUsed: { $exists: false } }, { promoCodeUsed: null }, { promoCodeUsed: '' } ] }]);
+      filter.$and = (filter.$and || []).concat([{ $or: [{ promoCodeUsed: { $exists: false } }, { promoCodeUsed: null }, { promoCodeUsed: '' }] }]);
     }
 
     const sortObj = {};
@@ -3968,12 +3979,12 @@ const getOrders = async (req, res) => {
         ]),
         // Get commission totals for completed orders - use stored order-level totals
         Purchase.aggregate([
-          { 
-            $match: { 
+          {
+            $match: {
               ...filter,
               status: { $in: ['completed', 'paid'] },
               $or: [{ refundedAt: { $exists: false } }, { refundedAt: null }]
-            } 
+            }
           },
           {
             $group: {
@@ -4622,12 +4633,28 @@ const getStudentDetails = async (req, res) => {
       return res.redirect('/admin/students');
     }
 
-    // Get detailed progress data
-    const progressData = await Progress.find({ student: studentId })
-      .populate('course', 'title courseCode')
-      .populate('topic', 'title')
-      .sort({ timestamp: -1 })
-      .lean();
+    // Build progress data from user contentProgress (no longer using Progress model)
+    const progressData = [];
+    if (student.enrolledCourses) {
+      for (const enrollment of student.enrolledCourses) {
+        if (enrollment.contentProgress) {
+          for (const cp of enrollment.contentProgress) {
+            progressData.push({
+              course: enrollment.course,
+              contentId: cp.contentId,
+              contentType: cp.contentType,
+              activity: cp.completionStatus === 'completed' ? 'content_completed' : 'content_viewed',
+              timestamp: cp.lastAccessed || cp.completedAt || new Date(),
+              status: cp.completionStatus,
+              progressPercentage: cp.progressPercentage,
+              timeSpent: cp.timeSpent || 0,
+            });
+          }
+        }
+      }
+    }
+    // Sort by timestamp descending
+    progressData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
     // Calculate comprehensive analytics for the overview section
     const detailedAnalytics = await calculateStudentDetailedAnalytics(
@@ -5262,13 +5289,8 @@ const exportStudentData = async (req, res) => {
           const course = enrollment.course;
           if (!course) return null;
 
-          // Get progress data for this course using correct field name
-          const progressData = await Progress.find({
-            student: studentId, // Changed from 'user' to 'student'
-            course: course._id,
-          })
-            .populate('topic')
-            .lean();
+          // No longer using Progress model - use enrollment.contentProgress instead
+          const progressData = [];
 
           // Get detailed topics with content
           const topics = await Promise.all(
@@ -5569,23 +5591,36 @@ const exportStudentData = async (req, res) => {
         });
       }
 
-      // Add progress activities
-      const allProgressData = await Progress.find({ student: studentId })
-        .populate('course')
-        .populate('topic')
-        .lean();
+      // Add progress activities from contentProgress (no longer using Progress model)
+      const allProgressData = [];
+      if (student.enrolledCourses) {
+        for (const enrollment of student.enrolledCourses) {
+          if (enrollment.contentProgress) {
+            for (const cp of enrollment.contentProgress) {
+              allProgressData.push({
+                course: enrollment.course,
+                contentId: cp.contentId,
+                contentType: cp.contentType,
+                completionStatus: cp.completionStatus,
+                lastAccessed: cp.lastAccessed,
+                timeSpent: cp.timeSpent || 0,
+                progressPercentage: cp.progressPercentage || 0,
+              });
+            }
+          }
+        }
+      }
 
       allProgressData.forEach((progress) => {
         activityTimeline.push({
-          timestamp: progress.lastAccessed || progress.createdAt,
+          timestamp: progress.lastAccessed || new Date(),
           activityType: 'Content Access',
-          description: `Accessed content in ${progress.topic?.title || 'Unknown Topic'
-            }`,
+          description: `Accessed content in course`,
           courseOrQuiz: progress.course?.title || 'Unknown Course',
           duration: progress.timeSpent || 0,
-          scoreOrProgress: `${progress.progress || 0}/10`,
-          status: progress.status || 'Unknown',
-          details: `Topic: ${progress.topic?.title || 'Unknown'}`,
+          scoreOrProgress: `${progress.progressPercentage || 0}%`,
+          status: progress.completionStatus || 'Unknown',
+          details: `Content Type: ${progress.contentType || 'Unknown'}`,
         });
       });
 
@@ -5722,11 +5757,25 @@ const exportStudentData = async (req, res) => {
     // Add analytics to each student
     const studentsWithAnalytics = await Promise.all(
       students.map(async (student) => {
-        const progressData = await Progress.find({ student: student._id })
-          .populate('course', 'title courseCode')
-          .populate('topic', 'title')
-          .sort({ timestamp: -1 })
-          .lean();
+        // Build progress data from contentProgress (no longer using Progress model)
+        const progressData = [];
+        if (student.enrolledCourses) {
+          for (const enrollment of student.enrolledCourses) {
+            if (enrollment.contentProgress) {
+              for (const cp of enrollment.contentProgress) {
+                progressData.push({
+                  course: enrollment.course,
+                  contentId: cp.contentId,
+                  contentType: cp.contentType,
+                  completionStatus: cp.completionStatus,
+                  lastAccessed: cp.lastAccessed,
+                  timeSpent: cp.timeSpent || 0,
+                  progressPercentage: cp.progressPercentage || 0,
+                });
+              }
+            }
+          }
+        }
 
         return {
           ...student,
@@ -6429,23 +6478,36 @@ const calculateQuizAnalytics = async (studentId) => {
 
 const getStudentActivityTimeline = async (studentId) => {
   try {
-    const progressActivities = await Progress.find({ student: studentId })
-      .populate('course', 'title')
-      .populate('topic', 'title')
-      .sort({ timestamp: -1 })
-      .limit(20)
+    // Get student with enrolledCourses (no longer using Progress model)
+    const student = await User.findById(studentId)
+      .populate({
+        path: 'enrolledCourses.course',
+        select: 'title courseCode',
+      })
       .lean();
 
-    const activities = progressActivities.map((progress) => ({
-      type: 'progress',
-      description: `Made progress in ${progress.course?.title || 'Unknown Course'
-        }`,
-      details: progress.topic?.title || 'Topic progress',
-      timestamp: progress.timestamp,
-      data: progress,
-    }));
+    if (!student || !student.enrolledCourses) {
+      return [];
+    }
 
-    return activities;
+    const activities = [];
+    for (const enrollment of student.enrolledCourses) {
+      if (enrollment.contentProgress) {
+        for (const cp of enrollment.contentProgress) {
+          activities.push({
+            type: 'progress',
+            description: `Made progress in ${enrollment.course?.title || 'Unknown Course'}`,
+            details: `${cp.contentType || 'Content'} - ${cp.completionStatus || 'In progress'}`,
+            timestamp: cp.lastAccessed || cp.completedAt || new Date(),
+            data: cp,
+          });
+        }
+      }
+    }
+
+    // Sort by timestamp descending and limit to 20
+    activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    return activities.slice(0, 20);
   } catch (error) {
     console.error('Error getting activity timeline:', error);
     return [];
@@ -7282,7 +7344,7 @@ const exportOrders = async (req, res) => {
       filter['items.item'] = { $in: courseIds };
     }
     if (hasPromo === 'yes') filter.promoCodeUsed = { $exists: true, $nin: [null, ''] };
-    if (hasPromo === 'no') filter.$and = (filter.$and || []).concat([{ $or: [ { promoCodeUsed: { $exists: false } }, { promoCodeUsed: null }, { promoCodeUsed: '' } ] }]);
+    if (hasPromo === 'no') filter.$and = (filter.$and || []).concat([{ $or: [{ promoCodeUsed: { $exists: false } }, { promoCodeUsed: null }, { promoCodeUsed: '' }] }]);
 
     const orders = await Purchase.find(filter)
       .populate('user', 'firstName lastName studentEmail')
@@ -7462,13 +7524,8 @@ const exportCourseDetails = async (req, res) => {
       .select('-password')
       .lean();
 
-    // Get progress data for all students in this course
-    const progressData = await Progress.find({
-      course: courseId,
-    })
-      .populate('user', 'firstName lastName studentCode email grade schoolName')
-      .populate('topic', 'title order')
-      .lean();
+    // No longer using Progress model - use enrollment.contentProgress instead
+    const progressData = [];
 
     // Calculate analytics similar to getCourseDetails
     const analytics = {
@@ -7500,14 +7557,20 @@ const exportCourseDetails = async (req, res) => {
       );
     }
 
-    // Process students data
+    // Process students data - using enrollment.contentProgress instead of progressData
     const studentsData = enrolledStudents.map((student) => {
       const enrollment = student.enrolledCourses.find(
         (e) => e.course && e.course.toString() === courseId.toString()
       );
 
-      const studentProgress = progressData.filter(
-        (p) => p.user && p.user._id.toString() === student._id.toString()
+      // Get progress from the enrollment's contentProgress array
+      const contentProgress = enrollment?.contentProgress || [];
+      const completedContent = contentProgress.filter(
+        (p) => p.completionStatus === 'completed'
+      ).length;
+      const totalTimeSpent = contentProgress.reduce(
+        (sum, p) => sum + (p.timeSpent || 0),
+        0
       );
 
       return {
@@ -7525,44 +7588,41 @@ const exportCourseDetails = async (req, res) => {
               : 'not-started',
         enrolledAt: enrollment?.enrollmentDate || enrollment?.enrolledAt,
         lastAccessed: enrollment?.lastAccessed,
-        timeSpent: studentProgress.reduce(
-          (sum, p) => sum + (p.timeSpent || 0),
-          0
-        ),
-        activitiesCompleted: studentProgress.filter(
-          (p) => p.status === 'completed'
-        ).length,
-        totalActivities: studentProgress.length,
+        timeSpent: totalTimeSpent,
+        activitiesCompleted: completedContent,
+        totalActivities: contentProgress.length,
       };
     });
 
-    // Process topics analytics
+    // Process topics analytics - using enrolledStudents' contentProgress instead of progressData
     const topicsAnalytics = await Promise.all(
       (course.topics || []).map(async (topic) => {
-        const topicProgress = progressData.filter(
-          (p) => p.topic && p.topic._id.toString() === topic._id.toString()
-        );
-
+        // Aggregate content progress for this topic from all enrolled students
         const contentAnalytics = (topic.content || []).map((content) => {
-          const contentProgress = topicProgress.filter(
-            (p) =>
-              p.contentId && p.contentId.toString() === content._id.toString()
-          );
+          let viewers = 0;
+          let completions = 0;
+          let totalTimeSpent = 0;
+          let attempts = 0;
+          const scores = [];
 
-          const viewers = new Set(
-            contentProgress.map((p) => p.user._id.toString())
-          ).size;
-          const completions = contentProgress.filter(
-            (p) => p.status === 'completed'
-          ).length;
-          const totalTimeSpent = contentProgress.reduce(
-            (sum, p) => sum + (p.timeSpent || 0),
-            0
-          );
-          const attempts = contentProgress.reduce(
-            (sum, p) => sum + (p.attempts || 0),
-            0
-          );
+          // Loop through all enrolled students to gather stats
+          for (const student of enrolledStudents) {
+            const enrollment = student.enrolledCourses.find(
+              (e) => e.course && e.course.toString() === courseId.toString()
+            );
+            if (!enrollment || !enrollment.contentProgress) continue;
+
+            const cp = enrollment.contentProgress.find(
+              (p) => p.contentId && p.contentId.toString() === content._id.toString()
+            );
+            if (cp) {
+              viewers++;
+              if (cp.completionStatus === 'completed') completions++;
+              totalTimeSpent += cp.timeSpent || 0;
+              attempts += cp.attempts || 0;
+              if (cp.score != null) scores.push(cp.score);
+            }
+          }
 
           // Calculate average score for quiz/homework content
           let averageScore = null;
@@ -7571,9 +7631,6 @@ const exportCourseDetails = async (req, res) => {
             content.contentType === 'quiz' ||
             content.contentType === 'homework'
           ) {
-            const scores = contentProgress
-              .map((p) => p.score)
-              .filter((s) => s != null);
             if (scores.length > 0) {
               averageScore = Math.round(
                 scores.reduce((sum, score) => sum + score, 0) / scores.length
@@ -7605,6 +7662,26 @@ const exportCourseDetails = async (req, res) => {
           };
         });
 
+        // Calculate topic-level totals
+        let topicViewers = 0;
+        let topicCompletions = 0;
+        for (const student of enrolledStudents) {
+          const enrollment = student.enrolledCourses.find(
+            (e) => e.course && e.course.toString() === courseId.toString()
+          );
+          if (!enrollment || !enrollment.contentProgress) continue;
+
+          const hasTopicProgress = enrollment.contentProgress.some(
+            (cp) => cp.topicId && cp.topicId.toString() === topic._id.toString()
+          );
+          if (hasTopicProgress) topicViewers++;
+
+          const topicCompleted = enrollment.contentProgress.filter(
+            (cp) => cp.topicId && cp.topicId.toString() === topic._id.toString() && cp.completionStatus === 'completed'
+          ).length;
+          if (topicCompleted > 0) topicCompletions++;
+        }
+
         return {
           _id: topic._id,
           title: topic.title,
@@ -7612,10 +7689,8 @@ const exportCourseDetails = async (req, res) => {
           contentCount: (topic.content || []).length,
           contents: contentAnalytics,
           totals: {
-            viewers: new Set(topicProgress.map((p) => p.user._id.toString()))
-              .size,
-            completions: topicProgress.filter((p) => p.status === 'completed')
-              .length,
+            viewers: topicViewers,
+            completions: topicCompletions,
           },
         };
       })
@@ -7667,36 +7742,28 @@ const exportTopicDetails = async (req, res) => {
         .json({ success: false, message: 'Topic not found' });
     }
 
-    // Get enrolled students
+    // Get enrolled students with their contentProgress
     const enrolledStudents = await User.find({
       role: 'student',
-      enrolledCourses: course._id,
+      'enrolledCourses.course': course._id,
     }).lean();
 
-    // Get progress data for all students in this topic
-    const progressData = await Progress.find({
-      courseId: course._id,
-      topicId: topic._id,
-    }).lean();
-
-    // Create progress map for quick lookup
-    const progressMap = new Map();
-    progressData.forEach((progress) => {
-      const key = progress.studentId.toString();
-      if (!progressMap.has(key)) {
-        progressMap.set(key, []);
-      }
-      progressMap.get(key).push(progress);
-    });
-
-    // Calculate analytics for each student
+    // Calculate analytics for each student using contentProgress (no longer using Progress model)
     const studentsAnalytics = enrolledStudents.map((student) => {
-      const studentProgress = progressMap.get(student._id.toString()) || [];
+      // Find enrollment for this course
+      const enrollment = student.enrolledCourses?.find(
+        (e) => e.course && e.course.toString() === course._id.toString()
+      );
+
+      // Get contentProgress for this topic
+      const topicContentProgress = (enrollment?.contentProgress || []).filter(
+        (cp) => cp.topicId && cp.topicId.toString() === topic._id.toString()
+      );
 
       // Calculate overall topic progress
       const totalContentItems = topic.content ? topic.content.length : 0;
-      const completedItems = studentProgress.filter(
-        (p) => p.status === 'completed'
+      const completedItems = topicContentProgress.filter(
+        (p) => p.completionStatus === 'completed'
       ).length;
       const progressPercentage =
         totalContentItems > 0
@@ -7704,16 +7771,16 @@ const exportTopicDetails = async (req, res) => {
           : 0;
 
       // Calculate total time spent
-      const totalTimeSpent = studentProgress.reduce(
+      const totalTimeSpent = topicContentProgress.reduce(
         (sum, p) => sum + (p.timeSpent || 0),
         0
       );
 
       // Find last activity
       const lastActivity =
-        studentProgress.length > 0
+        topicContentProgress.length > 0
           ? Math.max(
-            ...studentProgress.map((p) => new Date(p.updatedAt).getTime())
+            ...topicContentProgress.map((p) => new Date(p.lastAccessed || p.completedAt || 0).getTime())
           )
           : null;
 
@@ -7726,11 +7793,11 @@ const exportTopicDetails = async (req, res) => {
       }
 
       return {
-        name: student.name || 'N/A',
-        email: student.email || 'N/A',
+        name: student.name || `${student.firstName || ''} ${student.lastName || ''}`.trim() || 'N/A',
+        email: student.studentEmail || 'N/A',
         studentCode: student.studentCode || 'N/A',
-        parentPhone: student.parentPhone || 'N/A',
-        studentPhone: student.studentPhone || 'N/A',
+        parentPhone: student.parentNumber || 'N/A',
+        studentPhone: student.studentNumber || 'N/A',
         grade: student.grade || 'N/A',
         schoolName: student.schoolName || 'N/A',
         progress: progressPercentage,
@@ -11794,13 +11861,13 @@ const getCoursesForSMS = async (req, res) => {
       .select('_id title')
       .sort({ title: 1 });
 
-    // Get student count for each course
+    // Get student count for each course using enrolledCourses (no longer using Progress model)
     const coursesWithCount = await Promise.all(
       courses.map(async (course) => {
-        const studentIds = await Progress.find({ course: course._id }).distinct(
-          'student'
-        );
-        const studentCount = studentIds.length;
+        const studentCount = await User.countDocuments({
+          role: 'student',
+          'enrolledCourses.course': course._id,
+        });
         return {
           _id: course._id,
           title: course.title,
@@ -11827,11 +11894,11 @@ const getCourseStudentsCount = async (req, res) => {
   try {
     const { courseId } = req.params;
 
-    const studentIds = await Progress.find({ course: courseId }).distinct(
-      'student'
-    );
-
-    const count = studentIds.length;
+    // Count students using enrolledCourses (no longer using Progress model)
+    const count = await User.countDocuments({
+      role: 'student',
+      'enrolledCourses.course': courseId,
+    });
 
     res.json({
       success: true,
@@ -11947,10 +12014,8 @@ const sendBulkSMS = async (req, res) => {
         }
       });
     } else if (targetType === 'course' && targetId) {
-      // Get students enrolled in course
-      const course = await Course.findById(targetId).populate(
-        'enrolledStudents'
-      );
+      // Get students enrolled in course using enrolledCourses (no longer using Progress model)
+      const course = await Course.findById(targetId);
       if (!course) {
         return res.status(404).json({
           success: false,
@@ -11958,18 +12023,8 @@ const sendBulkSMS = async (req, res) => {
         });
       }
 
-      const enrollments = await Progress.find({ courseId: targetId })
-        .populate(
-          'studentId',
-          'firstName lastName parentNumber parentCountryCode studentNumber studentCountryCode'
-        )
-        .select('studentId');
-
-      const studentIds = [
-        ...new Set(enrollments.map((e) => e.studentId?._id).filter(Boolean)),
-      ];
       const students = await User.find({
-        _id: { $in: studentIds },
+        'enrolledCourses.course': targetId,
         role: 'student',
         isActive: true,
       }).select(
@@ -12525,6 +12580,149 @@ const getTeachersPage = async (req, res) => {
   }
 };
 
+// Get Teacher Details Page (comprehensive view with analytics)
+const getTeacherDetails = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    const teacher = await Teacher.findById(teacherId);
+
+    if (!teacher) {
+      return res.redirect('/admin/teachers?error=Teacher not found');
+    }
+
+    // Get all courses for this teacher
+    const courses = await Course.find({ teacher: teacherId })
+      .populate('topics')
+      .sort({ createdAt: -1 });
+
+    // Get all orders (purchases) that include this teacher's courses
+    const orders = await Purchase.find({
+      'items.teacher': teacherId,
+    })
+      .populate('user', 'firstName lastName email phoneNumber studentCode')
+      .sort({ createdAt: -1 });
+
+    // Calculate financial data and unique students from actual purchases
+    let totalRevenue = 0;
+    let totalCommission = 0;
+    let totalTeacherNet = 0;
+    let completedRevenue = 0;
+    let completedCommission = 0;
+    let completedTeacherNet = 0;
+    let pendingRevenue = 0;
+    let pendingOrders = 0;
+    let completedOrders = 0;
+    let refundedAmount = 0;
+
+    // Track unique students from completed purchases
+    const uniqueStudentIds = new Set();
+
+    // Monthly payment summary
+    const monthlyData = {};
+
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        if (item.teacher && item.teacher.toString() === teacherId) {
+          const itemPrice = item.price || 0;
+          // Use the actual commission stored in the purchase (not calculated from current percentage)
+          const itemCommission = item.gTeacherCommission || 0;
+          const itemNet = item.teacherNet || 0;
+
+          totalRevenue += itemPrice;
+          totalCommission += itemCommission;
+          totalTeacherNet += itemNet;
+
+          if (order.paymentStatus === 'completed') {
+            completedRevenue += itemPrice;
+            completedCommission += itemCommission;
+            completedTeacherNet += itemNet;
+            completedOrders++;
+
+            // Track unique students from completed orders
+            if (order.user && order.user._id) {
+              uniqueStudentIds.add(order.user._id.toString());
+            }
+
+            // Add to monthly data
+            const monthKey = new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+            if (!monthlyData[monthKey]) {
+              monthlyData[monthKey] = {
+                month: monthKey,
+                orderCount: 0,
+                grossRevenue: 0,
+                commission: 0,
+                teacherNet: 0,
+                refunded: 0,
+              };
+            }
+            monthlyData[monthKey].orderCount++;
+            monthlyData[monthKey].grossRevenue += itemPrice;
+            monthlyData[monthKey].commission += itemCommission;
+            monthlyData[monthKey].teacherNet += itemNet;
+          } else if (order.paymentStatus === 'pending' || order.paymentStatus === 'processing') {
+            pendingRevenue += itemPrice;
+            pendingOrders++;
+          } else if (order.paymentStatus === 'refunded') {
+            refundedAmount += itemPrice;
+            const monthKey = new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+            if (monthlyData[monthKey]) {
+              monthlyData[monthKey].refunded += itemPrice;
+            }
+          }
+        }
+      });
+    });
+
+    // Convert monthly data to array and sort by date
+    const paymentSummary = Object.values(monthlyData).sort((a, b) => {
+      return new Date(b.month) - new Date(a.month);
+    });
+
+    // Get completed orders for the payment history tab
+    const completedOrdersList = orders.filter(order => order.paymentStatus === 'completed');
+
+    // Build statistics from actual data (not from teacher.getStatistics which may be inaccurate)
+    const statistics = {
+      totalCourses: courses.length,
+      activeCourses: courses.filter(c => c.isActive && c.status === 'published').length,
+      totalUniqueStudents: uniqueStudentIds.size,
+      totalEnrollments: completedOrders,
+    };
+
+    const financials = {
+      totalRevenue,
+      totalCommission,
+      totalTeacherNet,
+      completedRevenue,
+      completedCommission,
+      completedTeacherNet,
+      pendingRevenue,
+      pendingOrders,
+      completedOrders,
+      refundedAmount,
+      totalOrders: orders.length,
+    };
+
+    res.render('admin/teacher-details', {
+      title: `${teacher.name} - Teacher Details | G-Teacher Admin`,
+      user: req.user,
+      admin: req.user,
+      theme: req.user?.preferences?.theme === 'dark' ? 'dark-theme' : 'light-theme',
+      currentPage: 'teachers',
+      teacher,
+      courses,
+      orders,
+      statistics,
+      financials,
+      paymentSummary,
+      completedOrders: completedOrdersList,
+    });
+  } catch (error) {
+    console.error('Error fetching teacher details:', error);
+    res.redirect('/admin/teachers?error=Error loading teacher details: ' + error.message);
+  }
+};
+
 // Get Teacher Data (for edit/view)
 const getTeacherData = async (req, res) => {
   try {
@@ -12755,6 +12953,155 @@ const deleteTeacher = async (req, res) => {
   }
 };
 
+// Export Teacher Details to Excel
+const exportTeacherDetails = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    const teacher = await Teacher.findById(teacherId);
+
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher not found' });
+    }
+
+    // Get all courses for this teacher
+    const courses = await Course.find({ teacher: teacherId })
+      .populate('topics')
+      .sort({ createdAt: -1 });
+
+    // Get all orders for this teacher
+    const orders = await Purchase.find({
+      'items.teacher': teacherId,
+      paymentStatus: 'completed',
+    })
+      .populate('user', 'firstName lastName email phoneNumber studentCode')
+      .sort({ createdAt: -1 });
+
+    // Create Excel workbook
+    const exporter = new ExcelExporter();
+    const workbook = exporter.createWorkbook();
+
+    // Teacher Info Sheet
+    const infoSheet = workbook.addWorksheet('Teacher Info');
+    infoSheet.columns = [
+      { header: 'Field', key: 'field', width: 25 },
+      { header: 'Value', key: 'value', width: 40 },
+    ];
+
+    infoSheet.addRow({ field: 'Teacher Name', value: teacher.name });
+    infoSheet.addRow({ field: 'Teacher Code', value: teacher.teacherCode || 'N/A' });
+    infoSheet.addRow({ field: 'Email', value: teacher.email });
+    infoSheet.addRow({ field: 'Phone', value: teacher.phoneNumber ? `${teacher.countryCode || ''} ${teacher.phoneNumber}` : 'N/A' });
+    infoSheet.addRow({ field: 'Subject', value: teacher.subject || 'N/A' });
+    infoSheet.addRow({ field: 'Platform Commission', value: `${teacher.gTeacherPercentage || 0}%` });
+    infoSheet.addRow({ field: 'Status', value: teacher.isActive ? 'Active' : 'Inactive' });
+    infoSheet.addRow({ field: 'Member Since', value: new Date(teacher.createdAt).toLocaleDateString() });
+
+    // Courses Sheet
+    const coursesSheet = workbook.addWorksheet('Courses');
+    coursesSheet.columns = [
+      { header: 'Course Title', key: 'title', width: 35 },
+      { header: 'Course Code', key: 'code', width: 15 },
+      { header: 'Status', key: 'status', width: 12 },
+      { header: 'Price (EGP)', key: 'price', width: 12 },
+      { header: 'Enrolled Students', key: 'students', width: 18 },
+      { header: 'Topics', key: 'topics', width: 10 },
+      { header: 'Created', key: 'created', width: 15 },
+    ];
+
+    courses.forEach(course => {
+      coursesSheet.addRow({
+        title: course.title,
+        code: course.courseCode,
+        status: course.status,
+        price: course.price || 0,
+        students: course.enrolledStudents ? course.enrolledStudents.length : 0,
+        topics: course.topics ? course.topics.length : 0,
+        created: new Date(course.createdAt).toLocaleDateString(),
+      });
+    });
+
+    // Orders Sheet
+    const ordersSheet = workbook.addWorksheet('Orders');
+    ordersSheet.columns = [
+      { header: 'Order ID', key: 'orderId', width: 20 },
+      { header: 'Date', key: 'date', width: 15 },
+      { header: 'Student Name', key: 'studentName', width: 25 },
+      { header: 'Course', key: 'course', width: 30 },
+      { header: 'Amount (EGP)', key: 'amount', width: 15 },
+      { header: 'Commission (EGP)', key: 'commission', width: 18 },
+      { header: 'Teacher Net (EGP)', key: 'teacherNet', width: 18 },
+      { header: 'Status', key: 'status', width: 12 },
+    ];
+
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        if (item.teacher && item.teacher.toString() === teacherId) {
+          ordersSheet.addRow({
+            orderId: order._id.toString().slice(-8).toUpperCase(),
+            date: new Date(order.createdAt).toLocaleDateString(),
+            studentName: order.user ? `${order.user.firstName} ${order.user.lastName}` : 'Unknown',
+            course: item.title,
+            amount: item.price || 0,
+            commission: item.gTeacherCommission || 0,
+            teacherNet: item.teacherNet || 0,
+            status: order.paymentStatus,
+          });
+        }
+      });
+    });
+
+    // Financial Summary Sheet
+    const financialSheet = workbook.addWorksheet('Financial Summary');
+    financialSheet.columns = [
+      { header: 'Metric', key: 'metric', width: 30 },
+      { header: 'Value', key: 'value', width: 25 },
+    ];
+
+    let totalRevenue = 0;
+    let totalCommission = 0;
+    let totalTeacherNet = 0;
+
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        if (item.teacher && item.teacher.toString() === teacherId) {
+          totalRevenue += item.price || 0;
+          totalCommission += item.gTeacherCommission || 0;
+          totalTeacherNet += item.teacherNet || 0;
+        }
+      });
+    });
+
+    financialSheet.addRow({ metric: 'Total Completed Orders', value: orders.length });
+    financialSheet.addRow({ metric: 'Total Revenue (EGP)', value: totalRevenue.toLocaleString() });
+    financialSheet.addRow({ metric: 'Platform Commission (EGP)', value: totalCommission.toLocaleString() });
+    financialSheet.addRow({ metric: 'Teacher Net Earnings (EGP)', value: totalTeacherNet.toLocaleString() });
+    financialSheet.addRow({ metric: 'Commission Rate', value: `${teacher.gTeacherPercentage || 0}%` });
+
+    // Style the sheets
+    [infoSheet, coursesSheet, ordersSheet, financialSheet].forEach(sheet => {
+      sheet.getRow(1).font = { bold: true };
+      sheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF3A92BD' },
+      };
+      sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `teacher-${teacher.teacherCode || teacher._id}-report-${timestamp}.xlsx`;
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    return res.send(buffer);
+  } catch (error) {
+    console.error('Error exporting teacher details:', error);
+    return res.status(500).json({ success: false, message: 'Export failed: ' + error.message });
+  }
+};
+
 // ==================== EXAM PERIOD MANAGEMENT ====================
 
 // Get all exam periods
@@ -12818,7 +13165,7 @@ const toggleExamPeriodStatus = async (req, res) => {
 const createExamPeriod = async (req, res) => {
   try {
     const ExamPeriod = require('../models/ExamPeriod');
-    const { name, displayName, year, months, startDate, endDate, icon, color, description } = req.body;
+    const { name, displayName, year, months, startDate, endDate, icon, color, description, curriculumType } = req.body;
 
     const period = new ExamPeriod({
       name,
@@ -12830,6 +13177,7 @@ const createExamPeriod = async (req, res) => {
       icon: icon || 'calendar',
       color: color || '#3a92bd',
       description: description || '',
+      curriculumType: curriculumType || 'IGCSE',
     });
 
     await period.save();
@@ -12849,7 +13197,7 @@ const updateExamPeriod = async (req, res) => {
   try {
     const ExamPeriod = require('../models/ExamPeriod');
     const { periodId } = req.params;
-    const { name, displayName, year, months, startDate, endDate, description, isCurrent, isActive } = req.body;
+    const { name, displayName, year, months, startDate, endDate, description, isCurrent, isActive, curriculumType } = req.body;
 
     const period = await ExamPeriod.findById(periodId);
     if (!period) {
@@ -12866,6 +13214,7 @@ const updateExamPeriod = async (req, res) => {
     if (description !== undefined) period.description = description;
     if (isCurrent !== undefined) period.isCurrent = isCurrent;
     if (isActive !== undefined) period.isActive = isActive;
+    if (curriculumType !== undefined) period.curriculumType = curriculumType;
 
     await period.save();
 
@@ -12945,6 +13294,223 @@ const getTeachersAPI = async (req, res) => {
   } catch (error) {
     console.error('Error fetching teachers:', error);
     res.status(500).json({ success: false, message: 'Error fetching teachers' });
+  }
+};
+
+// ==================== SUBMISSION MANAGEMENT ====================
+
+/**
+ * Get submission details page for a content item
+ */
+const getSubmissionDetailsPage = async (req, res) => {
+  try {
+    const { courseCode, topicId, contentId } = req.params;
+
+    // Find the course
+    const course = await Course.findOne({ courseCode }).populate('teacher');
+    if (!course) {
+      req.flash('error_msg', 'Course not found');
+      return res.redirect('/admin/courses');
+    }
+
+    // Find the topic
+    const topic = await Topic.findById(topicId);
+    if (!topic) {
+      req.flash('error_msg', 'Topic not found');
+      return res.redirect(`/admin/courses/${courseCode}/content`);
+    }
+
+    // Find the content item
+    const contentItem = topic.content.id(contentId);
+    if (!contentItem || contentItem.type !== 'submission') {
+      req.flash('error_msg', 'Submission content not found');
+      return res.redirect(`/admin/courses/${courseCode}/content`);
+    }
+
+    // Get all submissions for this content
+    const submissions = await Submission.getContentSubmissions(topicId, contentId);
+
+    // Get submission statistics
+    const stats = await Submission.getContentStats(topicId, contentId);
+
+    res.render('admin/submission-details', {
+      title: `${contentItem.title} - Submissions | Admin`,
+      course,
+      topic,
+      contentItem,
+      submissions,
+      stats,
+      theme: req.cookies.theme || 'light',
+    });
+  } catch (error) {
+    console.error('Get submission details error:', error);
+    req.flash('error_msg', 'Error loading submission details');
+    res.redirect('/admin/courses');
+  }
+};
+
+/**
+ * Grade a student submission
+ */
+const gradeSubmission = async (req, res) => {
+  try {
+    const { submissionId } = req.params;
+    const { score, feedback } = req.body;
+
+    const submission = await Submission.findById(submissionId);
+    if (!submission) {
+      return res.status(404).json({
+        success: false,
+        message: 'Submission not found',
+      });
+    }
+
+    // Calculate letter grade
+    const scoreNum = parseInt(score);
+    const maxScore = submission.grade?.maxScore || 100;
+    let letterGrade = null;
+
+    const percentage = (scoreNum / maxScore) * 100;
+    if (percentage >= 97) letterGrade = 'A+';
+    else if (percentage >= 93) letterGrade = 'A';
+    else if (percentage >= 90) letterGrade = 'A-';
+    else if (percentage >= 87) letterGrade = 'B+';
+    else if (percentage >= 83) letterGrade = 'B';
+    else if (percentage >= 80) letterGrade = 'B-';
+    else if (percentage >= 77) letterGrade = 'C+';
+    else if (percentage >= 73) letterGrade = 'C';
+    else if (percentage >= 70) letterGrade = 'C-';
+    else if (percentage >= 67) letterGrade = 'D+';
+    else if (percentage >= 63) letterGrade = 'D';
+    else if (percentage >= 60) letterGrade = 'D-';
+    else letterGrade = 'F';
+
+    // Apply late penalty if applicable
+    let finalScore = scoreNum;
+    if (submission.isLate) {
+      // Get the content item to check for late penalty
+      const topic = await Topic.findById(submission.topic);
+      const contentItem = topic?.content.id(submission.contentId);
+      const latePenalty = contentItem?.submissionConfig?.latePenalty || 0;
+      if (latePenalty > 0) {
+        finalScore = Math.max(0, scoreNum - (scoreNum * latePenalty / 100));
+      }
+    }
+
+    submission.grade = {
+      score: finalScore,
+      maxScore: maxScore,
+      letterGrade: letterGrade,
+      feedback: feedback || '',
+      gradedBy: req.session.adminId || req.user?.id || null,
+      gradedAt: new Date(),
+    };
+    submission.status = 'graded';
+
+    await submission.save();
+
+    // ==================== UPDATE STUDENT'S CONTENT PROGRESS ====================
+    // When a submission is graded, mark it as completed in the student's contentProgress
+    // updateContentProgress now also recalculates and updates overall course progress
+    try {
+      const student = await User.findById(submission.student);
+      if (student) {
+        // Use the User model's updateContentProgress method
+        // This method now handles both contentProgress update AND course progress calculation atomically
+        await student.updateContentProgress(
+          submission.course,
+          submission.topic,
+          submission.contentId,
+          'submission',
+          {
+            completionStatus: 'completed',
+            progressPercentage: 100,
+            completedAt: new Date(),
+            lastAccessed: new Date(),
+            score: percentage,
+            bestScore: percentage,
+            attempts: submission.attemptNumber || 1,
+          }
+        );
+
+        console.log(`Updated student ${student._id} content progress for submission ${submissionId}`);
+      }
+    } catch (progressError) {
+      console.error('Error updating student content progress:', progressError);
+      // Don't fail the grading if progress update fails
+    }
+
+    res.json({
+      success: true,
+      message: 'Submission graded successfully',
+      grade: submission.grade,
+    });
+  } catch (error) {
+    console.error('Grade submission error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to grade submission',
+    });
+  }
+};
+
+/**
+ * Get single submission details (API)
+ */
+const getSubmissionDetails = async (req, res) => {
+  try {
+    const { submissionId } = req.params;
+
+    const submission = await Submission.findById(submissionId)
+      .populate('student', 'firstName lastName studentCode studentEmail')
+      .populate('course', 'title courseCode')
+      .populate('topic', 'title');
+
+    if (!submission) {
+      return res.status(404).json({
+        success: false,
+        message: 'Submission not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      submission,
+    });
+  } catch (error) {
+    console.error('Get submission details error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get submission',
+    });
+  }
+};
+
+/**
+ * Delete a submission
+ */
+const deleteSubmission = async (req, res) => {
+  try {
+    const { submissionId } = req.params;
+
+    const submission = await Submission.findByIdAndDelete(submissionId);
+    if (!submission) {
+      return res.status(404).json({
+        success: false,
+        message: 'Submission not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Submission deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete submission error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to delete submission',
+    });
   }
 };
 
@@ -13051,11 +13617,13 @@ module.exports = {
   revokeMasterOTP,
   // Teacher Management
   getTeachersPage,
+  getTeacherDetails,
   getTeacherData,
   createTeacher,
   updateTeacher,
   toggleTeacherStatus,
   deleteTeacher,
+  exportTeacherDetails,
   getTeachersAPI,
   // Exam Period Management
   getExamPeriods,
@@ -13065,4 +13633,9 @@ module.exports = {
   toggleExamPeriodCurrent,
   toggleExamPeriodStatus,
   deleteExamPeriod,
+  // Submission Management
+  getSubmissionDetailsPage,
+  gradeSubmission,
+  getSubmissionDetails,
+  deleteSubmission,
 };

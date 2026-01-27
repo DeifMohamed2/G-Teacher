@@ -84,10 +84,32 @@
           </div>
 
           <div class="filter-content" id="filterContent" style="display: none;">
-            <!-- Step 1: Exam Period Selection -->
+            <!-- Step 0: Curriculum Type Selection -->
             <div class="filter-step">
               <h4 class="step-title">
                 <span class="step-number">1</span>
+                Select Curriculum Type
+              </h4>
+              <div class="curriculum-type-pills" id="curriculumTypePills">
+                <button class="curriculum-pill active" data-curriculum="all" onclick="selectCurriculumType('all')">
+                  <i class="fas fa-globe"></i>
+                  <span>All Curricula</span>
+                </button>
+                <button class="curriculum-pill" data-curriculum="IGCSE" onclick="selectCurriculumType('IGCSE')">
+                  <i class="fas fa-graduation-cap"></i>
+                  <span>IGCSE</span>
+                </button>
+                <button class="curriculum-pill" data-curriculum="American" onclick="selectCurriculumType('American')">
+                  <i class="fas fa-flag-usa"></i>
+                  <span>American</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 1: Exam Period Selection -->
+            <div class="filter-step">
+              <h4 class="step-title">
+                <span class="step-number">2</span>
                 Select Exam Period
               </h4>
               <div class="exam-period-pills" id="examPeriodPills">
@@ -102,15 +124,16 @@
                     courses.forEach(course => {
                       const periodId = course.examPeriod ? course.examPeriod._id : 'none';
                       const periodName = course.examPeriod ? course.examPeriod.name : 'No Period';
+                      const curriculumType = course.examPeriod ? (course.examPeriod.curriculumType || 'IGCSE') : 'none';
                       if (!periodCounts[periodId]) {
-                        periodCounts[periodId] = { name: periodName, count: 0 };
+                        periodCounts[periodId] = { name: periodName, count: 0, curriculumType: curriculumType };
                       }
                       periodCounts[periodId].count++;
                     });
                   }
                 %>
                 <% Object.keys(periodCounts).forEach(periodId => { %>
-                <button class="period-pill" data-period="<%= periodId %>" onclick="selectExamPeriod('<%= periodId %>')">
+                <button class="period-pill" data-period="<%= periodId %>" data-curriculum="<%= periodCounts[periodId].curriculumType %>" onclick="selectExamPeriod('<%= periodId %>')">
                   <i class="fas fa-calendar"></i>
                   <span><%= periodCounts[periodId].name %></span>
                   <span class="pill-count"><%= periodCounts[periodId].count %></span>
@@ -122,7 +145,7 @@
             <!-- Step 2: Teacher Selection (Shows after selecting period) -->
             <div class="filter-step" id="teacherFilterStep" style="display: none;">
               <h4 class="step-title">
-                <span class="step-number">2</span>
+                <span class="step-number">3</span>
                 Select Teacher
                 <button class="clear-step-btn" onclick="clearTeacherFilter()">
                   <i class="fas fa-times"></i> Clear
@@ -213,6 +236,7 @@
                    data-teacher="<%= course.teacher ? course.teacher._id : '' %>"
                    data-subject="<%= course.teacher && course.teacher.subject ? course.teacher.subject.toLowerCase() : '' %>"
                    data-period="<%= course.examPeriod ? course.examPeriod._id : '' %>"
+                   data-curriculum="<%= course.examPeriod && course.examPeriod.curriculumType ? course.examPeriod.curriculumType : 'IGCSE' %>"
                    data-title="<%= course.title.toLowerCase() %>"
                    data-price="<%= course.price %>"
                    data-created="<%= course.createdAt %>">
@@ -450,7 +474,7 @@
 
 <!-- Exam Period Modal -->
 <div class="modal fade" id="examPeriodModal" tabindex="-1" aria-labelledby="examPeriodModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content admin-modal-content">
       <div class="modal-header admin-modal-header" style="background: linear-gradient(135deg, #3a92bd 0%, #0c5374 100%);">
         <h5 class="modal-title" id="examPeriodModalLabel">
@@ -467,7 +491,14 @@
           </h6>
           <form id="addPeriodForm">
             <div class="row g-3">
-              <div class="col-md-4">
+              <div class="col-md-3">
+                <label class="form-label">Curriculum Type</label>
+                <select id="periodCurriculumType" class="form-select" required>
+                  <option value="IGCSE">IGCSE</option>
+                  <option value="American">American</option>
+                </select>
+              </div>
+              <div class="col-md-3">
                 <label class="form-label">Period Name</label>
                 <input type="text" id="periodName" class="form-control" placeholder="e.g., January 2026" required>
               </div>
@@ -475,11 +506,11 @@
                 <label class="form-label">Display</label>
                 <input type="text" id="periodDisplayName" class="form-control" placeholder="Jan '26" required>
               </div>
-              <div class="col-md-2">
+              <div class="col-md-1">
                 <label class="form-label">Year</label>
                 <input type="number" id="periodYear" class="form-control" value="2026" required>
               </div>
-              <div class="col-md-2">
+              <div class="col-md-1">
                 <label class="form-label">Start</label>
                 <input type="date" id="periodStartDate" class="form-control" required>
               </div>
@@ -792,6 +823,49 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+/* Curriculum Type Pills */
+.curriculum-type-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.curriculum-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: var(--bg-page);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.curriculum-pill:hover {
+  border-color: var(--primary);
+  background: rgba(58, 146, 189, 0.05);
+}
+
+.curriculum-pill.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
+}
+
+.curriculum-pill i {
+  font-size: 16px;
+}
+
+.curriculum-pill.active i {
+  color: white;
 }
 
 .period-pill {
@@ -1798,6 +1872,28 @@
   color: #f59e0b;
 }
 
+.period-curriculum-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  margin-right: 6px;
+}
+
+.period-curriculum-badge.igcse {
+  background: rgba(58, 146, 189, 0.15);
+  color: #3a92bd;
+}
+
+.period-curriculum-badge.american {
+  background: rgba(99, 102, 241, 0.15);
+  color: #6366f1;
+}
+
 .period-dates {
   font-size: 13px;
   color: var(--text-secondary);
@@ -1869,6 +1965,7 @@
 <script>
 // Store all courses data
 const allCourses = <%- JSON.stringify(courses || []) %>;
+let selectedCurriculumType = null;
 let selectedPeriod = null;
 let selectedTeacher = null;
 let currentView = 'grid';
@@ -1896,8 +1993,46 @@ function toggleFilterSection() {
   } else {
     content.style.display = 'none';
     icon.classList.remove('rotated');
-    status.textContent = 'Click to filter by Exam Period & Teacher';
+    status.textContent = 'Click to filter by Curriculum & Teacher';
   }
+}
+
+// Select Curriculum Type
+function selectCurriculumType(curriculumType) {
+  selectedCurriculumType = curriculumType === 'all' ? null : curriculumType;
+  
+  // Update curriculum pills
+  document.querySelectorAll('.curriculum-pill').forEach(pill => {
+    pill.classList.toggle('active', pill.dataset.curriculum === curriculumType);
+  });
+  
+  // Filter exam period pills based on selected curriculum
+  document.querySelectorAll('.period-pill').forEach(pill => {
+    const pillCurriculum = pill.dataset.curriculum;
+    if (curriculumType === 'all' || !pillCurriculum || pillCurriculum === curriculumType) {
+      pill.style.display = '';
+    } else {
+      pill.style.display = 'none';
+      pill.classList.remove('active');
+    }
+  });
+  
+  // Make sure "All Periods" is always visible and active when curriculum changes
+  const allPeriodsPill = document.querySelector('.period-pill[data-period="all"]');
+  if (allPeriodsPill) {
+    allPeriodsPill.style.display = '';
+    allPeriodsPill.classList.add('active');
+  }
+  
+  // Reset period and teacher selection
+  selectedPeriod = null;
+  selectedTeacher = null;
+  
+  // Hide teacher step
+  document.getElementById('teacherFilterStep').style.display = 'none';
+  
+  applyFilters();
+  updateActiveFiltersDisplay();
 }
 
 // Select Exam Period
@@ -1994,10 +2129,18 @@ function clearTeacherFilter() {
 
 // Clear All Filters
 function clearAllFilters() {
+  selectedCurriculumType = null;
   selectedPeriod = null;
   selectedTeacher = null;
   
+  // Reset curriculum pills
+  document.querySelectorAll('.curriculum-pill').forEach(pill => {
+    pill.classList.toggle('active', pill.dataset.curriculum === 'all');
+  });
+  
+  // Reset and show all period pills
   document.querySelectorAll('.period-pill').forEach(pill => {
+    pill.style.display = '';
     pill.classList.toggle('active', pill.dataset.period === 'all');
   });
   
@@ -2020,6 +2163,14 @@ function applyFilters() {
   
   document.querySelectorAll('.course-card').forEach(card => {
     let show = true;
+    
+    // Curriculum type filter
+    if (selectedCurriculumType) {
+      const cardCurriculum = card.dataset.curriculum || 'IGCSE';
+      if (cardCurriculum !== selectedCurriculumType) {
+        show = false;
+      }
+    }
     
     // Period filter
     if (selectedPeriod && card.dataset.period !== selectedPeriod) {
@@ -2055,7 +2206,8 @@ function applyFilters() {
   
   // Update title
   let title = 'All Courses';
-  if (selectedPeriod || selectedTeacher) {
+  if (selectedCurriculumType || selectedPeriod || selectedTeacher) {
+    const curriculumName = selectedCurriculumType || '';
     const periodName = selectedPeriod 
       ? document.querySelector(`[data-period="${selectedPeriod}"] span:first-of-type`)?.textContent || 'Selected Period'
       : '';
@@ -2063,13 +2215,12 @@ function applyFilters() {
       ? document.querySelector(`[data-teacher="${selectedTeacher}"] .teacher-name-mini`)?.textContent || ''
       : '';
     
-    if (periodName && teacherName) {
-      title = `${teacherName} - ${periodName}`;
-    } else if (periodName) {
-      title = periodName;
-    } else if (teacherName) {
-      title = `${teacherName}'s Courses`;
-    }
+    let parts = [];
+    if (curriculumName) parts.push(curriculumName);
+    if (periodName) parts.push(periodName);
+    if (teacherName) parts.push(teacherName);
+    
+    title = parts.join(' - ') || 'All Courses';
   }
   document.getElementById('coursesTitle').textContent = title;
 }
@@ -2082,6 +2233,11 @@ function updateActiveFiltersDisplay() {
   
   let activeCount = 0;
   let tagsHtml = '';
+  
+  if (selectedCurriculumType) {
+    tagsHtml += `<span class="filter-tag"><i class="fas fa-graduation-cap"></i> ${selectedCurriculumType} <i class="fas fa-times" onclick="clearCurriculumFilter()"></i></span>`;
+    activeCount++;
+  }
   
   if (selectedPeriod) {
     const periodName = document.querySelector(`[data-period="${selectedPeriod}"] span:first-of-type`)?.textContent || 'Period';
@@ -2099,6 +2255,14 @@ function updateActiveFiltersDisplay() {
   container.style.display = activeCount > 0 ? 'flex' : 'none';
   badge.style.display = activeCount > 0 ? 'inline' : 'none';
   badge.textContent = activeCount;
+}
+
+function clearCurriculumFilter() {
+  selectedCurriculumType = null;
+  document.querySelectorAll('.curriculum-pill').forEach(p => p.classList.toggle('active', p.dataset.curriculum === 'all'));
+  document.querySelectorAll('.period-pill').forEach(p => p.style.display = '');
+  applyFilters();
+  updateActiveFiltersDisplay();
 }
 
 function clearPeriodFilter() {
@@ -2324,6 +2488,8 @@ function loadExamPeriodsList() {
         const statusText = isActive ? 'Active' : 'Inactive';
         const statusIcon = isActive ? 'check-circle' : 'times-circle';
         const toggleAction = isActive ? 'Deactivate' : 'Activate';
+        const curriculumType = p.curriculumType || 'IGCSE';
+        const curriculumClass = curriculumType === 'American' ? 'american' : 'igcse';
         
         return `
           <div class="period-item ${statusClass}">
@@ -2331,6 +2497,9 @@ function loadExamPeriodsList() {
               <div class="period-name">
                 <i class="fas fa-calendar-alt text-primary me-2"></i>
                 <strong>${p.name}</strong>
+                <span class="period-curriculum-badge ${curriculumClass}">
+                  <i class="fas ${curriculumType === 'American' ? 'fa-flag-usa' : 'fa-graduation-cap'}"></i> ${curriculumType}
+                </span>
                 <span class="period-status-badge ${statusClass}">
                   <i class="fas fa-${statusIcon}"></i> ${statusText}
                 </span>
@@ -2419,6 +2588,13 @@ async function editPeriod(periodId) {
       html: `
         <div class="text-start">
           <div class="mb-3">
+            <label class="form-label fw-bold">Curriculum Type</label>
+            <select id="editPeriodCurriculumType" class="form-select">
+              <option value="IGCSE" ${period.curriculumType === 'IGCSE' ? 'selected' : ''}>IGCSE</option>
+              <option value="American" ${period.curriculumType === 'American' ? 'selected' : ''}>American</option>
+            </select>
+          </div>
+          <div class="mb-3">
             <label class="form-label fw-bold">Period Name</label>
             <input id="editPeriodName" class="form-control" value="${period.name || ''}" placeholder="e.g., January 2026">
           </div>
@@ -2447,6 +2623,7 @@ async function editPeriod(periodId) {
       confirmButtonColor: '#3a92bd',
       preConfirm: () => {
         return {
+          curriculumType: document.getElementById('editPeriodCurriculumType').value,
           name: document.getElementById('editPeriodName').value,
           displayName: document.getElementById('editPeriodDisplayName').value,
           year: parseInt(document.getElementById('editPeriodYear').value),
@@ -2491,6 +2668,7 @@ function setupPeriodForm() {
     e.preventDefault();
     
     const data = {
+      curriculumType: document.getElementById('periodCurriculumType').value,
       name: document.getElementById('periodName').value,
       displayName: document.getElementById('periodDisplayName').value,
       year: parseInt(document.getElementById('periodYear').value),

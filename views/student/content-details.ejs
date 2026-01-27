@@ -1810,6 +1810,460 @@
           </div>
           <% } %>
 
+          <% if (contentItem.type === 'submission') { %>
+          <!-- Submission Content - Assignment with File Upload -->
+          <div class="submission-content">
+            <% 
+              const submissionConfig = contentItem.submissionConfig || {};
+              const assignmentFiles = submissionConfig.assignmentFiles || [];
+              const instructions = submissionConfig.instructions || '';
+              const dueDate = submissionConfig.dueDate;
+              const maxScore = submissionConfig.maxScore || 100;
+              const allowLateSubmission = submissionConfig.allowLateSubmission || false;
+              const latePenalty = submissionConfig.latePenalty || 0;
+              const isOverdue = dueDate && new Date() > new Date(dueDate);
+              const canSubmit = !isOverdue || allowLateSubmission;
+            %>
+
+            <!-- Assignment Info Card -->
+            <div class="submission-info-card" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; border: 1px solid #bae6fd;">
+              <div class="submission-header" style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                <div class="submission-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #0ea5e9, #0284c7); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                  <i class="fas fa-file-upload" style="color: white; font-size: 24px;"></i>
+                </div>
+                <div>
+                  <h3 style="margin: 0; color: #0c4a6e; font-weight: 700; font-size: 1.25rem;">Assignment Submission</h3>
+                  <p style="margin: 4px 0 0; color: #0369a1; font-size: 0.9rem;">
+                    <i class="fas fa-star me-1"></i> Max Score: <%= maxScore %> points
+                  </p>
+                </div>
+              </div>
+
+              <!-- Due Date & Status -->
+              <% if (dueDate) { %>
+              <div class="due-date-section" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: <%= isOverdue ? 'linear-gradient(135deg, #fef2f2, #fee2e2)' : 'linear-gradient(135deg, #f0fdf4, #dcfce7)' %>; border-radius: 10px; margin-bottom: 16px; border: 1px solid <%= isOverdue ? '#fecaca' : '#bbf7d0' %>;">
+                <i class="fas fa-<%= isOverdue ? 'exclamation-circle' : 'calendar-check' %>" style="color: <%= isOverdue ? '#dc2626' : '#16a34a' %>; font-size: 1.25rem;"></i>
+                <div>
+                  <strong style="color: <%= isOverdue ? '#dc2626' : '#16a34a' %>;">
+                    <%= isOverdue ? 'Overdue' : 'Due Date' %>
+                  </strong>
+                  <span style="color: #374151; margin-left: 8px;">
+                    <%= new Date(dueDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+                  </span>
+                </div>
+                <% if (isOverdue && allowLateSubmission) { %>
+                <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin-left: auto;">
+                  Late Penalty: -<%= latePenalty %>%
+                </span>
+                <% } %>
+              </div>
+              <% } %>
+
+              <!-- Instructions -->
+              <% if (instructions) { %>
+              <div class="instructions-section" style="background: white; border-radius: 10px; padding: 16px; margin-bottom: 16px; border: 1px solid #e0e7ff;">
+                <h4 style="margin: 0 0 10px; color: #4338ca; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                  <i class="fas fa-info-circle"></i> Instructions
+                </h4>
+                <p style="margin: 0; color: #374151; line-height: 1.6; white-space: pre-wrap;"><%= instructions %></p>
+              </div>
+              <% } %>
+
+              <!-- Assignment Files Download -->
+              <% if (assignmentFiles.length > 0) { %>
+              <div class="assignment-files-section" style="background: white; border-radius: 10px; padding: 16px; border: 1px solid #e0e7ff;">
+                <h4 style="margin: 0 0 12px; color: #4338ca; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                  <i class="fas fa-paperclip"></i> Assignment Files
+                </h4>
+                <div class="assignment-files-list" style="display: flex; flex-direction: column; gap: 8px;">
+                  <% assignmentFiles.forEach((file, index) => { %>
+                  <a href="<%= file.fileUrl %>" target="_blank" download class="assignment-file-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-radius: 8px; text-decoration: none; color: #334155; transition: all 0.2s ease; border: 1px solid #e2e8f0;">
+                    <div class="file-icon" style="width: 40px; height: 40px; background: <%= file.fileType === 'pdf' ? '#ef4444' : file.fileType === 'image' ? '#10b981' : '#6366f1' %>; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                      <i class="fas fa-<%= file.fileType === 'pdf' ? 'file-pdf' : file.fileType === 'image' ? 'image' : 'file-alt' %>" style="color: white; font-size: 1rem;"></i>
+                    </div>
+                    <div class="file-info" style="flex: 1;">
+                      <span style="font-weight: 600; display: block;"><%= file.fileName %></span>
+                      <span style="font-size: 0.8rem; color: #64748b; text-transform: uppercase;"><%= file.fileType %></span>
+                    </div>
+                    <i class="fas fa-download" style="color: #3b82f6; font-size: 1.1rem;"></i>
+                  </a>
+                  <% }); %>
+                </div>
+              </div>
+              <% } %>
+            </div>
+
+            <!-- Submission Status / Upload Section -->
+            <% if (studentSubmission && ['submitted', 'graded', 'late'].includes(studentSubmission.status)) { %>
+            <!-- Already Submitted - Show Submission Details -->
+            <div class="submission-completed-card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 16px; padding: 24px; border: 1px solid #86efac;">
+              <div class="completed-header" style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                <div class="completed-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                  <i class="fas fa-check" style="color: white; font-size: 24px;"></i>
+                </div>
+                <div>
+                  <h3 style="margin: 0; color: #065f46; font-weight: 700; font-size: 1.25rem;">
+                    <%= studentSubmission.status === 'graded' ? 'Assignment Graded' : 'Assignment Submitted' %>
+                  </h3>
+                  <p style="margin: 4px 0 0; color: #047857; font-size: 0.9rem;">
+                    Submitted on <%= new Date(studentSubmission.submittedAt).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+                    <% if (studentSubmission.isLate) { %>
+                    <span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 8px;">Late</span>
+                    <% } %>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Grade Display (if graded) -->
+              <% if (studentSubmission.status === 'graded' && studentSubmission.grade) { %>
+              <div class="grade-display" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid #bbf7d0;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                  <div>
+                    <span style="font-size: 0.85rem; color: #6b7280; display: block; margin-bottom: 4px;">Your Score</span>
+                    <span style="font-size: 2.5rem; font-weight: 800; color: #059669;"><%= studentSubmission.grade.score %></span>
+                    <span style="font-size: 1.25rem; color: #9ca3af;">/ <%= studentSubmission.grade.maxScore %></span>
+                  </div>
+                  <% if (studentSubmission.grade.letterGrade) { %>
+                  <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 16px 24px; border-radius: 12px; text-align: center;">
+                    <span style="font-size: 2rem; font-weight: 800;"><%= studentSubmission.grade.letterGrade %></span>
+                  </div>
+                  <% } %>
+                </div>
+                <% if (studentSubmission.grade.feedback) { %>
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                  <h5 style="margin: 0 0 8px; color: #374151; font-size: 0.9rem;">
+                    <i class="fas fa-comment-alt me-2"></i>Feedback
+                  </h5>
+                  <p style="margin: 0; color: #4b5563; line-height: 1.6; white-space: pre-wrap;"><%= studentSubmission.grade.feedback %></p>
+                </div>
+                <% } %>
+              </div>
+              <% } %>
+
+              <!-- Submitted Files -->
+              <% if (studentSubmission.submittedFiles && studentSubmission.submittedFiles.length > 0) { %>
+              <div class="submitted-files-section" style="background: white; border-radius: 10px; padding: 16px; margin-bottom: 16px; border: 1px solid #bbf7d0;">
+                <h4 style="margin: 0 0 12px; color: #065f46; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                  <i class="fas fa-file-check"></i> Submitted Files (<%= studentSubmission.submittedFiles.length %>)
+                </h4>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <% studentSubmission.submittedFiles.forEach((file, index) => { %>
+                  <div class="submitted-file-item" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
+                    <i class="fas fa-<%= file.fileType === 'pdf' ? 'file-pdf' : file.fileType === 'image' ? 'image' : 'file-alt' %>" style="color: <%= file.fileType === 'pdf' ? '#ef4444' : file.fileType === 'image' ? '#10b981' : '#6366f1' %>; font-size: 1.25rem;"></i>
+                    <span style="flex: 1; color: #065f46; font-weight: 500;"><%= file.fileName %></span>
+                    <a href="<%= file.fileUrl %>" target="_blank" style="color: #3b82f6; font-size: 0.9rem;">
+                      <i class="fas fa-external-link-alt"></i>
+                    </a>
+                  </div>
+                  <% }); %>
+                </div>
+              </div>
+              <% } %>
+
+              <!-- Text Answer -->
+              <% if (studentSubmission.textAnswer) { %>
+              <div class="text-answer-section" style="background: white; border-radius: 10px; padding: 16px; border: 1px solid #bbf7d0;">
+                <h4 style="margin: 0 0 12px; color: #065f46; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                  <i class="fas fa-edit"></i> Your Answer
+                </h4>
+                <p style="margin: 0; color: #374151; line-height: 1.6; white-space: pre-wrap;"><%= studentSubmission.textAnswer %></p>
+              </div>
+              <% } %>
+
+              <!-- Resubmit Option (if not graded) -->
+              <% if (studentSubmission.status !== 'graded' && canSubmit) { %>
+              <div style="margin-top: 20px; text-align: center;">
+                <button class="btn btn-outline-primary" onclick="toggleResubmit()" style="padding: 10px 24px;">
+                  <i class="fas fa-redo me-2"></i>Resubmit Assignment
+                </button>
+              </div>
+              <% } else if (studentSubmission.status === 'graded') { %>
+              <!-- Graded - No Resubmission Allowed -->
+              <div style="margin-top: 20px; text-align: center; padding: 16px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; border: 1px solid #e2e8f0;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; color: #64748b;">
+                  <i class="fas fa-lock" style="font-size: 1.1rem;"></i>
+                  <span style="font-weight: 500;">This assignment has been graded. Resubmission is no longer available.</span>
+                </div>
+              </div>
+              <% } %>
+            </div>
+            <% } %>
+
+            <!-- Upload Section (for new submissions or resubmissions) -->
+            <div id="uploadSection" style="<%= (studentSubmission && ['submitted', 'graded', 'late'].includes(studentSubmission.status)) ? 'display: none;' : '' %>">
+              <% if (!canSubmit) { %>
+              <!-- Cannot Submit - Deadline Passed -->
+              <div class="cannot-submit-card" style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-radius: 16px; padding: 24px; text-align: center; border: 1px solid #fecaca;">
+                <i class="fas fa-lock" style="font-size: 48px; color: #dc2626; margin-bottom: 16px;"></i>
+                <h3 style="margin: 0 0 8px; color: #991b1b;">Submission Closed</h3>
+                <p style="margin: 0; color: #b91c1c;">The deadline has passed and late submissions are not allowed for this assignment.</p>
+              </div>
+              <% } else { %>
+              <!-- Upload Form -->
+              <form id="submissionForm" class="submission-upload-card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 16px; padding: 24px; border: 1px solid #93c5fd;">
+                <input type="hidden" name="courseId" value="<%= course._id %>">
+                <input type="hidden" name="topicId" value="<%= topic._id %>">
+                <input type="hidden" name="contentId" value="<%= contentItem._id %>">
+
+                <div class="upload-header" style="text-align: center; margin-bottom: 24px;">
+                  <h3 style="margin: 0 0 8px; color: #1e40af; font-weight: 700;">
+                    <i class="fas fa-cloud-upload-alt me-2"></i>Upload Your Work
+                  </h3>
+                  <p style="margin: 0; color: #3b82f6; font-size: 0.9rem;">
+                    Supported: Images, PDF, Word, Excel, PowerPoint, Text files (Max 25MB each, up to 10 files)
+                  </p>
+                </div>
+
+                <!-- File Upload Area -->
+                <div class="file-upload-area" id="dropZone" style="background: white; border: 2px dashed #93c5fd; border-radius: 12px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; margin-bottom: 20px;">
+                  <input type="file" id="fileInput" name="files" multiple accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" style="display: none;">
+                  <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #3b82f6; margin-bottom: 16px;"></i>
+                  <p style="margin: 0 0 8px; color: #1e40af; font-weight: 600; font-size: 1.1rem;">Drag & Drop files here</p>
+                  <p style="margin: 0; color: #64748b; font-size: 0.9rem;">or click to browse files</p>
+                </div>
+
+                <!-- Selected Files List -->
+                <div id="selectedFilesList" style="display: none; margin-bottom: 20px;">
+                  <h5 style="margin: 0 0 12px; color: #1e40af; font-size: 0.95rem;">
+                    <i class="fas fa-paperclip me-2"></i>Selected Files
+                  </h5>
+                  <div id="filesContainer" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                </div>
+
+                <!-- Text Answer (Optional) -->
+                <div class="text-answer-input" style="margin-bottom: 20px;">
+                  <label for="textAnswer" style="display: block; margin-bottom: 8px; color: #1e40af; font-weight: 600; font-size: 0.95rem;">
+                    <i class="fas fa-edit me-2"></i>Additional Notes (Optional)
+                  </label>
+                  <textarea id="textAnswer" name="textAnswer" rows="4" placeholder="Add any additional notes or answers here..." style="width: 100%; padding: 12px 16px; border: 1px solid #93c5fd; border-radius: 10px; font-size: 0.95rem; resize: vertical; background: white;"></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div style="text-align: center;">
+                  <button type="submit" id="submitBtn" class="btn btn-primary btn-lg" style="padding: 14px 40px; font-weight: 600; font-size: 1rem; border-radius: 10px;" disabled>
+                    <i class="fas fa-paper-plane me-2"></i>Submit Assignment
+                  </button>
+                  <p id="uploadProgress" style="display: none; margin-top: 12px; color: #3b82f6;"></p>
+                </div>
+              </form>
+              <% } %>
+            </div>
+          </div>
+
+          <script>
+            // Submission Upload Functionality
+            document.addEventListener('DOMContentLoaded', function() {
+              const dropZone = document.getElementById('dropZone');
+              const fileInput = document.getElementById('fileInput');
+              const selectedFilesList = document.getElementById('selectedFilesList');
+              const filesContainer = document.getElementById('filesContainer');
+              const submitBtn = document.getElementById('submitBtn');
+              const submissionForm = document.getElementById('submissionForm');
+              let selectedFiles = [];
+
+              if (!dropZone || !fileInput) return;
+
+              // Click to browse
+              dropZone.addEventListener('click', () => fileInput.click());
+
+              // Drag and drop events
+              ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+              });
+
+              function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+
+              ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                  dropZone.style.borderColor = '#3b82f6';
+                  dropZone.style.background = '#eff6ff';
+                });
+              });
+
+              ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                  dropZone.style.borderColor = '#93c5fd';
+                  dropZone.style.background = 'white';
+                });
+              });
+
+              dropZone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+              });
+
+              fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+              });
+
+              function handleFiles(files) {
+                const maxSize = 25 * 1024 * 1024; // 25MB
+                const maxFiles = 10;
+
+                Array.from(files).forEach(file => {
+                  if (selectedFiles.length >= maxFiles) {
+                    showNotification('Maximum 10 files allowed', 'error');
+                    return;
+                  }
+                  if (file.size > maxSize) {
+                    showNotification(`File "${file.name}" exceeds 25MB limit`, 'error');
+                    return;
+                  }
+                  if (!selectedFiles.find(f => f.name === file.name && f.size === file.size)) {
+                    selectedFiles.push(file);
+                  }
+                });
+
+                updateFilesList();
+              }
+
+              function updateFilesList() {
+                if (selectedFiles.length === 0) {
+                  selectedFilesList.style.display = 'none';
+                  submitBtn.disabled = true;
+                  return;
+                }
+
+                selectedFilesList.style.display = 'block';
+                submitBtn.disabled = false;
+
+                filesContainer.innerHTML = selectedFiles.map((file, index) => {
+                  const ext = file.name.split('.').pop().toLowerCase();
+                  const iconClass = ext === 'pdf' ? 'file-pdf' : 
+                                  ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext) ? 'image' : 'file-alt';
+                  const iconColor = ext === 'pdf' ? '#ef4444' : 
+                                  ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext) ? '#10b981' : '#6366f1';
+                  const fileSize = (file.size / 1024 / 1024).toFixed(2);
+
+                  return `
+                    <div class="selected-file-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: white; border-radius: 8px; border: 1px solid #e0e7ff;">
+                      <i class="fas fa-${iconClass}" style="color: ${iconColor}; font-size: 1.25rem;"></i>
+                      <div style="flex: 1;">
+                        <span style="font-weight: 500; color: #1e40af; display: block;">${file.name}</span>
+                        <span style="font-size: 0.8rem; color: #64748b;">${fileSize} MB</span>
+                      </div>
+                      <button type="button" onclick="removeFile(${index})" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 8px;">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                  `;
+                }).join('');
+              }
+
+              window.removeFile = function(index) {
+                selectedFiles.splice(index, 1);
+                updateFilesList();
+              };
+
+              // Form submission
+              if (submissionForm) {
+                submissionForm.addEventListener('submit', async (e) => {
+                  e.preventDefault();
+
+                  if (selectedFiles.length === 0 && !document.getElementById('textAnswer').value.trim()) {
+                    showNotification('Please upload at least one file or provide a text answer', 'error');
+                    return;
+                  }
+
+                  submitBtn.disabled = true;
+                  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+
+                  const formData = new FormData();
+                  formData.append('courseId', document.querySelector('[name="courseId"]').value);
+                  formData.append('topicId', document.querySelector('[name="topicId"]').value);
+                  formData.append('contentId', document.querySelector('[name="contentId"]').value);
+                  formData.append('textAnswer', document.getElementById('textAnswer').value);
+
+                  selectedFiles.forEach(file => {
+                    formData.append('files', file);
+                  });
+
+                  try {
+                    const response = await fetch('/student/submission/submit', {
+                      method: 'POST',
+                      body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                      showNotification(result.message, 'success');
+                      setTimeout(() => {
+                        window.location.reload();
+                      }, 1500);
+                    } else {
+                      showNotification(result.message || 'Submission failed', 'error');
+                      submitBtn.disabled = false;
+                      submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit Assignment';
+                    }
+                  } catch (error) {
+                    console.error('Submission error:', error);
+                    showNotification('An error occurred. Please try again.', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit Assignment';
+                  }
+                });
+              }
+            });
+
+            function toggleResubmit() {
+              const uploadSection = document.getElementById('uploadSection');
+              if (uploadSection.style.display === 'none') {
+                uploadSection.style.display = 'block';
+                uploadSection.scrollIntoView({ behavior: 'smooth' });
+              } else {
+                uploadSection.style.display = 'none';
+              }
+            }
+
+            function showNotification(message, type) {
+              const container = document.getElementById('notification-container');
+              if (!container) return;
+
+              // Use enhanced notification styling
+              const titles = {
+                success: 'Success!',
+                error: 'Error',
+                warning: 'Warning',
+                info: 'Notice'
+              };
+
+              const icons = {
+                success: 'check',
+                error: 'times',
+                warning: 'exclamation',
+                info: 'info'
+              };
+
+              const notification = document.createElement('div');
+              notification.className = `enhanced-notification ${type}`;
+              notification.innerHTML = `
+                <div class="enhanced-notification-icon">
+                  <i class="fas fa-${icons[type] || 'info'}"></i>
+                </div>
+                <div class="enhanced-notification-content">
+                  <p class="enhanced-notification-title">${titles[type] || 'Notice'}</p>
+                  <p class="enhanced-notification-message">${message}</p>
+                </div>
+                <button class="enhanced-notification-close" onclick="this.parentElement.remove()">
+                  <i class="fas fa-times"></i>
+                </button>
+              `;
+              container.appendChild(notification);
+
+              // Auto-remove after 5 seconds
+              setTimeout(() => {
+                notification.classList.add('hide');
+                setTimeout(() => notification.remove(), 300);
+              }, 5000);
+            }
+          </script>
+          <% } %>
+
           <% if (contentItem.type === 'zoom') { %>
           <!-- Zoom Meeting Content - Simplified like other content types -->
           <% 

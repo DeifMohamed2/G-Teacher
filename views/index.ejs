@@ -2750,19 +2750,10 @@
           <div class="gt-stats-row" data-aos="fade-up" data-aos-delay="400">
             <div class="gt-stat">
               <div class="gt-stat-icon">
-                <i class="fas fa-chalkboard-teacher"></i>
-              </div>
-              <div class="gt-stat-info">
-                <span class="gt-stat-num"><%= stats.totalTeachers || 0 %>+</span>
-                <span class="gt-stat-label">Expert Teachers</span>
-              </div>
-            </div>
-            <div class="gt-stat">
-              <div class="gt-stat-icon">
                 <i class="fas fa-user-graduate"></i>
               </div>
               <div class="gt-stat-info">
-                <span class="gt-stat-num"><%= stats.totalStudents > 1000 ? Math.floor(stats.totalStudents / 1000) + 'K+' : (stats.totalStudents || 0) + '+' %></span>
+                <span class="gt-stat-num">20K+</span>
                 <span class="gt-stat-label">Students</span>
               </div>
             </div>
@@ -2839,7 +2830,7 @@
       <div class="ig-courses-badge-premium">
         <div class="badge-glow"></div>
         <i class="fas fa-crown"></i>
-        <span>IGCSE Excellence</span>
+        <span>Academic Excellence</span>
         <div class="badge-shine"></div>
       </div>
       <h2 class="ig-courses-title-premium">
@@ -2848,13 +2839,33 @@
       </h2>
     </div>
 
+    <!-- Curriculum Type Selector -->
+    <div class="ig-curriculum-selector" id="curriculumSelector">
+      <div class="curriculum-tabs">
+        <button class="curriculum-tab active" data-curriculum="IGCSE">
+          <div class="curriculum-icon"><i class="fas fa-graduation-cap"></i></div>
+          <div class="curriculum-content">
+            <span class="curriculum-name">IGCSE</span>
+          </div>
+          <div class="curriculum-glow"></div>
+        </button>
+        <button class="curriculum-tab" data-curriculum="American">
+          <div class="curriculum-icon"><i class="fas fa-flag-usa"></i></div>
+          <div class="curriculum-content">
+            <span class="curriculum-name">American</span>
+          </div>
+          <div class="curriculum-glow"></div>
+        </button>
+      </div>
+    </div>
+
     <!-- Premium Exam Date Selector -->
     <div class="ig-date-selector-premium">
       <div class="ig-date-slider" id="examDateTabs">
         <div class="slider-track"></div>
         <% if (examPeriods && examPeriods.length > 0) { %>
           <% examPeriods.forEach((period, index) => { %>
-            <button class="ig-date-pill<%= index === 0 ? ' active' : '' %>" data-date="<%= period.id %>" data-slug="<%= period.slug %>">
+            <button class="ig-date-pill<%= index === 0 && period.curriculumType === 'IGCSE' ? ' active' : '' %>" data-date="<%= period.id %>" data-slug="<%= period.slug %>" data-curriculum="<%= period.curriculumType || 'IGCSE' %>" style="<%= period.curriculumType !== 'IGCSE' ? 'display: none;' : '' %>">
               <div class="pill-icon"><i class="fas <%= period.icon %>"></i></div>
               <div class="pill-content">
                 <span class="pill-month"><%= period.displayName %></span>
@@ -3113,6 +3124,137 @@
   
   .dark-theme .ig-courses-subtitle-premium {
     color: #94a3b8;
+  }
+  
+  /* Curriculum Type Selector */
+  .ig-curriculum-selector {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .curriculum-tabs {
+    display: flex;
+    gap: 16px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    padding: 10px;
+    border-radius: 20px;
+    box-shadow: 
+      0 8px 40px rgba(58, 146, 189, 0.15),
+      0 2px 8px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(58, 146, 189, 0.15);
+  }
+  
+  .dark-theme .curriculum-tabs {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(58, 146, 189, 0.25);
+    box-shadow: 
+      0 8px 40px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  
+  .curriculum-tab {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 28px;
+    border: none;
+    background: transparent;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .curriculum-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    background: rgba(58, 146, 189, 0.1);
+    color: #64748b;
+    transition: all 0.3s ease;
+  }
+  
+  .curriculum-content {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+  }
+  
+  .curriculum-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.2;
+  }
+  
+  .dark-theme .curriculum-name {
+    color: #f1f5f9;
+  }
+  
+  .curriculum-tab:hover {
+    background: rgba(58, 146, 189, 0.08);
+    transform: translateY(-2px);
+  }
+  
+  .curriculum-tab.active {
+    background: linear-gradient(135deg, #3a92bd 0%, #0c5374 100%);
+    box-shadow: 
+      0 8px 25px rgba(58, 146, 189, 0.4),
+      0 4px 10px rgba(58, 146, 189, 0.2);
+    transform: translateY(-2px);
+  }
+  
+  .curriculum-tab.active .curriculum-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+  
+  .curriculum-tab.active .curriculum-name {
+    color: white;
+  }
+  
+  .curriculum-tab.active .curriculum-desc {
+    color: rgba(255, 255, 255, 0.8);
+  }
+  
+  .curriculum-glow {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    background: radial-gradient(circle at center, rgba(58, 146, 189, 0.3), transparent 70%);
+    transition: opacity 0.3s ease;
+  }
+  
+  .curriculum-tab:hover .curriculum-glow {
+    opacity: 0.5;
+  }
+  
+  .curriculum-tab.active .curriculum-glow {
+    opacity: 0;
+  }
+  
+  @media (max-width: 576px) {
+    .curriculum-tabs {
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 280px;
+    }
+    
+    .curriculum-tab {
+      width: 100%;
+      justify-content: center;
+    }
   }
   
   /* Premium Date Selector */
@@ -3796,19 +3938,88 @@
 <script>
   // IG Courses Section - Using Real Data from API
   let currentExamPeriodId = null;
+  let currentCurriculumType = 'IGCSE';
   let currentSubject = null;
   let isLoading = false;
 
   // Initialize on page load
   document.addEventListener('DOMContentLoaded', function() {
-    // Get the first exam period ID from the tabs
-    const firstTab = document.querySelector('.ig-date-pill');
-    if (firstTab) {
-      currentExamPeriodId = firstTab.dataset.date;
-      loadSubjects(currentExamPeriodId);
-    }
+    setupCurriculumTabs();
     setupExamDateTabs();
+    // Select first visible exam period for the default curriculum (IGCSE)
+    selectFirstVisibleExamPeriod();
   });
+
+  function setupCurriculumTabs() {
+    const tabs = document.querySelectorAll('.curriculum-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        if (isLoading) return;
+        
+        // Remove active from all curriculum tabs
+        tabs.forEach(t => t.classList.remove('active'));
+        // Add active to clicked tab
+        this.classList.add('active');
+        
+        // Update current curriculum type
+        currentCurriculumType = this.dataset.curriculum;
+        
+        // Update the section badge
+        const badge = document.querySelector('.ig-courses-badge-premium span');
+        if (badge) {
+          badge.textContent = currentCurriculumType === 'American' ? 'American Diploma' : 'IGCSE Excellence';
+        }
+        
+        // Filter exam periods by curriculum type
+        filterExamPeriodsByCurriculum(currentCurriculumType);
+        
+        // Select first visible exam period
+        selectFirstVisibleExamPeriod();
+        
+        // Go back to subjects view
+        goBackToSubjects();
+      });
+    });
+  }
+
+  function filterExamPeriodsByCurriculum(curriculumType) {
+    const allPills = document.querySelectorAll('.ig-date-pill');
+    allPills.forEach(pill => {
+      if (pill.dataset.curriculum === curriculumType) {
+        pill.style.display = '';
+      } else {
+        pill.style.display = 'none';
+        pill.classList.remove('active');
+      }
+    });
+  }
+
+  function selectFirstVisibleExamPeriod() {
+    const visiblePills = document.querySelectorAll('.ig-date-pill[style=""], .ig-date-pill:not([style*="display: none"])');
+    const allPills = document.querySelectorAll('.ig-date-pill');
+    
+    // Remove active from all pills
+    allPills.forEach(p => p.classList.remove('active'));
+    
+    // Find first visible pill for current curriculum
+    let firstVisiblePill = null;
+    allPills.forEach(pill => {
+      if (pill.dataset.curriculum === currentCurriculumType && pill.style.display !== 'none') {
+        if (!firstVisiblePill) {
+          firstVisiblePill = pill;
+        }
+      }
+    });
+    
+    if (firstVisiblePill) {
+      firstVisiblePill.classList.add('active');
+      currentExamPeriodId = firstVisiblePill.dataset.date;
+      loadSubjects(currentExamPeriodId);
+    } else {
+      // No exam periods for this curriculum
+      document.getElementById('subjectsGrid').innerHTML = '<div class="no-subjects-message"><i class="fas fa-info-circle"></i> No exam periods available for ' + currentCurriculumType + ' curriculum.</div>';
+    }
+  }
 
   function setupExamDateTabs() {
     const tabs = document.querySelectorAll('.ig-date-pill');
@@ -3816,8 +4027,15 @@
       tab.addEventListener('click', function() {
         if (isLoading) return;
         
-        // Remove active from all tabs
-        tabs.forEach(t => t.classList.remove('active'));
+        // Only handle clicks on visible tabs
+        if (this.style.display === 'none') return;
+        
+        // Remove active from all visible tabs
+        tabs.forEach(t => {
+          if (t.dataset.curriculum === currentCurriculumType) {
+            t.classList.remove('active');
+          }
+        });
         // Add active to clicked tab
         this.classList.add('active');
         // Update current period and load subjects
@@ -3963,9 +4181,20 @@
   }
   .no-subjects-message, .no-teachers-message, .error-message {
     text-align: center;
-    padding: 40px;
+    padding: 60px 40px;
     color: #64748b;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+  }
+  .no-subjects-message i, .no-teachers-message i {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: #3a92bd;
   }
   .error-message {
     color: #ef4444;
@@ -4162,51 +4391,6 @@
         </div>
       </div>
 
-      <!-- Right: EST & GPA Calculator -->
-      <div class="calc-card est-calc">
-        <div class="calc-card-header">
-          <h3><i class="fas fa-university"></i> EST & GPA Calculator</h3>
-        </div>
-        
-        <div class="calc-card-body">
-          <!-- Choice Selection -->
-          <div class="form-group">
-            <label class="form-label">Select a Choice</label>
-            <select id="estChoice" class="form-select" onchange="calculateESTScore()">
-              <option value="first">First Choice</option>
-              <option value="second">Second Choice</option>
-              <option value="third">Third Choice</option>
-            </select>
-          </div>
-
-          <!-- EST1 Score -->
-          <div class="form-group">
-            <label class="form-label">EST1 Score<span class="required">*</span></label>
-            <input type="number" id="est1Score" class="form-input" placeholder="Out of 1600" min="0" max="1600" oninput="calculateESTScore()">
-            <span class="form-hint">الحد الأدنى للقبول هو 1050</span>
-          </div>
-
-          <!-- EST2 Score -->
-          <div class="form-group">
-            <label class="form-label">EST2 Score (leave empty if unavailable)<span class="required">*</span></label>
-            <input type="number" id="est2Score" class="form-input" placeholder="Out of 1600" min="0" max="1600" oninput="calculateESTScore()">
-            <span class="form-hint">الحد الأدنى للقبول هو 1100</span>
-          </div>
-
-          <!-- GPA Score -->
-          <div class="form-group">
-            <label class="form-label">GPA Score<span class="required">*</span></label>
-            <input type="number" id="gpaScore" class="form-input" placeholder="Out of 4" min="0" max="4" step="0.01" oninput="calculateESTScore()">
-            <span class="form-hint">Divide by 10 if out of 40</span>
-          </div>
-
-          <!-- Calculated Value -->
-          <div class="form-group">
-            <label class="form-label">Calculated Value</label>
-            <input type="text" id="estCalculatedValue" class="result-input large" value="" readonly>
-          </div>
-        </div>
-      </div>
     </div>
       </div><!-- End IGCSE Panel -->
 
@@ -4773,17 +4957,19 @@
   /* ============================================ */
   
   .dual-calc-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    max-width: 1000px;
+    display: flex;
+    justify-content: center;
+    max-width: 700px;
     margin: 0 auto;
-    align-items: start;
+  }
+  
+  .dual-calc-container .calc-card {
+    width: 100%;
   }
   
   @media (max-width: 992px) {
     .dual-calc-container {
-      grid-template-columns: 1fr;
+      max-width: 100%;
     }
   }
   
@@ -4806,7 +4992,7 @@
   }
   
   .calc-card-header {
-    padding: 14px 18px;
+    padding: 18px 24px;
     background: linear-gradient(135deg, #3a92bd 0%, #0c5374 100%);
     border-bottom: none;
   }
@@ -4814,20 +5000,20 @@
   .calc-card-header h3 {
     margin: 0;
     color: #ffffff;
-    font-size: 1rem;
+    font-size: 1.15rem;
     font-weight: 700;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
   }
   
   .calc-card-header h3 i {
-    font-size: 0.95rem;
+    font-size: 1.1rem;
     opacity: 0.9;
   }
   
   .calc-card-body {
-    padding: 16px;
+    padding: 24px;
     position: relative;
     z-index: 5;
   }

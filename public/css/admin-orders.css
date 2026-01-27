@@ -169,13 +169,15 @@
 .orders-filter-step-title i { color: #3a92bd; }
 
 .orders-type-chips,
-.orders-exam-pills {
+.orders-exam-pills,
+.orders-curriculum-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
 .orders-type-chip,
-.orders-exam-pill {
+.orders-exam-pill,
+.orders-curriculum-pill {
   padding: 10px 18px;
   border-radius: 999px;
   font-size: 0.8125rem;
@@ -190,24 +192,28 @@
   gap: 6px;
 }
 .dark-theme .orders-type-chip,
-.dark-theme .orders-exam-pill {
+.dark-theme .orders-exam-pill,
+.dark-theme .orders-curriculum-pill {
   background: var(--admin-card-dark);
   border-color: var(--admin-border-dark);
   color: #94a3b8;
 }
 .orders-type-chip:hover,
-.orders-exam-pill:hover {
+.orders-exam-pill:hover,
+.orders-curriculum-pill:hover {
   border-color: #3a92bd;
   color: #3a92bd;
   background: rgba(58, 146, 189, 0.08);
 }
 .orders-type-chip.active,
-.orders-exam-pill.active {
+.orders-exam-pill.active,
+.orders-curriculum-pill.active {
   background: linear-gradient(135deg, #3a92bd, #0c5374);
   border-color: #3a92bd;
   color: #fff;
 }
 .orders-exam-pill.active { background: linear-gradient(135deg, #3a92bd, #0c5374); border-color: #3a92bd; color: #fff; }
+.orders-curriculum-pill.active { background: linear-gradient(135deg, #6366f1, #4f46e5); border-color: #6366f1; color: #fff; }
 
 .orders-active-filters {
   display: flex;

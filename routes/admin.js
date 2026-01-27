@@ -197,11 +197,13 @@ const {
   revokeMasterOTP,
   // Teacher Management
   getTeachersPage,
+  getTeacherDetails,
   getTeacherData,
   createTeacher,
   updateTeacher,
   toggleTeacherStatus,
   deleteTeacher,
+  exportTeacherDetails,
   getTeachersAPI,
   // Exam Period Management
   getExamPeriods,
@@ -211,6 +213,11 @@ const {
   toggleExamPeriodCurrent,
   toggleExamPeriodStatus,
   deleteExamPeriod,
+  // Submission Management
+  getSubmissionDetailsPage,
+  gradeSubmission,
+  getSubmissionDetails,
+  deleteSubmission,
 } = require('../controllers/adminController');
 
 // Import WhatsApp Controllers
@@ -293,6 +300,16 @@ router.delete(
   isAdmin,
   deleteTopicContent
 );
+
+// Submission Management Routes
+router.get(
+  '/courses/:courseCode/topics/:topicId/content/:contentId/submissions',
+  isAdmin,
+  getSubmissionDetailsPage
+);
+router.post('/submissions/:submissionId/grade', isAdmin, gradeSubmission);
+router.get('/submissions/:submissionId', isAdmin, getSubmissionDetails);
+router.delete('/submissions/:submissionId', isAdmin, deleteSubmission);
 
 // Student Management Routes
 router.get('/students', isAdmin, getStudents);
@@ -514,6 +531,8 @@ router.delete('/otp-master/:otpId/revoke', isAdmin, revokeMasterOTP);
 
 // Teacher Management Routes
 router.get('/teachers', isAdmin, getTeachersPage);
+router.get('/teachers/:teacherId/details', isAdmin, getTeacherDetails);
+router.get('/teachers/:teacherId/export', isAdmin, exportTeacherDetails);
 router.post('/teachers', isAdmin, createTeacher);
 router.get('/teachers/:teacherId/data', isAdmin, getTeacherData);
 router.put('/teachers/:teacherId', isAdmin, updateTeacher);

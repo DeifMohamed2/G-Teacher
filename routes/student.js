@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
 const studentController = require('../controllers/studentController');
 const { ensureAuthenticated, ensureStudent, ensureDataComplete } = require('../middlewares/auth');
 const multer = require('multer');
@@ -68,6 +69,60 @@ router.put('/settings/update', studentController.updateSettings);
 router.put('/settings/change-password', studentController.changePassword);
 router.get('/settings/export-data', studentController.exportData);
 router.delete('/settings/delete-account', studentController.deleteAccount);
+
+// Configure multer for submission file uploads
+const submissionStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadsDir = path.join(__dirname, '../public/uploads/submissions');
+    if (!require('fs').existsSync(uploadsDir)) {
+      require('fs').mkdirSync(uploadsDir, { recursive: true });
+    }
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, 'submission-' + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const submissionUpload = multer({
+  storage: submissionStorage,
+  limits: {
+    fileSize: 25 * 1024 * 1024, // 25MB limit per file
+    files: 10, // Maximum 10 files
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow various document types
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'text/plain',
+    ];
+
+    const allowedExtensions = /\.(jpg|jpeg|png|gif|webp|pdf|doc|docx|xls|xlsx|ppt|pptx|txt)$/i;
+
+    if (allowedMimeTypes.includes(file.mimetype) || allowedExtensions.test(file.originalname)) {
+      return cb(null, true);
+    } else {
+      cb(new Error('File type not allowed. Allowed: Images, PDF, Word, Excel, PowerPoint, Text files'));
+    }
+  },
+});
+
+// Submission Routes
+router.post('/submission/submit', submissionUpload.array('files', 10), studentController.submitAssignment);
+router.get('/submission/:contentId', studentController.getSubmission);
+router.delete('/submission/:submissionId/file/:fileIndex', studentController.deleteSubmissionFile);
 
 // Error handler for multer file upload errors
 const handleMulterError = (err, req, res, next) => {

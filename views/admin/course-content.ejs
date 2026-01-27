@@ -250,9 +250,17 @@
 
                       <!-- Regular Content Actions -->
                       <div class="content-regular-actions">
+                        <% if (contentItem.type === 'submission') { %>
+                        <!-- Submission Content - Show Submissions button instead of Content Details -->
+                        <a href="/admin/courses/<%= course.courseCode %>/topics/<%= topic._id %>/content/<%= contentItem._id %>/submissions" class="btn btn-sm btn-submissions" title="View Submissions">
+                          <i class="fas fa-inbox"></i>
+                          <span class="ms-1 d-none d-md-inline">Submissions</span>
+                        </a>
+                        <% } else { %>
                         <button class="btn btn-sm btn-outline-info" onclick="viewContentDetails('<%= topic._id %>', '<%= contentItem._id %>')" title="View Details">
                           <i class="fas fa-chart-line"></i>
                         </button>
+                        <% } %>
                         <button class="btn btn-sm btn-outline-success" onclick="shareContentLink('<%= course.courseCode %>', '<%= topic._id %>', '<%= contentItem._id %>', '<%= contentItem.title %>')" title="Share Content">
                           <i class="fas fa-share-alt"></i>
                         </button>
@@ -7311,6 +7319,50 @@ function getContentIcon(type) {
 
   .content-icon.submission {
     background: linear-gradient(135deg, #2d5aa0 0%, #1976d2 100%);
+  }
+
+  /* Enhanced Submissions Button Styling */
+  .btn-submissions {
+    background: #1976d2;
+    border: none;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
+    text-decoration: none;
+  }
+
+  .btn-submissions:hover {
+    background: #1565c0;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+    color: #fff;
+  }
+
+  .btn-submissions:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(25, 118, 210, 0.3);
+  }
+
+  .btn-submissions i {
+    font-size: 13px;
+  }
+
+  /* Dark theme support */
+  .dark-theme .btn-submissions {
+    background: #2196f3;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.35);
+  }
+
+  .dark-theme .btn-submissions:hover {
+    background: #1e88e5;
+    box-shadow: 0 4px 14px rgba(33, 150, 243, 0.45);
   }
 
   .content-details {

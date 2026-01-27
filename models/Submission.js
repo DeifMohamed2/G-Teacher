@@ -166,10 +166,10 @@ SubmissionSchema.virtual('timeRemaining').get(function () {
   const now = new Date();
   const diff = this.dueDate - now;
   if (diff <= 0) return 'Overdue';
-  
+
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  
+
   if (days > 0) return `${days} day${days > 1 ? 's' : ''} left`;
   if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} left`;
   return 'Less than 1 hour left';
@@ -184,6 +184,72 @@ SubmissionSchema.pre('save', function (next) {
     }
   }
   next();
+});
+
+// Post-save middleware to sync submission status with student's contentProgress
+// Uses the User model's updateContentProgress method for atomic updates with retry logic
+SubmissionSchema.post('save', async function (doc) {
+  try {
+    const User = mongoose.model('User');
+    const student = await User.findById(doc.student);
+
+    if (!student) {
+      console.warn(`Student ${doc.student} not found for submission ${doc._id}`);
+      return;
+    }
+
+    // Determine completion status and progress based on submission status
+    let completionStatus = 'not_started';
+    let progressPercentage = 0;
+    let score = null;
+    let completedAt = null;
+
+    if (doc.status === 'graded' && doc.grade && doc.grade.score !== null) {
+      // Graded - mark as completed with score
+      completionStatus = 'completed';
+      progressPercentage = 100;
+      score = (doc.grade.score / doc.grade.maxScore) * 100;
+      completedAt = doc.grade.gradedAt || new Date();
+    } else if (['submitted', 'late'].includes(doc.status)) {
+      // Submitted but not graded yet - mark as in_progress
+      completionStatus = 'in_progress';
+      progressPercentage = 50;
+    } else if (doc.status === 'pending') {
+      // Just created but not submitted
+      completionStatus = 'not_started';
+      progressPercentage = 0;
+    }
+
+    // Use the atomic updateContentProgress method with retry logic
+    // This also recalculates overall course progress
+    const progressData = {
+      completionStatus,
+      progressPercentage,
+      lastAccessed: new Date(),
+      attempts: doc.attemptNumber || 1,
+    };
+
+    if (completedAt) {
+      progressData.completedAt = completedAt;
+    }
+    if (score !== null) {
+      progressData.score = score;
+      progressData.bestScore = score;
+    }
+
+    await student.updateContentProgress(
+      doc.course,
+      doc.topic,
+      doc.contentId,
+      'submission',
+      progressData
+    );
+
+    console.log(`Auto-synced contentProgress for student ${doc.student}, submission ${doc._id}, status: ${doc.status}`);
+  } catch (error) {
+    console.error('Error in Submission post-save hook:', error);
+    // Don't throw - we don't want to break the submission save
+  }
 });
 
 // Static method to get student's submission for a specific content

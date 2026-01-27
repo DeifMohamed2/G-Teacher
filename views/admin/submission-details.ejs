@@ -1,0 +1,462 @@
+<%- include('./partials/admin-header', { pageCSS: 'courses' }) %>
+
+<!-- SweetAlert2 for modals -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Admin Layout -->
+<div class="admin-layout">
+
+  <!-- Sidebar -->
+  <%- include('./partials/admin-sidebar', { currentPage: 'courses' }) %>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+
+    <!-- Top Bar -->
+    <%- include('./partials/admin-topbar', { 
+        breadcrumb: `Courses / ${course.title} / Submissions`,
+        breadcrumbSubtitle: 'Assignment Submissions Management',
+        showSearch: false
+    }) %>
+
+    <!-- Content Area -->
+    <div class="admin-content">
+      <div class="admin-dashboard admin-fade-in">
+
+        <!-- Submission Header -->
+        <div class="submission-details-header" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 16px; padding: 24px; color: white; margin-bottom: 24px;">
+          <div class="submission-header-content">
+            <div class="breadcrumb-nav" style="margin-bottom: 16px;">
+              <a href="/admin/courses" class="breadcrumb-link" style="color: rgba(255,255,255,0.8); text-decoration: none;">
+                <i class="fas fa-book"></i> Courses
+              </a>
+              <span class="breadcrumb-separator" style="margin: 0 8px; opacity: 0.6;">/</span>
+              <a href="/admin/courses/<%= course.courseCode %>/content" class="breadcrumb-link" style="color: rgba(255,255,255,0.8); text-decoration: none;">
+                <%= course.title %>
+              </a>
+              <span class="breadcrumb-separator" style="margin: 0 8px; opacity: 0.6;">/</span>
+              <span class="breadcrumb-current"><%= contentItem.title %></span>
+            </div>
+
+            <div style="display: flex; align-items: flex-start; gap: 20px;">
+              <div class="submission-icon" style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-file-upload" style="font-size: 28px;"></i>
+              </div>
+              <div style="flex: 1;">
+                <h1 style="margin: 0 0 8px; font-size: 1.5rem; font-weight: 700;"><%= contentItem.title %></h1>
+                <p style="margin: 0 0 12px; opacity: 0.9;"><%= contentItem.description || 'Assignment Submission' %></p>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                  <span style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem;">
+                    <i class="fas fa-star"></i>
+                    Max Score: <%= contentItem.submissionConfig?.maxScore || 100 %>
+                  </span>
+                  <% if (contentItem.submissionConfig?.dueDate) { %>
+                  <span style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem;">
+                    <i class="fas fa-calendar"></i>
+                    Due: <%= new Date(contentItem.submissionConfig.dueDate).toLocaleDateString() %>
+                  </span>
+                  <% } %>
+                  <span style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem;">
+                    <i class="fas fa-users"></i>
+                    <%= submissions.length %> Submissions
+                  </span>
+                </div>
+              </div>
+              <a href="/admin/courses/<%= course.courseCode %>/content" class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 8px; text-decoration: none;">
+                <i class="fas fa-arrow-left me-2"></i>Back to Course
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+          <div class="stat-card" style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px; padding: 20px; border: 1px solid #bbf7d0;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 48px; height: 48px; background: #10b981; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-check-circle" style="color: white; font-size: 20px;"></i>
+              </div>
+              <div>
+                <div style="font-size: 1.75rem; font-weight: 700; color: #065f46;"><%= stats.gradedCount %></div>
+                <div style="font-size: 0.85rem; color: #047857;">Graded</div>
+              </div>
+            </div>
+          </div>
+          <div class="stat-card" style="background: linear-gradient(135deg, #fffbeb, #fef3c7); border-radius: 12px; padding: 20px; border: 1px solid #fcd34d;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 48px; height: 48px; background: #f59e0b; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-clock" style="color: white; font-size: 20px;"></i>
+              </div>
+              <div>
+                <div style="font-size: 1.75rem; font-weight: 700; color: #92400e;"><%= stats.pendingCount %></div>
+                <div style="font-size: 0.85rem; color: #b45309;">Pending</div>
+              </div>
+            </div>
+          </div>
+          <div class="stat-card" style="background: linear-gradient(135deg, #fef2f2, #fee2e2); border-radius: 12px; padding: 20px; border: 1px solid #fecaca;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 48px; height: 48px; background: #ef4444; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-exclamation-triangle" style="color: white; font-size: 20px;"></i>
+              </div>
+              <div>
+                <div style="font-size: 1.75rem; font-weight: 700; color: #991b1b;"><%= stats.lateCount %></div>
+                <div style="font-size: 0.85rem; color: #b91c1c;">Late</div>
+              </div>
+            </div>
+          </div>
+          <div class="stat-card" style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 12px; padding: 20px; border: 1px solid #93c5fd;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 48px; height: 48px; background: #3b82f6; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-chart-line" style="color: white; font-size: 20px;"></i>
+              </div>
+              <div>
+                <div style="font-size: 1.75rem; font-weight: 700; color: #1e40af;"><%= stats.averageScore ? stats.averageScore.toFixed(1) : 'N/A' %></div>
+                <div style="font-size: 0.85rem; color: #1d4ed8;">Avg Score</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submissions Table -->
+        <div class="submissions-table-card" style="background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); overflow: hidden;">
+          <div class="table-header" style="padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+            <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--text-color);">
+              <i class="fas fa-list me-2"></i>Student Submissions
+            </h3>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <select id="statusFilter" class="form-select form-select-sm" style="width: auto;" onchange="filterSubmissions()">
+                <option value="all">All Status</option>
+                <option value="submitted">Submitted</option>
+                <option value="graded">Graded</option>
+                <option value="late">Late</option>
+                <option value="pending">Pending</option>
+              </select>
+              <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search student..." style="width: 200px;" oninput="filterSubmissions()">
+            </div>
+          </div>
+
+          <% if (submissions.length === 0) { %>
+          <div style="padding: 60px 24px; text-align: center;">
+            <i class="fas fa-inbox" style="font-size: 48px; color: #9ca3af; margin-bottom: 16px;"></i>
+            <h4 style="margin: 0 0 8px; color: #6b7280;">No Submissions Yet</h4>
+            <p style="margin: 0; color: #9ca3af;">Students haven't submitted their work for this assignment.</p>
+          </div>
+          <% } else { %>
+          <div class="table-responsive">
+            <table class="table table-hover" id="submissionsTable" style="margin: 0;">
+              <thead>
+                <tr style="background: var(--bg-color);">
+                  <th style="padding: 14px 24px; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Student</th>
+                  <th style="padding: 14px 16px; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
+                  <th style="padding: 14px 16px; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Submitted</th>
+                  <th style="padding: 14px 16px; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Files</th>
+                  <th style="padding: 14px 16px; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Score</th>
+                  <th style="padding: 14px 24px; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% submissions.forEach(submission => { %>
+                <tr class="submission-row" data-status="<%= submission.status %>" data-student="<%= submission.student ? (submission.student.firstName + ' ' + submission.student.lastName + ' ' + (submission.student.studentCode || '')).toLowerCase() : '' %>">
+                  <td style="padding: 16px 24px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                      <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #6366f1, #4f46e5); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                        <%= submission.student ? submission.student.firstName?.charAt(0) || 'S' : 'S' %>
+                      </div>
+                      <div>
+                        <div style="font-weight: 600; color: var(--text-color);"><%= submission.student ? `${submission.student.firstName} ${submission.student.lastName}` : 'Unknown' %></div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);"><%= submission.student?.studentCode || 'N/A' %></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style="padding: 16px;">
+                    <span class="status-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+                      <% if (submission.status === 'graded') { %>
+                        background: #dcfce7; color: #166534;
+                      <% } else if (submission.status === 'submitted') { %>
+                        background: #dbeafe; color: #1d4ed8;
+                      <% } else if (submission.status === 'late') { %>
+                        background: #fef3c7; color: #92400e;
+                      <% } else { %>
+                        background: #f3f4f6; color: #6b7280;
+                      <% } %>
+                    ">
+                      <i class="fas fa-<%= submission.status === 'graded' ? 'check-circle' : submission.status === 'submitted' ? 'paper-plane' : submission.status === 'late' ? 'clock' : 'hourglass-half' %>"></i>
+                      <%= submission.status.charAt(0).toUpperCase() + submission.status.slice(1) %>
+                      <% if (submission.isLate) { %><span style="font-size: 0.7rem;">(Late)</span><% } %>
+                    </span>
+                  </td>
+                  <td style="padding: 16px; color: var(--text-color); font-size: 0.9rem;">
+                    <% if (submission.submittedAt) { %>
+                    <%= new Date(submission.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                    <br>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);"><%= new Date(submission.submittedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %></span>
+                    <% } else { %>
+                    <span style="color: var(--text-muted);">Not submitted</span>
+                    <% } %>
+                  </td>
+                  <td style="padding: 16px;">
+                    <span style="background: #f3f4f6; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; color: #374151;">
+                      <i class="fas fa-paperclip me-1"></i><%= submission.submittedFiles?.length || 0 %>
+                    </span>
+                  </td>
+                  <td style="padding: 16px;">
+                    <% if (submission.status === 'graded' && submission.grade) { %>
+                    <div style="font-weight: 700; color: #059669; font-size: 1.1rem;">
+                      <%= submission.grade.score %>/<%= submission.grade.maxScore %>
+                    </div>
+                    <% if (submission.grade.letterGrade) { %>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">(<%= submission.grade.letterGrade %>)</span>
+                    <% } %>
+                    <% } else { %>
+                    <span style="color: var(--text-muted);">—</span>
+                    <% } %>
+                  </td>
+                  <td style="padding: 16px 24px; text-align: right;">
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="viewSubmission('<%= submission._id %>')" title="View Details">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" onclick="gradeSubmission('<%= submission._id %>')" title="Grade">
+                      <i class="fas fa-star"></i>
+                    </button>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+          <% } %>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- View Submission Modal -->
+<div class="modal fade" id="viewSubmissionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white;">
+        <h5 class="modal-title"><i class="fas fa-file-alt me-2"></i>Submission Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="viewSubmissionContent">
+        <!-- Content loaded dynamically -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Grade Submission Modal -->
+<div class="modal fade" id="gradeSubmissionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
+        <h5 class="modal-title"><i class="fas fa-star me-2"></i>Grade Submission</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="gradeForm">
+        <div class="modal-body">
+          <input type="hidden" id="gradeSubmissionId">
+          <div class="mb-3">
+            <label class="form-label">Score</label>
+            <div class="input-group">
+              <input type="number" class="form-control" id="gradeScore" min="0" max="<%= contentItem.submissionConfig?.maxScore || 100 %>" required>
+              <span class="input-group-text">/ <%= contentItem.submissionConfig?.maxScore || 100 %></span>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Feedback</label>
+            <textarea class="form-control" id="gradeFeedback" rows="4" placeholder="Enter feedback for the student..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">
+            <i class="fas fa-check me-2"></i>Save Grade
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('./partials/admin-footer') %>
+
+<script>
+  // Store submissions data for filtering
+  const submissionsData = <%- JSON.stringify(submissions.map(s => ({
+    _id: s._id,
+    student: s.student,
+    status: s.status,
+    submittedAt: s.submittedAt,
+    submittedFiles: s.submittedFiles,
+    textAnswer: s.textAnswer,
+    grade: s.grade,
+    isLate: s.isLate,
+    attemptNumber: s.attemptNumber
+  }))) %>;
+
+  function filterSubmissions() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('.submission-row');
+
+    rows.forEach(row => {
+      const status = row.dataset.status;
+      const student = row.dataset.student;
+
+      const statusMatch = statusFilter === 'all' || status === statusFilter;
+      const searchMatch = !searchInput || student.includes(searchInput);
+
+      row.style.display = statusMatch && searchMatch ? '' : 'none';
+    });
+  }
+
+  function viewSubmission(submissionId) {
+    const submission = submissionsData.find(s => s._id === submissionId);
+    if (!submission) return;
+
+    const studentName = submission.student ? `${submission.student.firstName} ${submission.student.lastName}` : 'Unknown';
+    const studentCode = submission.student?.studentCode || 'N/A';
+
+    let filesHtml = '';
+    if (submission.submittedFiles && submission.submittedFiles.length > 0) {
+      filesHtml = `
+        <h6 style="margin: 20px 0 12px; color: #374151;"><i class="fas fa-paperclip me-2"></i>Submitted Files</h6>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          ${submission.submittedFiles.map(file => `
+            <a href="${file.fileUrl}" target="_blank" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f8fafc; border-radius: 8px; text-decoration: none; color: #334155; border: 1px solid #e2e8f0;">
+              <i class="fas fa-${file.fileType === 'pdf' ? 'file-pdf' : file.fileType === 'image' ? 'image' : 'file-alt'}" style="color: ${file.fileType === 'pdf' ? '#ef4444' : file.fileType === 'image' ? '#10b981' : '#6366f1'}; font-size: 1.25rem;"></i>
+              <span style="flex: 1; font-weight: 500;">${file.fileName}</span>
+              <i class="fas fa-external-link-alt" style="color: #3b82f6;"></i>
+            </a>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    let textAnswerHtml = '';
+    if (submission.textAnswer) {
+      textAnswerHtml = `
+        <h6 style="margin: 20px 0 12px; color: #374151;"><i class="fas fa-edit me-2"></i>Text Answer</h6>
+        <div style="padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; white-space: pre-wrap;">${submission.textAnswer}</div>
+      `;
+    }
+
+    let gradeHtml = '';
+    if (submission.status === 'graded' && submission.grade) {
+      gradeHtml = `
+        <h6 style="margin: 20px 0 12px; color: #374151;"><i class="fas fa-star me-2"></i>Grade</h6>
+        <div style="padding: 16px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
+          <div style="font-size: 1.5rem; font-weight: 700; color: #059669;">${submission.grade.score}/${submission.grade.maxScore}</div>
+          ${submission.grade.letterGrade ? `<div style="color: #065f46;">Letter Grade: ${submission.grade.letterGrade}</div>` : ''}
+          ${submission.grade.feedback ? `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #bbf7d0;"><strong>Feedback:</strong><br>${submission.grade.feedback}</div>` : ''}
+        </div>
+      `;
+    }
+
+    const content = `
+      <div class="student-info" style="display: flex; align-items: center; gap: 16px; padding: 16px; background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-radius: 12px; margin-bottom: 16px;">
+        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #6366f1, #4f46e5); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: 600;">
+          ${submission.student?.firstName?.charAt(0) || 'S'}
+        </div>
+        <div>
+          <div style="font-size: 1.1rem; font-weight: 600; color: #1f2937;">${studentName}</div>
+          <div style="color: #6b7280; font-size: 0.9rem;">Student Code: ${studentCode}</div>
+        </div>
+        <div style="margin-left: auto; text-align: right;">
+          <span class="status-badge" style="display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
+            ${submission.status === 'graded' ? 'background: #dcfce7; color: #166534;' : 
+              submission.status === 'submitted' ? 'background: #dbeafe; color: #1d4ed8;' : 
+              submission.status === 'late' ? 'background: #fef3c7; color: #92400e;' : 'background: #f3f4f6; color: #6b7280;'}
+          ">
+            ${submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
+            ${submission.isLate ? ' (Late)' : ''}
+          </span>
+          <div style="font-size: 0.85rem; color: #6b7280; margin-top: 4px;">
+            ${submission.submittedAt ? new Date(submission.submittedAt).toLocaleString() : 'Not submitted'}
+          </div>
+        </div>
+      </div>
+      ${filesHtml}
+      ${textAnswerHtml}
+      ${gradeHtml}
+    `;
+
+    document.getElementById('viewSubmissionContent').innerHTML = content;
+    new bootstrap.Modal(document.getElementById('viewSubmissionModal')).show();
+  }
+
+  function gradeSubmission(submissionId) {
+    const submission = submissionsData.find(s => s._id === submissionId);
+    if (!submission) return;
+
+    document.getElementById('gradeSubmissionId').value = submissionId;
+    document.getElementById('gradeScore').value = submission.grade?.score || '';
+    document.getElementById('gradeFeedback').value = submission.grade?.feedback || '';
+
+    new bootstrap.Modal(document.getElementById('gradeSubmissionModal')).show();
+  }
+
+  document.getElementById('gradeForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const submissionId = document.getElementById('gradeSubmissionId').value;
+    const score = document.getElementById('gradeScore').value;
+    const feedback = document.getElementById('gradeFeedback').value;
+
+    try {
+      const response = await fetch(`/admin/submissions/${submissionId}/grade`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ score, feedback })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Grade Saved!',
+          text: 'The submission has been graded successfully.',
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
+          window.location.reload();
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: result.message || 'Failed to save grade'
+        });
+      }
+    } catch (error) {
+      console.error('Grade error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred while saving the grade'
+      });
+    }
+  });
+</script>
+
+<style>
+  .submission-row:hover {
+    background-color: var(--bg-color);
+  }
+  
+  .table th, .table td {
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+  }
+  
+  .btn-outline-primary:hover, .btn-outline-success:hover {
+    color: white;
+  }
+</style>

@@ -1,0 +1,453 @@
+<%- include('./partials/admin-header', { pageCSS: 'teacher-details', title: 'Teacher Details - Admin' }) %>
+<link rel="stylesheet" href="/css/adminCSS/teacher-details.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css">
+
+<!-- Admin Layout -->
+<div class="admin-layout">
+
+  <!-- Sidebar -->
+  <%- include('./partials/admin-sidebar', { currentPage: 'teachers' }) %>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+
+    <!-- Top Bar -->
+    <%- include('./partials/admin-topbar', { 
+        breadcrumb: 'Teacher Details',
+        breadcrumbSubtitle: 'View comprehensive teacher analytics and performance',
+        showSearch: false
+    }) %>
+
+    <!-- Content Area -->
+    <div class="admin-content">
+      <div class="teacher-details-container">
+
+        <!-- Page Header with Breadcrumb -->
+        <div class="page-header">
+          <div class="page-header-info">
+            <nav class="breadcrumb">
+              <a href="/admin/dashboard"><i class="fas fa-home"></i> Dashboard</a>
+              <i class="fas fa-chevron-right"></i>
+              <a href="/admin/teachers">Teachers</a>
+              <i class="fas fa-chevron-right"></i>
+              <span><%= teacher.name %></span>
+            </nav>
+            <h1 class="page-title">Teacher Details</h1>
+          </div>
+          <div class="actions-row">
+            <a href="/admin/teachers" class="btn btn-secondary">
+              <i class="fas fa-arrow-left"></i>
+              Back to Teachers
+            </a>
+            <a href="/admin/teachers/<%= teacher._id %>/export" class="btn btn-secondary">
+              <i class="fas fa-file-excel"></i>
+              Export Report
+            </a>
+            <a href="/admin/teachers/<%= teacher._id %>/data" class="btn btn-primary" onclick="editTeacher('<%= teacher._id %>'); return false;">
+              <i class="fas fa-edit"></i>
+              Edit Teacher
+            </a>
+          </div>
+        </div>
+
+        <!-- Teacher Profile Header -->
+        <div class="teacher-profile-header">
+          <div class="teacher-profile-content">
+            <!-- Avatar Section -->
+            <div class="teacher-avatar-section">
+              <div class="teacher-avatar-large">
+                <% if (teacher.profilePicture && teacher.profilePicture.startsWith('data:image')) { %>
+                  <img src="<%= teacher.profilePicture %>" alt="<%= teacher.name %>">
+                <% } else { %>
+                  <%= teacher.firstName ? teacher.firstName.charAt(0).toUpperCase() : 'T' %><%= teacher.lastName ? teacher.lastName.charAt(0).toUpperCase() : '' %>
+                <% } %>
+                <span class="status-badge <%= teacher.isActive ? 'status-active' : 'status-inactive' %>">
+                  <i class="fas fa-<%= teacher.isActive ? 'check' : 'times' %>"></i>
+                </span>
+              </div>
+            </div>
+
+            <!-- Info Section -->
+            <div class="teacher-info-section">
+              <div class="teacher-primary-info">
+                <h2 class="teacher-name"><%= teacher.name %></h2>
+                <div>
+                  <span class="teacher-code-badge">
+                    <i class="fas fa-id-card"></i>
+                    <%= teacher.teacherCode || 'N/A' %>
+                  </span>
+                  <% if (teacher.subject) { %>
+                    <span class="subject-badge-large">
+                      <i class="fas fa-book"></i>
+                      <%= teacher.subject %>
+                    </span>
+                  <% } %>
+                </div>
+              </div>
+
+              <!-- Details Grid -->
+              <div class="teacher-details-grid">
+                <div class="detail-item">
+                  <div class="detail-icon">
+                    <i class="fas fa-envelope"></i>
+                  </div>
+                  <div class="detail-content">
+                    <div class="detail-label">Email Address</div>
+                    <div class="detail-value"><%= teacher.email %></div>
+                  </div>
+                </div>
+
+                <div class="detail-item">
+                  <div class="detail-icon">
+                    <i class="fas fa-phone"></i>
+                  </div>
+                  <div class="detail-content">
+                    <div class="detail-label">Phone Number</div>
+                    <div class="detail-value">
+                      <% if (teacher.phoneNumber) { %>
+                        <%= teacher.countryCode || '+20' %> <%= teacher.phoneNumber %>
+                      <% } else { %>
+                        Not provided
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="detail-item">
+                  <div class="detail-icon">
+                    <i class="fas fa-percent"></i>
+                  </div>
+                  <div class="detail-content">
+                    <div class="detail-label">Platform Commission</div>
+                    <div class="detail-value"><%= teacher.gTeacherPercentage || 0 %>%</div>
+                  </div>
+                </div>
+
+                <div class="detail-item">
+                  <div class="detail-icon">
+                    <i class="fas fa-toggle-on"></i>
+                  </div>
+                  <div class="detail-content">
+                    <div class="detail-label">Status</div>
+                    <div class="detail-value">
+                      <span class="status-pill <%= teacher.isActive ? 'status-completed' : 'status-failed' %>">
+                        <i class="fas fa-<%= teacher.isActive ? 'check' : 'times' %>"></i>
+                        <%= teacher.isActive ? 'Active' : 'Inactive' %>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="detail-item">
+                  <div class="detail-icon">
+                    <i class="fas fa-calendar-plus"></i>
+                  </div>
+                  <div class="detail-content">
+                    <div class="detail-label">Member Since</div>
+                    <div class="detail-value"><%= new Date(teacher.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></div>
+                  </div>
+                </div>
+
+                <div class="detail-item">
+                  <div class="detail-icon">
+                    <i class="fas fa-clock"></i>
+                  </div>
+                  <div class="detail-content">
+                    <div class="detail-label">Last Updated</div>
+                    <div class="detail-value"><%= new Date(teacher.updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></div>
+                  </div>
+                </div>
+              </div>
+
+              <% if (teacher.bio) { %>
+                <div class="bio-section">
+                  <div class="bio-label"><i class="fas fa-quote-left"></i> Bio</div>
+                  <div class="bio-text"><%= teacher.bio %></div>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics Cards (Completed Orders Only) -->
+        <div class="analytics-grid">
+          <div class="analytics-card">
+            <div class="analytics-icon icon-courses">
+              <i class="fas fa-book-open"></i>
+            </div>
+            <div class="analytics-content">
+              <div class="analytics-number"><%= statistics.totalCourses %></div>
+              <div class="analytics-label">Total Courses</div>
+            </div>
+          </div>
+
+          <div class="analytics-card">
+            <div class="analytics-icon icon-students">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="analytics-content">
+              <div class="analytics-number"><%= statistics.totalUniqueStudents %></div>
+              <div class="analytics-label">Unique Students</div>
+            </div>
+          </div>
+
+          <div class="analytics-card">
+            <div class="analytics-icon icon-orders">
+              <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="analytics-content">
+              <div class="analytics-number"><%= financials.completedOrders %></div>
+              <div class="analytics-label">Completed Orders</div>
+            </div>
+          </div>
+
+          <div class="analytics-card">
+            <div class="analytics-icon icon-revenue">
+              <i class="fas fa-coins"></i>
+            </div>
+            <div class="analytics-content">
+              <div class="analytics-number"><%= financials.completedRevenue.toLocaleString() %> <small>EGP</small></div>
+              <div class="analytics-label">Total Revenue</div>
+            </div>
+          </div>
+
+          <div class="analytics-card">
+            <div class="analytics-icon icon-commission">
+              <i class="fas fa-hand-holding-usd"></i>
+            </div>
+            <div class="analytics-content">
+              <div class="analytics-number"><%= financials.completedCommission.toLocaleString() %> <small>EGP</small></div>
+              <div class="analytics-label">G-Teacher Commission</div>
+            </div>
+          </div>
+
+          <div class="analytics-card">
+            <div class="analytics-icon icon-net">
+              <i class="fas fa-wallet"></i>
+            </div>
+            <div class="analytics-content">
+              <div class="analytics-number"><%= financials.completedTeacherNet.toLocaleString() %> <small>EGP</small></div>
+              <div class="analytics-label">Teacher Net Earnings</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content Tabs -->
+        <div class="content-tabs">
+          <div class="tab-nav">
+            <button class="tab-btn active" onclick="showTab('courses')">
+              <i class="fas fa-book-open"></i>
+              Courses (<%= courses.length %>)
+            </button>
+            <button class="tab-btn" onclick="showTab('orders')">
+              <i class="fas fa-shopping-cart"></i>
+              Completed Orders (<%= completedOrders.length %>)
+            </button>
+            <button class="tab-btn" onclick="showTab('payments')">
+              <i class="fas fa-money-check-alt"></i>
+              Payment History
+            </button>
+          </div>
+
+          <!-- Courses Tab -->
+          <div id="courses-tab" class="tab-content active">
+            <h3><i class="fas fa-book-open"></i> Teacher Courses</h3>
+
+            <% if (courses.length > 0) { %>
+              <div class="course-grid">
+                <% courses.forEach(course => { %>
+                  <div class="course-card">
+                    <div class="course-thumbnail">
+                      <% if (course.thumbnail) { %>
+                        <img src="<%= course.thumbnail %>" alt="<%= course.title %>">
+                      <% } else { %>
+                        <i class="fas fa-book"></i>
+                      <% } %>
+                      <div class="course-status-overlay">
+                        <span class="status-pill status-<%= course.status %>">
+                          <%= course.status.charAt(0).toUpperCase() + course.status.slice(1) %>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="course-body">
+                      <h4 class="course-title"><%= course.title %></h4>
+                      <div class="course-code"><i class="fas fa-hashtag"></i> <%= course.courseCode %></div>
+                      <div class="course-stats">
+                        <div class="course-stat">
+                          <div class="course-stat-value"><%= course.enrolledStudents ? course.enrolledStudents.length : 0 %></div>
+                          <div class="course-stat-label">Students</div>
+                        </div>
+                        <div class="course-stat">
+                          <div class="course-stat-value"><%= course.price || 0 %></div>
+                          <div class="course-stat-label">EGP</div>
+                        </div>
+                        <div class="course-stat">
+                          <div class="course-stat-value"><%= course.topics ? course.topics.length : 0 %></div>
+                          <div class="course-stat-label">Topics</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% }); %>
+              </div>
+            <% } else { %>
+              <div class="empty-state">
+                <i class="fas fa-book-open"></i>
+                <h4>No Courses Yet</h4>
+                <p>This teacher hasn't been assigned to any courses.</p>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Orders Tab (Completed Only) -->
+          <div id="orders-tab" class="tab-content">
+            <h3><i class="fas fa-check-circle"></i> Completed Orders</h3>
+
+            <% if (completedOrders.length > 0) { %>
+              <div class="data-table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Order ID</th>
+                      <th>Date</th>
+                      <th>Student</th>
+                      <th>Course</th>
+                      <th>Amount</th>
+                      <th>G-Teacher Commission</th>
+                      <th>Teacher Net</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% completedOrders.forEach(order => { %>
+                      <% order.items.forEach(item => { %>
+                        <% if (item.teacher && item.teacher.toString() === teacher._id.toString()) { %>
+                          <tr>
+                            <td>
+                              <a href="/admin/orders/<%= order._id %>" style="color: var(--admin-primary); font-weight: 600;">
+                                #<%= order._id.toString().slice(-8).toUpperCase() %>
+                              </a>
+                            </td>
+                            <td><%= new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></td>
+                            <td>
+                              <% if (order.user) { %>
+                                <%= order.user.firstName %> <%= order.user.lastName %>
+                              <% } else { %>
+                                <span style="opacity: 0.5;">Unknown</span>
+                              <% } %>
+                            </td>
+                            <td><%= item.title %></td>
+                            <td><strong><%= item.price.toLocaleString() %> EGP</strong></td>
+                            <td style="color: var(--admin-danger);"><%= (item.gTeacherCommission || 0).toLocaleString() %> EGP</td>
+                            <td style="color: var(--admin-success);"><strong><%= (item.teacherNet || 0).toLocaleString() %> EGP</strong></td>
+                          </tr>
+                        <% } %>
+                      <% }); %>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+            <% } else { %>
+              <div class="empty-state">
+                <i class="fas fa-check-circle"></i>
+                <h4>No Completed Orders Yet</h4>
+                <p>No completed orders have been placed for this teacher's courses.</p>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Payment History Tab -->
+          <div id="payments-tab" class="tab-content">
+            <h3><i class="fas fa-money-check-alt"></i> Payment Breakdown</h3>
+
+            <!-- Payment Summary by Month -->
+            <% if (paymentSummary && paymentSummary.length > 0) { %>
+              <div class="data-table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Month</th>
+                      <th>Orders</th>
+                      <th>Gross Revenue</th>
+                      <th>G-Teacher Commission</th>
+                      <th>Teacher Net</th>
+                      <th>Refunded</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% paymentSummary.forEach(month => { %>
+                      <tr>
+                        <td><strong><%= month.month %></strong></td>
+                        <td><%= month.orderCount %></td>
+                        <td><%= month.grossRevenue.toLocaleString() %> EGP</td>
+                        <td style="color: var(--admin-danger);"><%= month.commission.toLocaleString() %> EGP</td>
+                        <td style="color: var(--admin-success);"><strong><%= month.teacherNet.toLocaleString() %> EGP</strong></td>
+                        <td>
+                          <% if (month.refunded > 0) { %>
+                            <span style="color: var(--admin-warning);"><%= month.refunded.toLocaleString() %> EGP</span>
+                          <% } else { %>
+                            -
+                          <% } %>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                  <tfoot>
+                    <tr style="font-weight: 700; background: var(--admin-bg-light);">
+                      <td>TOTAL</td>
+                      <td><%= financials.completedOrders %></td>
+                      <td><%= financials.completedRevenue.toLocaleString() %> EGP</td>
+                      <td style="color: var(--admin-danger);"><%= financials.completedCommission.toLocaleString() %> EGP</td>
+                      <td style="color: var(--admin-success);"><%= financials.completedTeacherNet.toLocaleString() %> EGP</td>
+                      <td>
+                        <% if (financials.refundedAmount > 0) { %>
+                          <span style="color: var(--admin-warning);"><%= financials.refundedAmount.toLocaleString() %> EGP</span>
+                        <% } else { %>
+                          -
+                        <% } %>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            <% } else { %>
+              <div class="empty-state">
+                <i class="fas fa-money-check-alt"></i>
+                <h4>No Payment History</h4>
+                <p>No completed payments have been recorded for this teacher.</p>
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// Tab switching functionality
+function showTab(tabName) {
+  // Hide all tab contents
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.classList.remove('active');
+  });
+
+  // Remove active class from all tab buttons
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+
+  // Show selected tab content
+  document.getElementById(tabName + '-tab').classList.add('active');
+
+  // Add active class to clicked button
+  event.target.closest('.tab-btn').classList.add('active');
+}
+
+// Edit teacher function (redirects to teachers page with edit modal)
+function editTeacher(teacherId) {
+  window.location.href = '/admin/teachers?edit=' + teacherId;
+}
+</script>
+
+<%- include('./partials/admin-footer') %>

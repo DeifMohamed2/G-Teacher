@@ -1598,6 +1598,17 @@
   box-shadow: 0 4px 12px rgba(58, 146, 189, 0.3);
 }
 
+.btn-modal-info {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+}
+
+.btn-modal-info:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
 .btn-modal-secondary {
   background: var(--admin-card-light);
   color: var(--admin-text-light);

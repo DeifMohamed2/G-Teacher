@@ -72,6 +72,7 @@ const getLandingPage = async (req, res) => {
       displayName: period.displayName,
       year: period.year,
       icon: getExamPeriodIcon(period.displayName),
+      curriculumType: period.curriculumType || 'IGCSE',
     }));
 
     res.render('index', {
@@ -128,7 +129,7 @@ const getTeachersBySubject = async (req, res) => {
         },
         select: 'firstName lastName teacherCode profilePicture subject bio'
       })
-      .populate('examPeriod', 'name displayName')
+      .populate('examPeriod', 'name displayName curriculumType')
       .lean();
 
     const teacherMap = new Map();
@@ -242,7 +243,7 @@ const getTeacherCourses = async (req, res) => {
     
     const courses = await Course.find(filter)
       .populate('topics')
-      .populate('examPeriod', 'name displayName year')
+      .populate('examPeriod', 'name displayName year curriculumType')
       .sort({ createdAt: -1 })
       .lean();
     

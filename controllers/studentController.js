@@ -1,12 +1,15 @@
 const User = require('../models/User');
 const Course = require('../models/Course');
-const Progress = require('../models/Progress');
+// Progress model removed - using User.contentProgress instead
 const Teacher = require('../models/Teacher');
 const Topic = require('../models/Topic');
 const ZoomMeeting = require('../models/ZoomMeeting');
+const Submission = require('../models/Submission');
 const mongoose = require('mongoose');
 const zoomService = require('../utils/zoomService');
 const whatsappSMSNotificationService = require('../utils/whatsappSMSNotificationService');
+const path = require('path');
+const fs = require('fs');
 
 // Dashboard - Main student dashboard
 const dashboard = async (req, res) => {
@@ -35,6 +38,32 @@ const dashboard = async (req, res) => {
     if (!student) {
       req.flash('error_msg', 'Student not found');
       return res.redirect('/auth/login');
+    }
+
+    // Recalculate progress for all enrollments and sync status
+    let progressUpdated = false;
+    for (const enrollment of student.enrolledCourses) {
+      if (enrollment.course) {
+        // Use async version for accurate content count
+        const newProgress = await student.calculateCourseProgressAsync(enrollment.course._id);
+        if (enrollment.progress !== newProgress) {
+          enrollment.progress = newProgress;
+          progressUpdated = true;
+        }
+
+        // Sync status with progress - fix inconsistencies
+        // Status should be 'completed' ONLY when progress is 100%
+        // Otherwise, status should be 'active' (for courses < 100%)
+        const expectedStatus = newProgress === 100 ? 'completed' : 'active';
+        if (enrollment.status !== expectedStatus) {
+          enrollment.status = expectedStatus;
+          progressUpdated = true;
+        }
+      }
+    }
+    if (progressUpdated) {
+      student.markModified('enrolledCourses');
+      await student.save();
     }
 
     // Extract unique teachers from enrolled courses
@@ -66,9 +95,9 @@ const dashboard = async (req, res) => {
       req.session.selectedTeacher = req.query.teacher;
     }
 
-    // Filter courses by selected teacher
+    // Filter courses - show active courses (progress < 100) for Active Learning Paths
     let filteredEnrollments = student.enrolledCourses.filter(
-      (enrollment) => enrollment.status === 'active' && enrollment.course
+      (enrollment) => enrollment.progress < 100 && enrollment.course
     );
 
     if (selectedTeacherId && selectedTeacherId !== 'all') {
@@ -79,19 +108,26 @@ const dashboard = async (req, res) => {
       );
     }
 
-    // Get recent progress (filtered by teacher if selected)
-    let progressFilter = { student: studentId };
-    if (selectedTeacherId && selectedTeacherId !== 'all') {
-      // Get course IDs for this teacher
-      const teacherCourseIds = filteredEnrollments.map((e) => e.course._id);
-      progressFilter.course = { $in: teacherCourseIds };
+    // Get recent progress from user's contentProgress (no longer using Progress model)
+    const recentProgress = [];
+    for (const enrollment of filteredEnrollments) {
+      if (enrollment.contentProgress && enrollment.course) {
+        for (const cp of enrollment.contentProgress) {
+          recentProgress.push({
+            course: enrollment.course,
+            contentId: cp.contentId,
+            contentType: cp.contentType,
+            activity: cp.completionStatus === 'completed' ? 'content_completed' : 'content_viewed',
+            timestamp: cp.lastAccessed || cp.completedAt || new Date(),
+            status: cp.completionStatus,
+            progressPercentage: cp.progressPercentage,
+          });
+        }
+      }
     }
-
-    const recentProgress = await Progress.find(progressFilter)
-      .populate('course', 'title thumbnail teacher')
-      .populate('topic', 'title')
-      .sort({ timestamp: -1 })
-      .limit(10);
+    // Sort by timestamp descending and limit to 10
+    recentProgress.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const limitedRecentProgress = recentProgress.slice(0, 10);
 
     // Get statistics (filtered by teacher if selected)
     const filteredCoursesList = filteredEnrollments.map((e) => e.course);
@@ -118,18 +154,49 @@ const dashboard = async (req, res) => {
       ? availableTeachers.find((t) => t._id.toString() === selectedTeacherId)
       : null;
 
+    // Helper functions for activity display
+    const getActivityIcon = (activity) => {
+      const icons = {
+        'content_completed': 'check-circle',
+        'content_viewed': 'eye',
+        'quiz_passed': 'award',
+        'quiz_failed': 'times-circle',
+        'homework_submitted': 'file-alt',
+        'assignment_submitted': 'clipboard-check',
+        'video_watched': 'play-circle',
+        'pdf_read': 'file-pdf',
+      };
+      return icons[activity] || 'circle';
+    };
+
+    const getActivityText = (activity) => {
+      const texts = {
+        'content_completed': 'Completed content',
+        'content_viewed': 'Viewed content',
+        'quiz_passed': 'Passed quiz',
+        'quiz_failed': 'Quiz attempt',
+        'homework_submitted': 'Submitted homework',
+        'assignment_submitted': 'Submitted assignment',
+        'video_watched': 'Watched video',
+        'pdf_read': 'Read document',
+      };
+      return texts[activity] || 'Activity';
+    };
+
     res.render('student/dashboard', {
       title: selectedTeacher
         ? `${selectedTeacher.firstName} ${selectedTeacher.lastName} - Dashboard | ELKABLY`
         : 'Student Dashboard | ELKABLY',
       student,
       stats,
-      recentProgress,
+      recentProgress: limitedRecentProgress,
       activeCourses,
       availableTeachers,
       selectedTeacherId: selectedTeacherId || 'all',
       selectedTeacher,
       theme: req.cookies.theme || student.preferences?.theme || 'light',
+      getActivityIcon,
+      getActivityText,
     });
   } catch (error) {
     console.error('Dashboard error:', error);
@@ -173,6 +240,29 @@ const enrolledCourses = async (req, res) => {
     if (!student) {
       req.flash('error_msg', 'Student not found');
       return res.redirect('/auth/login');
+    }
+
+    // Recalculate progress for all enrollments and sync status
+    let progressUpdated = false;
+    for (const enrollment of student.enrolledCourses) {
+      if (enrollment.course) {
+        const newProgress = await student.calculateCourseProgressAsync(enrollment.course._id);
+        if (enrollment.progress !== newProgress) {
+          enrollment.progress = newProgress;
+          progressUpdated = true;
+        }
+
+        // Sync status with progress - fix inconsistencies
+        const expectedStatus = newProgress === 100 ? 'completed' : 'active';
+        if (enrollment.status !== expectedStatus) {
+          enrollment.status = expectedStatus;
+          progressUpdated = true;
+        }
+      }
+    }
+    if (progressUpdated) {
+      student.markModified('enrolledCourses');
+      await student.save();
     }
 
     // Filter out enrollments with null/deleted courses
@@ -333,6 +423,14 @@ const courseDetails = async (req, res) => {
       return res.redirect('/student/enrolled-courses');
     }
 
+    // Recalculate progress using async version for accurate content count
+    const newProgress = await student.calculateCourseProgressAsync(courseId);
+    if (enrollment.progress !== newProgress) {
+      enrollment.progress = newProgress;
+      student.markModified('enrolledCourses');
+      await student.save();
+    }
+
     const course = await Course.findById(courseId)
       .populate('topics');
 
@@ -341,11 +439,8 @@ const courseDetails = async (req, res) => {
       return res.redirect('/student/enrolled-courses');
     }
 
-    // Get course progress
-    const courseProgress = await Progress.find({
-      student: studentId,
-      course: courseId,
-    }).sort({ timestamp: -1 });
+    // Get course progress from user's contentProgress (no longer using Progress model)
+    const courseProgress = enrollment.contentProgress || [];
 
     // Calculate topic progress based on actual completion percentages
     const topicsWithProgress = course.topics.map((topic) => {
@@ -386,6 +481,7 @@ const getContentIcon = (type) => {
     reading: 'book-open',
     link: 'external-link-alt',
     zoom: 'video',
+    submission: 'file-upload',
   };
   return icons[type] || 'file';
 };
@@ -396,7 +492,29 @@ const courseContent = async (req, res) => {
     const studentId = req.session.user.id;
     const courseId = req.params.id;
 
-    const student = await User.findById(studentId).populate({
+    // First, calculate and update the progress (this fetches fresh data)
+    let student = await User.findById(studentId);
+    const newProgress = await student.calculateCourseProgressAsync(courseId);
+    
+    // Find enrollment to check if update is needed
+    let enrollment = student.enrolledCourses.find(
+      (e) => e.course && e.course.toString() === courseId
+    );
+
+    if (!enrollment) {
+      req.flash('error_msg', 'You are not enrolled in this course');
+      return res.redirect('/student/enrolled-courses');
+    }
+
+    // Update progress if changed
+    if (enrollment.progress !== newProgress) {
+      enrollment.progress = newProgress;
+      student.markModified('enrolledCourses');
+      await student.save();
+    }
+
+    // Now reload student with populated data and fresh contentProgress
+    student = await User.findById(studentId).populate({
       path: 'enrolledCourses.course',
       populate: {
         path: 'teacher',
@@ -405,14 +523,10 @@ const courseContent = async (req, res) => {
       },
     });
 
-    const enrollment = student.enrolledCourses.find(
+    // Re-find enrollment with populated data
+    enrollment = student.enrolledCourses.find(
       (e) => e.course && e.course._id.toString() === courseId
     );
-
-    if (!enrollment) {
-      req.flash('error_msg', 'You are not enrolled in this course');
-      return res.redirect('/student/enrolled-courses');
-    }
 
     const course = await Course.findById(courseId)
       .populate({
@@ -484,6 +598,25 @@ const courseContent = async (req, res) => {
             // Get watch count for video content
             const watchCount = contentProgressDetails?.watchCount || 0;
 
+            // Get submission data for submission type content
+            let submissionData = null;
+            if (contentItem.type === 'submission') {
+              const submission = await Submission.findOne({
+                student: studentId,
+                contentId: contentItem._id,
+              }).sort({ attemptNumber: -1 });
+
+              if (submission) {
+                submissionData = {
+                  status: submission.status,
+                  submittedAt: submission.submittedAt,
+                  isLate: submission.isLate,
+                  grade: submission.grade,
+                  attemptNumber: submission.attemptNumber,
+                };
+              }
+            }
+
             // Get prerequisite names and IDs for better user experience
             let prerequisiteNames = [];
             let prerequisiteData = [];
@@ -517,6 +650,7 @@ const courseContent = async (req, res) => {
               prerequisiteData: prerequisiteData,
               contentIndex: index,
               topicId: topic._id,
+              submissionData: submissionData,
             };
           })
         );
@@ -867,6 +1001,22 @@ const contentDetails = async (req, res) => {
     const courseWithTeacher = await Course.findById(course._id).populate('teacher', 'firstName lastName');
     const selectedTeacherId = courseWithTeacher && courseWithTeacher.teacher ? courseWithTeacher.teacher._id.toString() : 'all';
 
+    // Get student's submission for submission type content
+    let studentSubmission = null;
+    if (contentItem.type === 'submission') {
+      studentSubmission = await Submission.getStudentSubmission(
+        studentId,
+        course._id,
+        topic._id,
+        contentId
+      );
+
+      // Check if content is completed based on submission status
+      if (studentSubmission && ['submitted', 'graded', 'late'].includes(studentSubmission.status)) {
+        isCompleted = true;
+      }
+    }
+
     res.render('student/content-details', {
       title: `${contentItem.title} - Content | ELKABLY`,
       student,
@@ -902,6 +1052,7 @@ const contentDetails = async (req, res) => {
       availableTeachers,
       selectedTeacherId,
       getContentIcon, // Pass the helper function to the template
+      studentSubmission, // Pass student's submission data for submission type content
       theme: req.cookies.theme || student.preferences?.theme || 'light',
     });
   } catch (error) {
@@ -1436,8 +1587,53 @@ const profile = async (req, res) => {
       return res.redirect('/auth/login');
     }
 
-    // Get achievements
-    const achievements = await Progress.getStudentAchievements(studentId);
+    // Calculate achievements from user's contentProgress (no longer using Progress model)
+    let totalCompletedContent = 0;
+    let totalPoints = 0;
+    let totalCourses = 0;
+    let completedCourses = 0;
+
+    for (const enrollment of student.enrolledCourses) {
+      totalCourses++;
+      if (enrollment.progress === 100) {
+        completedCourses++;
+      }
+      if (enrollment.contentProgress) {
+        totalCompletedContent += enrollment.contentProgress.filter(
+          (cp) => cp.completionStatus === 'completed'
+        ).length;
+        // Calculate simple points: 5 points per completed content
+        totalPoints += enrollment.contentProgress.filter(
+          (cp) => cp.completionStatus === 'completed'
+        ).length * 5;
+      }
+    }
+
+    const badges = [];
+    const milestones = [];
+
+    // Define badge criteria
+    if (totalPoints >= 100) badges.push({ name: 'Point Starter', description: 'Earned 100+ points' });
+    if (totalPoints >= 500) badges.push({ name: 'Point Master', description: 'Earned 500+ points' });
+    if (totalCompletedContent >= 10) badges.push({ name: 'Active Learner', description: 'Completed 10+ content items' });
+    if (totalCompletedContent >= 50) badges.push({ name: 'Content Champion', description: 'Completed 50+ content items' });
+    if (completedCourses >= 1) badges.push({ name: 'Course Graduate', description: 'Completed a course' });
+    if (completedCourses >= 5) badges.push({ name: 'Scholar', description: 'Completed 5 courses' });
+
+    // Define milestone criteria
+    if (totalCourses >= 1) milestones.push({ name: 'First Enrollment', description: 'Enrolled in first course' });
+    if (totalCompletedContent >= 25) milestones.push({ name: 'Halfway Champion', description: 'Completed 25 content items' });
+
+    const achievements = {
+      badges,
+      milestones,
+      summary: {
+        totalPoints,
+        totalExperience: totalPoints * 2,
+        totalActivities: totalCompletedContent,
+        averagePoints: totalCompletedContent > 0 ? Math.round(totalPoints / totalCompletedContent) : 0
+      }
+    };
 
     res.render('student/profile', {
       title: 'My Profile | ELKABLY',
@@ -2353,6 +2549,274 @@ const getZoomMeetingHistory = async (req, res) => {
   }
 };
 
+// ==================== SUBMISSION FUNCTIONALITY ====================
+
+/**
+ * Submit assignment - Handle file uploads and create submission
+ */
+const submitAssignment = async (req, res) => {
+  try {
+    const studentId = req.session.user.id;
+    const { courseId, topicId, contentId, textAnswer } = req.body;
+
+    // Validate required fields
+    if (!courseId || !topicId || !contentId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Course ID, Topic ID, and Content ID are required',
+      });
+    }
+
+    // Find the topic and content item
+    const topic = await Topic.findById(topicId);
+    if (!topic) {
+      return res.status(404).json({
+        success: false,
+        message: 'Topic not found',
+      });
+    }
+
+    const contentItem = topic.content.id(contentId);
+    if (!contentItem || contentItem.type !== 'submission') {
+      return res.status(404).json({
+        success: false,
+        message: 'Submission content not found',
+      });
+    }
+
+    // Check if student is enrolled in the course
+    const student = await User.findById(studentId);
+    const isEnrolled = student.enrolledCourses.some(
+      (e) => e.course.toString() === courseId && e.status === 'active'
+    );
+    if (!isEnrolled) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not enrolled in this course',
+      });
+    }
+
+    // Process uploaded files
+    const submittedFiles = [];
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const ext = path.extname(file.originalname).toLowerCase();
+        let fileType = 'other';
+        if (ext === '.pdf') fileType = 'pdf';
+        else if (['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext)) fileType = 'image';
+        else if (['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'].includes(ext)) fileType = 'document';
+
+        submittedFiles.push({
+          fileName: file.originalname,
+          fileUrl: `/uploads/submissions/${file.filename}`,
+          fileType: fileType,
+          fileSize: file.size,
+          uploadedAt: new Date(),
+        });
+      }
+    }
+
+    // Check if there's an existing submission
+    let submission = await Submission.findOne({
+      student: studentId,
+      course: courseId,
+      topic: topicId,
+      contentId: contentId,
+    }).sort({ attemptNumber: -1 });
+
+    // Check if submission has already been graded - prevent resubmission
+    if (submission && submission.status === 'graded') {
+      return res.status(400).json({
+        success: false,
+        message: 'This assignment has already been graded. Resubmission is not allowed.',
+      });
+    }
+
+    const dueDate = contentItem.submissionConfig?.dueDate;
+    const isLate = dueDate ? new Date() > new Date(dueDate) : false;
+
+    // Check if late submission is allowed
+    if (isLate && !contentItem.submissionConfig?.allowLateSubmission) {
+      return res.status(400).json({
+        success: false,
+        message: 'Late submissions are not allowed for this assignment',
+      });
+    }
+
+    if (submission) {
+      // Update existing submission
+      submission.submittedFiles = submittedFiles.length > 0 ? submittedFiles : submission.submittedFiles;
+      submission.textAnswer = textAnswer || submission.textAnswer;
+      submission.status = isLate ? 'late' : 'submitted';
+      submission.submittedAt = new Date();
+      submission.isLate = isLate;
+      submission.attemptNumber = submission.attemptNumber + 1;
+    } else {
+      // Create new submission
+      submission = new Submission({
+        student: studentId,
+        course: courseId,
+        topic: topicId,
+        contentId: contentId,
+        submittedFiles: submittedFiles,
+        textAnswer: textAnswer || '',
+        status: isLate ? 'late' : 'submitted',
+        submittedAt: new Date(),
+        dueDate: dueDate,
+        isLate: isLate,
+        attemptNumber: 1,
+        grade: {
+          maxScore: contentItem.submissionConfig?.maxScore || 100,
+        },
+      });
+    }
+
+    await submission.save();
+
+    // Update student's content progress - mark as in_progress until graded
+    await student.updateContentProgress(
+      courseId,
+      topicId,
+      contentId,
+      'submission',
+      {
+        completionStatus: 'in_progress',
+        progressPercentage: 50, // Submitted but not graded yet
+        lastAccessed: new Date(),
+        attempts: submission.attemptNumber,
+      }
+    );
+
+    res.json({
+      success: true,
+      message: isLate ? 'Assignment submitted late successfully!' : 'Assignment submitted successfully!',
+      submission: {
+        id: submission._id,
+        status: submission.status,
+        submittedAt: submission.submittedAt,
+        attemptNumber: submission.attemptNumber,
+        filesCount: submission.submittedFiles.length,
+        isLate: submission.isLate,
+      },
+    });
+  } catch (error) {
+    console.error('Submit assignment error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to submit assignment',
+    });
+  }
+};
+
+/**
+ * Get student's submission for a content item
+ */
+const getSubmission = async (req, res) => {
+  try {
+    const studentId = req.session.user.id;
+    const { contentId } = req.params;
+
+    // Find the submission
+    const submission = await Submission.findOne({
+      student: studentId,
+      contentId: contentId,
+    })
+      .populate('student', 'firstName lastName studentCode')
+      .sort({ attemptNumber: -1 });
+
+    if (!submission) {
+      return res.json({
+        success: true,
+        submission: null,
+      });
+    }
+
+    res.json({
+      success: true,
+      submission: {
+        id: submission._id,
+        status: submission.status,
+        submittedFiles: submission.submittedFiles,
+        textAnswer: submission.textAnswer,
+        submittedAt: submission.submittedAt,
+        attemptNumber: submission.attemptNumber,
+        isLate: submission.isLate,
+        grade: submission.grade,
+        isGraded: submission.isGraded,
+        percentageScore: submission.percentageScore,
+      },
+    });
+  } catch (error) {
+    console.error('Get submission error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get submission',
+    });
+  }
+};
+
+/**
+ * Delete a submitted file
+ */
+const deleteSubmissionFile = async (req, res) => {
+  try {
+    const studentId = req.session.user.id;
+    const { submissionId, fileIndex } = req.params;
+
+    const submission = await Submission.findOne({
+      _id: submissionId,
+      student: studentId,
+    });
+
+    if (!submission) {
+      return res.status(404).json({
+        success: false,
+        message: 'Submission not found',
+      });
+    }
+
+    // Check if submission is already graded
+    if (submission.status === 'graded') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot modify a graded submission',
+      });
+    }
+
+    const idx = parseInt(fileIndex);
+    if (idx < 0 || idx >= submission.submittedFiles.length) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid file index',
+      });
+    }
+
+    // Remove file from disk if it exists
+    const file = submission.submittedFiles[idx];
+    if (file.fileUrl && file.fileUrl.startsWith('/uploads/')) {
+      const filePath = path.join(__dirname, '../public', file.fileUrl);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    // Remove from array
+    submission.submittedFiles.splice(idx, 1);
+    await submission.save();
+
+    res.json({
+      success: true,
+      message: 'File deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete submission file error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to delete file',
+    });
+  }
+};
+
 module.exports = {
   dashboard,
   enrolledCourses,
@@ -2380,4 +2844,8 @@ module.exports = {
   joinZoomMeeting,
   leaveZoomMeeting,
   getZoomMeetingHistory,
+  // Submission functions
+  submitAssignment,
+  getSubmission,
+  deleteSubmissionFile,
 };

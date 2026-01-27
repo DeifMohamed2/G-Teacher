@@ -15,6 +15,13 @@ const ExamPeriodSchema = new mongoose.Schema(
       trim: true,
       // e.g., "January", "May/June", "Oct/Nov"
     },
+    curriculumType: {
+      type: String,
+      enum: ['IGCSE', 'American'],
+      default: 'IGCSE',
+      required: true,
+      // Specifies whether this exam period is for IGCSE or American curriculum
+    },
     year: {
       type: Number,
       required: true,
@@ -71,6 +78,8 @@ const ExamPeriodSchema = new mongoose.Schema(
 ExamPeriodSchema.index({ year: 1, startDate: 1 });
 ExamPeriodSchema.index({ isActive: 1, isCurrent: 1 });
 ExamPeriodSchema.index({ order: 1 });
+ExamPeriodSchema.index({ curriculumType: 1 });
+ExamPeriodSchema.index({ curriculumType: 1, isActive: 1, order: 1 });
 
 // Virtual for formatted date range
 ExamPeriodSchema.virtual('dateRange').get(function () {
@@ -110,6 +119,15 @@ ExamPeriodSchema.statics.getUpcomingPeriods = async function (limit = 5) {
 // Static method to get active periods sorted by order
 ExamPeriodSchema.statics.getActivePeriods = async function () {
   return await this.find({ isActive: true }).sort({ order: 1, startDate: 1 });
+};
+
+// Static method to get active periods by curriculum type
+ExamPeriodSchema.statics.getActivePeriodsByCurriculum = async function (curriculumType) {
+  const filter = { isActive: true };
+  if (curriculumType) {
+    filter.curriculumType = curriculumType;
+  }
+  return await this.find(filter).sort({ order: 1, startDate: 1 });
 };
 
 // Pre-save hook to ensure only one period is marked as current

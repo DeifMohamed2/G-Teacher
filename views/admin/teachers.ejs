@@ -575,6 +575,9 @@
       <button type="button" class="btn-modal btn-modal-secondary" onclick="closeViewModal()">
         <i class="fas fa-times"></i> Close
       </button>
+      <button type="button" class="btn-modal btn-modal-info" id="viewModalDetailsBtn" onclick="goToTeacherDetails()">
+        <i class="fas fa-chart-bar"></i> Full Details
+      </button>
       <button type="button" class="btn-modal btn-modal-primary" id="viewModalEditBtn" onclick="editFromViewModal()">
         <i class="fas fa-edit"></i> Edit Teacher
       </button>
@@ -724,10 +727,16 @@
     }
   }
   
-  // View Teacher
+  // View Teacher - Navigate to Teacher Details Page
   let currentViewingTeacherId = null;
   
   async function viewTeacher(teacherId) {
+    // Navigate to the teacher details page
+    window.location.href = `/admin/teachers/${teacherId}/details`;
+  }
+  
+  // View Teacher in Modal (quick view)
+  async function viewTeacherModal(teacherId) {
     currentViewingTeacherId = teacherId;
     try {
       const response = await fetch(`/admin/teachers/${teacherId}/data`);
@@ -800,6 +809,14 @@
     closeViewModal();
     if (currentViewingTeacherId) {
       editTeacher(currentViewingTeacherId);
+    }
+  }
+  
+  // Go to Teacher Full Details Page
+  function goToTeacherDetails() {
+    closeViewModal();
+    if (currentViewingTeacherId) {
+      window.location.href = `/admin/teachers/${currentViewingTeacherId}/details`;
     }
   }
   
