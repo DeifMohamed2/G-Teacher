@@ -4,7 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= course.title %> - Week Content | G-Teacher</title>
+  <title>
+    <%= course.title %> - Week Content | G-Teacher
+  </title>
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="/images/KImage.png">
@@ -16,7 +18,8 @@
   <link rel="stylesheet" href="/css/studentCSS/courses.css">
   <link rel="stylesheet" href="/css/theme-toggle.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
   <!-- Enhanced Styles -->
   <style>
@@ -115,7 +118,15 @@
     /* Content Item States */
     .content-item.completed {
       border-left: 4px solid #10b981;
-      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+      border: 1px solid #6ee7b7;
+      border-left: 4px solid #10b981;
+    }
+
+    .content-item.completed:hover {
+      background: linear-gradient(135deg, #a7f3d0, #6ee7b7);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     }
 
     .content-item.locked {
@@ -136,9 +147,12 @@
     }
 
     @keyframes pulse-locked {
-      0%, 100% {
+
+      0%,
+      100% {
         box-shadow: 0 0 0 4px rgba(162, 47, 47, 0.664), 0 8px 24px rgba(234, 192, 67, 0.848);
       }
+
       50% {
         box-shadow: 0 0 0 8px rgba(162, 47, 47, 0.664), 0 12px 32px rgba(238, 58, 22, 0.848);
       }
@@ -526,6 +540,7 @@
         opacity: 0;
         transform: translateY(-10px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -554,341 +569,419 @@
   <!-- Student Layout -->
   <div class="student-layout">
     <!-- Include Sidebar -->
-    <%- include('partials/student-sidebar', { currentPage: 'courses', student: student }) %>
+    <%- include('partials/student-sidebar', { currentPage: 'courses' , student: student }) %>
 
-    <!-- Main Content -->
-    <main class="student-main">
-      <!-- Include Header -->
-      <%- include('partials/student-header', { 
-        title: 'Week Content', 
-        student: student, 
-        theme: theme, 
-        currentPage: 'course-content',
-        availableTeachers: typeof availableTeachers !== 'undefined' ? availableTeachers : [],
-        selectedTeacherId: typeof selectedTeacherId !== 'undefined' ? selectedTeacherId : 'all'
-      }) %>
+      <!-- Main Content -->
+      <main class="student-main">
+        <!-- Include Header -->
+        <%- include('partials/student-header', { title: 'Week Content' , student: student, theme: theme,
+          currentPage: 'course-content' , availableTeachers: typeof availableTeachers !=='undefined' ? availableTeachers
+          : [], selectedTeacherId: typeof selectedTeacherId !=='undefined' ? selectedTeacherId : 'all' }) %>
 
-      <!-- Course Content -->
-      <div class="student-content">
-        <!-- Back Button -->
-        <div class="back-button-container">
-          <a href="/student/enrolled-courses" class="btn btn-outline btn-sm">
-            <i class="fas fa-arrow-left"></i>
-            Back to Weeks
-          </a>
-        </div>
-
-        <!-- Course Header -->
-        <div class="course-header-section">
-          <div class="course-header-content">
-            <div class="course-header-info">
-              <h1 class="course-title-main"><%= course.title %></h1>
-              <p class="course-description-main"><%= course.description %></p>
-
-              <div class="course-meta-info">
-                
-                <div class="meta-item">
-                  <i class="fas fa-book"></i>
-                  <span><%= topicsWithProgress ? topicsWithProgress.length : 0 %> Topics</span>
-                </div>
-                <div class="meta-item">
-                  <i class="fas fa-graduation-cap"></i>
-
-                </div>
-              </div>
+          <!-- Course Content -->
+          <div class="student-content">
+            <!-- Back Button -->
+            <div class="back-button-container">
+              <a href="/student/enrolled-courses" class="btn btn-outline btn-sm">
+                <i class="fas fa-arrow-left"></i>
+                Back to Weeks
+              </a>
             </div>
 
-            <div class="course-progress-section">
-              <div class="progress-circle-large">
-                <svg viewBox="0 0 120 120" class="progress-ring-large">
-                  <circle class="circle-bg-large" cx="60" cy="60" r="50"></circle>
-                  <circle class="circle-large" cx="60" cy="60" r="50" stroke-dasharray="<%= enrollment.progress * 3.14 %>, 314"></circle>
-                </svg>
-                <div class="progress-text">
-                  <span class="progress-percentage"><%= enrollment.progress %>%</span>
-                  <span class="progress-label">Complete</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+            <!-- Course Header -->
+            <div class="course-header-section">
+              <div class="course-header-content">
+                <div class="course-header-info">
+                  <h1 class="course-title-main">
+                    <%= course.title %>
+                  </h1>
+                  <p class="course-description-main">
+                    <%= course.description %>
+                  </p>
 
-        <!-- Course Progress Bar -->
-        <div class="course-progress-overview">
-          <div class="progress-bar-container">
-            <div class="progress-bar-fill" style="width: <%= enrollment.progress %>%"></div>
-          </div>
-          <div class="progress-stats">
-            <div class="progress-stat-item">
-              <span class="last-accessed"><strong><%= enrollment.progress %>%</strong> Complete</span>
-            </div>
-          </div>
-        </div>
+                  <div class="course-meta-info">
 
-        <!-- Topics Section -->
-        <div class="topics-section">
-          <div class="section-header">
-            <h2 class="section-title">
-              <i class="fas fa-book-open"></i>
-              Week Topics
-            </h2>
-            <span class="section-subtitle"><%= topicsWithProgress ? topicsWithProgress.length : 0 %> Topics available</span>
-          </div>
-
-          <% if (topicsWithProgress && topicsWithProgress.length > 0) { %>
-          <div class="topics-container">
-            <% topicsWithProgress.forEach((topic, topicIndex) => { %>
-            <div class="topic-card" data-topic-id="<%= topic._id %>">
-              <div class="topic-header clickable-topic-header" data-topic-id="<%= topic._id %>">
-                <div class="topic-header-left">
-                  <div class="topic-number"><%= topicIndex + 1 %></div>
-                  <div class="topic-info">
-                    <h3 class="topic-title"><%= topic.title %></h3>
-                    <p class="topic-description"><%= topic.description %></p>
-                    <div class="topic-meta">
-                      
-                      <span class="topic-content-count">
-                        <i class="fas fa-list"></i>
-                        <%= topic.content ? topic.content.length : 0 %> items
+                    <div class="meta-item">
+                      <i class="fas fa-book"></i>
+                      <span>
+                        <%= topicsWithProgress ? topicsWithProgress.length : 0 %> Topics
                       </span>
                     </div>
+                    <div class="meta-item">
+                      <i class="fas fa-graduation-cap"></i>
+
+                    </div>
                   </div>
                 </div>
 
-                <div class="topic-header-right">
-                  <div class="topic-progress">
-                    <div class="topic-progress-circle">
-                      <svg viewBox="0 0 36 36" class="progress-ring-small">
-                        <path class="circle-bg-small" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
-                        <path class="circle-small" stroke-dasharray="<%= topic.progress %>, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
-                      </svg>
-                      <span class="topic-progress-text"><%= topic.progress %>%</span>
+                <div class="course-progress-section">
+                  <div class="progress-circle-large">
+                    <svg viewBox="0 0 120 120" class="progress-ring-large">
+                      <circle class="circle-bg-large" cx="60" cy="60" r="50"></circle>
+                      <circle class="circle-large" cx="60" cy="60" r="50"
+                        stroke-dasharray="<%= enrollment.progress * 3.14 %>, 314"></circle>
+                    </svg>
+                    <div class="progress-text">
+                      <span class="progress-percentage">
+                        <%= enrollment.progress %>%
+                      </span>
+                      <span class="progress-label">Complete</span>
                     </div>
-                  </div>
-
-                  <div class="topic-toggle" role="button" tabindex="0" aria-expanded="false" style="cursor: pointer;">
-                    <i class="fas fa-chevron-down topic-chevron" id="chevron-<%= topic._id %>"></i>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <!-- Topic Content (Initially Hidden) -->
-              <div class="topic-content" id="content-<%= topic._id %>" style="display: none;">
-                <% if (topic.content && topic.content.length > 0) { %>
-                <div class="content-items">
-                  <% topic.content.forEach((contentItem, contentIndex) => { 
-                    // Determine content URL - only if accessible
-                    const contentUrl = contentItem.canAccess ? `/student/content/${contentItem._id}` : null;
-                  %>
-                  <div class="content-item clickable-content-item <%= !contentItem.canAccess ? 'locked' : '' %> <%= contentItem.isCompleted ? 'completed' : '' %> <%= (contentItem.type === 'submission' && contentItem.submissionData && contentItem.submissionData.status === 'graded') ? 'graded-submission' : '' %> <%= (contentItem.type === 'submission' && contentItem.submissionData && ['submitted', 'late'].includes(contentItem.submissionData.status)) ? 'pending-submission' : '' %>" 
-                       data-content-id="<%= contentItem._id %>" 
-                       <% if (contentUrl) { %>data-content-url="<%= contentUrl %>"<% } %>>
+            <!-- Course Progress Bar -->
+            <div class="course-progress-overview">
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" style="width: <%= enrollment.progress %>%"></div>
+              </div>
+              <div class="progress-stats">
+                <div class="progress-stat-item">
+                  <span class="last-accessed"><strong>
+                      <%= enrollment.progress %>%
+                    </strong> Complete</span>
+                </div>
+              </div>
+            </div>
 
-                    <div class="content-item-header">
-                      <div class="content-item-left">
-                        <div class="content-type-icon <%= contentItem.type %>">
-                          <i class="fas fa-<%= getContentIcon(contentItem.type) %>"></i>
-                        </div>
+            <!-- Topics Section -->
+            <div class="topics-section">
+              <div class="section-header">
+                <h2 class="section-title">
+                  <i class="fas fa-book-open"></i>
+                  Week Topics
+                </h2>
+                <span class="section-subtitle">
+                  <%= topicsWithProgress ? topicsWithProgress.length : 0 %> Topics available
+                </span>
+              </div>
 
-                        <div class="content-item-info">
-                          <h4 class="content-item-title"><%= contentItem.title %></h4>
-                          <% if (contentItem.description) { %>
-                          <p class="content-item-description"><%= contentItem.description %></p>
-                          <% } %>
+              <% if (topicsWithProgress && topicsWithProgress.length> 0) { %>
+                <div class="topics-container">
+                  <% topicsWithProgress.forEach((topic, topicIndex)=> { %>
+                    <div class="topic-card" data-topic-id="<%= topic._id %>">
+                      <div class="topic-header clickable-topic-header" data-topic-id="<%= topic._id %>">
+                        <div class="topic-header-left">
+                          <div class="topic-number">
+                            <%= topicIndex + 1 %>
+                          </div>
+                          <div class="topic-info">
+                            <h3 class="topic-title">
+                              <%= topic.title %>
+                            </h3>
+                            <p class="topic-description">
+                              <%= topic.description %>
+                            </p>
+                            <div class="topic-meta">
 
-                          <div class="content-item-meta">
-                            <% if (contentItem.type === 'zoom') { %>
-                            <!-- Zoom Meeting Status -->
-                            <span class="content-zoom-status">
-                              <i class="fas fa-video"></i>
-                              <% if (contentItem.zoomMeeting) { %>
-                              <% if (contentItem.zoomMeeting.status === 'active') { %>
-                              <span class="badge bg-success">Live Now</span>
-                              <% } else if (contentItem.zoomMeeting.status === 'ended') { %>
-                              <span class="badge bg-secondary">Ended</span>
-                              <% } else { %>
-                              <span class="badge bg-warning">Scheduled</span>
-                              <% } %>
-                              <% } else { %>
-                              <span class="badge bg-info">Zoom Meeting</span>
-                              <% } %>
-                            </span>
-                            <% } %>
-                            
-                            <span class="content-criteria">
-                              <i class="fas fa-target"></i>
-                              <%= contentItem.completionCriteria.replace('_', ' ') %>
-                            </span>
-                            <% if (contentItem.type === 'video' && contentItem.maxWatchCount !== null && contentItem.maxWatchCount !== undefined && contentItem.maxWatchCount !== -1) { %>
-                            <span class="content-watch-limit" style="<%= contentItem.watchCount >= contentItem.maxWatchCount ? 'color: #ef4444;' : '' %>">
-                              <i class="fas fa-eye"></i>
-                              <%= contentItem.watchCount || 0 %>/<%= contentItem.maxWatchCount %> watches
-                            </span>
-                            <% } %>
+                              <span class="topic-content-count">
+                                <i class="fas fa-list"></i>
+                                <%= topic.content ? topic.content.length : 0 %> items
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div class="content-item-right">
-                        <% if (!contentItem.canAccess) { %>
-                        <div class="content-locked">
-                          <i class="fas fa-lock"></i>
-                          <% if (contentItem.type === 'zoom' && contentItem.zoomMeeting && contentItem.zoomMeeting.status === 'scheduled') { %>
-                          <span>Meeting Locked</span>
-                          <% } else { %>
-                          <span>Locked</span>
-                          <% } %>
-                        </div>
-
-                        <!-- Admin controls for Zoom meetings -->
-                        <% if (contentItem.type === 'zoom' && contentItem.zoomMeeting && user && user.role === 'admin') { %>
-                        <div class="zoom-admin-controls">
-                          <% if (contentItem.zoomMeeting.status === 'scheduled') { %>
-                          <button class="btn btn-success btn-sm" onclick="startZoomMeeting('<%= contentItem.zoomMeeting._id %>')">
-                            <i class="fas fa-play"></i>
-                            Start Now
-                          </button>
-                          <% } else if (contentItem.zoomMeeting.status === 'active') { %>
-                          <button class="btn btn-danger btn-sm" onclick="endZoomMeeting('<%= contentItem.zoomMeeting._id %>')">
-                            <i class="fas fa-stop"></i>
-                            End Meeting
-                          </button>
-                          <% } %>
-                        </div>
-                        <% } %>
-                        <% } else if (contentItem.type === 'submission' && contentItem.submissionData) { %>
-                        <!-- Submission Content Status -->
-                        <div class="content-actions-submission">
-                          <% if (contentItem.submissionData.status === 'graded') { %>
-                          <div class="graded-inline-badge">
-                            <div class="graded-badge-left">
-                              <div class="graded-info">
-                                <i class="fas fa-check-circle"></i>
-                                <span class="graded-text">Graded</span>
-                              </div>
-                            </div>
-                            <div class="graded-badge-center">
-                              <div class="graded-score-inline">
-                                <span class="score-num"><%= contentItem.submissionData.grade.score %></span>
-                                <span class="score-sep">/</span>
-                                <span class="score-total"><%= contentItem.submissionData.grade.maxScore %></span>
-                              </div>
-                              <% if (contentItem.submissionData.grade.letterGrade) { %>
-                              <div class="grade-letter"><%= contentItem.submissionData.grade.letterGrade %></div>
-                              <% } %>
-                            </div>
-                            <a href="/student/content/<%= contentItem._id %>" class="view-btn">
-                              <span>View Details</span>
-                              <i class="fas fa-arrow-right"></i>
-                            </a>
-                          </div>
-                          <% } else if (['submitted', 'late'].includes(contentItem.submissionData.status)) { %>
-                          <div class="pending-inline-badge">
-                            <div class="pending-badge-left">
-                              <div class="pending-info">
-                                <i class="fas fa-clock"></i>
-                                <span>Pending Review</span>
-                              </div>
-                              <% if (contentItem.submissionData.isLate) { %>
-                              <span class="late-tag">Late</span>
-                              <% } %>
-                            </div>
-                            <a href="/student/content/<%= contentItem._id %>" class="view-btn">
-                              <span>View Submission</span>
-                              <i class="fas fa-arrow-right"></i>
-                            </a>
-                          </div>
-                          <% } %>
-                        </div>
-                        <% } else if (contentItem.actualProgress > 0) { %>
-                        <!-- Content with Progress (Same for ALL content types including zoom) -->
-                        <div class="content-actions-in-progress">
-                          <div class="content-progress-info">
-                            <div class="content-progress-circle">
-                              <svg viewBox="0 0 36 36" class="progress-ring-tiny">
-                                <path class="circle-bg-tiny" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
-                                <path class="circle-tiny" stroke-dasharray="<%= contentItem.actualProgress %>, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                        <div class="topic-header-right">
+                          <div class="topic-progress">
+                            <div class="topic-progress-circle">
+                              <svg viewBox="0 0 36 36" class="progress-ring-small">
+                                <path class="circle-bg-small"
+                                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
+                                </path>
+                                <path class="circle-small" stroke-dasharray="<%= topic.progress %>, 100"
+                                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
+                                </path>
                               </svg>
-                              <span class="progress-text-tiny"><%= contentItem.actualProgress %>%</span>
+                              <span class="topic-progress-text">
+                                <%= topic.progress %>%
+                              </span>
                             </div>
-                            <span class="progress-label">
-                              <% if (contentItem.actualProgress === 100) { %>
-                              Completed
-                              <% } else { %>
-                              In Progress
-                              <% } %>
-                            </span>
                           </div>
-                          <a href="/student/content/<%= contentItem._id %>" class="btn btn-primary btn-sm">
-                            <i class="fas fa-<%= contentItem.actualProgress === 100 ? 'redo' : (contentItem.type === 'zoom' ? 'video' : 'play') %>"></i>
-                            <%= contentItem.actualProgress === 100 ? 'View Details' : (contentItem.type === 'zoom' ? 'Join' : 'Continue') %>
-                          </a>
-                        </div>
-                        <% } else { %>
-                        <!-- Content Start Button (Same for ALL content types including zoom) -->
-                        <% if (contentItem.type === 'zoom' && contentItem.zoomMeeting && contentItem.zoomMeeting.status === 'scheduled') { %>
-                        <button class="btn btn-secondary btn-sm" disabled>
-                          <i class="fas fa-clock"></i>
-                          Scheduled
-                        </button>
-                        <% } else { %>
-                        <a href="/student/content/<%= contentItem._id %>" class="btn btn-primary btn-sm">
-                          <i class="fas fa-<%= contentItem.type === 'zoom' ? 'video' : 'play' %>"></i>
-                          <%= contentItem.type === 'zoom' ? 'Join' : 'Start' %>
-                        </a>
-                        <% } %>
-                        <% } %>
-                      </div>
-                    </div>
 
-                    <!-- Prerequisites Info -->
-                    <% if (!contentItem.canAccess && contentItem.prerequisiteData && contentItem.prerequisiteData.length > 0) { %>
-                    <div class="prerequisites-info">
-                      <div class="prerequisites-header">
-                        <i class="fas fa-info-circle"></i>
-                        <span>Complete these prerequisites first:</span>
+                          <div class="topic-toggle" role="button" tabindex="0" aria-expanded="false"
+                            style="cursor: pointer;">
+                            <i class="fas fa-chevron-down topic-chevron" id="chevron-<%= topic._id %>"></i>
+                          </div>
+                        </div>
                       </div>
-                      <div class="prerequisites-list">
-                        <% contentItem.prerequisiteData.forEach((prereq, index) => { %>
-                        <a href="/student/content/<%= prereq.id %>" class="prerequisite-item prerequisite-link">
-                          <i class="fas fa-arrow-right"></i>
-                          <span><%= prereq.title %></span>
-                          <i class="fas fa-external-link-alt prerequisite-link-icon"></i>
-                        </a>
-                        <% }); %>
+
+                      <!-- Topic Content (Initially Hidden) -->
+                      <div class="topic-content" id="content-<%= topic._id %>" style="display: none;">
+                        <% if (topic.content && topic.content.length> 0) { %>
+                          <div class="content-items">
+                            <% topic.content.forEach((contentItem, contentIndex)=> {
+                              // Determine content URL - only if accessible
+                              const contentUrl = contentItem.canAccess ? `/student/content/${contentItem._id}` : null;
+                              %>
+                              <div
+                                class="content-item clickable-content-item <%= !contentItem.canAccess ? 'locked' : '' %> <%= (contentItem.isCompleted || contentItem.actualProgress === 100) ? 'completed' : '' %> <%= (contentItem.type === 'submission' && contentItem.submissionData && contentItem.submissionData.status === 'graded') ? 'graded-submission' : '' %> <%= (contentItem.type === 'submission' && contentItem.submissionData && ['submitted', 'late'].includes(contentItem.submissionData.status)) ? 'pending-submission' : '' %>"
+                                data-content-id="<%= contentItem._id %>" <% if (contentUrl) { %>data-content-url="<%=
+                                  contentUrl %>"<% } %>>
+
+                                    <div class="content-item-header">
+                                      <div class="content-item-left">
+                                        <div class="content-type-icon <%= contentItem.type %>">
+                                          <i class="fas fa-<%= getContentIcon(contentItem.type) %>"></i>
+                                        </div>
+
+                                        <div class="content-item-info">
+                                          <h4 class="content-item-title">
+                                            <%= contentItem.title %>
+                                          </h4>
+                                          <% if (contentItem.description) { %>
+                                            <p class="content-item-description">
+                                              <%= contentItem.description %>
+                                            </p>
+                                            <% } %>
+
+                                              <div class="content-item-meta">
+                                                <% if (contentItem.type==='zoom' ) { %>
+                                                  <!-- Zoom Meeting Status -->
+                                                  <span class="content-zoom-status">
+                                                    <i class="fas fa-video"></i>
+                                                    <% if (contentItem.zoomMeeting) { %>
+                                                      <% if (contentItem.zoomMeeting.status==='active' ) { %>
+                                                        <span class="badge bg-success">Live Now</span>
+                                                        <% } else if (contentItem.zoomMeeting.status==='ended' ) { %>
+                                                          <span class="badge bg-secondary">Ended</span>
+                                                          <% } else { %>
+                                                            <span class="badge bg-warning">Scheduled</span>
+                                                            <% } %>
+                                                              <% } else { %>
+                                                                <span class="badge bg-info">Zoom Meeting</span>
+                                                                <% } %>
+                                                  </span>
+                                                  <% } %>
+
+                                                    <span class="content-criteria">
+                                                      <i class="fas fa-target"></i>
+                                                      <%= contentItem.completionCriteria.replace('_', ' ' ) %>
+                                                    </span>
+                                                    <% if (contentItem.type==='video' && contentItem.maxWatchCount
+                                                      !==null && contentItem.maxWatchCount !==undefined &&
+                                                      contentItem.maxWatchCount !==-1) { %>
+                                                      <span class="content-watch-limit"
+                                                        style="<%= contentItem.watchCount >= contentItem.maxWatchCount ? 'color: #ef4444;' : '' %>">
+                                                        <i class="fas fa-eye"></i>
+                                                        <%= contentItem.watchCount || 0 %>/<%= contentItem.maxWatchCount
+                                                            %> watches
+                                                      </span>
+                                                      <% } %>
+                                              </div>
+                                        </div>
+                                      </div>
+
+                                      <div class="content-item-right">
+                                        <% if (!contentItem.canAccess) { %>
+                                          <div class="content-locked">
+                                            <i class="fas fa-lock"></i>
+                                            <% if (contentItem.type==='zoom' && contentItem.zoomMeeting &&
+                                              contentItem.zoomMeeting.status==='scheduled' ) { %>
+                                              <span>Meeting Locked</span>
+                                              <% } else { %>
+                                                <span>Locked</span>
+                                                <% } %>
+                                          </div>
+
+                                          <!-- Admin controls for Zoom meetings -->
+                                          <% if (contentItem.type==='zoom' && contentItem.zoomMeeting && user &&
+                                            user.role==='admin' ) { %>
+                                            <div class="zoom-admin-controls">
+                                              <% if (contentItem.zoomMeeting.status==='scheduled' ) { %>
+                                                <button class="btn btn-success btn-sm"
+                                                  onclick="startZoomMeeting('<%= contentItem.zoomMeeting._id %>')">
+                                                  <i class="fas fa-play"></i>
+                                                  Start Now
+                                                </button>
+                                                <% } else if (contentItem.zoomMeeting.status==='active' ) { %>
+                                                  <button class="btn btn-danger btn-sm"
+                                                    onclick="endZoomMeeting('<%= contentItem.zoomMeeting._id %>')">
+                                                    <i class="fas fa-stop"></i>
+                                                    End Meeting
+                                                  </button>
+                                                  <% } %>
+                                            </div>
+                                            <% } %>
+                                              <% } else if (contentItem.type==='submission' &&
+                                                contentItem.submissionData) { %>
+                                                <!-- Submission Content Status -->
+                                                <div class="content-actions-submission">
+                                                  <% if (contentItem.submissionData.status==='graded' ) { %>
+                                                    <div class="graded-inline-badge">
+                                                      <div class="graded-badge-left">
+                                                        <div class="graded-info">
+                                                          <i class="fas fa-check-circle"></i>
+                                                          <span class="graded-text">Graded</span>
+                                                        </div>
+                                                      </div>
+                                                      <div class="graded-badge-center">
+                                                        <div class="graded-score-inline">
+                                                          <span class="score-num">
+                                                            <%= contentItem.submissionData.grade.score %>
+                                                          </span>
+                                                          <span class="score-sep">/</span>
+                                                          <span class="score-total">
+                                                            <%= contentItem.submissionData.grade.maxScore %>
+                                                          </span>
+                                                        </div>
+                                                        <% if (contentItem.submissionData.grade.letterGrade) { %>
+                                                          <div class="grade-letter">
+                                                            <%= contentItem.submissionData.grade.letterGrade %>
+                                                          </div>
+                                                          <% } %>
+                                                      </div>
+                                                      <a href="/student/content/<%= contentItem._id %>"
+                                                        class="view-btn">
+                                                        <span>View Details</span>
+                                                        <i class="fas fa-arrow-right"></i>
+                                                      </a>
+                                                    </div>
+                                                    <% } else if (['submitted', 'late'
+                                                      ].includes(contentItem.submissionData.status)) { %>
+                                                      <div class="pending-inline-badge">
+                                                        <div class="pending-badge-left">
+                                                          <div class="pending-info">
+                                                            <i class="fas fa-clock"></i>
+                                                            <span>Pending Review</span>
+                                                          </div>
+                                                          <% if (contentItem.submissionData.isLate) { %>
+                                                            <span class="late-tag">Late</span>
+                                                            <% } %>
+                                                        </div>
+                                                        <a href="/student/content/<%= contentItem._id %>"
+                                                          class="view-btn">
+                                                          <span>View Submission</span>
+                                                          <i class="fas fa-arrow-right"></i>
+                                                        </a>
+                                                      </div>
+                                                      <% } %>
+                                                </div>
+                                                <% } else if (contentItem.isCompleted || contentItem.actualProgress === 100) { %>
+                                                  <!-- Completed Content Badge - Similar to Graded Submissions -->
+                                                  <div class="completed-inline-badge">
+                                                    <div class="completed-badge-left">
+                                                      <div class="completed-info">
+                                                        <i class="fas fa-check-circle"></i>
+                                                        <span class="completed-text">Completed</span>
+                                                      </div>
+                                                    </div>
+                                                    <a href="/student/content/<%= contentItem._id %>"
+                                                      class="view-btn">
+                                                      <span>View Details</span>
+                                                      <i class="fas fa-arrow-right"></i>
+                                                    </a>
+                                                  </div>
+                                                <% } else if (contentItem.actualProgress> 0) { %>
+                                                  <!-- Content with Progress (Same for ALL content types including zoom) -->
+                                                  <div class="content-actions-in-progress">
+                                                    <div class="content-progress-info">
+                                                      <div class="content-progress-circle">
+                                                        <svg viewBox="0 0 36 36" class="progress-ring-tiny">
+                                                          <path class="circle-bg-tiny"
+                                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
+                                                          </path>
+                                                          <path class="circle-tiny"
+                                                            stroke-dasharray="<%= contentItem.actualProgress %>, 100"
+                                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
+                                                          </path>
+                                                        </svg>
+                                                        <span class="progress-text-tiny">
+                                                          <%= contentItem.actualProgress %>%
+                                                        </span>
+                                                      </div>
+                                                      <span class="progress-label">
+                                                        <% if (contentItem.actualProgress===100) { %>
+                                                          Completed
+                                                          <% } else { %>
+                                                            In Progress
+                                                            <% } %>
+                                                      </span>
+                                                    </div>
+                                                    <a href="/student/content/<%= contentItem._id %>"
+                                                      class="btn btn-primary btn-sm">
+                                                      <i
+                                                        class="fas fa-<%= contentItem.actualProgress === 100 ? 'redo' : (contentItem.type === 'zoom' ? 'video' : 'play') %>"></i>
+                                                      <%= contentItem.actualProgress===100 ? 'View Details' :
+                                                        (contentItem.type==='zoom' ? 'Join' : 'Continue' ) %>
+                                                    </a>
+                                                  </div>
+                                                  <% } else { %>
+                                                    <!-- Content Start Button (Same for ALL content types including zoom) -->
+                                                    <% if (contentItem.type==='zoom' && contentItem.zoomMeeting &&
+                                                      contentItem.zoomMeeting.status==='scheduled' ) { %>
+                                                      <button class="btn btn-secondary btn-sm" disabled>
+                                                        <i class="fas fa-clock"></i>
+                                                        Scheduled
+                                                      </button>
+                                                      <% } else { %>
+                                                        <a href="/student/content/<%= contentItem._id %>"
+                                                          class="btn btn-primary btn-sm">
+                                                          <i
+                                                            class="fas fa-<%= contentItem.type === 'zoom' ? 'video' : 'play' %>"></i>
+                                                          <%= contentItem.type==='zoom' ? 'Join' : 'Start' %>
+                                                        </a>
+                                                        <% } %>
+                                                          <% } %>
+                                      </div>
+                                    </div>
+
+                                    <!-- Prerequisites Info -->
+                                    <% if (!contentItem.canAccess && contentItem.prerequisiteData &&
+                                      contentItem.prerequisiteData.length> 0) { %>
+                                      <div class="prerequisites-info">
+                                        <div class="prerequisites-header">
+                                          <i class="fas fa-info-circle"></i>
+                                          <span>Complete these prerequisites first:</span>
+                                        </div>
+                                        <div class="prerequisites-list">
+                                          <% contentItem.prerequisiteData.forEach((prereq, index)=> { %>
+                                            <a href="/student/content/<%= prereq.id %>"
+                                              class="prerequisite-item prerequisite-link">
+                                              <i class="fas fa-arrow-right"></i>
+                                              <span>
+                                                <%= prereq.title %>
+                                              </span>
+                                              <i class="fas fa-external-link-alt prerequisite-link-icon"></i>
+                                            </a>
+                                            <% }); %>
+                                        </div>
+                                      </div>
+                                      <% } else if (!contentItem.canAccess && contentItem.unlockReason) { %>
+                                        <div class="prerequisites-info">
+                                          <i class="fas fa-info-circle"></i>
+                                          <span>
+                                            <%= contentItem.unlockReason %>
+                                          </span>
+                                        </div>
+                                        <% } %>
+                              </div>
+                              <% }); %>
+                          </div>
+                          <% } else { %>
+                            <div class="empty-content">
+                              <i class="fas fa-folder-open"></i>
+                              <p>No content available for this topic yet.</p>
+                            </div>
+                            <% } %>
                       </div>
                     </div>
-                    <% } else if (!contentItem.canAccess && contentItem.unlockReason) { %>
-                    <div class="prerequisites-info">
-                      <i class="fas fa-info-circle"></i>
-                      <span><%= contentItem.unlockReason %></span>
-                    </div>
-                    <% } %>
-                  </div>
-                  <% }); %>
+                    <% }); %>
                 </div>
                 <% } else { %>
-                <div class="empty-content">
-                  <i class="fas fa-folder-open"></i>
-                  <p>No content available for this topic yet.</p>
-                </div>
-                <% } %>
-              </div>
+                  <div class="empty-topics">
+                    <div class="empty-icon">
+                      <i class="fas fa-book-open"></i>
+                    </div>
+                    <h3>No Topics Available</h3>
+                    <p>This course doesn't have any topics yet. Check back later!</p>
+                  </div>
+                  <% } %>
             </div>
-            <% }); %>
           </div>
-          <% } else { %>
-          <div class="empty-topics">
-            <div class="empty-icon">
-              <i class="fas fa-book-open"></i>
-            </div>
-            <h3>No Topics Available</h3>
-            <p>This course doesn't have any topics yet. Check back later!</p>
-          </div>
-          <% } %>
-        </div>
-      </div>
-    </main>
+      </main>
   </div>
 
   <!-- JavaScript -->
@@ -915,13 +1008,13 @@
     }
 
     // Prevent event bubbling for buttons and links inside content items
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       // Stop propagation for all buttons and links inside content items
       const contentItems = document.querySelectorAll('.content-item');
       contentItems.forEach(item => {
         const buttons = item.querySelectorAll('button, a.btn, .zoom-admin-controls');
         buttons.forEach(btn => {
-          btn.addEventListener('click', function(e) {
+          btn.addEventListener('click', function (e) {
             e.stopPropagation();
           });
         });
@@ -930,7 +1023,7 @@
       // Add click handler for prerequisite links to track navigation
       const prerequisiteLinks = document.querySelectorAll('.prerequisite-link');
       prerequisiteLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function (e) {
           // Stop propagation so card click doesn't trigger
           e.stopPropagation();
           // Add visual feedback
@@ -945,31 +1038,31 @@
       const topicHeaders = document.querySelectorAll('.clickable-topic-header');
       topicHeaders.forEach(header => {
         const topicId = header.getAttribute('data-topic-id');
-        
+
         // Click handler for the entire header
-        header.addEventListener('click', function(e) {
+        header.addEventListener('click', function (e) {
           // Don't toggle if clicking on content items or their buttons/links
           const clickedContent = e.target.closest('.topic-content');
           const clickedContentItem = e.target.closest('.content-item');
           const clickedLink = e.target.closest('a');
           const clickedButton = e.target.closest('button');
-          
+
           // If clicking inside content area or on interactive elements, don't toggle
           if (clickedContent || clickedContentItem || clickedLink || clickedButton) {
             e.stopPropagation();
             return;
           }
-          
+
           // Toggle the topic
           e.preventDefault();
           e.stopPropagation();
           toggleTopic(topicId);
         });
-        
+
         // Keyboard support
         header.setAttribute('role', 'button');
         header.setAttribute('tabindex', '0');
-        header.addEventListener('keydown', function(e) {
+        header.addEventListener('keydown', function (e) {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             e.stopPropagation();
@@ -980,7 +1073,7 @@
     });
 
     // Auto-expand first topic
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       const firstTopic = document.querySelector('.topic-card');
       if (firstTopic) {
         const topicId = firstTopic.getAttribute('data-topic-id');
@@ -990,7 +1083,7 @@
     });
 
     // Add smooth animations
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       const topicCards = document.querySelectorAll('.topic-card');
 
       topicCards.forEach((card, index) => {
@@ -1116,12 +1209,12 @@
     }
 
     // Make content item cards clickable
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       const contentItems = document.querySelectorAll('.clickable-content-item');
       contentItems.forEach(item => {
         const contentUrl = item.getAttribute('data-content-url');
         if (contentUrl) {
-          item.addEventListener('click', function(e) {
+          item.addEventListener('click', function (e) {
             // Don't navigate if clicking on:
             // - Buttons (Start, View Details, etc.)
             // - Links (prerequisite links)
@@ -1132,13 +1225,13 @@
             const clickedAdminControls = e.target.closest('.zoom-admin-controls');
             const clickedPrerequisites = e.target.closest('.prerequisites-info');
             const clickedLocked = e.target.closest('.content-locked');
-            
+
             // Allow buttons and links to work normally
             if (clickedButton || clickedLink || clickedAdminControls || clickedPrerequisites || clickedLocked) {
               e.stopPropagation(); // Stop propagation to prevent topic toggle
               return;
             }
-            
+
             // Navigate to content
             e.preventDefault();
             e.stopPropagation(); // Stop propagation to prevent topic toggle
@@ -1150,7 +1243,7 @@
       // Prevent topic toggle when clicking inside content area
       const topicContents = document.querySelectorAll('.topic-content');
       topicContents.forEach(content => {
-        content.addEventListener('click', function(e) {
+        content.addEventListener('click', function (e) {
           // Stop propagation to prevent topic header toggle
           e.stopPropagation();
         });
@@ -1159,36 +1252,36 @@
       // Highlight and scroll to locked content if redirected from locked content click
       <% if (lockedContentId) { %>
       const lockedContentId = '<%= lockedContentId %>';
-      const lockedContentItem = document.querySelector(`[data-content-id="${lockedContentId}"]`);
-      
-      if (lockedContentItem) {
-        // Add highlight class
-        lockedContentItem.classList.add('locked-highlight');
-        
-        // Find the parent topic and expand it if collapsed
-        const topicContent = lockedContentItem.closest('.topic-content');
-        if (topicContent && topicContent.style.display === 'none') {
-          const topicCard = lockedContentItem.closest('.topic-card');
-          const topicHeader = topicCard?.querySelector('.clickable-topic-header');
-          if (topicHeader) {
-            topicHeader.click(); // Trigger topic expansion
+        const lockedContentItem = document.querySelector(`[data-content-id="${lockedContentId}"]`);
+
+        if (lockedContentItem) {
+          // Add highlight class
+          lockedContentItem.classList.add('locked-highlight');
+
+          // Find the parent topic and expand it if collapsed
+          const topicContent = lockedContentItem.closest('.topic-content');
+          if (topicContent && topicContent.style.display === 'none') {
+            const topicCard = lockedContentItem.closest('.topic-card');
+            const topicHeader = topicCard?.querySelector('.clickable-topic-header');
+            if (topicHeader) {
+              topicHeader.click(); // Trigger topic expansion
+            }
           }
-        }
-        
-        // Scroll to the locked content with smooth animation
-        setTimeout(() => {
-          lockedContentItem.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center',
-            inline: 'nearest'
-          });
-          
-          // Remove highlight after 5 seconds
+
+          // Scroll to the locked content with smooth animation
           setTimeout(() => {
-            lockedContentItem.classList.remove('locked-highlight');
-          }, 5000);
-        }, 300); // Small delay to ensure topic is expanded
-      }
+            lockedContentItem.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+              inline: 'nearest'
+            });
+
+            // Remove highlight after 5 seconds
+            setTimeout(() => {
+              lockedContentItem.classList.remove('locked-highlight');
+            }, 5000);
+          }, 300); // Small delay to ensure topic is expanded
+        }
       <% } %>
     });
   </script>
@@ -1419,10 +1512,51 @@
       letter-spacing: 0.5px;
     }
 
+    /* Completed Inline Badge - Enhanced Horizontal Layout (for PDFs, Videos, etc.) */
+    .completed-inline-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      padding: 10px 16px;
+      border-radius: 12px;
+      box-shadow: 0 3px 12px rgba(16, 185, 129, 0.3);
+      flex: 1;
+      max-width: 100%;
+      min-width: 220px;
+    }
+
+    .completed-badge-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .completed-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+    }
+
+    .completed-info i {
+      font-size: 18px;
+    }
+
+    .completed-text {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
     /* Responsive adjustments for submission badges */
     @media (max-width: 768px) {
+
       .graded-inline-badge,
-      .pending-inline-badge {
+      .pending-inline-badge,
+      .completed-inline-badge {
         min-width: unset;
         flex-wrap: wrap;
         gap: 10px;
@@ -1430,7 +1564,8 @@
       }
 
       .graded-badge-left,
-      .pending-badge-left {
+      .pending-badge-left,
+      .completed-badge-left {
         flex: 0 0 auto;
       }
 
@@ -1460,15 +1595,18 @@
     }
 
     @media (max-width: 480px) {
+
       .graded-inline-badge,
-      .pending-inline-badge {
+      .pending-inline-badge,
+      .completed-inline-badge {
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
       }
 
       .graded-badge-left,
-      .pending-badge-left {
+      .pending-badge-left,
+      .completed-badge-left {
         justify-content: center;
       }
 
@@ -1492,12 +1630,22 @@
       background: linear-gradient(135deg, #451a03 0%, #78350f 100%);
     }
 
+    .dark-theme .content-item.completed {
+      background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+      border: 1px solid #10b981;
+      border-left: 4px solid #10b981;
+    }
+
     .dark-theme .graded-inline-badge {
       background: linear-gradient(135deg, #059669, #047857);
     }
 
     .dark-theme .pending-inline-badge {
       background: linear-gradient(135deg, #d97706, #b45309);
+    }
+
+    .dark-theme .completed-inline-badge {
+      background: linear-gradient(135deg, #059669, #047857);
     }
 
     .content-progress-info {
@@ -1746,6 +1894,7 @@
     }
 
     @media (max-width: 768px) {
+
       /* Mobile Content Cards - Centered and Beautiful Design */
       .content-item {
         padding: 20px;

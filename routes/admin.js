@@ -218,6 +218,10 @@ const {
   gradeSubmission,
   getSubmissionDetails,
   deleteSubmission,
+  // G-Teacher Analysis & Invoices
+  getGTeacherAnalysis,
+  getTeacherInvoiceData,
+  exportTeacherInvoice,
 } = require('../controllers/adminController');
 
 // Import WhatsApp Controllers
@@ -551,5 +555,10 @@ router.put('/api/exam-periods/:periodId', isAdmin, updateExamPeriod);
 router.put('/api/exam-periods/:periodId/toggle-status', isAdmin, toggleExamPeriodStatus);
 router.patch('/api/exam-periods/:periodId/toggle-current', isAdmin, toggleExamPeriodCurrent);
 router.delete('/api/exam-periods/:periodId', isAdmin, deleteExamPeriod);
+
+// G-Teacher Analysis & Invoices Routes
+router.get('/gteacher-analysis', isAdmin, getGTeacherAnalysis);
+router.get('/api/teacher-invoice/:teacherId', isAdmin, getTeacherInvoiceData);
+router.post('/api/teacher-invoice/:teacherId/export', isAdmin, exportTeacherInvoice);
 
 module.exports = router;

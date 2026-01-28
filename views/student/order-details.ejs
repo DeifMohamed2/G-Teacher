@@ -158,9 +158,73 @@
                                                         <div class="meta-value"><%= order.item.topics ? order.item.topics.length : 0 %> topics</div>
                                                     </div>
                                                 </div>
+                                                <% if (order.item.teacher) { %>
+                                                    <div class="meta-item">
+                                                        <div class="meta-icon">
+                                                            <i class="fas fa-chalkboard-teacher"></i>
+                                                        </div>
+                                                        <div class="meta-content">
+                                                            <div class="meta-label">Instructor</div>
+                                                            <div class="meta-value"><%= order.item.teacher.firstName %> <%= order.item.teacher.lastName %></div>
+                                                        </div>
+                                                    </div>
+                                                <% } %>
                                             <% } %>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Information -->
+                        <div class="order-section">
+                            <div class="section-header">
+                                <h2 class="section-title">
+                                    <i class="fas fa-credit-card"></i>
+                                    Payment Information
+                                </h2>
+                            </div>
+                            
+                            <div class="payment-info-card">
+                                <div class="payment-grid">
+                                    <div class="payment-item">
+                                        <div class="payment-icon">
+                                            <i class="fas fa-wallet"></i>
+                                        </div>
+                                        <div class="payment-details">
+                                            <span class="payment-label">Payment Method</span>
+                                            <span class="payment-value"><%= order.paymentMethod ? order.paymentMethod.charAt(0).toUpperCase() + order.paymentMethod.slice(1) : 'Online Payment' %></span>
+                                        </div>
+                                    </div>
+                                    <div class="payment-item">
+                                        <div class="payment-icon status-<%= order.status %>">
+                                            <i class="fas fa-<%= order.status === 'active' || order.status === 'completed' ? 'check-circle' : order.status === 'pending' ? 'hourglass-half' : 'times-circle' %>"></i>
+                                        </div>
+                                        <div class="payment-details">
+                                            <span class="payment-label">Payment Status</span>
+                                            <span class="payment-value status-text-<%= order.status %>"><%= order.status.charAt(0).toUpperCase() + order.status.slice(1) %></span>
+                                        </div>
+                                    </div>
+                                    <div class="payment-item">
+                                        <div class="payment-icon">
+                                            <i class="fas fa-calendar-check"></i>
+                                        </div>
+                                        <div class="payment-details">
+                                            <span class="payment-label">Purchase Date</span>
+                                            <span class="payment-value"><%= new Date(order.purchasedAt || order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></span>
+                                        </div>
+                                    </div>
+                                    <% if (order.transactionId || order.paymobOrderId) { %>
+                                    <div class="payment-item">
+                                        <div class="payment-icon">
+                                            <i class="fas fa-hashtag"></i>
+                                        </div>
+                                        <div class="payment-details">
+                                            <span class="payment-label">Transaction ID</span>
+                                            <span class="payment-value payment-ref"><%= order.transactionId || order.paymobOrderId %></span>
+                                        </div>
+                                    </div>
+                                    <% } %>
                                 </div>
                             </div>
                         </div>
@@ -171,24 +235,25 @@
                                 <div class="section-header">
                                     <h2 class="section-title">
                                         <i class="fas fa-list"></i>
-                                        Included Weeks
+                                        Included Topics
                                     </h2>
+                                    <span class="section-badge"><%= order.item.topics.length %> topics</span>
                                 </div>
                                 
-                                <div class="courses-grid">
-                                    <% order.item.courses.forEach((course, index) => { %>
-                                        <div class="course-card">
-                                            <div class="course-number">
+                                <div class="topics-grid">
+                                    <% order.item.topics.forEach((topic, index) => { %>
+                                        <div class="topic-card">
+                                            <div class="topic-number">
                                                 <%= index + 1 %>
                                             </div>
-                                            <div class="course-info">
-                                                <h4 class="course-title"><%= course.title %></h4>
-                                                <div class="course-meta">
-                                                    <span class="course-duration">
-                                                        <i class="fas fa-clock"></i>
-                                                        <%= course.duration %>h
-                                                    </span>
-                                                </div>
+                                            <div class="topic-info">
+                                                <h4 class="topic-title"><%= topic.title %></h4>
+                                                <% if (topic.description) { %>
+                                                    <p class="topic-description"><%= topic.description.substring(0, 100) %><%= topic.description.length > 100 ? '...' : '' %></p>
+                                                <% } %>
+                                            </div>
+                                            <div class="topic-status">
+                                                <i class="fas fa-check-circle"></i>
                                             </div>
                                         </div>
                                     <% }); %>
@@ -460,14 +525,14 @@
     <!-- Enhanced CSS -->
     <style>
         :root {
-            --primary-color: #dc2626;
-            --primary-light: #fef2f2;
-            --success-color: #059669;
-            --success-light: #f0fdf4;
-            --warning-color: #d97706;
-            --warning-light: #fffbeb;
-            --info-color: #0ea5e9;
-            --info-light: #f0f9ff;
+            --primary-color: #2563eb;
+            --primary-light: #eff6ff;
+            --success-color: #2563eb;
+            --success-light: #eff6ff;
+            --warning-color: #2563eb;
+            --warning-light: #eff6ff;
+            --info-color: #2563eb;
+            --info-light: #eff6ff;
             --text-primary: #111827;
             --text-secondary: #6b7280;
             --text-muted: #9ca3af;
@@ -512,7 +577,7 @@
         }
 
         .order-header {
-            background: linear-gradient(135deg, var(--primary-color), #b91c1c);
+            background: linear-gradient(135deg, var(--primary-color), #1e40af);
             color: white;
             padding: var(--spacing-2xl);
         }
@@ -559,20 +624,19 @@
         }
 
         .order-status.status-active,
+        .order-status.status-active,
         .order-status.status-completed {
-            background: rgba(34, 197, 94, 0.2);
-            color: #22c55e;
+            background: rgba(37, 99, 235, 0.15);
+            color: #2563eb;
         }
-
         .order-status.status-pending {
-            background: rgba(245, 158, 11, 0.2);
-            color: #f59e0b;
+            background: rgba(37, 99, 235, 0.10);
+            color: #2563eb;
         }
-
         .order-status.status-failed,
         .order-status.status-cancelled {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
+            background: rgba(37, 99, 235, 0.10);
+            color: #2563eb;
         }
 
         .order-actions-header {
@@ -685,12 +749,12 @@
 
         .badge-primary {
             background: #dbeafe;
-            color: #1e40af;
+            color: #2563eb;
         }
 
         .badge-success {
-            background: #dcfce7;
-            color: #166534;
+            background: #dbeafe;
+            color: #2563eb;
         }
 
         .item-description {
@@ -802,8 +866,170 @@
             color: var(--text-secondary);
         }
 
+        /* Topics Grid Styles */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .section-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: var(--spacing-xs) var(--spacing-md);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .topics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: var(--spacing-md);
+        }
+
+        .topic-card {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-md);
+            padding: var(--spacing-lg);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+
+        .topic-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .topic-number {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            background: linear-gradient(135deg, var(--primary-color), #1e40af);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        .topic-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .topic-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 var(--spacing-xs) 0;
+            line-height: 1.4;
+        }
+
+        .topic-description {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .topic-status {
+            flex-shrink: 0;
+            color: var(--primary-color);
+            font-size: 1.25rem;
+        }
+
+        /* Payment Info Styles */
+        .payment-info-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+        }
+
+        .payment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .payment-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .payment-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .payment-icon.status-active,
+        .payment-icon.status-active,
+        .payment-icon.status-completed {
+            background: rgba(37, 99, 235, 0.15);
+            color: var(--primary-color);
+        }
+        .payment-icon.status-pending {
+            background: rgba(37, 99, 235, 0.10);
+            color: var(--primary-color);
+        }
+        .payment-icon.status-failed,
+        .payment-icon.status-cancelled {
+            background: rgba(37, 99, 235, 0.10);
+            color: var(--primary-color);
+        }
+
+        .payment-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .payment-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .payment-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .payment-ref {
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+
+        .status-text-active,
+        .status-text-active,
+        .status-text-completed,
+        .status-text-pending,
+        .status-text-failed,
+        .status-text-cancelled {
+            color: var(--primary-color);
+        }
+
         .promo-code-card {
-            background: linear-gradient(135deg, var(--info-light), #e0f2fe);
+            background: linear-gradient(135deg, var(--info-light), #dbeafe);
             border: 1px solid var(--info-color);
             border-radius: var(--radius-lg);
             padding: var(--spacing-xl);
@@ -828,7 +1054,7 @@
         }
 
         .promo-code-badge {
-            background: var(--info-color);
+            background: var(--primary-color);
             color: white;
             padding: var(--spacing-sm) var(--spacing-md);
             border-radius: var(--radius-md);
@@ -911,15 +1137,15 @@
         }
 
         .discount-row {
-            background: var(--success-light);
-            border-left: 4px solid var(--success-color);
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary-color);
             padding: var(--spacing-sm) var(--spacing-md);
             margin: var(--spacing-sm) 0;
             border-radius: var(--radius-sm);
         }
 
         .discount-row .summary-label {
-            color: var(--success-color);
+            color: var(--primary-color);
             font-weight: 600;
             display: flex;
             align-items: center;
@@ -927,7 +1153,7 @@
         }
 
         .discount-value {
-            color: var(--success-color);
+            color: var(--primary-color);
             font-weight: 700;
         }
 

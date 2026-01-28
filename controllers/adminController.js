@@ -13514,6 +13514,414 @@ const deleteSubmission = async (req, res) => {
   }
 };
 
+// ==================== G-TEACHER ANALYSIS & INVOICES ====================
+
+/**
+ * Get G-Teacher Analysis Page - Comprehensive financial overview
+ * Uses same calculation logic as dashboard for consistency
+ */
+const getGTeacherAnalysis = async (req, res) => {
+  try {
+    // Get all active teachers with their courses
+    const allTeachers = await Teacher.find({ isActive: true })
+      .select('firstName lastName teacherCode subject gTeacherPercentage profilePicture phoneNumber email countryCode')
+      .sort({ firstName: 1 })
+      .lean();
+
+    // Calculate performance for each teacher using STORED commission data from purchases
+    // Same logic as dashboard
+    const teacherPerformance = await Promise.all(
+      allTeachers.map(async (teacher) => {
+        try {
+          // Get courses for this teacher
+          const teacherCourses = await Course.find({ teacher: teacher._id })
+            .select('_id title status')
+            .lean();
+
+          const courseIds = teacherCourses.map((c) => c._id);
+
+          // Get enrolled students count
+          const enrolledStudentsCount = await User.countDocuments({
+            role: 'student',
+            'enrolledCourses.course': { $in: courseIds },
+          });
+
+          // Get revenue and STORED commission data from completed purchases
+          // Use items.teacher field to match teacher, fall back to course matching
+          // Revenue = actual amount paid (order.total after promo), allocated per item
+          const revenueResult = await Purchase.aggregate([
+            {
+              $match: {
+                status: { $in: ['completed', 'paid'] },
+                $or: [{ refundedAt: { $exists: false } }, { refundedAt: null }],
+              },
+            },
+            { $unwind: '$items' },
+            {
+              $match: {
+                'items.itemType': 'course',
+                $or: [
+                  { 'items.teacher': teacher._id },
+                  { 'items.item': { $in: courseIds } }
+                ]
+              },
+            },
+            {
+              $addFields: {
+                itemRevenue: {
+                  $cond: [
+                    { $gt: [{ $ifNull: ['$subtotal', 0] }, 0] },
+                    {
+                      $multiply: [
+                        {
+                          $divide: [
+                            {
+                              $multiply: [
+                                { $ifNull: ['$items.price', 0] },
+                                { $ifNull: ['$items.quantity', 1] }
+                              ]
+                            },
+                            '$subtotal'
+                          ]
+                        },
+                        '$total'
+                      ]
+                    },
+                    0
+                  ]
+                }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                totalRevenue: { $sum: '$itemRevenue' },
+                totalGTeacherCommission: { $sum: { $ifNull: ['$items.gTeacherCommission', 0] } },
+                totalTeacherNet: { $sum: { $ifNull: ['$items.teacherNet', 0] } },
+                orderCount: { $sum: 1 },
+              },
+            },
+          ]);
+
+          // Get refund data
+          const refundResult = await Purchase.aggregate([
+            {
+              $match: {
+                $or: [
+                  { refundedAt: { $exists: true, $ne: null } },
+                  { paymentStatus: 'refunded' }
+                ],
+              },
+            },
+            { $unwind: '$items' },
+            {
+              $match: {
+                'items.itemType': 'course',
+                $or: [
+                  { 'items.teacher': teacher._id },
+                  { 'items.item': { $in: courseIds } }
+                ]
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                refundCount: { $sum: 1 },
+                refundAmount: { $sum: { $ifNull: ['$items.price', 0] } },
+              },
+            },
+          ]);
+
+          const revenue = Math.round((revenueResult[0]?.totalRevenue || 0) * 100) / 100;
+          const gTeacherCommission = Math.round((revenueResult[0]?.totalGTeacherCommission || 0) * 100) / 100;
+          const teacherNet = Math.round((revenueResult[0]?.totalTeacherNet || 0) * 100) / 100;
+          const orderCount = revenueResult[0]?.orderCount || 0;
+          const refundCount = refundResult[0]?.refundCount || 0;
+          const refundAmount = Math.round((refundResult[0]?.refundAmount || 0) * 100) / 100;
+
+          return {
+            teacher: teacher,
+            coursesCount: teacherCourses.length,
+            publishedCourses: teacherCourses.filter((c) => c.status === 'published').length,
+            studentsCount: enrolledStudentsCount,
+            totalRevenue: revenue,
+            gTeacherCommission: gTeacherCommission,
+            teacherNet: teacherNet,
+            orderCount: orderCount,
+            refundCount: refundCount,
+            refundAmount: refundAmount,
+          };
+        } catch (error) {
+          console.error('Error calculating teacher performance:', teacher.firstName, error);
+          return {
+            teacher: teacher,
+            coursesCount: 0,
+            publishedCourses: 0,
+            studentsCount: 0,
+            totalRevenue: 0,
+            gTeacherCommission: 0,
+            teacherNet: 0,
+            orderCount: 0,
+            refundCount: 0,
+            refundAmount: 0,
+          };
+        }
+      })
+    );
+
+    // Calculate platform totals
+    const platformStats = teacherPerformance.reduce((acc, teacher) => {
+      acc.totalRevenue += teacher.totalRevenue || 0;
+      acc.totalGTeacherCommission += teacher.gTeacherCommission || 0;
+      acc.totalTeacherNet += teacher.teacherNet || 0;
+      acc.totalOrders += teacher.orderCount || 0;
+      acc.totalRefunds += teacher.refundCount || 0;
+      acc.refundAmount += teacher.refundAmount || 0;
+      return acc;
+    }, { totalRevenue: 0, totalGTeacherCommission: 0, totalTeacherNet: 0, totalOrders: 0, totalRefunds: 0, refundAmount: 0 });
+
+    // Sort by revenue and add rank - include ALL teachers
+    const teacherRankings = teacherPerformance
+      .sort((a, b) => {
+        const revA = a.totalRevenue ?? 0;
+        const revB = b.totalRevenue ?? 0;
+        if (revB !== revA) return revB - revA;
+        return (b.studentsCount ?? 0) - (a.studentsCount ?? 0);
+      })
+      .map((stat, index) => ({
+        ...stat,
+        rank: index + 1,
+      }));
+
+    // Monthly trends (last 12 months)
+    const monthlyData = await Purchase.aggregate([
+      {
+        $match: {
+          status: { $in: ['completed', 'paid'] },
+          createdAt: { $gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000) },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' },
+          },
+          revenue: { $sum: '$total' },
+          commission: { $sum: '$totalGTeacherCommission' },
+          orders: { $sum: 1 },
+        },
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } },
+    ]);
+
+    res.render('admin/gteacher-analysis', {
+      title: 'G-Teacher Analysis & Invoices | ELKABLY',
+      theme: req.cookies.theme || 'light',
+      user: req.session.user,
+      teachers: allTeachers,
+      teacherRankings,
+      platformStats,
+      monthlyData,
+    });
+  } catch (error) {
+    console.error('G-Teacher Analysis error:', error);
+    req.flash('error_msg', 'Error loading analysis page');
+    res.redirect('/admin/dashboard');
+  }
+};
+
+/**
+ * Get Teacher Invoice Data - API endpoint for invoice generation
+ */
+const getTeacherInvoiceData = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Start date and end date are required',
+      });
+    }
+
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    // Get teacher details
+    const teacher = await Teacher.findById(teacherId);
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found',
+      });
+    }
+
+    // Get courses for this teacher
+    const teacherCourses = await Course.find({ teacher: teacherId })
+      .select('_id title')
+      .lean();
+    const courseIds = teacherCourses.map((c) => c._id);
+
+    // Get all purchases for this teacher in the date range
+    // Match by teacher field OR by course IDs belonging to this teacher
+    const purchases = await Purchase.find({
+      status: { $in: ['completed', 'paid'] },
+      createdAt: { $gte: start, $lte: end },
+      $or: [
+        { 'items.teacher': teacherId },
+        { 'items.item': { $in: courseIds } }
+      ],
+    })
+      .populate('user', 'firstName lastName studentEmail studentNumber')
+      .populate('items.item', 'title courseCode teacher')
+      .sort({ createdAt: 1 });
+
+    // Organize data by course
+    const courseData = {};
+    let totalAED = 0;
+    let totalEGP = 0;
+
+    purchases.forEach(purchase => {
+      const isRefunded = purchase.refundedAt || purchase.paymentStatus === 'refunded';
+      
+      purchase.items.forEach(item => {
+        // Check if this item belongs to the teacher
+        let belongsToTeacher = false;
+        
+        if (item.teacher) {
+          const itemTeacherId = item.teacher._id ? item.teacher._id.toString() : item.teacher.toString();
+          belongsToTeacher = itemTeacherId === teacherId;
+        }
+        
+        // Also check if the item (course) belongs to this teacher
+        if (!belongsToTeacher && item.item) {
+          const courseId = item.item._id ? item.item._id.toString() : item.item.toString();
+          belongsToTeacher = courseIds.some(cid => cid.toString() === courseId);
+        }
+        
+        if (!belongsToTeacher) return;
+
+        const courseTitle = item.title || (item.item?.title) || 'Unknown Course';
+        if (!courseData[courseTitle]) {
+          courseData[courseTitle] = {
+            title: courseTitle,
+            orders: [],
+            totalRevenue: 0,
+            refundAmount: 0,
+          };
+        }
+
+        // Calculate actual revenue (proportional to item price if promo was applied)
+        let itemRevenue = item.price || 0;
+        if (purchase.subtotal && purchase.subtotal > 0) {
+          itemRevenue = (item.price * (item.quantity || 1) / purchase.subtotal) * purchase.total;
+        }
+
+        const orderData = {
+          no: courseData[courseTitle].orders.length + 1,
+          orderStatus: isRefunded ? 'Refund' : '',
+          firstName: purchase.user?.firstName || 'Unknown',
+          lastName: purchase.user?.lastName || '',
+          revenue: isRefunded ? -Math.round(itemRevenue) : Math.round(itemRevenue),
+          date: purchase.createdAt,
+          orderId: purchase.orderNumber || purchase._id,
+          currency: purchase.currency || 'EGP',
+        };
+
+        courseData[courseTitle].orders.push(orderData);
+        
+        if (isRefunded) {
+          courseData[courseTitle].refundAmount += itemRevenue;
+        } else {
+          courseData[courseTitle].totalRevenue += itemRevenue;
+        }
+      });
+    });
+
+    // Calculate totals
+    Object.values(courseData).forEach(course => {
+      const netRevenue = course.totalRevenue - course.refundAmount;
+      // Assuming AED conversion (you can adjust the rate)
+      totalAED += netRevenue * 0.0735; // EGP to AED approximate rate
+      totalEGP += netRevenue;
+    });
+
+    // Format the data for the invoice
+    const invoiceData = {
+      teacher: {
+        name: `${teacher.firstName} ${teacher.lastName}`,
+        code: teacher.teacherCode,
+        phone: teacher.phoneNumber ? `${teacher.countryCode || '+20'} ${teacher.phoneNumber}` : 'N/A',
+        email: teacher.email,
+        gTeacherPercentage: teacher.gTeacherPercentage || 0,
+      },
+      dateRange: {
+        start: startDate,
+        end: endDate,
+        displayStart: new Date(startDate).toLocaleDateString('en-US', { day: '2-digit', month: 'long' }),
+        displayEnd: new Date(endDate).toLocaleDateString('en-US', { day: '2-digit', month: 'long' }),
+      },
+      courses: Object.values(courseData).map(course => ({
+        ...course,
+        netRevenue: course.totalRevenue - course.refundAmount,
+      })),
+      totals: {
+        totalAED: Math.round(totalAED * 100) / 100,
+        totalEGP: Math.round(totalEGP * 100) / 100,
+        gTeacherCommission: Math.round(totalEGP * (teacher.gTeacherPercentage || 0) / 100 * 100) / 100,
+        teacherNet: Math.round(totalEGP * (1 - (teacher.gTeacherPercentage || 0) / 100) * 100) / 100,
+      },
+      generatedAt: new Date().toISOString(),
+      invoiceNumber: `INV-${teacher.teacherCode}-${Date.now()}`,
+    };
+
+    res.json({
+      success: true,
+      data: invoiceData,
+    });
+  } catch (error) {
+    console.error('Get teacher invoice data error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get invoice data',
+    });
+  }
+};
+
+/**
+ * Export Teacher Invoice as PDF data (for client-side PDF generation)
+ */
+const exportTeacherInvoice = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    const { startDate, endDate, invoiceData } = req.body;
+
+    if (!invoiceData) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invoice data is required',
+      });
+    }
+
+    // Return success - actual PDF generation happens client-side
+    res.json({
+      success: true,
+      message: 'Invoice data ready for export',
+      data: invoiceData,
+    });
+  } catch (error) {
+    console.error('Export teacher invoice error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to export invoice',
+    });
+  }
+};
+
 // ==================== MODULE EXPORTS ====================
 
 module.exports = {
@@ -13638,4 +14046,8 @@ module.exports = {
   gradeSubmission,
   getSubmissionDetails,
   deleteSubmission,
+  // G-Teacher Analysis & Invoices
+  getGTeacherAnalysis,
+  getTeacherInvoiceData,
+  exportTeacherInvoice,
 };

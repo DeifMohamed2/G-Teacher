@@ -218,7 +218,10 @@ const getTeacherCourses = async (req, res) => {
     const { subject, examDate, courseType } = req.query;
     const mongoose = require('mongoose');
     
-    const user = req.session.user ? await User.findById(req.session.user.id) : null;
+    const user = req.session.user ? await User.findById(req.session.user.id).populate('wishlist') : null;
+    
+    // Get wishlist course IDs for easy lookup
+    const wishlistIds = user && user.wishlist ? user.wishlist.map(id => id.toString()) : [];
     
     let teacher;
     
@@ -308,6 +311,7 @@ const getTeacherCourses = async (req, res) => {
       filterOptions: { subjects: [], courseTypes: ['online', 'recorded', 'onground'] },
       currentFilters: { subject, courseType },
       user,
+      wishlistIds,
       cart: req.session.cart || []
     });
   } catch (error) {

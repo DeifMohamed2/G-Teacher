@@ -1440,7 +1440,17 @@ const orderHistory = async (req, res) => {
         const course = await Course.findById(order.course)
           .populate('teacher', 'firstName lastName teacherCode')
           .select('title thumbnail level duration teacher');
-        return { ...order.toObject ? order.toObject() : order, item: course, type: 'course' };
+        const orderData = order.toObject ? order.toObject() : order;
+        return { 
+          ...orderData, 
+          item: course, 
+          type: 'course',
+          // Ensure all pricing fields are available
+          price: orderData.price || 0,
+          originalAmount: orderData.originalAmount || orderData.price || 0,
+          discountAmount: orderData.discountAmount || 0,
+          status: orderData.status || 'active'
+        };
       })
     );
 
@@ -1559,6 +1569,10 @@ const orderDetails = async (req, res) => {
       originalAmount: order.originalAmount || order.price,
       appliedPromoCode: order.appliedPromoCode,
       promoCodeUsed: order.promoCodeUsed,
+      // Payment information
+      paymentMethod: order.paymentMethod || 'card',
+      transactionId: order.transactionId || order.paymobTransactionId,
+      paymobOrderId: order.paymobOrderId,
     };
 
     // Debug logging

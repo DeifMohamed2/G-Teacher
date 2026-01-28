@@ -613,9 +613,12 @@ UserSchema.methods.isCourseInWishlist = function (courseId) {
 
 // Get completed content IDs for a course (from enrollment.contentProgress)
 UserSchema.methods.getCompletedContentIds = function (courseId) {
-  const enrollment = this.enrolledCourses.find(
-    (e) => e.course && e.course.toString() === courseId.toString()
-  );
+  const enrollment = this.enrolledCourses.find((e) => {
+    if (!e.course) return false;
+    // Handle both populated (object) and non-populated (ObjectId) cases
+    const enrolledCourseId = e.course._id ? e.course._id.toString() : e.course.toString();
+    return enrolledCourseId === courseId.toString();
+  });
   if (!enrollment || !enrollment.contentProgress) return [];
   return enrollment.contentProgress
     .filter((cp) => cp.completionStatus === 'completed' && cp.contentId)
@@ -624,9 +627,12 @@ UserSchema.methods.getCompletedContentIds = function (courseId) {
 
 // Get content progress details for a specific content item
 UserSchema.methods.getContentProgressDetails = function (courseId, contentId) {
-  const enrollment = this.enrolledCourses.find(
-    (e) => e.course && e.course.toString() === courseId.toString()
-  );
+  const enrollment = this.enrolledCourses.find((e) => {
+    if (!e.course) return false;
+    // Handle both populated (object) and non-populated (ObjectId) cases
+    const enrolledCourseId = e.course._id ? e.course._id.toString() : e.course.toString();
+    return enrolledCourseId === courseId.toString();
+  });
   if (!enrollment || !enrollment.contentProgress) return null;
   const cp = enrollment.contentProgress.find(
     (p) => p.contentId && p.contentId.toString() === contentId.toString()
@@ -649,9 +655,12 @@ UserSchema.methods.getContentProgressDetails = function (courseId, contentId) {
 // Calculate topic progress (percentage of completed content in topic)
 // topicContentCount optional; if omitted, uses count of contentProgress entries for topic
 UserSchema.methods.calculateTopicProgress = function (courseId, topicId, topicContentCount) {
-  const enrollment = this.enrolledCourses.find(
-    (e) => e.course && e.course.toString() === courseId.toString()
-  );
+  const enrollment = this.enrolledCourses.find((e) => {
+    if (!e.course) return false;
+    // Handle both populated (object) and non-populated (ObjectId) cases
+    const enrolledCourseId = e.course._id ? e.course._id.toString() : e.course.toString();
+    return enrolledCourseId === courseId.toString();
+  });
   if (!enrollment || !enrollment.contentProgress) return 0;
   const forTopic = enrollment.contentProgress.filter(
     (p) => p.topicId && p.topicId.toString() === topicId.toString()
