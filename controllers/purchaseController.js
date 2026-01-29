@@ -395,7 +395,7 @@ const validateCartMiddleware = async (req, res, next) => {
       };
 
       console.log(
-        `Cart validation complete. ${recalculatedCart.items.length} valid items, total: EGP${recalculatedCart.total}`
+        `Cart validation complete. ${recalculatedCart.items.length} valid items, total: AED${recalculatedCart.total}`
       );
     } else {
       req.validatedCart = {
@@ -1039,7 +1039,7 @@ const getCheckout = async (req, res) => {
     }
 
     res.render('checkout', {
-      title: 'Checkout | ELKABLY',
+      title: 'Checkout | G-Teacher',
       theme: req.cookies.theme || 'light',
       cart: validatedCart.items,
       subtotal: validatedCart.subtotal,
@@ -1438,7 +1438,7 @@ const processPayment = async (req, res) => {
       total: total,
       totalGTeacherCommission: Math.round(totalGTeacherCommission * 100) / 100,
       totalTeacherNet: Math.round(totalTeacherNet * 100) / 100,
-      currency: 'EGP',
+      currency: 'AED',
       paymentMethod: 'paymob',
       billingAddress,
       status: 'pending',
@@ -1518,7 +1518,7 @@ const processPayment = async (req, res) => {
             paymentData: {
               orderNumber: purchase.orderNumber,
               total: 0,
-              currency: 'EGP',
+              currency: 'AED',
             },
           });
         } else {
@@ -1582,7 +1582,7 @@ const processPayment = async (req, res) => {
         isUnifiedCheckout: paymentSession.isUnifiedCheckout || false,
         orderNumber: purchase.orderNumber,
         total: finalTotal, // Use the correct finalTotal variable
-        currency: 'EGP',
+        currency: 'AED',
       },
     });
   } catch (error) {
@@ -1619,7 +1619,7 @@ const getPurchaseHistory = async (req, res) => {
     const totalPages = Math.ceil(totalPurchases / parseInt(limit));
 
     res.render('purchase-history', {
-      title: 'Purchase History | ELKABLY',
+      title: 'Purchase History | G-Teacher',
       theme: req.cookies.theme || 'light',
       purchases,
       pagination: {
@@ -1820,7 +1820,7 @@ const handlePaymentSuccess = async (req, res) => {
     if (!purchase) {
       console.error('Payment success: Purchase not found');
       return res.render('payment-fail', {
-        title: 'Payment Error | ELKABLY',
+        title: 'Payment Error | G-Teacher',
         theme: req.cookies.theme || 'light',
         message: 'Payment record not found',
       });
@@ -1830,7 +1830,7 @@ const handlePaymentSuccess = async (req, res) => {
     // If purchase is marked as failed, show failure page
     if (purchase.status === 'failed' || purchase.paymentStatus === 'failed') {
       return res.render('payment-fail', {
-        title: 'Payment Failed | ELKABLY',
+        title: 'Payment Failed | G-Teacher',
         theme: req.cookies.theme || 'light',
         message:
           'Payment was not successful. Please try again or contact support.',
@@ -1928,7 +1928,7 @@ const handlePaymentSuccess = async (req, res) => {
             );
 
             return res.render('payment-fail', {
-              title: 'Payment Failed | ELKABLY',
+              title: 'Payment Failed | G-Teacher',
               theme: req.cookies.theme || 'light',
               message:
                 'Payment was not successful. Please try again or contact support.',
@@ -1946,7 +1946,7 @@ const handlePaymentSuccess = async (req, res) => {
       // If still pending after inquiry, show pending message
       if (purchase.status === 'pending') {
         return res.render('payment-fail', {
-          title: 'Payment Pending | ELKABLY',
+          title: 'Payment Pending | G-Teacher',
           theme: req.cookies.theme || 'light',
           message:
             'Your payment is being processed. Please wait a few moments and refresh this page, or check your email for confirmation.',

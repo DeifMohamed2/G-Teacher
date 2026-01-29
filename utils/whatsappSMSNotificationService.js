@@ -180,7 +180,7 @@ class WhatsAppSMSNotificationService {
     const orderNum = (purchaseData.orderNumber || purchaseData._id.toString()).substring(0, 12);
     const total = purchaseData.total || 0;
     const totalItems = purchaseData.items ? purchaseData.items.length : 0;
-    const message = `Payment Confirmed!\nStudent: ${studentName}\nOrder: #${orderNum}\nItems: ${totalItems} item(s)\nTotal: EGP ${total}\nThank you!\nELKABLY`;
+    const message = `Payment Confirmed!\nStudent: ${studentName}\nOrder: #${orderNum}\nItems: ${totalItems} item(s)\nTotal: AED ${total}\nThank you!\nELKABLY`;
     return this.truncateSmsMessage(message);
   }
 
@@ -749,7 +749,7 @@ ${performanceMessage}
 
 📚 *Items:* ${purchaseData.items ? purchaseData.items.map(item => item.title).join(', ') : 'Week/Course'}
 
-💰 *Total Amount:* EGP ${purchaseData.total || 0}
+💰 *Total Amount:* AED ${purchaseData.total || 0}
 
 📅 *Purchase Date:* ${purchaseDate}
 

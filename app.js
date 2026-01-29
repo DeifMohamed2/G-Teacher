@@ -136,7 +136,7 @@ app.use(cookieParser());
 app.use(methodOverride('_method'));
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'elkably-secret',
+    secret: process.env.SESSION_SECRET || 'G-teacher-secret',
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
@@ -149,7 +149,7 @@ app.use(
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
-    name: 'elkably.session', // Custom session name to avoid conflicts
+    name: 'G-teacher.session', // Custom session name to avoid conflicts
   })
 );
 
@@ -190,14 +190,9 @@ const studentRoutes = require('./routes/student');
 const purchaseRoutes = require('./routes/purchase');
 const zoomRoutes = require('./routes/zoom');
 const uploadRoutes = require('./routes/upload');
-const { createStudentFromExternalSystem } = require('./controllers/authController');
 
 // Special handling for webhook routes that need raw body
 app.use('/purchase/webhook', express.raw({ type: 'application/json' }));
-
-// External System API - Register endpoint (for external systems to create students)
-// This endpoint accepts POST requests from external systems
-app.post('/Register', express.json(), createStudentFromExternalSystem);
 
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);

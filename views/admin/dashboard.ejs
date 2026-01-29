@@ -548,7 +548,7 @@
                                   </span>
                                   <% } %>
                               </div>
-                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">Revenue last 30 days: EGP
+                              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">Revenue last 30 days: AED
                                 <%= dashboardData.revenue.thisMonth || 0 %>
                               </div>
                             </div>
@@ -584,7 +584,7 @@
                               </div>
                               <div>
                                 <div class="dashboard-teachers-metric-label" style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Revenue</div>
-                                <div style="font-size: 20px; font-weight: 700; color: #10b981;">EGP <%= ((dashboardData.teachers?.commissionTotals?.totalRevenue) || 0).toLocaleString() %></div>
+                                <div style="font-size: 20px; font-weight: 700; color: #10b981;">AED <%= ((dashboardData.teachers?.commissionTotals?.totalRevenue) || 0).toLocaleString() %></div>
                               </div>
                             </div>
                           </div>
@@ -597,7 +597,7 @@
                               </div>
                               <div>
                                 <div class="dashboard-teachers-metric-label" style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">G-Teacher Commission</div>
-                                <div style="font-size: 20px; font-weight: 700; color: #3a92bd;">EGP <%= ((dashboardData.teachers?.commissionTotals?.totalGTeacherCommission) || 0).toLocaleString() %></div>
+                                <div style="font-size: 20px; font-weight: 700; color: #3a92bd;">AED <%= ((dashboardData.teachers?.commissionTotals?.totalGTeacherCommission) || 0).toLocaleString() %></div>
                               </div>
                             </div>
                           </div>
@@ -610,7 +610,7 @@
                               </div>
                               <div>
                                 <div class="dashboard-teachers-metric-label" style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Teacher Net</div>
-                                <div style="font-size: 20px; font-weight: 700; color: #f59e0b;">EGP <%= ((dashboardData.teachers?.commissionTotals?.totalTeacherNet) || 0).toLocaleString() %></div>
+                                <div style="font-size: 20px; font-weight: 700; color: #f59e0b;">AED <%= ((dashboardData.teachers?.commissionTotals?.totalTeacherNet) || 0).toLocaleString() %></div>
                               </div>
                             </div>
                           </div>
@@ -738,7 +738,7 @@
                                     <div class="dashboard-teachers-text-muted" style="font-size: 11px; color: #94a3b8;">enrolled</div>
                                   </td>
                                   <td style="padding: 16px 20px; vertical-align: middle; border: none; text-align: right;">
-                                    <div style="font-weight: 700; color: #10b981; font-size: 15px;">EGP <%= (teacher.revenue || 0).toLocaleString() %></div>
+                                    <div style="font-weight: 700; color: #10b981; font-size: 15px;">AED <%= (teacher.revenue || 0).toLocaleString() %></div>
                                   </td>
                                   <td style="padding: 16px 20px; vertical-align: middle; border: none; text-align: center;">
                                     <span style="background: rgba(139, 92, 246, 0.12); color: #7c3aed; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 700;">
@@ -746,10 +746,10 @@
                                     </span>
                                   </td>
                                   <td style="padding: 16px 20px; vertical-align: middle; border: none; text-align: right;">
-                                    <div style="font-weight: 700; color: #3a92bd; font-size: 15px;">EGP <%= (teacher.gTeacherCommission || 0).toLocaleString() %></div>
+                                    <div style="font-weight: 700; color: #3a92bd; font-size: 15px;">AED <%= (teacher.gTeacherCommission || 0).toLocaleString() %></div>
                                   </td>
                                   <td style="padding: 16px 20px; vertical-align: middle; border: none; text-align: right;">
-                                    <div style="font-weight: 700; color: #f59e0b; font-size: 15px;">EGP <%= (teacher.teacherNet || 0).toLocaleString() %></div>
+                                    <div style="font-weight: 700; color: #f59e0b; font-size: 15px;">AED <%= (teacher.teacherNet || 0).toLocaleString() %></div>
                                   </td>
                                 </tr>
                               <% }); %>
@@ -976,7 +976,7 @@
                               </div>
                               <div class="course-stat-item">
                                 <div class="course-stat-value">
-                                  EGP <%= course.revenue %>
+                                  AED <%= course.revenue %>
                                 </div>
                                 <div class="course-stat-label">Revenue</div>
                               </div>
@@ -1308,7 +1308,7 @@
           data: {
             labels: chartLabels,
             datasets: [{
-              label: 'Revenue (EGP)',
+              label: 'Revenue (AED)',
               data: chartData,
               backgroundColor: 'rgba(58, 146, 189, 0.8)',
               borderColor: '#3a92bd',
@@ -1349,7 +1349,7 @@
                 },
                 callbacks: {
                   label: function (context) {
-                    return `Revenue: EGP ${context.parsed.y.toFixed(2)}`;
+                    return `Revenue: AED ${context.parsed.y.toFixed(2)}`;
                   }
                 }
               }
@@ -1363,7 +1363,7 @@
                 },
                 ticks: {
                   callback: function (value) {
-                    return 'EGP ' + value.toFixed(0);
+                    return 'AED ' + value.toFixed(0);
                   },
                   font: {
                     size: 11

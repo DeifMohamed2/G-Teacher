@@ -9,9 +9,9 @@
   </title>
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="/images/KImage.png">
-  <link rel="shortcut icon" type="image/png" href="/images/KImage.png">
-  <link rel="apple-touch-icon" href="/images/KImage.png">
+  <link rel="icon" type="image/png" href="/images/G-TeacherLogo.png">
+  <link rel="shortcut icon" type="image/png" href="/images/G-TeacherLogo.png">
+  <link rel="apple-touch-icon" href="/images/G-TeacherLogo.png">
 
   <!-- CSS -->
   <link rel="stylesheet" href="/css/studentCSS/student-main.css">
@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
   <!-- Meta Tags -->
-  <meta name="description" content="My Enrolled Weeks - Continue your learning journey">
+  <meta name="description" content="My Enrolled Courses - Continue your learning journey">
   <meta name="theme-color" content="#dc2626">
 </head>
 
@@ -76,7 +76,7 @@
                 <!-- Page Header -->
                 <div class="page-header" style="margin-bottom: var(--spacing-xl);">
                   <h2 style="color: var(--text-primary); margin-bottom: var(--spacing-sm);">
-                    My Enrolled Weeks
+                    My Enrolled Courses
                   </h2>
 
                 </div>
@@ -95,7 +95,7 @@
                         <!-- Search Input -->
                         <div class="search-group" style="flex: 1; min-width: 200px;">
                           <div style="position: relative;">
-                            <input type="text" name="search" placeholder="Search by week name..."
+                            <input type="text" name="search" placeholder="Search by course name..."
                               value="<%= filters.search %>" class="search-input"
                               style="width: 100%; padding: 10px 16px 10px 40px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font-size: 14px; transition: all 0.3s ease;">
                             <i class="fas fa-search"
@@ -156,7 +156,7 @@
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: 8px;">
                     <div class="results-count" style="color: var(--text-primary); font-weight: 500;">
                       <i class="fas fa-list" style="margin-right: 8px; color: var(--primary-color);"></i>
-                      Showing <%= enrolledCourses.length %> of <%= totalCourses || 0 %> weeks
+                      Showing <%= enrolledCourses.length %> of <%= totalCourses || 0 %> courses
                           <% if (filters.search || filters.progress !=='all' || (typeof selectedTeacherId !=='undefined'
                             && selectedTeacherId !=='all' )) { %>
                             <span style="color: var(--text-muted); font-size: 0.9rem; margin-left: 8px;">
@@ -246,7 +246,7 @@
                                     <span
                                       style="font-size: 0.95rem; color: var(--text-muted); background: var(--bg-primary); padding: 4px 12px; border-radius: 16px; font-weight: 500;">
                                       <i class="fas fa-book" style="margin-right: 4px;"></i>
-                                      <%= teacherGroup.courses.length %> week<%= teacherGroup.courses.length !==1 ? 's'
+                                      <%= teacherGroup.courses.length %> course<%= teacherGroup.courses.length !==1 ? 's'
                                           : '' %>
                                     </span>
                                     <span style="font-size: 0.95rem; color: var(--text-muted); font-weight: 500;">
@@ -291,11 +291,11 @@
                                         <%= progress %>%
                                       </div>
 
-                                      <!-- Week Badge -->
+                                      <!-- Course Badge -->
                                       <div
                                         style="position: absolute; top: 12px; left: 12px; background: rgba(58, 146, 189, 0.9); padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; color: white;">
                                         <i class="fas fa-book" style="margin-right: 4px;"></i>
-                                        Week <%= course.order || '' %>
+                                        Course <%= course.order || '' %>
                                       </div>
                               </div>
 
@@ -380,7 +380,7 @@
                               </div>
                               <h3
                                 style="color: var(--text-primary); margin-bottom: var(--spacing-md); font-size: 1.5rem;">
-                                No Enrolled Weeks
+                                No Enrolled Courses
                               </h3>
                               <p
                                 style="color: var(--text-secondary); margin-bottom: var(--spacing-xl); max-width: 500px; margin-left: auto; margin-right: auto;">
@@ -391,7 +391,7 @@
                                 style="display: flex; gap: var(--spacing-md); justify-content: center; flex-wrap: wrap;">
                                 <a href="/#courses" class="btn btn-primary btn-lg">
                                   <i class="fas fa-search" style="margin-right: var(--spacing-sm);"></i>
-                                  Browse Weeks
+                                  Browse Courses
                                 </a>
                                 <a href="/student/wishlist" class="btn btn-outline btn-lg">
                                   <i class="fas fa-heart" style="margin-right: var(--spacing-sm);"></i>

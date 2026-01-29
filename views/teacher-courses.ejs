@@ -144,9 +144,9 @@
               <i class="fas fa-filter filter-icon"></i>
               <select class="filter-select-modern" id="priceFilter" onchange="filterCourses()">
                 <option value="">All Prices</option>
-                <option value="0-500">Under 500 EGP</option>
-                <option value="500-1000">500 - 1000 EGP</option>
-                <option value="1000+">1000+ EGP</option>
+                <option value="0-500">Under 500 AED</option>
+                <option value="500-1000">500 - 1000 AED</option>
+                <option value="1000+">1000+ AED</option>
               </select>
             </div>
 
@@ -323,19 +323,19 @@
                   <% if (course.discountPercentage> 0) { %>
                     <div class="price-wrapper">
                       <span class="course-price-original-enhanced">
-                        <%= course.originalPrice %> EGP
+                        <%= course.originalPrice %> AED
                       </span>
                       <span class="course-price-current-enhanced">
-                        <%= course.finalPrice %> EGP
+                        <%= course.finalPrice %> AED
                       </span>
                     </div>
                     <div class="savings-info">
-                      <span class="savings-amount">Save <%= course.originalPrice - course.finalPrice %> EGP</span>
+                      <span class="savings-amount">Save <%= course.originalPrice - course.finalPrice %> AED</span>
                     </div>
                     <% } else { %>
                       <div class="price-wrapper">
                         <span class="course-price-current-enhanced">
-                          <%= course.finalPrice %> EGP
+                          <%= course.finalPrice %> AED
                         </span>
                       </div>
                       <% } %>

@@ -90,7 +90,7 @@
                       <p class="item-type">Course</p>
                     </div>
                     <div class="item-price">
-                      <span class="price">EGP <%= item.price.toFixed(2) %></span>
+                      <span class="price">AED <%= item.price.toFixed(2) %></span>
                     </div>
                   </div>
                     <% }); %>
@@ -108,12 +108,12 @@
                 <% if (coursesSubtotal > 0) { %>
                   <div class="total-row">
                     <span class="label">Courses:</span>
-                    <span class="value">EGP <%= coursesSubtotal.toFixed(2) %></span>
+                    <span class="value">AED <%= coursesSubtotal.toFixed(2) %></span>
                   </div>
                 <% } %>
                 <div class="total-row final-total">
                           <span class="label">Total:</span>
-                          <span class="value">EGP <%= purchase.total.toFixed(2) %></span>
+                          <span class="value">AED <%= purchase.total.toFixed(2) %></span>
                         </div>
             </div>
           </div>

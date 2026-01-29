@@ -26,7 +26,7 @@ const getWhatsAppDashboard = async (req, res) => {
     };
 
     res.render('admin/whatsapp-dashboard', {
-      title: 'WhatsApp Management | ELKABLY',
+      title: 'WhatsApp Management | G-Teacher',
       theme: req.cookies.theme || 'light',
       sessionStatus: sessionStatus.success ? sessionStatus.data : null,
       sessions,

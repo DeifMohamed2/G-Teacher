@@ -9,9 +9,9 @@
     </title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/images/KImage.png">
-    <link rel="shortcut icon" type="image/png" href="/images/KImage.png">
-    <link rel="apple-touch-icon" href="/images/KImage.png">
+    <link rel="icon" type="image/png" href="/images/G-TeacherLogo.png">
+    <link rel="shortcut icon" type="image/png" href="/images/G-TeacherLogo.png">
+    <link rel="apple-touch-icon" href="/images/G-TeacherLogo    .png">
 
     <!-- CSS -->
     <link rel="stylesheet" href="/css/studentCSS/student-main.css">
@@ -426,7 +426,7 @@
                                                     <div class="teacher-banner-stat-value">
                                                         <%= selectedTeacher.courseCount || stats.totalCourses %>
                                                     </div>
-                                                    <div class="teacher-banner-stat-label">Weeks</div>
+                                                    <div class="teacher-banner-stat-label">Courses</div>
                                                 </div>
                                                 <div class="teacher-banner-stat">
                                                     <div class="teacher-banner-stat-value">
@@ -470,7 +470,7 @@
                                                 <div class="stat-value">
                                                     <%= stats.totalCourses %>
                                                 </div>
-                                                <div class="stat-label">Enrolled Weeks</div>
+                                                <div class="stat-label">Enrolled Courses</div>
                                             </div>
                                         </div>
 
@@ -479,28 +479,12 @@
                                                 <div class="stat-icon">
                                                     <i class="fas fa-check-circle"></i>
                                                 </div>
-
                                             </div>
                                             <div class="stat-content">
                                                 <div class="stat-value">
                                                     <%= stats.completedCourses %>
                                                 </div>
-                                                <div class="stat-label">Completed Weeks</div>
-                                            </div>
-                                        </div>
-
-                                        <div class="stat-card warning enhanced">
-                                            <div class="stat-header">
-                                                <div class="stat-icon">
-                                                    <i class="fas fa-question-circle"></i>
-                                                </div>
-
-                                            </div>
-                                            <div class="stat-content">
-                                                <div class="stat-value">
-                                                    <%= stats.totalQuizAttempts %>
-                                                </div>
-                                                <div class="stat-label">Quiz Attempts</div>
+                                                <div class="stat-label">Completed Courses</div>
                                             </div>
                                         </div>
 
@@ -524,7 +508,7 @@
                                     <div class="main-content-grid">
                                         <!-- Left Column - Active Courses -->
                                         <div class="content-column">
-                                            <!-- Simple Active Weeks -->
+                                            <!-- Simple Active Courses -->
                                             <div class="card simple-card">
                                                 <div class="card-header simple">
                                                     <h3 class="card-title">
@@ -583,12 +567,12 @@
                                                                 <div class="empty-icon">
                                                                     <i class="fas fa-book-open"></i>
                                                                 </div>
-                                                                <h4>No Active Weeks</h4>
+                                                                <h4>No Active Courses</h4>
                                                                 <p>Start your learning journey by enrolling in a course
                                                                 </p>
                                                                 <a href="/" class="btn btn-primary enhanced">
                                                                     <i class="fas fa-search"></i>
-                                                                    Browse Weeks
+                                                                    Browse Courses
                                                                 </a>
                                                             </div>
                                                             <% } %>

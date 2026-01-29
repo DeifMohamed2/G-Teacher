@@ -206,7 +206,7 @@
               <i class="fas fa-coins"></i>
             </div>
             <div class="analytics-content">
-              <div class="analytics-number"><%= financials.completedRevenue.toLocaleString() %> <small>EGP</small></div>
+              <div class="analytics-number"><%= financials.completedRevenue.toLocaleString() %> <small>AED</small></div>
               <div class="analytics-label">Total Revenue</div>
             </div>
           </div>
@@ -216,7 +216,7 @@
               <i class="fas fa-hand-holding-usd"></i>
             </div>
             <div class="analytics-content">
-              <div class="analytics-number"><%= financials.completedCommission.toLocaleString() %> <small>EGP</small></div>
+              <div class="analytics-number"><%= financials.completedCommission.toLocaleString() %> <small>AED</small></div>
               <div class="analytics-label">G-Teacher Commission</div>
             </div>
           </div>
@@ -226,7 +226,7 @@
               <i class="fas fa-wallet"></i>
             </div>
             <div class="analytics-content">
-              <div class="analytics-number"><%= financials.completedTeacherNet.toLocaleString() %> <small>EGP</small></div>
+              <div class="analytics-number"><%= financials.completedTeacherNet.toLocaleString() %> <small>AED</small></div>
               <div class="analytics-label">Teacher Net Earnings</div>
             </div>
           </div>
@@ -279,7 +279,7 @@
                         </div>
                         <div class="course-stat">
                           <div class="course-stat-value"><%= course.price || 0 %></div>
-                          <div class="course-stat-label">EGP</div>
+                          <div class="course-stat-label">AED</div>
                         </div>
                         <div class="course-stat">
                           <div class="course-stat-value"><%= course.topics ? course.topics.length : 0 %></div>
@@ -336,9 +336,9 @@
                               <% } %>
                             </td>
                             <td><%= item.title %></td>
-                            <td><strong><%= item.price.toLocaleString() %> EGP</strong></td>
-                            <td style="color: var(--admin-danger);"><%= (item.gTeacherCommission || 0).toLocaleString() %> EGP</td>
-                            <td style="color: var(--admin-success);"><strong><%= (item.teacherNet || 0).toLocaleString() %> EGP</strong></td>
+                            <td><strong><%= item.price.toLocaleString() %> AED</strong></td>
+                            <td style="color: var(--admin-danger);"><%= (item.gTeacherCommission || 0).toLocaleString() %> AED</td>
+                            <td style="color: var(--admin-success);"><strong><%= (item.teacherNet || 0).toLocaleString() %> AED</strong></td>
                           </tr>
                         <% } %>
                       <% }); %>
@@ -378,12 +378,12 @@
                       <tr>
                         <td><strong><%= month.month %></strong></td>
                         <td><%= month.orderCount %></td>
-                        <td><%= month.grossRevenue.toLocaleString() %> EGP</td>
-                        <td style="color: var(--admin-danger);"><%= month.commission.toLocaleString() %> EGP</td>
-                        <td style="color: var(--admin-success);"><strong><%= month.teacherNet.toLocaleString() %> EGP</strong></td>
+                        <td><%= month.grossRevenue.toLocaleString() %> AED</td>
+                        <td style="color: var(--admin-danger);"><%= month.commission.toLocaleString() %> AED</td>
+                        <td style="color: var(--admin-success);"><strong><%= month.teacherNet.toLocaleString() %> AED</strong></td>
                         <td>
                           <% if (month.refunded > 0) { %>
-                            <span style="color: var(--admin-warning);"><%= month.refunded.toLocaleString() %> EGP</span>
+                            <span style="color: var(--admin-warning);"><%= month.refunded.toLocaleString() %> AED</span>
                           <% } else { %>
                             -
                           <% } %>
@@ -395,12 +395,12 @@
                     <tr style="font-weight: 700; background: var(--admin-bg-light);">
                       <td>TOTAL</td>
                       <td><%= financials.completedOrders %></td>
-                      <td><%= financials.completedRevenue.toLocaleString() %> EGP</td>
-                      <td style="color: var(--admin-danger);"><%= financials.completedCommission.toLocaleString() %> EGP</td>
-                      <td style="color: var(--admin-success);"><%= financials.completedTeacherNet.toLocaleString() %> EGP</td>
+                      <td><%= financials.completedRevenue.toLocaleString() %> AED</td>
+                      <td style="color: var(--admin-danger);"><%= financials.completedCommission.toLocaleString() %> AED</td>
+                      <td style="color: var(--admin-success);"><%= financials.completedTeacherNet.toLocaleString() %> AED</td>
                       <td>
                         <% if (financials.refundedAmount > 0) { %>
-                          <span style="color: var(--admin-warning);"><%= financials.refundedAmount.toLocaleString() %> EGP</span>
+                          <span style="color: var(--admin-warning);"><%= financials.refundedAmount.toLocaleString() %> AED</span>
                         <% } else { %>
                           -
                         <% } %>

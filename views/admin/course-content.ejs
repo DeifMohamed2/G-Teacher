@@ -1225,7 +1225,7 @@
                 </h6>
                 
                 <div class="mb-3">
-                  <label for="editCoursePrice" class="form-label">Price (EGP) *</label>
+                  <label for="editCoursePrice" class="form-label">Price (AED) *</label>
                   <input type="number" class="form-control" id="editCoursePrice" name="price" min="0" step="0.01" required>
                   <div class="invalid-feedback">Please enter a valid price.</div>
                 </div>
@@ -6644,9 +6644,9 @@ function getContentIcon(type) {
    * Get the base URL for sharing (production or development)
    */
   function getShareBaseUrl() {
-    // In production, use elkably.com
+    // In production, use G-Teacher.com
     if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-      return 'https://elkably.com';
+      return 'https://G-Teacher.com';
     }
     // In development, use current origin
     return window.location.origin;

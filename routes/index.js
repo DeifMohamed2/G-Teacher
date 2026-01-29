@@ -21,7 +21,7 @@ router.get('/api/subjects-by-period', getSubjectsByExamPeriod);
 // Terms of Service route
 router.get('/terms-of-service', (req, res) => {
   res.render('terms-of-service', {
-    title: 'Terms of Service - Elkably',
+    title: 'Terms of Service - G-Teacher',
     theme: req.cookies.theme || 'light',
     user: req.session.user || null
   });
@@ -30,7 +30,16 @@ router.get('/terms-of-service', (req, res) => {
 // Privacy Policy route
 router.get('/privacy-policy', (req, res) => {
   res.render('privacy-policy', {
-    title: 'Privacy Policy - Elkably',
+    title: 'Privacy Policy - G-Teacher',
+    theme: req.cookies.theme || 'light',
+    user: req.session.user || null
+  });
+});
+
+// Refund Policy route
+router.get('/refund-policy', (req, res) => {
+  res.render('refund-policy', {
+    title: 'Refund Policy - G-Teacher',
     theme: req.cookies.theme || 'light',
     user: req.session.user || null
   });

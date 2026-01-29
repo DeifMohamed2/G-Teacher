@@ -132,13 +132,13 @@
         <select id="teacherDropdown" class="teacher-dropdown" onchange="handleTeacherChange(this.value)">
           <option value="all" <%=(typeof selectedTeacherId==='undefined' || selectedTeacherId==='all' ||
             !selectedTeacherId) ? 'selected' : '' %>>
-            All Teachers (<%= availableTeachers.reduce((sum, t)=> sum + (t.courseCount || 0), 0) %> Weeks)
+            All Teachers (<%= availableTeachers.reduce((sum, t)=> sum + (t.courseCount || 0), 0) %> Courses)
           </option>
           <% availableTeachers.forEach(teacher=> { %>
             <option value="<%= teacher._id %>" <%=(typeof selectedTeacherId !=='undefined' &&
               selectedTeacherId===teacher._id.toString()) ? 'selected' : '' %>>
               <%= teacher.firstName %>
-                <%= teacher.lastName %> (<%= teacher.courseCount || 0 %> Weeks)<% if (teacher.subject) { %> - <%=
+                <%= teacher.lastName %> (<%= teacher.courseCount || 0 %> Courses)<% if (teacher.subject) { %> - <%=
                         teacher.subject %>
                         <% } %>
             </option>

@@ -6,9 +6,9 @@
     <title><%= title %></title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/images/KImage.png">
-    <link rel="shortcut icon" type="image/png" href="/images/KImage.png">
-    <link rel="apple-touch-icon" href="/images/KImage.png">
+    <link rel="icon" type="image/png" href="/images/G-TeacherLogo.png">
+    <link rel="shortcut icon" type="image/png" href="/images/G-TeacherLogo.png">
+    <link rel="apple-touch-icon" href="/images/G-TeacherLogo.png">
     
     <!-- CSS -->
     <link rel="stylesheet" href="/css/studentCSS/student-main.css">
@@ -100,7 +100,7 @@
                                                 <div class="item-type-badge">
                                                     <% if (order.type === 'course') { %>
                                                         <span class="badge badge-primary">
-                                                            <i class="fas fa-book"></i> Week
+                                                            <i class="fas fa-book"></i> Course
                                                         </span>
                                                     <% } else { %>
                                                         <span class="badge badge-success">
@@ -133,7 +133,7 @@
                                             <% if (order.discountAmount && order.discountAmount > 0) { %>
                                                 <div class="discount-tag">
                                                     <i class="fas fa-tag"></i>
-                                                    <span>Saved <%= order.discountAmount.toFixed(2) %> EGP</span>
+                                                    <span>Saved <%= order.discountAmount.toFixed(2) %> AED</span>
                                                 </div>
                                             <% } %>
                                         </div>
@@ -142,11 +142,11 @@
                                         <div class="order-price">
                                             <% if (order.originalAmount && order.originalAmount > order.price) { %>
                                                 <div class="original-price">
-                                                    <%= order.originalAmount.toFixed(2) %> EGP
+                                                    <%= order.originalAmount.toFixed(2) %> AED
                                                 </div>
                                             <% } %>
                                             <div class="price-amount">
-                                                <%= order.price.toFixed(2) %> EGP
+                                                <%= order.price.toFixed(2) %> AED
                                             </div>
                                             <div class="price-label">
                                                 Total Paid
@@ -170,7 +170,7 @@
                                         <% } else { %>
                                             <a href="/student/enrolled-courses" class="btn btn-primary btn-sm">
                                                 <i class="fas fa-play"></i>
-                                                View Weeks
+                                                View Courses
                                             </a>
                                         <% } %>
                                     <% } %>
@@ -219,7 +219,7 @@
                         <div style="display: flex; gap: var(--spacing-md); justify-content: center; flex-wrap: wrap;">
                             <a href="/#courses" class="btn btn-primary btn-lg">
                                 <i class="fas fa-search" style="margin-right: var(--spacing-sm);"></i>
-                                Browse Weeks
+                                Browse Courses
                             </a>
                             <a href="/student/wishlist" class="btn btn-outline btn-lg">
                                 <i class="fas fa-heart" style="margin-right: var(--spacing-sm);"></i>

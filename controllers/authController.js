@@ -9,7 +9,7 @@ const otpMasterUtil = require('../utils/otpMasterGenerator');
 // Get login page
 const getLoginPage = (req, res) => {
   res.render('auth/login', {
-    title: 'Login | ELKABLY',
+    title: 'Login | G-Teacher',
     theme: req.cookies.theme || 'light',
   });
 };
@@ -20,7 +20,7 @@ const getRegisterPage = (req, res) => {
   delete req.session.lastSubmissionId;
 
   res.render('auth/register', {
-    title: 'Register | ELKABLY',
+    title: 'Register | G-Teacher',
     theme: req.cookies.theme || 'light',
   });
 };
@@ -35,7 +35,7 @@ const getCreateAdminPage = (req, res) => {
     return res.redirect('/auth/login');
   }
   return res.render('admin/create-admin', {
-    title: 'Create Admin | ELKABLY',
+    title: 'Create Admin | G-Teacher',
     theme: req.cookies.theme || 'light',
     token: token,
   });
@@ -63,7 +63,7 @@ const createAdmin = async (req, res) => {
 
   if (errors.length > 0) {
     return res.status(400).render('admin/create-admin', {
-      title: 'Create Admin | ELKABLY',
+      title: 'Create Admin | G-Teacher',
       theme: req.cookies.theme || 'light',
       errors,
       userName,
@@ -77,7 +77,7 @@ const createAdmin = async (req, res) => {
     if (existing) {
       errors.push({ msg: 'Phone number already used' });
       return res.status(400).render('admin/create-admin', {
-        title: 'Create Admin | ELKABLY',
+        title: 'Create Admin | G-Teacher',
         theme: req.cookies.theme || 'light',
         errors,
         userName,
@@ -108,7 +108,7 @@ const createAdmin = async (req, res) => {
     console.error('Create admin error:', err);
     errors.push({ msg: 'An error occurred. Please try again.' });
     return res.status(500).render('admin/create-admin', {
-      title: 'Create Admin | ELKABLY',
+      title: 'Create Admin | G-Teacher',
       theme: req.cookies.theme || 'light',
       errors,
       userName,
@@ -208,7 +208,7 @@ const sendOTP = async (req, res) => {
 
     // Check if country code is NOT Egyptian (+20)
     const isEgyptian = countryCode === '+20' || countryCode === '20';
-    const message = `Your ELKABLY verification code is: ${otp}. Valid for 5 minutes. Do not share this code.`;
+    const message = `Your G-Teacher verification code is: ${otp}. Valid for 5 minutes. Do not share this code.`;
 
     try {
       if (isEgyptian) {
@@ -493,7 +493,7 @@ const registerUser = async (req, res) => {
 
   if (errors.length > 0) {
     return res.render('auth/register', {
-      title: 'Register | ELKABLY',
+      title: 'Register | G-Teacher',
       theme: req.cookies.theme || 'light',
       errors,
       firstName,
@@ -538,7 +538,7 @@ const registerUser = async (req, res) => {
     if (errors.length > 0) {
       console.log('Registration validation errors:', errors);
       return res.render('auth/register', {
-        title: 'Register | ELKABLY',
+        title: 'Register | G-Teacher',
         theme: req.cookies.theme || 'light',
         errors,
         firstName,
@@ -602,7 +602,7 @@ const registerUser = async (req, res) => {
       console.log('Mongoose validation errors:', validationErrors);
 
       return res.render('auth/register', {
-        title: 'Register | ELKABLY',
+        title: 'Register | G-Teacher',
         theme: req.cookies.theme || 'light',
         errors,
         firstName,
@@ -625,7 +625,7 @@ const registerUser = async (req, res) => {
       console.log('Duplicate key error:', field, err.keyValue[field]);
 
       return res.render('auth/register', {
-        title: 'Register | ELKABLY',
+        title: 'Register | G-Teacher',
         theme: req.cookies.theme || 'light',
         errors,
         firstName,
@@ -675,7 +675,7 @@ const loginUser = async (req, res) => {
     req.session.lastLoginSubmissionId = null;
 
     return res.render('auth/login', {
-      title: 'Login | ELKABLY',
+      title: 'Login | G-Teacher',
       theme: req.cookies.theme || 'light',
       errors,
       email,
@@ -726,7 +726,7 @@ const loginUser = async (req, res) => {
     if (!user) {
       errors.push({ msg: 'Invalid email, phone number, or username' });
       return res.render('auth/login', {
-        title: 'Login | ELKABLY',
+        title: 'Login | G-Teacher',
         theme: req.cookies.theme || 'light',
         errors,
         email,
@@ -736,25 +736,10 @@ const loginUser = async (req, res) => {
     // Match password (both models implement matchPassword)
     const isMatch = await user.matchPassword(password);
 
-    // Special handling for students with incomplete data - allow login with student code
-    if (!isMatch && user.role === 'student' && user.isCompleteData === false) {
-      // Try to match with student code
-      if (user.studentCode && user.studentCode === password.trim()) {
-        console.log('Student logged in with student code:', user.studentCode);
-        // Allow login with student code for incomplete data students
-      } else {
-        errors.push({ msg: 'Invalid email, phone number, or username' });
-        return res.render('auth/login', {
-          title: 'Login | ELKABLY',
-          theme: req.cookies.theme || 'light',
-          errors,
-          email,
-        });
-      }
-    } else if (!isMatch) {
+    if (!isMatch) {
       errors.push({ msg: 'Invalid email, phone number, or username' });
       return res.render('auth/login', {
-        title: 'Login | ELKABLY',
+        title: 'Login | G-Teacher',
         theme: req.cookies.theme || 'light',
         errors,
         email,
@@ -767,7 +752,7 @@ const loginUser = async (req, res) => {
         msg: 'Your account is pending approval. Please contact the administrator or wait for approval.',
       });
       return res.render('auth/login', {
-        title: 'Login | ELKABLY',
+        title: 'Login | G-Teacher',
         theme: req.cookies.theme || 'light',
         errors,
         email,
@@ -818,7 +803,6 @@ const loginUser = async (req, res) => {
         parentCountryCode: user.parentCountryCode,
         englishTeacher: user.englishTeacher,
         isActive: user.isActive,
-        isCompleteData: user.isCompleteData,
         sessionToken: sessionToken, // Store session token in session for validation
       };
     }
@@ -831,7 +815,7 @@ const loginUser = async (req, res) => {
           msg: 'An error occurred during login. Please try again.',
         });
         return res.render('auth/login', {
-          title: 'Login | ELKABLY',
+          title: 'Login | G-Teacher',
           theme: req.cookies.theme || 'light',
           errors,
           email,
@@ -842,14 +826,6 @@ const loginUser = async (req, res) => {
       if (user.role === 'admin' || user.role === 'superAdmin') {
         return res.redirect('/admin/dashboard');
       } else {
-        // Check if student data is complete
-        if (user.isCompleteData === false) {
-          req.flash(
-            'info_msg',
-            'Please complete your profile to access all features'
-          );
-          return res.redirect('/auth/complete-data');
-        }
         return res.redirect('/student/dashboard');
       }
     });
@@ -885,7 +861,7 @@ const loginUser = async (req, res) => {
     });
 
     return res.render('auth/login', {
-      title: 'Login | ELKABLY',
+      title: 'Login | G-Teacher',
       theme: req.cookies.theme || 'light',
       errors,
       email,
@@ -917,641 +893,9 @@ const logoutUser = async (req, res) => {
     if (err) {
       console.error('Logout error:', err);
     }
-    res.clearCookie('elkably.session');
+    res.clearCookie('G-Teacher.session');
     res.redirect('/auth/login');
   });
-};
-
-// Function to send student data to the online system API
-const sendStudentToOnlineSystem = async (studentData) => {
-  try {
-    const apiUrl =
-      'http://82.25.101.207:8400/createOnlineStudent';
-    const apiKey = 'SNFIDNWL11SGNDWJD@##SSNWLSGNE!21121';
-
-    const payload = {
-      Username: `${studentData.firstName} ${studentData.lastName}`,
-      phone: studentData.studentNumber,
-      parentPhone: studentData.parentNumber,
-      phoneCountryCode: studentData.studentCountryCode.replace('+', ''),
-      parentPhoneCountryCode: studentData.parentCountryCode.replace('+', ''),
-      email: studentData.studentEmail,
-      schoolName: studentData.schoolName,
-      Grade: studentData.grade,
-      GradeLevel: studentData.grade,
-      Code: 'K' + studentData.studentCode,
-      apiKey: apiKey,
-    };
-
-    console.log('Sending student data to online system:', payload);
-
-    const response = await axios.post(apiUrl, payload);
-
-    console.log('Online system API response:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Error sending student to online system:', error.message);
-    // Don't throw the error, just log it - we don't want to break the registration flow
-    return { success: false, error: error.message };
-  }
-};
-
-// Get complete data page
-const getCompleteDataPage = async (req, res) => {
-  try {
-    if (!req.session.user || req.session.user.role !== 'student') {
-      req.flash('error_msg', 'Unauthorized access');
-      return res.redirect('/auth/login');
-    }
-
-    const user = await User.findById(req.session.user.id);
-
-    if (!user) {
-      req.flash('error_msg', 'User not found');
-      return res.redirect('/auth/login');
-    }
-
-    // If data is already complete, redirect to dashboard
-    if (user.isCompleteData) {
-      return res.redirect('/student/dashboard');
-    }
-
-    // Clear OTP verification status and OTP data on page load/refresh
-    // This ensures users start fresh if they refresh or navigate back
-    // BUT keep rate limiting data (attempts, blocked_until) to prevent abuse
-    delete req.session.student_phone_verified;
-    delete req.session.student_phone_number;
-    delete req.session.student_otp;
-    delete req.session.student_otp_expiry;
-    delete req.session.parent_phone_verified;
-    delete req.session.parent_phone_number;
-    delete req.session.parent_otp;
-    delete req.session.parent_otp_expiry;
-    delete req.session.lastCompleteDataSubmissionId;
-    // NOTE: We keep student_otp_attempts, student_otp_blocked_until,
-    // parent_otp_attempts, parent_otp_blocked_until to prevent abuse
-
-    res.render('auth/complete-data', {
-      title: 'Complete Your Profile | ELKABLY',
-      theme: req.cookies.theme || 'light',
-      user: user,
-      errors: [],
-      studentPhoneVerified: false, // Always start fresh
-    });
-  } catch (error) {
-    console.error('Error loading complete data page:', error);
-    req.flash('error_msg', 'An error occurred. Please try again.');
-    res.redirect('/auth/login');
-  }
-};
-
-// Complete student data
-const completeStudentData = async (req, res) => {
-  try {
-    if (!req.session.user || req.session.user.role !== 'student') {
-      req.flash('error_msg', 'Unauthorized access');
-      return res.redirect('/auth/login');
-    }
-
-    const userId = req.session.user.id;
-    const user = await User.findById(userId);
-
-    if (!user) {
-      req.flash('error_msg', 'User not found');
-      return res.redirect('/auth/login');
-    }
-
-    // If data is already complete, redirect to dashboard
-    if (user.isCompleteData) {
-      return res.redirect('/student/dashboard');
-    }
-
-    const {
-      firstName,
-      lastName,
-      studentNumber,
-      studentCountryCode,
-      parentNumber,
-      parentCountryCode,
-      studentEmail,
-      username,
-      schoolName,
-      grade,
-      englishTeacher,
-      password,
-      password2,
-      howDidYouKnow,
-      submissionId, // Track submission attempts
-    } = req.body;
-
-    // Check if this is a duplicate submission (browser refresh or back button)
-    // Only check if submissionId is provided
-    if (
-      submissionId &&
-      req.session.lastCompleteDataSubmissionId === submissionId
-    ) {
-      console.log('Duplicate complete data submission detected:', submissionId);
-      req.flash(
-        'error_msg',
-        'Your profile completion is already being processed. Please do not refresh or resubmit the form.'
-      );
-      return res.redirect('/auth/complete-data');
-    }
-
-    // Store current submission ID in session only if provided
-    if (submissionId) {
-      req.session.lastCompleteDataSubmissionId = submissionId;
-    }
-
-    let errors = [];
-
-    // Check required fields (same pattern as registerUser)
-    if (
-      !firstName ||
-      !lastName ||
-      !studentNumber ||
-      !studentCountryCode ||
-      !parentNumber ||
-      !parentCountryCode ||
-      !studentEmail ||
-      !username ||
-      !schoolName ||
-      !grade ||
-      !englishTeacher ||
-      !password ||
-      !password2 ||
-      !howDidYouKnow
-    ) {
-      errors.push({ msg: 'Please fill in all required fields' });
-    }
-
-    // Validation
-    if (firstName && firstName.trim().length < 2) {
-      errors.push({ msg: 'First name must be at least 2 characters' });
-    }
-    if (lastName && lastName.trim().length < 2) {
-      errors.push({ msg: 'Last name must be at least 2 characters' });
-    }
-
-    // Phone number length standards by country code
-    const phoneLengthStandards = {
-      '+966': 9, // Saudi Arabia: 9 digits
-      '+20': 11, // Egypt: 11 digits (including leading 0)
-      '+971': 9, // UAE: 9 digits
-      '+965': 8, // Kuwait: 8 digits
-    };
-
-    // Validate country codes
-    const validCountryCodes = ['+966', '+20', '+971', '+965'];
-    if (studentCountryCode && !validCountryCodes.includes(studentCountryCode)) {
-      errors.push({
-        msg: 'Please select a valid country code for student number',
-      });
-    }
-    if (parentCountryCode && !validCountryCodes.includes(parentCountryCode)) {
-      errors.push({
-        msg: 'Please select a valid country code for parent number',
-      });
-    }
-
-    // Check if student and parent numbers are the same
-    if (
-      studentNumber &&
-      parentNumber &&
-      studentNumber.trim() === parentNumber.trim() &&
-      studentCountryCode === parentCountryCode
-    ) {
-      errors.push({
-        msg: 'Student and parent phone numbers cannot be the same',
-      });
-    }
-
-    // Validate phone number lengths based on country (only if both are present)
-    if (studentNumber && studentCountryCode) {
-      const cleanStudentNumber = studentNumber.replace(/[^\d]/g, '');
-      const expectedLength = phoneLengthStandards[studentCountryCode];
-      if (expectedLength && cleanStudentNumber.length !== expectedLength) {
-        errors.push({
-          msg: `Student number must be ${expectedLength} digits for the selected country`,
-        });
-      }
-    }
-
-    if (parentNumber && parentCountryCode) {
-      const cleanParentNumber = parentNumber.replace(/[^\d]/g, '');
-      const expectedLength = phoneLengthStandards[parentCountryCode];
-      if (expectedLength && cleanParentNumber.length !== expectedLength) {
-        errors.push({
-          msg: `Parent number must be ${expectedLength} digits for the selected country`,
-        });
-      }
-    }
-
-    // Basic phone number format validation (digits, spaces, hyphens, parentheses only)
-    const phoneRegex = /^[\d\s\-\(\)]+$/;
-    if (parentNumber && !phoneRegex.test(parentNumber)) {
-      errors.push({
-        msg: 'Parent phone number can only contain digits, spaces, hyphens, and parentheses',
-      });
-    }
-    if (studentNumber && !phoneRegex.test(studentNumber)) {
-      errors.push({
-        msg: 'Student phone number can only contain digits, spaces, hyphens, and parentheses',
-      });
-    }
-    if (!studentEmail || !studentEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      errors.push({ msg: 'Please enter a valid student email' });
-    }
-    if (!username || username.trim().length < 3) {
-      errors.push({ msg: 'Username must be at least 3 characters' });
-    }
-    if (!schoolName || schoolName.trim().length < 2) {
-      errors.push({ msg: 'School name must be at least 2 characters' });
-    }
-    if (!grade) {
-      errors.push({ msg: 'Please select your grade' });
-    }
-    if (!englishTeacher || englishTeacher.trim().length < 2) {
-      errors.push({
-        msg: 'English teacher name must be at least 2 characters',
-      });
-    }
-    if (!password || password.length < 5) {
-      errors.push({ msg: 'Password must be at least 5 characters' });
-    }
-    if (password !== password2) {
-      errors.push({ msg: 'Passwords do not match' });
-    }
-    if (!howDidYouKnow || howDidYouKnow.trim().length < 5) {
-      errors.push({
-        msg: 'Please tell us how you heard about Mr Kably (at least 5 characters)',
-      });
-    }
-
-    // Check for duplicates
-    const existingEmail = await User.findOne({
-      studentEmail: studentEmail.toLowerCase(),
-    });
-    if (existingEmail && existingEmail._id.toString() !== userId) {
-      errors.push({ msg: 'Email is already registered' });
-    }
-
-    const existingUsername = await User.findOne({
-      username: username.toLowerCase(),
-    });
-    if (existingUsername && existingUsername._id.toString() !== userId) {
-      errors.push({ msg: 'Username is already taken' });
-    }
-
-    // MANDATORY: Check if email is still the temporary one
-    if (user.studentEmail && user.studentEmail.startsWith('temp_')) {
-      if (
-        studentEmail.toLowerCase().trim() === user.studentEmail.toLowerCase()
-      ) {
-        errors.push({
-          msg: 'You must change your email address. The temporary email cannot be used.',
-        });
-      }
-    }
-
-    // MANDATORY: Check if username is still the temporary one
-    if (user.username && user.username.startsWith('student_')) {
-      if (username.toLowerCase().trim() === user.username.toLowerCase()) {
-        errors.push({
-          msg: 'You must change your username. The temporary username cannot be used.',
-        });
-      }
-    }
-
-    // MANDATORY: Check if password is still the student code
-    if (user.studentCode && password.trim() === user.studentCode) {
-      errors.push({
-        msg: 'You must create a new password. You cannot use your student code as your password.',
-      });
-    }
-
-    if (errors.length > 0) {
-      // Reset submission ID to allow retrying
-      req.session.lastCompleteDataSubmissionId = null;
-
-      return res.render('auth/complete-data', {
-        title: 'Complete Your Profile | ELKABLY',
-        theme: req.cookies.theme || 'light',
-        user: user,
-        errors,
-        studentPhoneVerified: req.session.student_phone_verified || false,
-      });
-    }
-
-    // Update user data
-    user.firstName = firstName.trim();
-    user.lastName = lastName.trim();
-    user.studentNumber = studentNumber.trim();
-    user.studentCountryCode = studentCountryCode;
-    user.parentNumber = parentNumber.trim();
-    user.parentCountryCode = parentCountryCode;
-    user.studentEmail = studentEmail.toLowerCase().trim();
-    user.username = username.toLowerCase().trim();
-    user.schoolName = schoolName.trim();
-    user.grade = grade;
-    user.englishTeacher = englishTeacher.trim();
-    user.password = password;
-    user.howDidYouKnow = howDidYouKnow.trim();
-    user.isCompleteData = true;
-
-    await user.save();
-
-    // Update session
-    req.session.user = {
-      id: user._id,
-      name: user.name,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      studentEmail: user.studentEmail,
-      username: user.username,
-      role: user.role,
-      grade: user.grade,
-      schoolName: user.schoolName,
-      studentCode: user.studentCode,
-      studentNumber: user.studentNumber,
-      studentCountryCode: user.studentCountryCode,
-      parentNumber: user.parentNumber,
-      parentCountryCode: user.parentCountryCode,
-      englishTeacher: user.englishTeacher,
-      isActive: user.isActive,
-      isCompleteData: user.isCompleteData,
-    };
-
-    req.flash(
-      'success_msg',
-      'Profile completed successfully! Welcome to Elkably.'
-    );
-    res.redirect('/student/dashboard');
-  } catch (error) {
-    console.error('Error completing student data:', error);
-
-    // Reset submission ID to allow retrying
-    req.session.lastCompleteDataSubmissionId = null;
-
-    req.flash('error_msg', 'An error occurred. Please try again.');
-    res.redirect('/auth/complete-data');
-  }
-};
-
-// ==================== EXTERNAL SYSTEM API ====================
-
-// Create student from external system (similar to bulk import)
-const createStudentFromExternalSystem = async (req, res) => {
-  try {
-    console.log('External system request received:', {
-      method: req.method,
-      path: req.path,
-      ip: req.ip || req.connection.remoteAddress,
-      headers: req.headers['content-type'],
-      bodyKeys: Object.keys(req.body || {}),
-    });
-
-    const { studentName, studentPhone, parentPhone, studentCode, apiKey } =
-      req.body;
-
-    // Validate API key for security
-    const validApiKey =
-      process.env.EXTERNAL_SYSTEM_API_ACCEPT_KEY;
-    if (!apiKey || apiKey !== validApiKey) {
-      return res.status(401).json({
-        success: false,
-        message: 'Unauthorized: Invalid API key',
-      });
-    }
-
-    // Validate required fields
-    if (!studentName || !studentPhone || !parentPhone || !studentCode) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields',
-        requiredFields: [
-          'studentName',
-          'studentPhone',
-          'parentPhone',
-          'studentCode',
-        ],
-      });
-    }
-
-    // Parse student name
-    const nameParts = studentName.trim().split(/\s+/);
-    const firstName = nameParts[0] || 'Unknown';
-    const lastName = nameParts.slice(1).join(' ') || 'Student';
-
-    // Parse phone numbers (expecting format: +966XXXXXXXXX or just XXXXXXXXX or 20XXXXXXXXXXX)
-    let studentNumber = studentPhone.toString().trim();
-    let parentNumber = parentPhone.toString().trim();
-
-    // Remove any non-numeric characters except +
-    studentNumber = studentNumber.replace(/[^\d+]/g, '');
-    parentNumber = parentNumber.replace(/[^\d+]/g, '');
-
-    // Determine country code
-    let studentCountryCode = '+20';
-    let parentCountryCode = '+20';
-
-    // Helper function to extract country code and number
-    const extractCountryCode = (phoneNumber) => {
-      // Check for + prefix first
-      if (phoneNumber.startsWith('+')) {
-        if (phoneNumber.startsWith('+966')) {
-          return { code: '+966', number: phoneNumber.substring(4) };
-        } else if (phoneNumber.startsWith('+20')) {
-          return { code: '+20', number: phoneNumber.substring(3) };
-        } else if (phoneNumber.startsWith('+971')) {
-          return { code: '+971', number: phoneNumber.substring(4) };
-        } else if (phoneNumber.startsWith('+965')) {
-          return { code: '+965', number: phoneNumber.substring(4) };
-        } else {
-          // Unknown country code with +, default to +20
-          return { code: '+20', number: phoneNumber.substring(1) };
-        }
-      }
-
-      // Check for country codes without + prefix
-      if (phoneNumber.startsWith('966') && phoneNumber.length >= 12) {
-        return { code: '+966', number: phoneNumber.substring(3) };
-      } else if (phoneNumber.startsWith('20') && phoneNumber.length >= 13) {
-        return { code: '+20', number: phoneNumber.substring(2) };
-      } else if (phoneNumber.startsWith('971') && phoneNumber.length >= 12) {
-        return { code: '+971', number: phoneNumber.substring(3) };
-      } else if (phoneNumber.startsWith('965') && phoneNumber.length >= 11) {
-        return { code: '+965', number: phoneNumber.substring(3) };
-      }
-
-      // Default: assume Egypt (+20) and use the whole number
-      // This handles cases where the number is already without country code
-      return { code: '+20', number: phoneNumber };
-    };
-
-    // Extract country codes and numbers
-    const studentPhoneData = extractCountryCode(studentNumber);
-    studentCountryCode = studentPhoneData.code;
-    studentNumber = studentPhoneData.number;
-
-    const parentPhoneData = extractCountryCode(parentNumber);
-    parentCountryCode = parentPhoneData.code;
-    parentNumber = parentPhoneData.number;
-
-    // Validate phone number lengths
-    const phoneLengthStandards = {
-      '+966': 9, // Saudi Arabia
-      '+20': 11, // Egypt
-      '+971': 9, // UAE
-      '+965': 8, // Kuwait
-    };
-
-    const expectedStudentLength = phoneLengthStandards[studentCountryCode] || 11;
-    const expectedParentLength = phoneLengthStandards[parentCountryCode] || 11;
-
-    if (studentNumber.length !== expectedStudentLength) {
-      return res.status(400).json({
-        success: false,
-        message: `Student phone number length is invalid. Expected ${expectedStudentLength} digits for ${studentCountryCode}, got ${studentNumber.length} digits.`,
-        received: studentPhone,
-        parsed: { countryCode: studentCountryCode, number: studentNumber, length: studentNumber.length },
-        expected: { countryCode: studentCountryCode, length: expectedStudentLength },
-      });
-    }
-
-    if (parentNumber.length !== expectedParentLength) {
-      return res.status(400).json({
-        success: false,
-        message: `Parent phone number length is invalid. Expected ${expectedParentLength} digits for ${parentCountryCode}, got ${parentNumber.length} digits.`,
-        received: parentPhone,
-        parsed: { countryCode: parentCountryCode, number: parentNumber, length: parentNumber.length },
-        expected: { countryCode: parentCountryCode, length: expectedParentLength },
-      });
-    }
-
-    // Check if student code already exists
-    const existingStudent = await User.findOne({
-      studentCode: studentCode.toString(),
-    });
-    if (existingStudent) {
-      return res.status(409).json({
-        success: false,
-        message: 'Student code already exists',
-        existingStudent: {
-          id: existingStudent._id,
-          name: existingStudent.name,
-          code: existingStudent.studentCode,
-        },
-      });
-    }
-
-    // Check if phone number already exists
-    const existingPhone = await User.findOne({ studentNumber: studentNumber });
-    if (existingPhone) {
-      return res.status(409).json({
-        success: false,
-        message: 'Phone number already registered',
-        existingStudent: {
-          id: existingPhone._id,
-          name: existingPhone.name,
-          phone: existingPhone.studentNumber,
-        },
-      });
-    }
-
-    // Generate temporary email and username
-    const tempEmail = `temp_${studentCode}@elkably.com`;
-    const tempUsername = `student_${studentCode}`;
-
-    // Create student with incomplete data
-    const newStudent = new User({
-      firstName,
-      lastName,
-      studentNumber,
-      studentCountryCode,
-      parentNumber,
-      parentCountryCode,
-      studentEmail: tempEmail,
-      username: tempUsername,
-      schoolName: 'To Be Completed',
-      grade: 'Year 10',
-      englishTeacher: 'To Be Completed',
-      password: studentCode, // Temporary password (student code)
-      howDidYouKnow: 'External System Import',
-      studentCode: studentCode.toString(),
-      isCompleteData: false,
-      isActive: true, // External students are automatically active
-      isParentPhoneChecked: true,
-    });
-
-    const savedStudent = await newStudent.save();
-
-    // Return success response with student data
-    return res.status(201).json({
-      success: true,
-      message: 'Student created successfully from external system',
-      studentData: {
-        id: savedStudent._id,
-        firstName: savedStudent.firstName,
-        lastName: savedStudent.lastName,
-        studentCode: savedStudent.studentCode,
-        studentPhone: `${savedStudent.studentCountryCode}${savedStudent.studentNumber}`,
-        parentPhone: `${savedStudent.parentCountryCode}${savedStudent.parentNumber}`,
-        email: savedStudent.studentEmail,
-        username: savedStudent.username,
-        isCompleteData: savedStudent.isCompleteData,
-        isActive: savedStudent.isActive,
-        createdAt: savedStudent.createdAt,
-      },
-    });
-  } catch (error) {
-    console.error('Error creating student from external system:', error);
-    console.error('Error stack:', error.stack);
-    console.error('Error details:', {
-      name: error.name,
-      message: error.message,
-      code: error.code,
-      keyPattern: error.keyPattern,
-      errors: error.errors,
-    });
-
-    // Handle duplicate key errors
-    if (error.name === 'MongoServerError' && error.code === 11000) {
-      const field = Object.keys(error.keyPattern || {})[0] || 'unknown';
-      return res.status(409).json({
-        success: false,
-        message: 'Duplicate entry',
-        field: field,
-        error: `The ${field} is already in use.`,
-        details: error.message,
-      });
-    }
-
-    // Handle validation errors
-    if (error.name === 'ValidationError') {
-      const validationErrors = {};
-      if (error.errors) {
-        Object.keys(error.errors).forEach((key) => {
-          validationErrors[key] = error.errors[key].message;
-        });
-      }
-      return res.status(400).json({
-        success: false,
-        message: 'Validation error',
-        errors: validationErrors,
-        details: error.message,
-      });
-    }
-
-    // Handle other errors
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: error.message,
-      errorType: error.name,
-      ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
-    });
-  }
 };
 
 // Get forgot password page
@@ -1569,7 +913,7 @@ const getForgotPasswordPage = (req, res) => {
   delete req.session.lastResetPasswordSubmissionId;
 
   res.render('auth/forgot-password', {
-    title: 'Forgot Password | ELKABLY',
+    title: 'Forgot Password | G-Teacher',
     theme: req.cookies.theme || 'light',
     phoneVerified: false,
     phoneNumber: '',
@@ -1737,7 +1081,7 @@ const sendForgotPasswordOTP = async (req, res) => {
 
     // Check if country code is NOT Egyptian (+20)
     const isEgyptian = countryCode === '+20' || countryCode === '20';
-    const message = `Your ELKABLY password reset code is: ${otp}. Valid for 5 minutes. Do not share this code.`;
+    const message = `Your G-Teacher password reset code is: ${otp}. Valid for 5 minutes. Do not share this code.`;
 
     try {
       if (isEgyptian) {
@@ -1910,7 +1254,7 @@ const resetPassword = async (req, res) => {
     if (!req.session.forgot_password_user_id) {
       errors.push({ msg: 'Session expired. Please start over.' });
       return res.render('auth/forgot-password', {
-        title: 'Forgot Password | ELKABLY',
+        title: 'Forgot Password | G-Teacher',
         theme: req.cookies.theme || 'light',
         errors,
         phoneVerified: false,
@@ -1921,7 +1265,7 @@ const resetPassword = async (req, res) => {
     if (!req.session.forgot_password_phone_verified) {
       errors.push({ msg: 'Please verify OTP first' });
       return res.render('auth/forgot-password', {
-        title: 'Forgot Password | ELKABLY',
+        title: 'Forgot Password | G-Teacher',
         theme: req.cookies.theme || 'light',
         errors,
         phoneVerified: false,
@@ -1933,7 +1277,7 @@ const resetPassword = async (req, res) => {
     if (userId !== sessionUserId) {
       errors.push({ msg: 'User ID mismatch. Please start over.' });
       return res.render('auth/forgot-password', {
-        title: 'Forgot Password | ELKABLY',
+        title: 'Forgot Password | G-Teacher',
         theme: req.cookies.theme || 'light',
         errors,
         phoneVerified: false,
@@ -1955,7 +1299,7 @@ const resetPassword = async (req, res) => {
 
     if (errors.length > 0) {
       return res.render('auth/forgot-password', {
-        title: 'Forgot Password | ELKABLY',
+        title: 'Forgot Password | G-Teacher',
         theme: req.cookies.theme || 'light',
         errors,
         userId: sessionUserId,
@@ -1974,7 +1318,7 @@ const resetPassword = async (req, res) => {
       delete req.session.forgot_password_country_code;
 
       return res.render('auth/forgot-password', {
-        title: 'Forgot Password | ELKABLY',
+        title: 'Forgot Password | G-Teacher',
         theme: req.cookies.theme || 'light',
         errors,
         phoneVerified: false,
@@ -2020,8 +1364,6 @@ module.exports = {
   logoutUser,
   getCreateAdminPage,
   createAdmin,
-  getCompleteDataPage,
-  completeStudentData,
   // OTP functions
   sendOTP,
   verifyOTP,
@@ -2031,6 +1373,4 @@ module.exports = {
   sendForgotPasswordOTP,
   verifyForgotPasswordOTP,
   resetPassword,
-  // External System API
-  createStudentFromExternalSystem,
 };

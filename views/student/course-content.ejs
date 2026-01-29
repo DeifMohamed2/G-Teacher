@@ -5,13 +5,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>
-    <%= course.title %> - Week Content | G-Teacher
+    <%= course.title %> - Course Content | G-Teacher
   </title>
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="/images/KImage.png">
-  <link rel="shortcut icon" type="image/png" href="/images/KImage.png">
-  <link rel="apple-touch-icon" href="/images/KImage.png">
+  <link rel="icon" type="image/png" href="/images/G-TeacherLogo.png">
+  <link rel="shortcut icon" type="image/png" href="/images/G-TeacherLogo.png">
+  <link rel="apple-touch-icon" href="/images/G-TeacherLogo.png">
 
   <!-- CSS -->
   <link rel="stylesheet" href="/css/studentCSS/student-main.css">
@@ -574,9 +574,8 @@
       <!-- Main Content -->
       <main class="student-main">
         <!-- Include Header -->
-        <%- include('partials/student-header', { title: 'Week Content' , student: student, theme: theme,
-          currentPage: 'course-content' , availableTeachers: typeof availableTeachers !=='undefined' ? availableTeachers
-          : [], selectedTeacherId: typeof selectedTeacherId !=='undefined' ? selectedTeacherId : 'all' }) %>
+        <%- include('partials/student-header', { title: 'Course Content' , student: student, theme: theme,
+          currentPage: 'course-content' }) %>
 
           <!-- Course Content -->
           <div class="student-content">
@@ -584,7 +583,7 @@
             <div class="back-button-container">
               <a href="/student/enrolled-courses" class="btn btn-outline btn-sm">
                 <i class="fas fa-arrow-left"></i>
-                Back to Weeks
+                Back to Courses
               </a>
             </div>
 
@@ -651,7 +650,7 @@
               <div class="section-header">
                 <h2 class="section-title">
                   <i class="fas fa-book-open"></i>
-                  Week Topics
+                  Course Topics
                 </h2>
                 <span class="section-subtitle">
                   <%= topicsWithProgress ? topicsWithProgress.length : 0 %> Topics available

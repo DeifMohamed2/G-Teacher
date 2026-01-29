@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const studentController = require('../controllers/studentController');
-const { ensureAuthenticated, ensureStudent, ensureDataComplete } = require('../middlewares/auth');
+const { ensureAuthenticated, ensureStudent } = require('../middlewares/auth');
 const multer = require('multer');
 
 // Configure multer for profile picture uploads
@@ -34,7 +34,6 @@ const profilePictureUpload = multer({
 // Apply authentication middleware to all routes
 router.use(ensureAuthenticated);
 router.use(ensureStudent);
-router.use(ensureDataComplete);
 
 // Dashboard
 router.get('/', studentController.dashboard);

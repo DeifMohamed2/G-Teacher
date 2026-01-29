@@ -43,7 +43,7 @@
           <span class="title-line">Registration</span>
           <span class="title-line highlight-red">Successful!</span>
         </h1>
-        <p class="success-subtitle">Welcome to Elkably, <strong><%= studentName %></strong>!</p>
+        <p class="success-subtitle">Welcome to G-Teacher, <strong><%= studentName %></strong>!</p>
         <div class="success-description">
           Your account has been created and is pending admin activation. Save your student code below so you can log in once your account is approved.
         </div>
@@ -141,7 +141,7 @@
   function downloadCode() {
     const studentCode = '<%= studentCode %>';
     const studentName = '<%= studentName %>';
-    const content = `Elkably - Student Registration Confirmation
+    const content = `G-Teacher - Student Registration Confirmation
 
 Student Name: ${studentName}
 Student Code: ${studentCode}
@@ -150,12 +150,12 @@ Registration Date: ${new Date().toLocaleDateString()}
 IMPORTANT: Please keep this code safe for future reference.
 You will need this code to access your account.
 
-Welcome to Elkably!`;
+Welcome to G-Teacher!`;
 
     const element = document.createElement('a');
     const file = new Blob([content], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
-    element.download = `elkably-student-code-${studentCode}.txt`;
+    element.download = `gteacher-student-code-${studentCode}.txt`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);

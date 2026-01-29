@@ -2291,7 +2291,7 @@
                         </small>
                         <br>
                         <small style="color: var(--admin-text-light); opacity: 0.7;">
-                          Price: <%= purchase.currency || 'EGP' %> <%= item.price %>
+                          Price: <%= purchase.currency || 'AED' %> <%= item.price %>
                           <% if (item.quantity > 1) { %> × <%= item.quantity %><% } %>
                         </small>
                       </div>
@@ -2302,15 +2302,15 @@
                   <% } %>
                 </td>
                 <td>
-                  <strong><%= purchase.currency || 'EGP' %> <%= purchase.total %></strong>
+                  <strong><%= purchase.currency || 'AED' %> <%= purchase.total %></strong>
                   <% if (purchase.discountAmount && purchase.discountAmount > 0) { %>
                     <br>
                     <small style="color: var(--admin-text-light); opacity: 0.7;">
-                      Original: <%= purchase.currency || 'EGP' %> <%= purchase.originalAmount || purchase.subtotal %>
+                      Original: <%= purchase.currency || 'AED' %> <%= purchase.originalAmount || purchase.subtotal %>
                     </small>
                     <br>
                     <small style="color: #10b981;">
-                      Discount: <%= purchase.currency || 'EGP' %> <%= purchase.discountAmount %>
+                      Discount: <%= purchase.currency || 'AED' %> <%= purchase.discountAmount %>
                       <% if (purchase.promoCodeUsed) { %>
                         (<%= purchase.promoCodeUsed %>)
                       <% } %>

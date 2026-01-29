@@ -302,10 +302,10 @@
                   <div class="card-footer">
                     <div class="price-section">
                       <% if (course.discountPrice && course.discountPrice > 0) { %>
-                      <span class="original-price">EGP <%= course.price %></span>
-                      <span class="card-price">EGP <%= Math.round(course.price * (1 - course.discountPrice / 100)) %></span>
+                      <span class="original-price">AED <%= course.price %></span>
+                      <span class="card-price">AED <%= Math.round(course.price * (1 - course.discountPrice / 100)) %></span>
                       <% } else { %>
-                      <span class="card-price">EGP <%= course.price %></span>
+                      <span class="card-price">AED <%= course.price %></span>
                       <% } %>
                     </div>
                     <div class="card-actions">
@@ -434,7 +434,7 @@
                 
                 <div class="row g-3">
                   <div class="col-6">
-                    <label for="coursePrice" class="form-label">Price (EGP) <span class="text-danger">*</span></label>
+                    <label for="coursePrice" class="form-label">Price (AED) <span class="text-danger">*</span></label>
                     <input type="number" class="form-control" id="coursePrice" name="price" min="0" step="0.01" required placeholder="0.00">
                   </div>
                   <div class="col-6">

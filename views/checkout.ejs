@@ -270,12 +270,12 @@
                     </div>
                     <div class="checkout-order-item-price">
                       <% if (item.discountPrice && item.discountPrice> 0) { %>
-                        <span class="checkout-original-price">EGP <%= item.originalPrice.toFixed(2) %></span>
+                        <span class="checkout-original-price">AED <%= item.originalPrice.toFixed(2) %></span>
                         <span class="checkout-discount-badge">-<%= item.discountPrice.toFixed(0) %>%</span>
                         <br>
-                        <span class="checkout-final-price">EGP <%= item.price.toFixed(2) %></span>
+                        <span class="checkout-final-price">AED <%= item.price.toFixed(2) %></span>
                         <% } else { %>
-                          EGP <%= item.price.toFixed(2) %>
+                          AED <%= item.price.toFixed(2) %>
                             <% } %>
                     </div>
                   </div>
@@ -286,16 +286,16 @@
               <div class="checkout-order-breakdown">
                 <div class="checkout-breakdown-row">
                   <span class="checkout-breakdown-label">Subtotal:</span>
-                  <span class="checkout-breakdown-value" id="coursesSubtotal">EGP <%= subtotal.toFixed(2) %></span>
+                  <span class="checkout-breakdown-value" id="coursesSubtotal">AED <%= subtotal.toFixed(2) %></span>
                 </div>
                 <div class="checkout-breakdown-row" id="promoDiscountBreakdownRow" style="display: none;">
                   <span class="checkout-breakdown-label" style="color: #059669;">Promo Discount:</span>
-                  <span class="checkout-breakdown-value" style="color: #059669;" id="promoDiscountBreakdown">-EGP
+                  <span class="checkout-breakdown-value" style="color: #059669;" id="promoDiscountBreakdown">-AED
                     0.00</span>
                 </div>
                 <div class="checkout-breakdown-row checkout-breakdown-total">
                   <span class="checkout-breakdown-label">Total:</span>
-                  <span class="checkout-breakdown-value" id="orderTotalDisplay">EGP <%= total.toFixed(2) %></span>
+                  <span class="checkout-breakdown-value" id="orderTotalDisplay">AED <%= total.toFixed(2) %></span>
                 </div>
               </div>
             </div>
@@ -370,15 +370,15 @@
           <div class="checkout-summary-content">
             <div class="checkout-summary-row">
               <span class="checkout-summary-label">Subtotal:</span>
-              <span class="checkout-summary-value" id="subtotalValue">EGP <%= subtotal.toFixed(2) %></span>
+              <span class="checkout-summary-value" id="subtotalValue">AED <%= subtotal.toFixed(2) %></span>
             </div>
             <div id="promoCodeDiscountRow" class="checkout-summary-row" style="display: none;">
               <span class="checkout-summary-label">Promo Code Discount:</span>
-              <span class="checkout-summary-value promo-discount" id="promoDiscountValue">-EGP 0.00</span>
+              <span class="checkout-summary-value promo-discount" id="promoDiscountValue">-AED 0.00</span>
             </div>
             <div class="checkout-summary-row checkout-summary-total">
               <span class="checkout-summary-label">Total:</span>
-              <span class="checkout-summary-value" id="totalValue">EGP <%= total.toFixed(2) %></span>
+              <span class="checkout-summary-value" id="totalValue">AED <%= total.toFixed(2) %></span>
             </div>
           </div>
 
@@ -1389,10 +1389,10 @@
 
         // Update summary card promo discount
         if (promoDiscountValue) {
-          promoDiscountValue.textContent = `-EGP ${discount.toFixed(2)}`;
+          promoDiscountValue.textContent = `-AED ${discount.toFixed(2)}`;
         }
         if (totalValue) {
-          totalValue.textContent = `EGP ${Math.max(0, final).toFixed(2)}`;
+          totalValue.textContent = `AED ${Math.max(0, final).toFixed(2)}`;
         }
         if (promoCodeDiscountRow) {
           promoCodeDiscountRow.style.display = 'flex';
@@ -1401,7 +1401,7 @@
         // Update the subtotal display to show original amount
         const subtotalValue = document.getElementById('subtotalValue');
         if (subtotalValue) {
-          subtotalValue.textContent = `EGP ${original.toFixed(2)}`;
+          subtotalValue.textContent = `AED ${original.toFixed(2)}`;
         }
 
         // Update order breakdown section with promo discount
@@ -1413,10 +1413,10 @@
           promoDiscountBreakdownRow.style.display = 'flex';
         }
         if (promoDiscountBreakdown) {
-          promoDiscountBreakdown.textContent = `-EGP ${discount.toFixed(2)}`;
+          promoDiscountBreakdown.textContent = `-AED ${discount.toFixed(2)}`;
         }
         if (orderTotalDisplay) {
-          orderTotalDisplay.textContent = `EGP ${Math.max(0, final).toFixed(2)}`;
+          orderTotalDisplay.textContent = `AED ${Math.max(0, final).toFixed(2)}`;
         }
 
         // Store the backend-calculated final amount for form submission
@@ -1433,7 +1433,7 @@
         const newTotal = originalTotal || 0;
 
         if (totalValue) {
-          totalValue.textContent = `EGP ${newTotal.toFixed(2)}`;
+          totalValue.textContent = `AED ${newTotal.toFixed(2)}`;
         }
         if (promoCodeDiscountRow) {
           promoCodeDiscountRow.style.display = 'none';
@@ -1448,10 +1448,10 @@
           promoDiscountBreakdownRow.style.display = 'none';
         }
         if (orderTotalDisplay) {
-          orderTotalDisplay.textContent = `EGP ${newTotal.toFixed(2)}`;
+          orderTotalDisplay.textContent = `AED ${newTotal.toFixed(2)}`;
         }
         if (subtotalValue) {
-          subtotalValue.textContent = `EGP ${originalSubtotal.toFixed(2)}`;
+          subtotalValue.textContent = `AED ${originalSubtotal.toFixed(2)}`;
         }
       }
 
@@ -1460,7 +1460,7 @@
         const promoDiscountAmount = appliedPromoCode.querySelector('.promo-discount-amount');
 
         promoCodeText.textContent = promoCode;
-        promoDiscountAmount.textContent = `-EGP ${discountAmount.toFixed(2)}`;
+        promoDiscountAmount.textContent = `-AED ${discountAmount.toFixed(2)}`;
         appliedPromoCode.style.display = 'block';
       }
 
@@ -1484,7 +1484,7 @@
         }
 
         // SECURITY: Validate that frontend amounts match server expectations
-        const currentTotal = parseFloat(totalValue.textContent.replace('EGP ', ''));
+        const currentTotal = parseFloat(totalValue.textContent.replace('AED ', ''));
         const originalTotalAmount = <%= total %>;
 
         // Calculate expected total with promo discount
@@ -1632,7 +1632,7 @@
           </div>
           <div class="payment-info-item">
             <span class="label">Total Amount:</span>
-            <span class="value">EGP ${paymentData.total.toFixed(2)}</span>
+            <span class="value">AED ${paymentData.total.toFixed(2)}</span>
           </div>
         </div>
         <iframe 
@@ -1805,10 +1805,10 @@
               
               <div class="checkout-item-price">
                 ${item.discountPrice && item.discountPrice > 0 ?
-          `<span class="checkout-original-price">EGP${item.originalPrice.toFixed(2)}</span>
+          `<span class="checkout-original-price">AED${item.originalPrice.toFixed(2)}</span>
                    <span class="checkout-discount-badge">-${item.discountPrice.toFixed(0)}%</span><br>
-                   <span class="checkout-final-price">EGP${item.price.toFixed(2)}</span>` :
-          `EGP${item.price.toFixed(2)}`
+                   <span class="checkout-final-price">AED${item.price.toFixed(2)}</span>` :
+          `AED${item.price.toFixed(2)}`
         }
               </div>
             </div>
@@ -1826,11 +1826,11 @@
           <div class="checkout-total-breakdown">
             <div class="checkout-total-row">
               <span class="checkout-total-label">Subtotal:</span>
-              <span class="checkout-total-value">EGP${purchaseData.subtotal.toFixed(2)}</span>
+              <span class="checkout-total-value">AED${purchaseData.subtotal.toFixed(2)}</span>
             </div>
             <div class="checkout-total-row checkout-total-final">
               <span class="checkout-total-label">Total Paid:</span>
-              <span class="checkout-total-value">EGP${purchaseData.total.toFixed(2)}</span>
+              <span class="checkout-total-value">AED${purchaseData.total.toFixed(2)}</span>
             </div>
           </div>
         </div>

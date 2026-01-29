@@ -174,7 +174,7 @@ class PaymobService {
           auth_token: authToken,
           delivery_needed: 'false',
           amount_cents: amountCents,
-          currency: 'EGP',
+          currency: 'AED',
           items: items.map((item) => ({
             name: item.title || item.name,
             amount_cents: Math.round(item.price * 100),
@@ -254,7 +254,7 @@ class PaymobService {
             last_name: billingData.lastName || 'Lastname',
             state: billingData.state || 'NA',
           },
-          currency: 'EGP',
+          currency: 'AED',
           integration_id: Number(integrationId),
           // Add redirect URLs for iframe
           redirection_url:
@@ -339,7 +339,7 @@ class PaymobService {
       try {
         const amountCents = Math.round(orderData.total * 100);
 
-        // Prepare items array - ensure amounts are in smallest currency unit (piastres for EGP)
+        // Prepare items array - ensure amounts are in smallest currency unit (fils for AED)
         const items = orderData.items.map((item) => {
           const itemPrice = item.price || 0;
           const itemQuantity = item.quantity || 1;
@@ -389,7 +389,7 @@ class PaymobService {
 
         const body = {
           amount: amountCents,
-          currency: 'EGP',
+          currency: 'AED',
           payment_methods: finalPaymentMethods, // Can be [1, 47] or integration IDs
           items: items,
           billing_data: billingDataFormatted,

@@ -185,8 +185,8 @@ const dashboard = async (req, res) => {
 
     res.render('student/dashboard', {
       title: selectedTeacher
-        ? `${selectedTeacher.firstName} ${selectedTeacher.lastName} - Dashboard | ELKABLY`
-        : 'Student Dashboard | ELKABLY',
+        ? `${selectedTeacher.firstName} ${selectedTeacher.lastName} - Dashboard | G-Teacher`
+        : 'Student Dashboard | G-Teacher',
       student,
       stats,
       recentProgress: limitedRecentProgress,
@@ -375,8 +375,8 @@ const enrolledCourses = async (req, res) => {
 
     res.render('student/enrolled-courses', {
       title: selectedTeacher
-        ? `${selectedTeacher.firstName} ${selectedTeacher.lastName} - My Weeks | ELKABLY`
-        : 'My Enrolled Weeks | ELKABLY',
+        ? `${selectedTeacher.firstName} ${selectedTeacher.lastName} - My Weeks | G-Teacher`
+        : 'My Enrolled Weeks | G-Teacher',
       student,
       enrolledCourses: enrolledCoursesData,
       totalCourses: totalCourses,
@@ -457,7 +457,7 @@ const courseDetails = async (req, res) => {
     });
 
     res.render('student/course-details', {
-      title: `${course.title} - Course Details | ELKABLY`,
+      title: `${course.title} - Course Details | G-Teacher`,
       student,
       course,
       enrollment,
@@ -694,7 +694,7 @@ const courseContent = async (req, res) => {
     const selectedTeacherId = course.teacher ? course.teacher._id.toString() : 'all';
 
     res.render('student/course-content', {
-      title: `${course.title} - Course Content | ELKABLY`,
+      title: `${course.title} - Course Content | G-Teacher`,
       student,
       course,
       enrollment,
@@ -702,8 +702,6 @@ const courseContent = async (req, res) => {
       lockedContentId, // Pass locked content ID to highlight it
       user: req.session.user, // Pass user session for admin checks
       getContentIcon, // Pass the helper function to the template
-      availableTeachers,
-      selectedTeacherId,
       theme: req.cookies.theme || student.preferences?.theme || 'light',
     });
   } catch (error) {
@@ -1018,7 +1016,7 @@ const contentDetails = async (req, res) => {
     }
 
     res.render('student/content-details', {
-      title: `${contentItem.title} - Content | ELKABLY`,
+      title: `${contentItem.title} - Content | G-Teacher`,
       student,
       course,
       topic,
@@ -1049,8 +1047,6 @@ const contentDetails = async (req, res) => {
         currentIndex: currentIndex,
         totalContent: allContent.length,
       },
-      availableTeachers,
-      selectedTeacherId,
       getContentIcon, // Pass the helper function to the template
       studentSubmission, // Pass student's submission data for submission type content
       theme: req.cookies.theme || student.preferences?.theme || 'light',
@@ -1349,7 +1345,7 @@ const wishlist = async (req, res) => {
     const paginatedItems = allItems.slice(skip, skip + limit);
 
     res.render('student/wishlist', {
-      title: 'My Wishlist | ELKABLY',
+      title: 'My Wishlist | G-Teacher',
       student,
       wishlistCourses: paginatedItems.filter((item) => item.type === 'course'),
       pagination: {
@@ -1455,7 +1451,7 @@ const orderHistory = async (req, res) => {
     );
 
     res.render('student/order-history', {
-      title: 'Order History | ELKABLY',
+      title: 'Order History | G-Teacher',
       student,
       orders: populatedOrders,
       pagination: {
@@ -1578,7 +1574,7 @@ const orderDetails = async (req, res) => {
     // Debug logging
 
     res.render('student/order-details', {
-      title: `Order #${orderNumber} | ELKABLY`,
+      title: `Order #${orderNumber} | G-Teacher`,
       student,
       order: formattedOrder,
       theme: req.cookies.theme || student.preferences?.theme || 'light',
@@ -1650,7 +1646,7 @@ const profile = async (req, res) => {
     };
 
     res.render('student/profile', {
-      title: 'My Profile | ELKABLY',
+      title: 'My Profile | G-Teacher',
       student,
       achievements,
       theme: req.cookies.theme || student.preferences?.theme || 'light',
@@ -1748,7 +1744,7 @@ const sendProfileOTP = async (req, res) => {
 
     // Check if country code is NOT Egyptian (+20)
     const isEgyptian = countryCode === '+20' || countryCode === '20';
-    const message = `Your ELKABLY verification code is: ${otp}. Valid for 5 minutes. Do not share this code.`;
+    const message = `Your G-Teacher verification code is: ${otp}. Valid for 5 minutes. Do not share this code.`;
 
     try {
       if (isEgyptian) {
@@ -2010,7 +2006,7 @@ const settings = async (req, res) => {
     }
 
     res.render('student/settings', {
-      title: 'Settings | ELKABLY',
+      title: 'Settings | G-Teacher',
       student,
       theme: req.cookies.theme || student.preferences?.theme || 'light',
     });
@@ -2244,7 +2240,7 @@ const exportData = async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename="elkably-learning-data-${student.studentCode}-${new Date().toISOString().split('T')[0]
+      `attachment; filename="G-Teacher-learning-data-${student.studentCode}-${new Date().toISOString().split('T')[0]
       }.json"`
     );
 

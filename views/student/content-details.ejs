@@ -7,9 +7,9 @@
   <title><%= contentItem.title %> - Content | G-Teacher</title>
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="/images/KImage.png">
-  <link rel="shortcut icon" type="image/png" href="/images/KImage.png">
-  <link rel="apple-touch-icon" href="/images/KImage.png">
+  <link rel="icon" type="image/png" href="/images/G-TeacherLogo.png">
+  <link rel="shortcut icon" type="image/png" href="/images/G-TeacherLogo.png">
+  <link rel="apple-touch-icon" href="/images/G-TeacherLogo.png">
 
   <!-- CSS -->
   <link rel="stylesheet" href="/css/studentCSS/student-main.css">
@@ -1491,9 +1491,7 @@
         student: student, 
         theme: theme, 
         currentPage: 'content', 
-        backLink: `/student/course/${course._id}/content`,
-        availableTeachers: typeof availableTeachers !== 'undefined' ? availableTeachers : [],
-        selectedTeacherId: typeof selectedTeacherId !== 'undefined' ? selectedTeacherId : 'all'
+        backLink: `/student/course/${course._id}/content`
       }) %>
 
       <!-- Notification Container (Top Right, Above Header) -->

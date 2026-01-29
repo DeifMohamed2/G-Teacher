@@ -1,4 +1,4 @@
-<%- include('partials/admin-header', { title: 'Promo Codes Management | ELKABLY Admin' }) %>
+<%- include('partials/admin-header', { title: 'Promo Codes Management | G-Teacher Admin' }) %>
 
   <!-- Import Promo Codes CSS -->
   <link rel="stylesheet" href="/css/adminCSS/promo-codes.css">
@@ -602,10 +602,10 @@
                                 <% if (promoCode.discountType==='percentage' ) { %>
                                   <%= promoCode.discountValue %>% off
                                     <% } else { %>
-                                      EGP <%= promoCode.discountValue %> off
+                                      AED <%= promoCode.discountValue %> off
                                         <% } %>
                                           <% if (promoCode.minOrderAmount> 0) { %>
-                                            <br><small class="text-muted">Min: EGP <%= promoCode.minOrderAmount %>
+                                            <br><small class="text-muted">Min: AED <%= promoCode.minOrderAmount %>
                                                 </small>
                                             <% } %>
                               </div>
@@ -827,7 +827,7 @@
                       <select id="applicableTo" name="applicableTo" class="promo-form-control">
                         <option value="all">All Products</option>
                         <option value="courses">Courses Only</option>
-                        <option value="weeks">Weeks Only</option>
+                        <option value="weeks">Courses Only</option>
                       </select>
                     </div>
 
@@ -993,7 +993,7 @@
                       <select id="editApplicableTo" name="applicableTo" class="promo-form-control">
                         <option value="all">All Products</option>
                         <option value="courses">Courses Only</option>
-                        <option value="weeks">Weeks Only</option>
+                        <option value="weeks">Courses Only</option>
                       </select>
                     </div>
 
@@ -1176,7 +1176,7 @@
                       <select id="bulkApplicableTo" name="applicableTo" class="promo-form-control">
                         <option value="all">All Products</option>
                         <option value="courses">Courses Only</option>
-                        <option value="weeks">Weeks Only</option>
+                        <option value="weeks">Courses Only</option>
                       </select>
                     </div>
 
@@ -1326,7 +1326,7 @@
                   discountValueInput.placeholder = '50';
                   discountValueInput.max = '';
                   discountValueInput.step = '0.01';
-                  discountHelp.textContent = 'Enter the fixed discount amount in EGP';
+                  discountHelp.textContent = 'Enter the fixed discount amount in AED';
                   maxDiscountInput.style.display = 'none';
                 }
               }
@@ -1360,7 +1360,7 @@
                   discountValueInput.placeholder = '50';
                   discountValueInput.max = '';
                   discountValueInput.step = '0.01';
-                  discountHelp.textContent = 'Enter the fixed discount amount in EGP';
+                  discountHelp.textContent = 'Enter the fixed discount amount in AED';
                   maxDiscountInput.style.display = 'none';
                 }
               }
@@ -1481,9 +1481,9 @@
           </div>
         </div>
         <div class="usage-history-amount">
-          <div class="original">EGP ${usage.originalAmount.toFixed(2)}</div>
-          <div class="discount">-EGP ${usage.discountAmount.toFixed(2)}</div>
-          <div class="final">EGP ${usage.finalAmount.toFixed(2)}</div>
+          <div class="original">AED ${usage.originalAmount.toFixed(2)}</div>
+          <div class="discount">-AED ${usage.discountAmount.toFixed(2)}</div>
+          <div class="final">AED ${usage.finalAmount.toFixed(2)}</div>
         </div>
       </div>
     `;
@@ -2058,7 +2058,7 @@
                   discountValueInput.placeholder = '50';
                   discountValueInput.max = '';
                   discountValueInput.step = '0.01';
-                  discountHelp.textContent = 'Enter the fixed discount amount in EGP';
+                  discountHelp.textContent = 'Enter the fixed discount amount in AED';
                   maxDiscountInput.style.display = 'none';
                 }
               }
@@ -2411,7 +2411,7 @@
                       discountType: collection.discountType === 'percentage' ? 'Percentage' : 'Fixed',
                       discountValue: collection.discountType === 'percentage'
                         ? `${collection.discountValue}%`
-                        : `EGP ${collection.discountValue}`,
+                        : `AED ${collection.discountValue}`,
                       totalCodes: collection.totalCodes,
                       usedCodes: collection.usedCodes,
                       unusedCodes: collection.unusedCodes,
@@ -2537,7 +2537,7 @@
           <div class="discount-display ${collection.discountType}">
             ${collection.discountType === 'percentage'
                       ? `${collection.discountValue}% off`
-                      : `EGP ${collection.discountValue} off`}
+                      : `AED ${collection.discountValue} off`}
           </div>
         </td>
         <td>

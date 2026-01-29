@@ -106,7 +106,7 @@ const PurchaseSchema = new mongoose.Schema(
     },
     currency: {
       type: String,
-      default: 'EGP',
+      default: 'AED',
     },
     paymentMethod: {
       type: String,

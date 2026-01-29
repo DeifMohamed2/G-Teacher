@@ -281,7 +281,7 @@ class ExcelExporter {
         if (column.type === 'date') {
           cell.numFmt = 'dd/mm/yyyy hh:mm';
         } else if (column.type === 'currency') {
-          cell.numFmt = '"EGP "#,##0.00';
+          cell.numFmt = '"AED "#,##0.00';
         } else if (column.type === 'percentage') {
           cell.numFmt = '0.00%';
         }

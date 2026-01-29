@@ -48,14 +48,15 @@
     <!-- Communications -->
     <div class="admin-nav-group">
       <span class="admin-nav-group-label">Communications</span>
-      <a href="/admin/whatsapp" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'whatsapp' ? 'active' : '' %>">
+      <a href="#" class="admin-nav-item admin-nav-item-disabled" onclick="showComingSoonAlert('WhatsApp'); return false;">
         <span class="admin-nav-item-icon admin-nav-icon-whatsapp"><i class="fab fa-whatsapp"></i></span>
         <span class="admin-nav-item-text">WhatsApp</span>
+        <span class="admin-nav-badge coming-soon">Soon</span>
       </a>
-      <a href="/admin/bulk-sms" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'bulk-sms' ? 'active' : '' %>">
+      <!-- <a href="/admin/bulk-sms" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'bulk-sms' ? 'active' : '' %>">
         <span class="admin-nav-item-icon"><i class="fas fa-sms"></i></span>
         <span class="admin-nav-item-text">Bulk SMS</span>
-      </a>
+      </a> -->
       <a href="/admin/otp-master" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'otp-master' ? 'active' : '' %>">
         <span class="admin-nav-item-icon"><i class="fas fa-key"></i></span>
         <span class="admin-nav-item-text">OTP Master</span>
@@ -79,3 +80,52 @@
     </div>
   </div>
 </aside>
+
+<style>
+  /* Coming Soon Badge */
+  .admin-nav-badge.coming-soon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: auto;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    animation: badge-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes badge-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  /* Disabled Nav Item */
+  .admin-nav-item.admin-nav-item-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .admin-nav-item.admin-nav-item-disabled:hover {
+    background: transparent;
+    transform: none;
+  }
+</style>
+
+<script>
+  function showComingSoonAlert(featureName) {
+    // Check if SweetAlert2 is available
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'info',
+        title: 'Coming Soon! 🚧',
+        html: `<p><strong>${featureName}</strong> feature is currently under development.</p><p>Stay tuned for updates!</p>`,
+        confirmButtonText: 'Got it!',
+        confirmButtonColor: '#3a92bd'
+      });
+    } else {
+      alert(`${featureName} feature is coming soon! This page is currently under development.`);
+    }
+  }
+</script>

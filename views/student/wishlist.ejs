@@ -6,9 +6,9 @@
     <title><%= title %></title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/images/KImage.png">
-    <link rel="shortcut icon" type="image/png" href="/images/KImage.png">
-    <link rel="apple-touch-icon" href="/images/KImage.png">
+    <link rel="icon" type="image/png" href="/images/G-TeacherLogo.png">
+    <link rel="shortcut icon" type="image/png" href="/images/G-TeacherLogo.png">
+    <link rel="apple-touch-icon" href="/images/G-TeacherLogo.png">
     
     <!-- CSS -->
     <link rel="stylesheet" href="/css/studentCSS/student-main.css">
@@ -39,14 +39,14 @@
                         My Wishlist
                     </h2>
                     <p style="color: var(--text-secondary);">
-                        Weeks you've saved for later. Enroll when you're ready to start learning.
+                        Courses you've saved for later. Enroll when you're ready to start learning.
                     </p>
                 </div>
 
                 <!-- Wishlist Content -->
                 <% if ((wishlistCourses && wishlistCourses.length > 0) || (wishlistCourses && wishlistCourses.length > 0)) { %>
                     
-                    <!-- Weeks Section -->
+                    <!-- Courses Section -->
                     <% if (wishlistCourses && wishlistCourses.length > 0) { %>
                         <div class="wishlist-section" style="margin-bottom: var(--spacing-2xl);">
                             <div class="section-header" style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
@@ -55,10 +55,10 @@
                                 </div>
                                 <div>
                                     <h3 style="color: var(--text-primary); margin: 0; font-size: 1.5rem; font-weight: 600;">
-                                        Weeks (<%= wishlistCourses.length %>)
+                                        Courses (<%= wishlistCourses.length %>)
                                     </h3>
                                     <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">
-                                        Individual weeks you've saved for later
+                                        Individual courses you've saved for later
                                     </p>
                                 </div>
                             </div>
@@ -204,10 +204,10 @@
                                                 <% if (course.discountPrice && course.discountPrice > 0) { %>
                                                     <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
                                                         <span style="font-size: 1.1rem; font-weight: 600; color: var(--success-color);">
-                                                            <%= (course.price - (course.price * course.discountPrice / 100)).toFixed(2) %> EGP
+                                                            <%= (course.price - (course.price * course.discountPrice / 100)).toFixed(2) %> AED
                                                         </span>
                                                         <span style="font-size: 0.9rem; color: var(--text-muted); text-decoration: line-through;">
-                                                            <%= course.price %> EGP
+                                                            <%= course.price %> AED
                                                         </span>
                                                         <span class="badge badge-success" style="font-size: 0.625rem;">
                                                             <%= course.discountPrice %>% OFF
@@ -293,7 +293,7 @@
                         <div style="display: flex; gap: var(--spacing-md); justify-content: center; flex-wrap: wrap;">
                             <a href="/" class="btn btn-primary btn-lg">
                                 <i class="fas fa-search" style="margin-right: var(--spacing-sm);"></i>
-                                Browse Weeks
+                                Browse Courses
                             </a>
                             <a href="/student/enrolled-courses" class="btn btn-outline btn-lg">
                                 <i class="fas fa-book-open" style="margin-right: var(--spacing-sm);"></i>

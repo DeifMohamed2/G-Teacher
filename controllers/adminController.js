@@ -484,7 +484,7 @@ const getAdminDashboard = async (req, res) => {
         })),
         ...newOrders.map((order) => ({
           icon: 'shopping-cart',
-          message: `New order: ${order.orderNumber || order._id} - EGP ${order.total}`,
+          message: `New order: ${order.orderNumber || order._id} - AED ${order.total}`,
           timestamp: order.createdAt,
           meta: order.user
             ? `${order.user.firstName} ${order.user.lastName}`
@@ -607,7 +607,7 @@ const getAdminDashboard = async (req, res) => {
     console.log('Dashboard data prepared:', dashboardData);
 
     return res.render('admin/dashboard', {
-      title: 'Dashboard | ELKABLY',
+      title: 'Dashboard | G-Teacher',
       theme: req.cookies.theme || 'light',
       user: req.session.user,
       dashboardData: dashboardData,
@@ -642,7 +642,7 @@ const getAdminDashboard = async (req, res) => {
     };
 
     return res.render('admin/dashboard', {
-      title: 'Dashboard | ELKABLY',
+      title: 'Dashboard | G-Teacher',
       theme: req.cookies.theme || 'light',
       user: req.session.user,
       dashboardData: fallbackData,
@@ -769,7 +769,7 @@ const getCourses = async (req, res) => {
     const filterOptions = await getFilterOptions();
 
     return res.render('admin/courses', {
-      title: 'Course Management | ELKABLY',
+      title: 'Course Management | G-Teacher',
       theme: req.cookies.theme || 'light',
       user: req.session.user,
       courses,
@@ -907,7 +907,7 @@ const getCourse = async (req, res) => {
     }
 
     return res.render('admin/course-detail', {
-      title: `Course: ${course.title} | ELKABLY`,
+      title: `Course: ${course.title} | G-Teacher`,
       theme: req.cookies.theme || 'light',
       user: req.session.user,
       course,
@@ -1142,7 +1142,7 @@ const getCourseDetails = async (req, res) => {
     };
 
     return res.render('admin/course-detail', {
-      title: `Course Details: ${course.title} | ELKABLY`,
+      title: `Course Details: ${course.title} | G-Teacher`,
       theme: req.cookies.theme || 'light',
       user: req.session.user,
       course,
@@ -1848,7 +1848,7 @@ const getCourseContent = async (req, res) => {
     }
 
     return res.render('admin/course-content', {
-      title: `Course Content: ${course.title} | ELKABLY`,
+      title: `Course Content: ${course.title} | `,
       courseCode,
       theme: req.cookies.theme || 'light',
       user: req.session.user,
@@ -2358,7 +2358,7 @@ const getTopicDetails = async (req, res) => {
     };
 
     return res.render('admin/topic-details', {
-      title: `Topic Details: ${topic.title} | ELKABLY`,
+      title: `Topic Details: ${topic.title} | `,
       courseCode,
       theme: req.cookies.theme || 'light',
       user: req.session.user,
@@ -2833,7 +2833,7 @@ const getContentDetailsPage = async (req, res) => {
     }
 
     return res.render('admin/content-details', {
-      title: `Content Details: ${contentItem.title} | ELKABLY`,
+      title: `Content Details: ${contentItem.title} | G-Teacher`,
       courseCode,
       theme: req.cookies.theme || 'light',
       user: req.session.user,
@@ -4179,7 +4179,7 @@ const getOrderDetails = async (req, res) => {
       subtotal: order.subtotal,
       tax: order.tax || 0,
       total: order.total,
-      currency: order.currency || 'EGP',
+      currency: order.currency || 'AED',
       itemCount: itemCount,
       totalGTeacherCommission: order.totalGTeacherCommission || 0,
       totalTeacherNet: order.totalTeacherNet || 0,
@@ -4248,22 +4248,22 @@ const generateInvoice = async (req, res) => {
       subtotal: order.subtotal,
       tax: order.tax,
       total: order.total,
-      currency: order.currency || 'EGP',
+      currency: order.currency || 'AED',
       itemCount: order.items.length,
     };
 
     // Company information for invoice
     const companyInfo = {
-      name: 'Elkably E-Learning',
+      name: 'G-Teacher E-Learning',
       address: '123 Education Street, Learning City, LC 12345',
       phone: '+1 (555) 123-4567',
-      email: 'info@elkably.com',
-      website: 'www.elkably.com',
+      email: 'info@G-Teacher.com',
+      website: 'www.G-Teacher.com',
       logo: '/images/logo.png',
     };
 
     return res.render('admin/invoice', {
-      title: `Invoice - Order ${order.orderNumber} | ELKABLY`,
+      title: `Invoice - Order ${order.orderNumber} | G-Teacher`,
       order,
       itemsSummary,
       summary,
@@ -4576,7 +4576,7 @@ const getStudents = async (req, res) => {
     });
 
     return res.render('admin/students', {
-      title: 'Student Management | ELKABLY',
+      title: 'Student Management | G-Teacher',
       theme: req.cookies.theme || 'light',
       user: req.session.user,
       students: studentsWithCalculations,
@@ -5060,7 +5060,7 @@ const getStudentDetails = async (req, res) => {
     };
 
     return res.render('admin/student-details', {
-      title: `Student Details - ${student.firstName} ${student.lastName} | ELKABLY`,
+      title: `Student Details - ${student.firstName} ${student.lastName} | G-Teacher`,
       theme: req.cookies.theme || 'light',
       user: req.session.user,
       student,
@@ -5106,8 +5106,8 @@ const toggleStudentStatus = async (req, res) => {
           ''
         );
       const message = isActive
-        ? `Your Elkably account has been activated. You can now log in and start learning.`
-        : `Your Elkably account has been deactivated. Please contact support if you believe this is an error.`;
+        ? `Your G-Teacher account has been activated. You can now log in and start learning.`
+        : `Your G-Teacher account has been deactivated. Please contact support if you believe this is an error.`;
       sendSms({ recipient, message }).catch((err) =>
         console.error('SMS send error (toggle status):', err?.message || err)
       );
@@ -5220,8 +5220,8 @@ const bulkToggleStudentStatus = async (req, res) => {
               ''
             );
           const message = isActive
-            ? `Your Elkably account has been activated. You can now log in and start learning.`
-            : `Your Elkably account has been deactivated. Please contact support if you believe this is an error.`;
+            ? `Your G-Teacher account has been activated. You can now log in and start learning.`
+            : `Your G-Teacher account has been deactivated. Please contact support if you believe this is an error.`;
           sendSms({ recipient, message }).catch((err) =>
             console.error(
               'SMS send error (bulk toggle status):',
@@ -5827,7 +5827,7 @@ const getStudentEditPage = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(studentId)) {
       return res.status(400).render('404', {
         message: 'Invalid student ID format',
-        title: 'Error | ELKABLY',
+        title: 'Error | G-Teacher',
         theme: req.cookies.theme || 'light',
         user: req.session.user,
       });
@@ -5839,14 +5839,14 @@ const getStudentEditPage = async (req, res) => {
     if (!student) {
       return res.status(404).render('404', {
         message: 'Student not found',
-        title: 'Error | ELKABLY',
+        title: 'Error | G-Teacher',
         theme: req.cookies.theme || 'light',
         user: req.session.user,
       });
     }
 
     res.render('admin/student-edit', {
-      title: `Edit ${student.firstName} ${student.lastName} | ELKABLY`,
+      title: `Edit ${student.firstName} ${student.lastName} | G-Teacher`,
       theme: req.cookies.theme || 'light',
       user: req.session.user,
       student,
@@ -5857,7 +5857,7 @@ const getStudentEditPage = async (req, res) => {
     console.error('Error loading student edit page:', error);
     res.status(500).render('404', {
       message: 'Error loading edit page',
-      title: 'Error | ELKABLY',
+      title: 'Error | G-Teacher',
       theme: req.cookies.theme || 'light',
       user: req.session.user,
     });
@@ -5952,8 +5952,8 @@ const updateStudent = async (req, res) => {
           : null;
       if (phone) {
         const message = student.isActive
-          ? `Your Elkably account has been activated. You can now log in and start learning.`
-          : `Your Elkably account has been deactivated. Please contact support if you believe this is an error.`;
+          ? `Your G-Teacher account has been activated. You can now log in and start learning.`
+          : `Your G-Teacher account has been deactivated. Please contact support if you believe this is an error.`;
         sendSms({ recipient: phone, message }).catch((err) =>
           console.error(
             'SMS send error (update student status):',
@@ -6051,7 +6051,7 @@ const deleteStudent = async (req, res) => {
     // Notify student via SMS about deletion (non-blocking)
     if (studentInfo.phone) {
       const message =
-        'Your Elkably account has been deleted. If this was unexpected, please contact support.';
+        'Your G-Teacher account has been deleted. If this was unexpected, please contact support.';
       sendSms({ recipient: studentInfo.phone, message }).catch((err) =>
         console.error('SMS send error (delete student):', err?.message || err)
       );
@@ -7432,7 +7432,7 @@ const exportComprehensiveReport = async (req, res) => {
 
     // Create comprehensive report with multiple sheets
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Elkably E-Learning System';
+    workbook.creator = 'G-Teacher E-Learning System';
     workbook.lastModifiedBy = 'Admin';
     workbook.created = new Date();
     workbook.modified = new Date();
@@ -7441,7 +7441,7 @@ const exportComprehensiveReport = async (req, res) => {
     const summarySheet = workbook.addWorksheet('Dashboard Summary');
     summarySheet.mergeCells('A1:D1');
     summarySheet.getCell('A1').value =
-      'Elkably E-Learning System - Comprehensive Report';
+      'G-Teacher E-Learning System - Comprehensive Report';
     summarySheet.getCell('A1').font = { name: 'Calibri', size: 16, bold: true };
     summarySheet.getCell('A1').alignment = { horizontal: 'center' };
     summarySheet.getRow(1).height = 30;
@@ -9727,7 +9727,7 @@ const bulkImportStudents = async (req, res) => {
         }
 
         // Generate temporary email and username
-        const tempEmail = `temp_${studentCode}@elkably.com`;
+        const tempEmail = `temp_${studentCode}@G-Teacher.com`;
         const tempUsername = `student_${studentCode}`;
 
         // Create student with incomplete data
@@ -10425,7 +10425,7 @@ const getPromoCodes = async (req, res) => {
     };
 
     res.render('admin/promo-codes', {
-      title: 'Promo Codes Management | ELKABLY',
+      title: 'Promo Codes Management | G-Teacher',
       theme: req.cookies.theme || 'light',
       promoCodes,
       stats,
@@ -10441,7 +10441,7 @@ const getPromoCodes = async (req, res) => {
     console.error('Error fetching promo codes:', error);
     req.flash('error_msg', 'Error loading promo codes');
     res.render('admin/promo-codes', {
-      title: 'Promo Codes Management | ELKABLY',
+      title: 'Promo Codes Management | G-Teacher',
       theme: req.cookies.theme || 'light',
       promoCodes: [],
       stats: { totalCodes: 0, activeCodes: 0, expiredCodes: 0, totalUses: 0 },
@@ -11112,7 +11112,7 @@ const exportBulkCollection = async (req, res) => {
         discountValue:
           code.discountType === 'percentage'
             ? `${code.discountValue}%`
-            : `EGP ${code.discountValue}`,
+            : `AED ${code.discountValue}`,
         usedByStudent: code.usedByStudent
           ? `${code.usedByStudent.firstName} ${code.usedByStudent.lastName}`
           : '-',
@@ -11550,7 +11550,7 @@ const getTeamManagementPage = async (req, res) => {
     };
 
     res.render('admin/team-management', {
-      title: 'Team Management | ELKABLY',
+      title: 'Team Management | G-Teacher',
       teamMembers,
       pagination: {
         totalMembers,
@@ -11785,7 +11785,7 @@ const getBulkSMSPage = async (req, res) => {
     };
 
     res.render('admin/bulk-sms', {
-      title: 'Bulk SMS Messaging | ELKABLY',
+      title: 'Bulk SMS Messaging | G-Teacher',
       theme: req.cookies.theme || 'light',
       stats,
     });
@@ -12392,7 +12392,7 @@ const getOTPMasterGenerator = async (req, res) => {
     const stats = otpMasterUtil.getOTPStats();
 
     res.render('admin/otp-master', {
-      title: 'OTP Master Generator | ELKABLY',
+      title: 'OTP Master Generator | G-Teacher',
       theme: req.cookies.theme || 'light',
       currentPage: 'otp-master',
       admin: req.user,
@@ -13002,7 +13002,7 @@ const exportTeacherDetails = async (req, res) => {
       { header: 'Course Title', key: 'title', width: 35 },
       { header: 'Course Code', key: 'code', width: 15 },
       { header: 'Status', key: 'status', width: 12 },
-      { header: 'Price (EGP)', key: 'price', width: 12 },
+      { header: 'Price (AED)', key: 'price', width: 12 },
       { header: 'Enrolled Students', key: 'students', width: 18 },
       { header: 'Topics', key: 'topics', width: 10 },
       { header: 'Created', key: 'created', width: 15 },
@@ -13027,9 +13027,9 @@ const exportTeacherDetails = async (req, res) => {
       { header: 'Date', key: 'date', width: 15 },
       { header: 'Student Name', key: 'studentName', width: 25 },
       { header: 'Course', key: 'course', width: 30 },
-      { header: 'Amount (EGP)', key: 'amount', width: 15 },
-      { header: 'Commission (EGP)', key: 'commission', width: 18 },
-      { header: 'Teacher Net (EGP)', key: 'teacherNet', width: 18 },
+      { header: 'Amount (AED)', key: 'amount', width: 15 },
+      { header: 'Commission (AED)', key: 'commission', width: 18 },
+      { header: 'Teacher Net (AED)', key: 'teacherNet', width: 18 },
       { header: 'Status', key: 'status', width: 12 },
     ];
 
@@ -13072,9 +13072,9 @@ const exportTeacherDetails = async (req, res) => {
     });
 
     financialSheet.addRow({ metric: 'Total Completed Orders', value: orders.length });
-    financialSheet.addRow({ metric: 'Total Revenue (EGP)', value: totalRevenue.toLocaleString() });
-    financialSheet.addRow({ metric: 'Platform Commission (EGP)', value: totalCommission.toLocaleString() });
-    financialSheet.addRow({ metric: 'Teacher Net Earnings (EGP)', value: totalTeacherNet.toLocaleString() });
+    financialSheet.addRow({ metric: 'Total Revenue (AED)', value: totalRevenue.toLocaleString() });
+    financialSheet.addRow({ metric: 'Platform Commission (AED)', value: totalCommission.toLocaleString() });
+    financialSheet.addRow({ metric: 'Teacher Net Earnings (AED)', value: totalTeacherNet.toLocaleString() });
     financialSheet.addRow({ metric: 'Commission Rate', value: `${teacher.gTeacherPercentage || 0}%` });
 
     // Style the sheets
@@ -13716,7 +13716,7 @@ const getGTeacherAnalysis = async (req, res) => {
     ]);
 
     res.render('admin/gteacher-analysis', {
-      title: 'G-Teacher Analysis & Invoices | ELKABLY',
+      title: 'G-Teacher Analysis & Invoices | G-Teacher',
       theme: req.cookies.theme || 'light',
       user: req.session.user,
       teachers: allTeachers,
@@ -13783,7 +13783,6 @@ const getTeacherInvoiceData = async (req, res) => {
     // Organize data by course
     const courseData = {};
     let totalAED = 0;
-    let totalEGP = 0;
 
     purchases.forEach(purchase => {
       const isRefunded = purchase.refundedAt || purchase.paymentStatus === 'refunded';
@@ -13829,7 +13828,7 @@ const getTeacherInvoiceData = async (req, res) => {
           revenue: isRefunded ? -Math.round(itemRevenue) : Math.round(itemRevenue),
           date: purchase.createdAt,
           orderId: purchase.orderNumber || purchase._id,
-          currency: purchase.currency || 'EGP',
+          currency: purchase.currency || 'AED',
         };
 
         courseData[courseTitle].orders.push(orderData);
@@ -13845,9 +13844,7 @@ const getTeacherInvoiceData = async (req, res) => {
     // Calculate totals
     Object.values(courseData).forEach(course => {
       const netRevenue = course.totalRevenue - course.refundAmount;
-      // Assuming AED conversion (you can adjust the rate)
-      totalAED += netRevenue * 0.0735; // EGP to AED approximate rate
-      totalEGP += netRevenue;
+      totalAED += netRevenue;
     });
 
     // Format the data for the invoice
@@ -13871,9 +13868,8 @@ const getTeacherInvoiceData = async (req, res) => {
       })),
       totals: {
         totalAED: Math.round(totalAED * 100) / 100,
-        totalEGP: Math.round(totalEGP * 100) / 100,
-        gTeacherCommission: Math.round(totalEGP * (teacher.gTeacherPercentage || 0) / 100 * 100) / 100,
-        teacherNet: Math.round(totalEGP * (1 - (teacher.gTeacherPercentage || 0) / 100) * 100) / 100,
+        gTeacherCommission: Math.round(totalAED * (teacher.gTeacherPercentage || 0) / 100 * 100) / 100,
+        teacherNet: Math.round(totalAED * (1 - (teacher.gTeacherPercentage || 0) / 100) * 100) / 100,
       },
       generatedAt: new Date().toISOString(),
       invoiceNumber: `INV-${teacher.teacherCode}-${Date.now()}`,

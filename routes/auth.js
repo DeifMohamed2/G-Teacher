@@ -9,8 +9,6 @@ const {
   logoutUser,
   getCreateAdminPage,
   createAdmin,
-  getCompleteDataPage,
-  completeStudentData,
   sendOTP,
   verifyOTP,
   getForgotPasswordPage,
@@ -18,7 +16,6 @@ const {
   sendForgotPasswordOTP,
   verifyForgotPasswordOTP,
   resetPassword,
-  createStudentFromExternalSystem,
 } = require('../controllers/authController');
 
 // Login page
@@ -34,10 +31,6 @@ router.post('/register', registerUser);
 // OTP routes (allow both authenticated and unauthenticated users)
 router.post('/send-otp', sendOTP);
 router.post('/verify-otp', verifyOTP);
-
-// Complete data page (for students with incomplete profiles)
-router.get('/complete-data', isAuthenticated, getCompleteDataPage);
-router.post('/complete-data', isAuthenticated, completeStudentData);
 
 // Forgot Password page
 router.get('/forgot-password', isNotAuthenticated, getForgotPasswordPage);
@@ -56,8 +49,5 @@ router.get('/logout', logoutUser);
 // Hidden admin creation (token-protected)
 router.get('/admin/create-admin', getCreateAdminPage);
 router.post('/admin/create-admin', createAdmin);
-
-// External System API
-router.post('/api/create-student-external', createStudentFromExternalSystem);
 
 module.exports = router;

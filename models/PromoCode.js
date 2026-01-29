@@ -224,7 +224,7 @@ promoCodeSchema.methods.calculateDiscount = function (orderAmount, items = []) {
   }
 
   if (orderAmount < this.minOrderAmount) {
-    throw new Error(`Minimum order amount of ${this.minOrderAmount} EGP required`);
+    throw new Error(`Minimum order amount of ${this.minOrderAmount} AED required`);
   }
 
   // Check if applicable to items

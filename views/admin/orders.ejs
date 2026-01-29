@@ -45,7 +45,7 @@
                   </div>
                   <div class="flex-grow-1">
                     <div style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Total Revenue</div>
-                    <div style="font-size: 24px; font-weight: 700; color: #10b981;">EGP <%= analytics.totalRevenue.toFixed(2) %></div>
+                    <div style="font-size: 24px; font-weight: 700; color: #10b981;">AED <%= analytics.totalRevenue.toFixed(2) %></div>
                     <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;"><%= analytics.totalOrders %> orders</div>
                   </div>
                 </div>
@@ -61,7 +61,7 @@
                   </div>
                   <div class="flex-grow-1">
                     <div style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Completed Revenue</div>
-                    <div style="font-size: 24px; font-weight: 700; color: #22c55e;">EGP <%= analytics.completedRevenue.toFixed(2) %></div>
+                    <div style="font-size: 24px; font-weight: 700; color: #22c55e;">AED <%= analytics.completedRevenue.toFixed(2) %></div>
                     <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;"><%= analytics.completed || 0 %> completed</div>
                   </div>
                 </div>
@@ -77,7 +77,7 @@
                   </div>
                   <div class="flex-grow-1">
                     <div style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Refunded</div>
-                    <div style="font-size: 24px; font-weight: 700; color: #ef4444;">EGP <%= analytics.refundedAmount.toFixed(2) %></div>
+                    <div style="font-size: 24px; font-weight: 700; color: #ef4444;">AED <%= analytics.refundedAmount.toFixed(2) %></div>
                     <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;"><%= analytics.refunded || 0 %> refunds</div>
                   </div>
                 </div>
@@ -93,7 +93,7 @@
                   </div>
                   <div class="flex-grow-1">
                     <div style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Avg Order Value</div>
-                    <div style="font-size: 24px; font-weight: 700; color: #8b5cf6;">EGP <%= analytics.averageOrderValue.toFixed(2) %></div>
+                    <div style="font-size: 24px; font-weight: 700; color: #8b5cf6;">AED <%= analytics.averageOrderValue.toFixed(2) %></div>
                     <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">per order</div>
                   </div>
                 </div>
@@ -121,7 +121,7 @@
                         </div>
                         <div>
                           <div style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">G-Teacher Commission</div>
-                          <div style="font-size: 26px; font-weight: 700; color: #3a92bd;">EGP <%= (analytics.totalGTeacherCommission || 0).toLocaleString() %></div>
+                          <div style="font-size: 26px; font-weight: 700; color: #3a92bd;">AED <%= (analytics.totalGTeacherCommission || 0).toLocaleString() %></div>
                           <div style="font-size: 11px; color: #94a3b8;">Platform earnings</div>
                         </div>
                       </div>
@@ -135,7 +135,7 @@
                         </div>
                         <div>
                           <div style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Teacher Net Payout</div>
-                          <div style="font-size: 26px; font-weight: 700; color: #f59e0b;">EGP <%= (analytics.totalTeacherNet || 0).toLocaleString() %></div>
+                          <div style="font-size: 26px; font-weight: 700; color: #f59e0b;">AED <%= (analytics.totalTeacherNet || 0).toLocaleString() %></div>
                           <div style="font-size: 11px; color: #94a3b8;">To be paid to teachers</div>
                         </div>
                       </div>
@@ -401,9 +401,9 @@
                   <td class="orders-td orders-td-teacher">
                     <div class="order-teacher-name"><i class="fas fa-chalkboard-teacher"></i> <%= teacherDisplay %></div>
                   </td>
-                  <td class="orders-td orders-td-total"><span class="order-amount order-amount-total">EGP <%= (o.total||0).toFixed(2) %></span></td>
-                  <td class="orders-td orders-td-fee"><span class="order-amount order-amount-fee">EGP <%= orderGTeacherCommission.toFixed(2) %></span></td>
-                  <td class="orders-td orders-td-net"><span class="order-amount order-amount-net">EGP <%= orderTeacherNet.toFixed(2) %></span></td>
+                  <td class="orders-td orders-td-total"><span class="order-amount order-amount-total">AED <%= (o.total||0).toFixed(2) %></span></td>
+                  <td class="orders-td orders-td-fee"><span class="order-amount order-amount-fee">AED <%= orderGTeacherCommission.toFixed(2) %></span></td>
+                  <td class="orders-td orders-td-net"><span class="order-amount order-amount-net">AED <%= orderTeacherNet.toFixed(2) %></span></td>
                   <td class="orders-td orders-td-status"><span class="status-badge status-<%= o.status %>"><%= (o.status||'').charAt(0).toUpperCase() + (o.status||'').slice(1) %></span></td>
                   <td class="orders-td orders-td-date">
                     <div class="order-date-line"><i class="far fa-calendar-alt"></i> <%= new Date(o.createdAt).toLocaleDateString() %></div>
@@ -750,7 +750,7 @@
         data: {
           labels: monthlyData.labels || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
           datasets: [{
-              label: 'Revenue (EGP)',
+              label: 'Revenue (AED)',
               data: monthlyData.revenue || [],
               borderColor: '#3a92bd',
               backgroundColor: 'rgba(58, 146, 189, 0.1)',
@@ -801,7 +801,7 @@
                   }
                   if (context.parsed.y !== null) {
                     if (context.dataset.label === 'Revenue') {
-                      label += context.parsed.y.toFixed(2) + ' EGP';
+                      label += context.parsed.y.toFixed(2) + ' AED';
                     } else {
                       label += context.parsed.y;
                     }
@@ -816,7 +816,7 @@
               beginAtZero: true,
               title: {
                 display: true,
-                text: 'Revenue (EGP)'
+                text: 'Revenue (AED)'
               },
               ticks: {
                 callback: function(value, index, values) {
