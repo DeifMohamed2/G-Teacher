@@ -44,6 +44,65 @@ body {
   overflow-x: hidden;
 }
 
+/* ============================================ */
+/* Mobile Touch Support - Global Fixes          */
+/* ============================================ */
+
+/* Ensure all buttons and interactive elements work on mobile */
+button,
+a,
+[onclick],
+[data-tab],
+[data-curriculum],
+[data-type],
+[data-exam],
+.btn,
+.nav-link,
+.clickable,
+.calc-tab,
+.curriculum-tab,
+.ig-date-pill,
+.ig-subject-card,
+.am-university-option,
+.am-exam-option,
+.course-card-enhanced,
+.teacher-card,
+input[type="button"],
+input[type="submit"],
+select {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+}
+
+/* Ensure minimum touch target size on mobile */
+@media (max-width: 768px) {
+  button,
+  .btn,
+  .nav-link,
+  [onclick],
+  .calc-tab,
+  .curriculum-tab,
+  .ig-date-pill {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent text selection while tapping */
+  .calc-tab,
+  .curriculum-tab,
+  .ig-date-pill,
+  .ig-subject-card,
+  .am-university-option,
+  .am-exam-option,
+  .am-btn-next,
+  .am-btn-back,
+  .am-btn-finish {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Mobile Hero Enhancements (overrides)                                */
 /* ------------------------------------------------------------------ */
