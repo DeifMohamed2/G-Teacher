@@ -604,13 +604,16 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    max-width: 520px;
+    max-width: 600px;
+    padding: 60px;
+    overflow: visible;
   }
 
   .gt-visual-card {
     position: relative;
     width: 100%;
-    max-width: 450px;
+    max-width: 350px;
+    overflow: visible;
   }
 
   /* Main Visual Container */
@@ -691,28 +694,82 @@
     font-size: 0.85rem;
   }
 
-  .gt-tag-1 {
-    top: 8%;
-    right: -8%;
+  /* TOP ROW - 3 tags in a line */
+  .gt-tag-11 {
+    top: -18%;
+    left: -15%;
     animation-delay: 0s;
   }
 
-  .gt-tag-2 {
-    bottom: 20%;
-    right: -12%;
+  .gt-tag-1 {
+    top: -22%;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-delay: -0.5s;
+  }
+
+  .gt-tag-12 {
+    top: -18%;
+    right: -15%;
     animation-delay: -1s;
   }
 
-  .gt-tag-3 {
-    bottom: 8%;
-    left: 5%;
+  /* LEFT COLUMN - 3 tags vertically */
+  .gt-tag-5 {
+    top: 12%;
+    left: -35%;
+    animation-delay: -1.5s;
+  }
+
+  .gt-tag-6 {
+    top: 42%;
+    left: -38%;
     animation-delay: -2s;
   }
 
-  .gt-tag-4 {
-    top: 20%;
-    left: -12%;
+  .gt-tag-7 {
+    top: 72%;
+    left: -35%;
+    animation-delay: -2.5s;
+  }
+
+  /* RIGHT COLUMN - 3 tags vertically */
+  .gt-tag-2 {
+    top: 12%;
+    right: -35%;
     animation-delay: -3s;
+  }
+
+  .gt-tag-3 {
+    top: 42%;
+    right: -38%;
+    animation-delay: -3.5s;
+  }
+
+  .gt-tag-4 {
+    top: 72%;
+    right: -35%;
+    animation-delay: -4s;
+  }
+
+  /* BOTTOM ROW - 3 tags in a line */
+  .gt-tag-8 {
+    bottom: -18%;
+    left: -15%;
+    animation-delay: -4.5s;
+  }
+
+  .gt-tag-9 {
+    bottom: -22%;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-delay: -5s;
+  }
+
+  .gt-tag-10 {
+    bottom: -18%;
+    right: -15%;
+    animation-delay: -5.5s;
   }
 
   @keyframes tagFloat {
@@ -746,11 +803,21 @@
   /* Responsive */
   @media (max-width: 1199px) {
     .gt-hero-row {
-      gap: 50px;
+      gap: 30px;
     }
 
     .gt-hero-visual {
-      max-width: 420px;
+      max-width: 520px;
+      padding: 50px;
+    }
+
+    .gt-visual-card {
+      max-width: 300px;
+    }
+
+    .gt-tag {
+      padding: 6px 10px;
+      font-size: 0.75rem;
     }
   }
 
@@ -816,8 +883,115 @@
       width: 100%;
     }
 
+    /* Mobile - Keep tags around logo */
+    .gt-hero-visual {
+      max-width: 100%;
+      width: 100%;
+      padding: 80px 20px;
+      margin-top: 30px;
+    }
+
+    .gt-visual-card {
+      max-width: 220px;
+      margin: 0 auto;
+    }
+
+    .gt-visual-main {
+      width: 100%;
+      border-radius: 16px;
+    }
+
+    .gt-logo-main {
+      width: 75%;
+      height: 75%;
+    }
+
+    /* Subject tags around logo on mobile */
+    .gt-subject-tags {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
     .gt-tag {
-      display: none;
+      position: absolute;
+      padding: 5px 10px;
+      font-size: 0.68rem;
+      border-radius: 6px;
+      animation: tagFloat 4s ease-in-out infinite;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .gt-tag i {
+      font-size: 0.68rem;
+    }
+
+    /* TOP ROW */
+    .gt-tag-11 {
+      top: -20%;
+      left: -10%;
+    }
+
+    .gt-tag-1 {
+      top: -25%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .gt-tag-12 {
+      top: -20%;
+      right: -10%;
+    }
+
+    /* LEFT COLUMN */
+    .gt-tag-5 {
+      top: 10%;
+      left: -45%;
+    }
+
+    .gt-tag-6 {
+      top: 40%;
+      left: -50%;
+    }
+
+    .gt-tag-7 {
+      top: 70%;
+      left: -45%;
+    }
+
+    /* RIGHT COLUMN */
+    .gt-tag-2 {
+      top: 10%;
+      right: -45%;
+    }
+
+    .gt-tag-3 {
+      top: 40%;
+      right: -50%;
+    }
+
+    .gt-tag-4 {
+      top: 70%;
+      right: -45%;
+    }
+
+    /* BOTTOM ROW */
+    .gt-tag-8 {
+      bottom: -20%;
+      left: -10%;
+    }
+
+    .gt-tag-9 {
+      bottom: -25%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .gt-tag-10 {
+      bottom: -20%;
+      right: -10%;
     }
   }
 
@@ -831,7 +1005,82 @@
     }
 
     .gt-hero-visual {
-      max-width: 300px;
+      padding: 70px 15px;
+    }
+
+    .gt-visual-card {
+      max-width: 180px;
+    }
+
+    .gt-tag {
+      padding: 4px 8px;
+      font-size: 0.62rem;
+      gap: 4px;
+    }
+
+    .gt-tag i {
+      font-size: 0.6rem;
+    }
+
+    /* Adjusted positions for smaller screens */
+    .gt-tag-5, .gt-tag-7 {
+      left: -55%;
+    }
+
+    .gt-tag-6 {
+      left: -60%;
+    }
+
+    .gt-tag-2, .gt-tag-4 {
+      right: -55%;
+    }
+
+    .gt-tag-3 {
+      right: -60%;
+    }
+  }
+
+  @media (max-width: 400px) {
+    .gt-hero-visual {
+      padding: 60px 10px;
+    }
+
+    .gt-visual-card {
+      max-width: 160px;
+    }
+
+    .gt-tag {
+      padding: 3px 6px;
+      font-size: 0.58rem;
+      gap: 3px;
+    }
+
+    .gt-tag i {
+      font-size: 0.55rem;
+    }
+
+    .gt-tag-5, .gt-tag-7 {
+      left: -65%;
+    }
+
+    .gt-tag-6 {
+      left: -70%;
+    }
+
+    .gt-tag-2, .gt-tag-4 {
+      right: -65%;
+    }
+
+    .gt-tag-3 {
+      right: -70%;
+    }
+
+    .gt-tag-11, .gt-tag-8 {
+      left: -20%;
+    }
+
+    .gt-tag-12, .gt-tag-10 {
+      right: -20%;
     }
   }
 
@@ -2790,16 +3039,42 @@
               </div>
               <div class="gt-tag gt-tag-2">
                 <i class="fas fa-flask"></i>
-                <span>Sciences</span>
+                <span>Chemistry</span>
               </div>
               <div class="gt-tag gt-tag-3">
                 <i class="fas fa-language"></i>
-                <span>Languages</span>
+                <span>English</span>
               </div>
               <div class="gt-tag gt-tag-4">
                 <i class="fas fa-globe"></i>
-                <span>Humanities</span>
+                <span>Geography</span>
               </div>
+              <div class="gt-tag gt-tag-5">
+                <i class="fas fa-atom"></i>
+                <span>Physics</span>
+              </div>
+              <div class="gt-tag gt-tag-6">
+                <i class="fas fa-dna"></i>
+                <span>Biology</span>
+              </div>
+              <div class="gt-tag gt-tag-7">
+                <i class="fas fa-chart-line"></i>
+                <span>Economics</span>
+              </div>
+              <div class="gt-tag gt-tag-8">
+                <i class="fas fa-laptop-code"></i>
+                <span>ICT</span>
+              </div>
+          
+              <div class="gt-tag gt-tag-10">
+                <i class="fas fa-landmark"></i>
+                <span>History</span>
+              </div>
+              <div class="gt-tag gt-tag-11">
+                <i class="fas fa-book-open"></i>
+                <span>Literature</span>
+              </div>
+        
             </div>
           </div>
         </div>
