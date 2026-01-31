@@ -252,7 +252,7 @@ console.log('Socket.IO initialized', io.engine.clientsCount);
 
 // Database connection and server startup
 const dbURI =process.env.DATABASE_URL;
-const PORT = process.env.PORT || 4091;
+const PORT = process.env.PORT || 5091;
 
 mongoose
   .connect(dbURI)

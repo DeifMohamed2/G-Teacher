@@ -633,6 +633,15 @@
                     </select>
                   </div>
                 </div>
+                <div class="col-md-3">
+                  <div class="mb-3">
+                    <label for="zoomDuration" class="admin-form-label" style="font-weight: 500; color: #4a5568; margin-bottom: 8px;">
+                      <i class="fas fa-clock me-2" style="color: #2d5aa0;"></i>
+                      Duration (minutes)
+                    </label>
+                    <input type="number" class="admin-form-control" id="zoomDuration" name="duration" min="1" value="60" style="border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px 14px; transition: all 0.3s ease;">
+                  </div>
+                </div>
               </div>
 
               <!-- Meeting Password -->
@@ -6220,19 +6229,41 @@ function getContentIcon(type) {
         return;
       }
 
+      // Get form elements
+      const meetingNameEl = document.getElementById('zoomMeetingName');
+      const meetingTopicEl = document.getElementById('zoomMeetingTopic');
+      const scheduledTimeEl = document.getElementById('zoomScheduledTime');
+      const durationEl = document.getElementById('zoomDuration');
+      const timezoneEl = document.getElementById('zoomTimezone');
+      const passwordEl = document.getElementById('zoomPassword');
+      const joinBeforeHostEl = document.getElementById('zoomJoinBeforeHost');
+      const waitingRoomEl = document.getElementById('zoomWaitingRoom');
+      const muteUponEntryEl = document.getElementById('zoomMuteUponEntry');
+      const hostVideoEl = document.getElementById('zoomHostVideo');
+      const participantVideoEl = document.getElementById('zoomParticipantVideo');
+      const enableRecordingEl = document.getElementById('zoomEnableRecording');
+
+      // Check if all elements exist
+      if (!meetingNameEl || !scheduledTimeEl || !durationEl || !timezoneEl || !passwordEl ||
+          !joinBeforeHostEl || !waitingRoomEl || !muteUponEntryEl || !hostVideoEl ||
+          !participantVideoEl || !enableRecordingEl) {
+        showNotification('Zoom meeting form is not properly loaded. Please refresh the page.', 'error');
+        return;
+      }
+
       const formData = {
-        meetingName: document.getElementById('zoomMeetingName').value,
-        meetingTopic: document.getElementById('zoomMeetingTopic').value || document.getElementById('zoomMeetingName').value,
-        scheduledStartTime: document.getElementById('zoomScheduledTime').value,
-        duration: document.getElementById('zoomDuration').value,
-        timezone: document.getElementById('zoomTimezone').value,
-        password: document.getElementById('zoomPassword').value,
-        joinBeforeHost: document.getElementById('zoomJoinBeforeHost').checked,
-        waitingRoom: document.getElementById('zoomWaitingRoom').checked,
-        muteUponEntry: document.getElementById('zoomMuteUponEntry').checked,
-        hostVideo: document.getElementById('zoomHostVideo').checked,
-        participantVideo: document.getElementById('zoomParticipantVideo').checked,
-        enableRecording: document.getElementById('zoomEnableRecording').checked,
+        meetingName: meetingNameEl.value,
+        meetingTopic: (meetingTopicEl ? meetingTopicEl.value : '') || meetingNameEl.value,
+        scheduledStartTime: scheduledTimeEl.value,
+        duration: durationEl.value,
+        timezone: timezoneEl.value,
+        password: passwordEl.value,
+        joinBeforeHost: joinBeforeHostEl.checked,
+        waitingRoom: waitingRoomEl.checked,
+        muteUponEntry: muteUponEntryEl.checked,
+        hostVideo: hostVideoEl.checked,
+        participantVideo: participantVideoEl.checked,
+        enableRecording: enableRecordingEl.checked,
       };
 
       // Validation
