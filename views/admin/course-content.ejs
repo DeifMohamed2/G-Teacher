@@ -605,6 +605,21 @@
                     </label>
                     <input type="text" class="admin-form-control" id="zoomMeetingTopic" name="zoomMeetingTopic" placeholder="What will be discussed?" style="border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px 14px; transition: all 0.3s ease;">
                   </div>
+
+                  <% if (typeof zoomUserOptions !== 'undefined' && zoomUserOptions.length > 0) { %>
+                    <div class="mb-3">
+                      <label for="zoomHostSelect" class="admin-form-label" style="font-weight: 500; color: #4a5568; margin-bottom: 8px;">
+                        <i class="fas fa-user-tie me-2" style="color: #2d5aa0;"></i>
+                        Host Account
+                      </label>
+                      <select id="zoomHostSelect" class="admin-form-control" name="hostUserId" style="border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px 14px;">
+                        <% zoomUserOptions.forEach(function(uid) { %>
+                          <option value="<%= uid %>"><%= uid %></option>
+                        <% }) %>
+                      </select>
+                    </div>
+                  <% } %>
+
                 </div>
               </div>
 
@@ -6232,6 +6247,7 @@ function getContentIcon(type) {
       // Get form elements
       const meetingNameEl = document.getElementById('zoomMeetingName');
       const meetingTopicEl = document.getElementById('zoomMeetingTopic');
+      const hostSelectEl = document.getElementById('zoomHostSelect');
       const scheduledTimeEl = document.getElementById('zoomScheduledTime');
       const durationEl = document.getElementById('zoomDuration');
       const timezoneEl = document.getElementById('zoomTimezone');
@@ -6254,6 +6270,7 @@ function getContentIcon(type) {
       const formData = {
         meetingName: meetingNameEl.value,
         meetingTopic: (meetingTopicEl ? meetingTopicEl.value : '') || meetingNameEl.value,
+        hostUserId: hostSelectEl ? hostSelectEl.value : undefined,
         scheduledStartTime: scheduledTimeEl.value,
         duration: durationEl.value,
         timezone: timezoneEl.value,

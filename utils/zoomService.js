@@ -9,7 +9,15 @@ class ZoomService {
     this.accountId = process.env.ZOOM_ACCOUNT_ID;
     this.clientId = process.env.ZOOM_CLIENT_ID;
     this.clientSecret = process.env.ZOOM_CLIENT_SECRET;
-    this.userId = process.env.ZOOM_USER_ID || process.env.ZOOM_EMAIL;
+    // Support multiple Zoom host accounts via ZOOM_USER_IDS (comma-separated)
+    const rawUserIds = process.env.ZOOM_USER_IDS || process.env.ZOOM_USER_ID || process.env.ZOOM_EMAIL || '';
+    this.userIds = rawUserIds
+      .toString()
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    // Default to first user id for backward compatibility
+    this.userId = this.userIds.length ? this.userIds[0] : null;
   }
 
   /**
@@ -172,8 +180,14 @@ class ZoomService {
 
       console.log('🔍 Creating Zoom meeting:', topic);
 
+      // Allow overriding host account per-meeting via meetingData.hostUserId
+      const hostUser = (meetingData && (meetingData.hostUserId || meetingData.hostUserEmail)) || this.userId;
+      if (!hostUser) {
+        throw new Error('No Zoom host user configured. Set ZOOM_USER_IDS or ZOOM_USER_ID in environment.');
+      }
+
       const response = await axios.post(
-        `https://api.zoom.us/v2/users/${this.userId}/meetings`,
+        `https://api.zoom.us/v2/users/${encodeURIComponent(hostUser)}/meetings`,
         meetingConfig,
         {
           headers: {

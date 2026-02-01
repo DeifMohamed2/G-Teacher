@@ -1846,6 +1846,13 @@ const getCourseContent = async (req, res) => {
         }
       }
     }
+    // Prepare Zoom host options from environment (if any)
+    const rawZoomUserIds = process.env.ZOOM_USER_IDS || process.env.ZOOM_USER_ID || '';
+    const zoomUserOptions = rawZoomUserIds
+      .toString()
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
 
     return res.render('admin/course-content', {
       title: `Course Content: ${course.title} | `,
@@ -1855,6 +1862,7 @@ const getCourseContent = async (req, res) => {
       course,
       allTopics, // For topic prerequisite selection
       allContentItems, // For content prerequisite selection
+      zoomUserOptions,
       stats: {
         totalTopics,
         publishedTopics,
@@ -8707,6 +8715,7 @@ const createZoomMeeting = async (req, res) => {
       hostVideo,
       participantVideo,
       enableRecording,
+      hostUserId,
       autoRecording,
     } = req.body;
 
@@ -8740,6 +8749,8 @@ const createZoomMeeting = async (req, res) => {
         recording: enableRecording === 'true' || enableRecording === true,
         autoRecording: autoRecording || 'none',
       },
+      // Optional override: use specific Zoom user account as host
+      hostUserId: hostUserId,
     });
 
     // Save Zoom meeting to database

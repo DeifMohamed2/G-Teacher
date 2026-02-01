@@ -95,7 +95,12 @@ router.get('/debug/config', (req, res) => {
     hasClientId: !!process.env.ZOOM_CLIENT_ID,
     hasClientSecret: !!process.env.ZOOM_CLIENT_SECRET,
     hasAccountId: !!process.env.ZOOM_ACCOUNT_ID,
-    hasUserId: !!process.env.ZOOM_USER_ID,
+    hasUserIds: !!(process.env.ZOOM_USER_IDS || process.env.ZOOM_USER_ID),
+    userIds: process.env.ZOOM_USER_IDS
+      ? process.env.ZOOM_USER_IDS.split(',').map((s) => s.trim())
+      : process.env.ZOOM_USER_ID
+      ? [process.env.ZOOM_USER_ID]
+      : [],
     clientIdLength: process.env.ZOOM_CLIENT_ID
       ? process.env.ZOOM_CLIENT_ID.length
       : 0,
