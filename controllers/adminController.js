@@ -9,6 +9,7 @@ const ZoomMeeting = require('../models/ZoomMeeting');
 const PromoCode = require('../models/PromoCode');
 const ExamPeriod = require('../models/ExamPeriod');
 const Submission = require('../models/Submission');
+const Invoice = require('../models/Invoice');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const ExcelExporter = require('../utils/excelExporter');
@@ -1846,13 +1847,6 @@ const getCourseContent = async (req, res) => {
         }
       }
     }
-    // Prepare Zoom host options from environment (if any)
-    const rawZoomUserIds = process.env.ZOOM_USER_IDS || process.env.ZOOM_USER_ID || '';
-    const zoomUserOptions = rawZoomUserIds
-      .toString()
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
 
     return res.render('admin/course-content', {
       title: `Course Content: ${course.title} | `,
@@ -1862,7 +1856,6 @@ const getCourseContent = async (req, res) => {
       course,
       allTopics, // For topic prerequisite selection
       allContentItems, // For content prerequisite selection
-      zoomUserOptions,
       stats: {
         totalTopics,
         publishedTopics,
@@ -8715,7 +8708,6 @@ const createZoomMeeting = async (req, res) => {
       hostVideo,
       participantVideo,
       enableRecording,
-      hostUserId,
       autoRecording,
     } = req.body;
 
@@ -8749,8 +8741,6 @@ const createZoomMeeting = async (req, res) => {
         recording: enableRecording === 'true' || enableRecording === true,
         autoRecording: autoRecording || 'none',
       },
-      // Optional override: use specific Zoom user account as host
-      hostUserId: hostUserId,
     });
 
     // Save Zoom meeting to database
@@ -13743,6 +13733,399 @@ const getGTeacherAnalysis = async (req, res) => {
 };
 
 /**
+ * Export G-Teacher Analysis Data to Excel
+ * Supports: summary (overview), detailed (each teacher tab), full (both)
+ */
+const exportGTeacherAnalysis = async (req, res) => {
+  try {
+    const ExcelJS = require('exceljs');
+    const { type = 'full' } = req.query;
+    
+    // Get all active teachers with their data
+    const allTeachers = await Teacher.find({ isActive: true })
+      .select('firstName lastName teacherCode subject gTeacherPercentage profilePicture phoneNumber email')
+      .sort({ firstName: 1 })
+      .lean();
+
+    // Calculate performance for each teacher
+    const teacherPerformance = await Promise.all(
+      allTeachers.map(async (teacher) => {
+        try {
+          const teacherCourses = await Course.find({ teacher: teacher._id })
+            .select('_id title status price')
+            .lean();
+
+          const courseIds = teacherCourses.map((c) => c._id);
+
+          // Get revenue data
+          const revenueResult = await Purchase.aggregate([
+            {
+              $match: {
+                status: { $in: ['completed', 'paid'] },
+                $or: [{ refundedAt: { $exists: false } }, { refundedAt: null }],
+              },
+            },
+            { $unwind: '$items' },
+            {
+              $match: {
+                'items.itemType': 'course',
+                $or: [
+                  { 'items.teacher': teacher._id },
+                  { 'items.item': { $in: courseIds } }
+                ]
+              },
+            },
+            {
+              $addFields: {
+                itemRevenue: {
+                  $cond: [
+                    { $gt: [{ $ifNull: ['$subtotal', 0] }, 0] },
+                    {
+                      $multiply: [
+                        { $divide: [{ $multiply: [{ $ifNull: ['$items.price', 0] }, { $ifNull: ['$items.quantity', 1] }] }, '$subtotal'] },
+                        '$total'
+                      ]
+                    },
+                    0
+                  ]
+                }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                totalRevenue: { $sum: '$itemRevenue' },
+                totalGTeacherCommission: { $sum: { $ifNull: ['$items.gTeacherCommission', 0] } },
+                totalTeacherNet: { $sum: { $ifNull: ['$items.teacherNet', 0] } },
+                orderCount: { $sum: 1 },
+              },
+            },
+          ]);
+
+          // Get refund data
+          const refundResult = await Purchase.aggregate([
+            {
+              $match: {
+                $or: [
+                  { refundedAt: { $exists: true, $ne: null } },
+                  { paymentStatus: 'refunded' }
+                ],
+              },
+            },
+            { $unwind: '$items' },
+            {
+              $match: {
+                'items.itemType': 'course',
+                $or: [
+                  { 'items.teacher': teacher._id },
+                  { 'items.item': { $in: courseIds } }
+                ]
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                refundCount: { $sum: 1 },
+                refundAmount: { $sum: { $ifNull: ['$items.price', 0] } },
+              },
+            },
+          ]);
+
+          return {
+            teacher,
+            courses: teacherCourses,
+            coursesCount: teacherCourses.length,
+            totalRevenue: Math.round((revenueResult[0]?.totalRevenue || 0) * 100) / 100,
+            gTeacherCommission: Math.round((revenueResult[0]?.totalGTeacherCommission || 0) * 100) / 100,
+            teacherNet: Math.round((revenueResult[0]?.totalTeacherNet || 0) * 100) / 100,
+            orderCount: revenueResult[0]?.orderCount || 0,
+            refundCount: refundResult[0]?.refundCount || 0,
+            refundAmount: Math.round((refundResult[0]?.refundAmount || 0) * 100) / 100,
+          };
+        } catch (error) {
+          return {
+            teacher,
+            courses: [],
+            coursesCount: 0,
+            totalRevenue: 0,
+            gTeacherCommission: 0,
+            teacherNet: 0,
+            orderCount: 0,
+            refundCount: 0,
+            refundAmount: 0,
+          };
+        }
+      })
+    );
+
+    // Sort by revenue
+    teacherPerformance.sort((a, b) => (b.totalRevenue || 0) - (a.totalRevenue || 0));
+
+    // Calculate platform totals
+    const platformStats = teacherPerformance.reduce((acc, t) => {
+      acc.totalRevenue += t.totalRevenue || 0;
+      acc.totalGTeacherCommission += t.gTeacherCommission || 0;
+      acc.totalTeacherNet += t.teacherNet || 0;
+      acc.totalOrders += t.orderCount || 0;
+      acc.totalRefunds += t.refundCount || 0;
+      acc.refundAmount += t.refundAmount || 0;
+      return acc;
+    }, { totalRevenue: 0, totalGTeacherCommission: 0, totalTeacherNet: 0, totalOrders: 0, totalRefunds: 0, refundAmount: 0 });
+
+    // Create workbook
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'G-Teacher Platform';
+    workbook.created = new Date();
+
+    // Define styles
+    const headerStyle = {
+      font: { bold: true, size: 12, color: { argb: 'FFFFFFFF' } },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3A92BD' } },
+      alignment: { horizontal: 'center', vertical: 'middle' },
+      border: { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }
+    };
+
+    const subHeaderStyle = {
+      font: { bold: true, size: 11, color: { argb: 'FF1E293B' } },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } },
+      alignment: { horizontal: 'center', vertical: 'middle' },
+      border: { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }
+    };
+
+    const cellStyle = {
+      alignment: { horizontal: 'left', vertical: 'middle' },
+      border: { top: { style: 'thin', color: { argb: 'FFE2E8F0' } }, left: { style: 'thin', color: { argb: 'FFE2E8F0' } }, bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } }, right: { style: 'thin', color: { argb: 'FFE2E8F0' } } }
+    };
+
+    const currencyStyle = {
+      ...cellStyle,
+      numFmt: '#,##0.00 "AED"',
+      alignment: { horizontal: 'right', vertical: 'middle' }
+    };
+
+    // Summary Sheet (for summary and full types)
+    if (type === 'summary' || type === 'full') {
+      const summarySheet = workbook.addWorksheet('📊 Summary', { properties: { tabColor: { argb: 'FF3A92BD' } } });
+
+      // Title row
+      summarySheet.mergeCells('A1:H1');
+      const titleCell = summarySheet.getCell('A1');
+      titleCell.value = 'G-Teacher Analysis Report';
+      titleCell.font = { bold: true, size: 20, color: { argb: 'FF3A92BD' } };
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      summarySheet.getRow(1).height = 40;
+
+      // Date row
+      summarySheet.mergeCells('A2:H2');
+      const dateCell = summarySheet.getCell('A2');
+      dateCell.value = `Generated: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
+      dateCell.font = { size: 11, color: { argb: 'FF6B7280' } };
+      dateCell.alignment = { horizontal: 'center' };
+      summarySheet.getRow(2).height = 25;
+
+      // Platform Stats Section
+      summarySheet.getRow(4).height = 30;
+      summarySheet.mergeCells('A4:H4');
+      const statsTitle = summarySheet.getCell('A4');
+      statsTitle.value = '💰 Platform Financial Summary';
+      statsTitle.font = { bold: true, size: 14, color: { argb: 'FF1E293B' } };
+      statsTitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F9FF' } };
+
+      // Stats data
+      const statsData = [
+        ['Total Revenue', `${platformStats.totalRevenue.toLocaleString()} AED`, 'G-Teacher Commission', `${platformStats.totalGTeacherCommission.toLocaleString()} AED`],
+        ['Teachers Net', `${platformStats.totalTeacherNet.toLocaleString()} AED`, 'Total Orders', platformStats.totalOrders],
+        ['Total Refunds', platformStats.totalRefunds, 'Refund Amount', `${platformStats.refundAmount.toLocaleString()} AED`],
+      ];
+
+      let row = 5;
+      statsData.forEach(data => {
+        const r = summarySheet.getRow(row);
+        r.getCell(1).value = data[0];
+        r.getCell(1).font = { bold: true, color: { argb: 'FF6B7280' } };
+        r.getCell(2).value = data[1];
+        r.getCell(2).font = { bold: true, color: { argb: 'FF10B981' } };
+        r.getCell(4).value = data[2];
+        r.getCell(4).font = { bold: true, color: { argb: 'FF6B7280' } };
+        r.getCell(5).value = data[3];
+        r.getCell(5).font = { bold: true, color: { argb: 'FF3A92BD' } };
+        row++;
+      });
+
+      // Teacher Rankings Section
+      row += 2;
+      summarySheet.mergeCells(`A${row}:H${row}`);
+      const rankTitle = summarySheet.getCell(`A${row}`);
+      rankTitle.value = '🏆 Teacher Rankings & Revenue';
+      rankTitle.font = { bold: true, size: 14, color: { argb: 'FF1E293B' } };
+      rankTitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0FDF4' } };
+      summarySheet.getRow(row).height = 30;
+
+      row++;
+      // Headers
+      const headers = ['Rank', 'Teacher Name', 'Subject', 'Commission %', 'Total Revenue', 'G-Teacher Share', 'Teacher Net', 'Orders'];
+      headers.forEach((header, idx) => {
+        const cell = summarySheet.getRow(row).getCell(idx + 1);
+        cell.value = header;
+        Object.assign(cell, headerStyle);
+      });
+      summarySheet.getRow(row).height = 25;
+
+      // Data rows
+      teacherPerformance.forEach((tp, index) => {
+        row++;
+        const r = summarySheet.getRow(row);
+        r.getCell(1).value = index + 1;
+        r.getCell(2).value = `${tp.teacher.firstName} ${tp.teacher.lastName}`;
+        r.getCell(3).value = tp.teacher.subject || 'N/A';
+        r.getCell(4).value = `${tp.teacher.gTeacherPercentage || 0}%`;
+        r.getCell(5).value = tp.totalRevenue;
+        r.getCell(5).numFmt = '#,##0.00 "AED"';
+        r.getCell(6).value = tp.gTeacherCommission;
+        r.getCell(6).numFmt = '#,##0.00 "AED"';
+        r.getCell(7).value = tp.teacherNet;
+        r.getCell(7).numFmt = '#,##0.00 "AED"';
+        r.getCell(8).value = tp.orderCount;
+
+        // Alternating row colors
+        if (index % 2 === 1) {
+          for (let i = 1; i <= 8; i++) {
+            r.getCell(i).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+          }
+        }
+
+        // Highlight top 3
+        if (index < 3) {
+          const colors = ['FFFFD700', 'FFC0C0C0', 'FFCD7F32'];
+          r.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colors[index] } };
+          r.getCell(1).font = { bold: true };
+        }
+      });
+
+      // Set column widths
+      summarySheet.columns = [
+        { width: 8 }, { width: 25 }, { width: 20 }, { width: 15 }, { width: 18 }, { width: 18 }, { width: 18 }, { width: 12 }
+      ];
+    }
+
+    // Individual Teacher Sheets (for detailed and full types)
+    if (type === 'detailed' || type === 'full') {
+      for (const tp of teacherPerformance) {
+        const teacherName = `${tp.teacher.firstName} ${tp.teacher.lastName}`.substring(0, 25);
+        const sheet = workbook.addWorksheet(teacherName, { 
+          properties: { tabColor: { argb: tp.totalRevenue > 0 ? 'FF10B981' : 'FF94A3B8' } } 
+        });
+
+        // Teacher header
+        sheet.mergeCells('A1:F1');
+        const header = sheet.getCell('A1');
+        header.value = `${tp.teacher.firstName} ${tp.teacher.lastName}`;
+        header.font = { bold: true, size: 18, color: { argb: 'FF3A92BD' } };
+        header.alignment = { horizontal: 'center', vertical: 'middle' };
+        sheet.getRow(1).height = 35;
+
+        // Teacher info
+        sheet.getRow(2).getCell(1).value = 'Code:';
+        sheet.getRow(2).getCell(2).value = tp.teacher.teacherCode;
+        sheet.getRow(2).getCell(3).value = 'Subject:';
+        sheet.getRow(2).getCell(4).value = tp.teacher.subject || 'N/A';
+        
+        sheet.getRow(3).getCell(1).value = 'Email:';
+        sheet.getRow(3).getCell(2).value = tp.teacher.email;
+        sheet.getRow(3).getCell(3).value = 'Commission:';
+        sheet.getRow(3).getCell(4).value = `${tp.teacher.gTeacherPercentage || 0}%`;
+
+        // Financial summary
+        sheet.getRow(5).height = 28;
+        sheet.mergeCells('A5:F5');
+        const finTitle = sheet.getCell('A5');
+        finTitle.value = '💰 Financial Summary';
+        finTitle.font = { bold: true, size: 12 };
+        finTitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F9FF' } };
+
+        const finData = [
+          ['Total Revenue', tp.totalRevenue, 'G-Teacher Commission', tp.gTeacherCommission],
+          ['Teacher Net', tp.teacherNet, 'Total Orders', tp.orderCount],
+          ['Refunds', tp.refundCount, 'Refund Amount', tp.refundAmount],
+        ];
+
+        let row = 6;
+        finData.forEach(data => {
+          const r = sheet.getRow(row);
+          r.getCell(1).value = data[0];
+          r.getCell(1).font = { color: { argb: 'FF6B7280' } };
+          r.getCell(2).value = typeof data[1] === 'number' && data[0].includes('Revenue') || data[0].includes('Net') || data[0].includes('Commission') || data[0].includes('Amount') ? data[1] : data[1];
+          if (typeof data[1] === 'number' && (data[0].includes('Revenue') || data[0].includes('Net') || data[0].includes('Amount'))) {
+            r.getCell(2).numFmt = '#,##0.00 "AED"';
+          }
+          r.getCell(2).font = { bold: true, color: { argb: 'FF10B981' } };
+          r.getCell(4).value = data[2];
+          r.getCell(4).font = { color: { argb: 'FF6B7280' } };
+          r.getCell(5).value = data[3];
+          if (typeof data[3] === 'number' && data[2].includes('Commission') || data[2].includes('Amount')) {
+            r.getCell(5).numFmt = '#,##0.00 "AED"';
+          }
+          r.getCell(5).font = { bold: true, color: { argb: 'FF3A92BD' } };
+          row++;
+        });
+
+        // Courses section
+        row += 2;
+        sheet.mergeCells(`A${row}:F${row}`);
+        const coursesTitle = sheet.getCell(`A${row}`);
+        coursesTitle.value = `📚 Courses (${tp.courses.length})`;
+        coursesTitle.font = { bold: true, size: 12 };
+        coursesTitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0FDF4' } };
+        sheet.getRow(row).height = 28;
+
+        if (tp.courses.length > 0) {
+          row++;
+          const courseHeaders = ['#', 'Course Title', 'Status', 'Price'];
+          courseHeaders.forEach((h, idx) => {
+            const cell = sheet.getRow(row).getCell(idx + 1);
+            cell.value = h;
+            Object.assign(cell, subHeaderStyle);
+          });
+
+          tp.courses.forEach((course, idx) => {
+            row++;
+            const r = sheet.getRow(row);
+            r.getCell(1).value = idx + 1;
+            r.getCell(2).value = course.title;
+            r.getCell(3).value = course.status;
+            r.getCell(3).font = { color: { argb: course.status === 'published' ? 'FF10B981' : 'FFF59E0B' } };
+            r.getCell(4).value = course.price || 0;
+            r.getCell(4).numFmt = '#,##0.00 "AED"';
+          });
+        } else {
+          row++;
+          sheet.getRow(row).getCell(1).value = 'No courses found';
+          sheet.getRow(row).getCell(1).font = { italic: true, color: { argb: 'FF9CA3AF' } };
+        }
+
+        // Set column widths
+        sheet.columns = [
+          { width: 20 }, { width: 35 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }
+        ];
+      }
+    }
+
+    // Set response headers
+    const date = new Date().toISOString().split('T')[0];
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=G-Teacher-Analysis-${date}.xlsx`);
+
+    // Write to response
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (error) {
+    console.error('Export G-Teacher Analysis error:', error);
+    res.status(500).json({ success: false, message: 'Export failed' });
+  }
+};
+
+/**
  * Get Teacher Invoice Data - API endpoint for invoice generation
  */
 const getTeacherInvoiceData = async (req, res) => {
@@ -13929,6 +14312,385 @@ const exportTeacherInvoice = async (req, res) => {
   }
 };
 
+// ==================== INVOICE MANAGEMENT ====================
+
+/**
+ * Save Invoice to Database
+ */
+const saveInvoice = async (req, res) => {
+  try {
+    const { teacherId, invoiceData, pdfBase64 } = req.body;
+    
+    if (!teacherId || !invoiceData) {
+      return res.status(400).json({
+        success: false,
+        message: 'Teacher ID and invoice data are required'
+      });
+    }
+
+    // Get teacher details
+    const teacher = await Teacher.findById(teacherId);
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found'
+      });
+    }
+
+    // Generate unique invoice number
+    const invoiceNumber = await Invoice.generateInvoiceNumber();
+
+    // Calculate totals from invoice data
+    let totalOrders = 0;
+    let totalRefunds = 0;
+    let totalPayout = 0;
+    const coursesData = [];
+
+    if (invoiceData.courses && Array.isArray(invoiceData.courses)) {
+      invoiceData.courses.forEach(course => {
+        const completedOrders = course.orders ? course.orders.filter(o => o.orderStatus !== 'Refund' && o.orderStatus !== 'refunded') : [];
+        const refundedOrders = course.orders ? course.orders.filter(o => o.orderStatus === 'Refund' || o.orderStatus === 'refunded') : [];
+        
+        const commissionPercentage = invoiceData.teacher.commissionPercentage || invoiceData.teacher.gTeacherPercentage || 0;
+        
+        // Calculate teacher's net
+        const teacherNetFromCompleted = completedOrders.reduce((sum, o) => {
+          const orderAmount = parseFloat(o.revenue) || 0;
+          return sum + Math.round(orderAmount * (100 - commissionPercentage) / 100);
+        }, 0);
+        const teacherNetFromRefunds = refundedOrders.reduce((sum, o) => {
+          const orderAmount = Math.abs(parseFloat(o.revenue) || 0);
+          return sum + Math.round(orderAmount * (100 - commissionPercentage) / 100);
+        }, 0);
+        const courseTeacherNet = teacherNetFromCompleted - teacherNetFromRefunds;
+
+        totalOrders += completedOrders.length;
+        totalRefunds += refundedOrders.length;
+        totalPayout += courseTeacherNet;
+
+        coursesData.push({
+          courseId: course.courseId,
+          title: course.title,
+          ordersCount: completedOrders.length,
+          refundsCount: refundedOrders.length,
+          netTotal: courseTeacherNet
+        });
+      });
+    }
+
+    // Save PDF file if provided
+    let pdfPath = null;
+    let pdfUrl = null;
+    if (pdfBase64) {
+      const pdfBuffer = Buffer.from(pdfBase64, 'base64');
+      const fileName = `${invoiceNumber}.pdf`;
+      pdfPath = path.join('public', 'uploads', 'invoices', fileName);
+      const fullPath = path.join(__dirname, '..', pdfPath);
+      
+      // Ensure directory exists
+      const dir = path.dirname(fullPath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      
+      fs.writeFileSync(fullPath, pdfBuffer);
+      pdfUrl = `/uploads/invoices/${fileName}`;
+    }
+
+    // Create invoice record
+    const invoice = new Invoice({
+      invoiceNumber,
+      teacherId: teacher._id,
+      teacherName: teacher.name,
+      teacherCode: teacher.teacherCode,
+      teacherPhone: teacher.phone,
+      teacherEmail: teacher.email,
+      dateRange: {
+        start: new Date(invoiceData.dateRange.start),
+        end: new Date(invoiceData.dateRange.end),
+        displayStart: invoiceData.dateRange.displayStart,
+        displayEnd: invoiceData.dateRange.displayEnd
+      },
+      courses: coursesData,
+      totalOrders,
+      totalRefunds,
+      totalPayout,
+      pdfPath,
+      pdfUrl,
+      status: 'generated',
+      paymentMethod: 'pending',
+      generatedBy: req.admin ? req.admin._id : null
+    });
+
+    await invoice.save();
+
+    res.json({
+      success: true,
+      message: 'Invoice saved successfully',
+      data: {
+        invoiceId: invoice._id,
+        invoiceNumber: invoice.invoiceNumber,
+        pdfUrl: invoice.pdfUrl
+      }
+    });
+
+  } catch (error) {
+    console.error('Save invoice error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to save invoice'
+    });
+  }
+};
+
+/**
+ * Get All Invoices (with pagination and filters)
+ */
+const getInvoices = async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 20, 
+      status, 
+      teacherId, 
+      startDate, 
+      endDate,
+      search 
+    } = req.query;
+
+    const query = {};
+
+    // Filter by status
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+
+    // Filter by teacher
+    if (teacherId) {
+      query.teacherId = teacherId;
+    }
+
+    // Filter by date range
+    if (startDate || endDate) {
+      query.generatedAt = {};
+      if (startDate) query.generatedAt.$gte = new Date(startDate);
+      if (endDate) query.generatedAt.$lte = new Date(endDate);
+    }
+
+    // Search by invoice number or teacher name
+    if (search) {
+      query.$or = [
+        { invoiceNumber: { $regex: search, $options: 'i' } },
+        { teacherName: { $regex: search, $options: 'i' } },
+        { teacherCode: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [invoices, total] = await Promise.all([
+      Invoice.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .populate('generatedBy', 'name')
+        .populate('markedPaidBy', 'name'),
+      Invoice.countDocuments(query)
+    ]);
+
+    // Get status counts
+    const statusCounts = await Invoice.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        invoices,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / parseInt(limit))
+        },
+        statusCounts: statusCounts.reduce((acc, s) => {
+          acc[s._id] = s.count;
+          return acc;
+        }, {})
+      }
+    });
+
+  } catch (error) {
+    console.error('Get invoices error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get invoices'
+    });
+  }
+};
+
+/**
+ * Get Invoice Details
+ */
+const getInvoiceDetails = async (req, res) => {
+  try {
+    const { invoiceId } = req.params;
+
+    const invoice = await Invoice.findById(invoiceId)
+      .populate('teacherId', 'name email phone teacherCode')
+      .populate('generatedBy', 'name email')
+      .populate('markedPaidBy', 'name email');
+
+    if (!invoice) {
+      return res.status(404).json({
+        success: false,
+        message: 'Invoice not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: invoice
+    });
+
+  } catch (error) {
+    console.error('Get invoice details error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get invoice details'
+    });
+  }
+};
+
+/**
+ * Update Invoice Status (mark as sent, paid, etc.)
+ */
+const updateInvoiceStatus = async (req, res) => {
+  try {
+    const { invoiceId } = req.params;
+    const { status, paymentMethod, paymentDetails, notes } = req.body;
+
+    const invoice = await Invoice.findById(invoiceId);
+
+    if (!invoice) {
+      return res.status(404).json({
+        success: false,
+        message: 'Invoice not found'
+      });
+    }
+
+    // Update status
+    if (status) {
+      invoice.status = status;
+      
+      if (status === 'sent' && !invoice.sentAt) {
+        invoice.sentAt = new Date();
+      }
+      
+      if (status === 'paid' && !invoice.paidAt) {
+        invoice.paidAt = new Date();
+        invoice.markedPaidBy = req.admin ? req.admin._id : null;
+      }
+    }
+
+    // Update payment method
+    if (paymentMethod) {
+      invoice.paymentMethod = paymentMethod;
+    }
+
+    // Update payment details
+    if (paymentDetails) {
+      invoice.paymentDetails = {
+        ...invoice.paymentDetails,
+        ...paymentDetails
+      };
+    }
+
+    // Update notes
+    if (notes !== undefined) {
+      invoice.notes = notes;
+    }
+
+    await invoice.save();
+
+    res.json({
+      success: true,
+      message: 'Invoice updated successfully',
+      data: invoice
+    });
+
+  } catch (error) {
+    console.error('Update invoice status error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to update invoice'
+    });
+  }
+};
+
+/**
+ * Delete Invoice
+ */
+const deleteInvoice = async (req, res) => {
+  try {
+    const { invoiceId } = req.params;
+
+    const invoice = await Invoice.findById(invoiceId);
+
+    if (!invoice) {
+      return res.status(404).json({
+        success: false,
+        message: 'Invoice not found'
+      });
+    }
+
+    // Delete PDF file if exists
+    if (invoice.pdfPath) {
+      const fullPath = path.join(__dirname, '..', invoice.pdfPath);
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath);
+      }
+    }
+
+    await Invoice.findByIdAndDelete(invoiceId);
+
+    res.json({
+      success: true,
+      message: 'Invoice deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Delete invoice error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to delete invoice'
+    });
+  }
+};
+
+/**
+ * Get Invoices Management Page
+ */
+const getInvoicesPage = async (req, res) => {
+  try {
+    // Get all teachers for filter dropdown
+    const teachers = await Teacher.find({ isActive: true })
+      .select('firstName lastName teacherCode')
+      .sort({ firstName: 1 });
+
+    res.render('admin/invoices', {
+      title: 'Invoice Management | G-Teacher',
+      theme: req.cookies.theme || 'light',
+      user: req.session.user,
+      teachers
+    });
+
+  } catch (error) {
+    console.error('Get invoices page error:', error);
+    res.status(500).render('error', { message: 'Failed to load invoices page' });
+  }
+};
+
 // ==================== MODULE EXPORTS ====================
 
 module.exports = {
@@ -14055,6 +14817,14 @@ module.exports = {
   deleteSubmission,
   // G-Teacher Analysis & Invoices
   getGTeacherAnalysis,
+  exportGTeacherAnalysis,
   getTeacherInvoiceData,
   exportTeacherInvoice,
+  // Invoice Management
+  saveInvoice,
+  getInvoices,
+  getInvoiceDetails,
+  updateInvoiceStatus,
+  deleteInvoice,
+  getInvoicesPage,
 };

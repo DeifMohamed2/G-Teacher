@@ -174,7 +174,7 @@ class PaymobService {
           auth_token: authToken,
           delivery_needed: 'false',
           amount_cents: amountCents,
-          currency: 'AED',
+          currency: 'EGP',
           items: items.map((item) => ({
             name: item.title || item.name,
             amount_cents: Math.round(item.price * 100),
@@ -254,7 +254,7 @@ class PaymobService {
             last_name: billingData.lastName || 'Lastname',
             state: billingData.state || 'NA',
           },
-          currency: 'AED',
+          currency: 'EGP',
           integration_id: Number(integrationId),
           // Add redirect URLs for iframe
           redirection_url:
@@ -263,6 +263,11 @@ class PaymobService {
               process.env.BASE_DOMAIN || 'http://localhost:3000'
             }/purchase/payment/success`,
         };
+
+        console.log('Generating payment key with body:', JSON.stringify({
+          ...body,
+          auth_token: body.auth_token ? body.auth_token.substring(0, 20) + '...' : 'undefined'
+        }, null, 2));
 
         const response = await axios.post(url, body, {
           timeout: 15000,
@@ -279,12 +284,26 @@ class PaymobService {
           `Error generating payment key (Attempt ${attempt}/${maxRetries}):`,
           error.code || error.message
         );
+        
+        // Log detailed error information from Paymob
+        if (error.response) {
+          console.error('Paymob Response Error:', {
+            status: error.response.status,
+            statusText: error.response.statusText,
+            data: JSON.stringify(error.response.data, null, 2)
+          });
+        }
 
         if (attempt === maxRetries) {
           if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
             throw new Error(
               'Connection timeout while generating payment key. Please try again.'
             );
+          }
+          // Include Paymob error details in the thrown error
+          const paymobError = error.response?.data;
+          if (paymobError) {
+            throw new Error(`Failed to generate payment key: ${JSON.stringify(paymobError)}`);
           }
           throw new Error('Failed to generate payment key');
         }
@@ -339,7 +358,7 @@ class PaymobService {
       try {
         const amountCents = Math.round(orderData.total * 100);
 
-        // Prepare items array - ensure amounts are in smallest currency unit (fils for AED)
+        // Prepare items array - ensure amounts are in smallest currency unit (piastres for EGP)
         const items = orderData.items.map((item) => {
           const itemPrice = item.price || 0;
           const itemQuantity = item.quantity || 1;
@@ -389,7 +408,7 @@ class PaymobService {
 
         const body = {
           amount: amountCents,
-          currency: 'AED',
+          currency: 'EGP',
           payment_methods: finalPaymentMethods, // Can be [1, 47] or integration IDs
           items: items,
           billing_data: billingDataFormatted,

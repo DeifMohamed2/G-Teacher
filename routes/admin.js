@@ -220,8 +220,16 @@ const {
   deleteSubmission,
   // G-Teacher Analysis & Invoices
   getGTeacherAnalysis,
+  exportGTeacherAnalysis,
   getTeacherInvoiceData,
   exportTeacherInvoice,
+  // Invoice Management
+  saveInvoice,
+  getInvoices,
+  getInvoiceDetails,
+  updateInvoiceStatus,
+  deleteInvoice,
+  getInvoicesPage,
 } = require('../controllers/adminController');
 
 // Import WhatsApp Controllers
@@ -558,7 +566,16 @@ router.delete('/api/exam-periods/:periodId', isAdmin, deleteExamPeriod);
 
 // G-Teacher Analysis & Invoices Routes
 router.get('/gteacher-analysis', isAdmin, getGTeacherAnalysis);
+router.get('/api/gteacher-analysis/export', isAdmin, exportGTeacherAnalysis);
 router.get('/api/teacher-invoice/:teacherId', isAdmin, getTeacherInvoiceData);
 router.post('/api/teacher-invoice/:teacherId/export', isAdmin, exportTeacherInvoice);
+
+// Invoice Management Routes
+router.get('/invoices', isAdmin, getInvoicesPage);
+router.get('/api/invoices', isAdmin, getInvoices);
+router.get('/api/invoices/:invoiceId', isAdmin, getInvoiceDetails);
+router.post('/api/invoices', isAdmin, saveInvoice);
+router.put('/api/invoices/:invoiceId/status', isAdmin, updateInvoiceStatus);
+router.delete('/api/invoices/:invoiceId', isAdmin, deleteInvoice);
 
 module.exports = router;

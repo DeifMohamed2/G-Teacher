@@ -71,7 +71,7 @@
 <!-- New Minimal Header Styles -->
 <style>
   :root {
-    --header-height: 76px;
+    --header-height: 72px;
     --primary: #3a92bd;
     --primary-dark: #0c5374;
     --primary-light: #5ba8cf;
@@ -151,9 +151,9 @@
   }
 
   .brand-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 12px;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -179,7 +179,7 @@
   }
 
   .brand-name {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     font-weight: 700;
     color: var(--text-primary);
     font-family: 'Inter', sans-serif;
@@ -192,7 +192,7 @@
   }
 
   .brand-tagline {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: var(--text-secondary);
     font-weight: 500;
     letter-spacing: 0.5px;
@@ -628,46 +628,37 @@
     transform: translateY(50%) rotate(-45deg);
   }
 
-  /* Mobile Dropdown Nav */
+  /* Mobile Nav */
   .mobile-nav-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.4);
     z-index: 999;
     opacity: 0;
-    pointer-events: none;
     transition: opacity 0.3s ease;
   }
 
   .mobile-nav-overlay.active {
     opacity: 1;
-    pointer-events: auto;
   }
 
   .mobile-nav {
     display: none;
-    position: absolute;
-    top: calc(var(--header-height) - 4px);
-    right: 16px;
-    width: 260px;
-    max-height: calc(100vh - var(--header-height) - 32px);
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 280px;
+    height: 100%;
     background: var(--bg-light);
     z-index: 1001;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    border: 1px solid var(--border-color);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
     overflow-y: auto;
-    transform: translateY(-10px) scale(0.95);
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .mobile-nav.active {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-    pointer-events: auto;
+    transform: translateX(0);
   }
 
   .mobile-nav-header {
@@ -676,37 +667,23 @@
     justify-content: space-between;
     padding: 16px 20px;
     border-bottom: 1px solid var(--border-color);
-    background: var(--bg-subtle);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  }
-
-  .mobile-nav-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
   }
 
   .mobile-nav-close {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-light);
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
+    background: var(--bg-subtle);
+    border: none;
+    border-radius: var(--radius-sm);
     color: var(--text-secondary);
     cursor: pointer;
-    transition: var(--transition);
-  }
-
-  .mobile-nav-close:hover {
-    color: var(--primary);
-    border-color: var(--primary);
   }
 
   .mobile-nav-body {
-    padding: 12px;
+    padding: 16px;
   }
 
   .mobile-nav-body a {
@@ -714,7 +691,7 @@
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 500;
     color: var(--text-secondary);
     text-decoration: none;
@@ -762,24 +739,11 @@
 
   @media (max-width: 640px) {
     .header-inner {
-      padding: 0 12px;
-    }
-
-    .brand-icon {
-      width: 44px;
-      height: 44px;
+      padding: 0 16px;
     }
 
     .brand-text {
-      display: flex;
-    }
-
-    .brand-name {
-      font-size: 1.15rem;
-    }
-
-    .brand-tagline {
-      font-size: 0.6rem;
+      display: none;
     }
 
     .user-menu-btn span {
@@ -789,47 +753,6 @@
     .user-menu-btn {
       padding: 4px;
       border-radius: 50%;
-    }
-
-    .icon-btn {
-      width: 38px;
-      height: 38px;
-    }
-
-    .mobile-nav {
-      right: 12px;
-      width: calc(100vw - 24px);
-      max-width: 320px;
-    }
-  }
-
-  @media (max-width: 400px) {
-    .header-inner {
-      padding: 0 10px;
-      gap: 8px;
-    }
-
-    .brand-icon {
-      width: 40px;
-      height: 40px;
-    }
-
-    .brand-name {
-      font-size: 1.05rem;
-    }
-
-    .brand-tagline {
-      display: none;
-    }
-
-    .header-actions {
-      gap: 4px;
-    }
-
-    .icon-btn {
-      width: 36px;
-      height: 36px;
-      font-size: 0.9rem;
     }
   }
 
@@ -936,12 +859,14 @@
   <div class="mobile-nav-overlay" id="mobileOverlay"></div>
   <nav class="mobile-nav" id="mobileNav">
     <div class="mobile-nav-header">
-      <div class="mobile-nav-brand">
-        <div class="brand-icon" style="width: 36px; height: 36px;">
-          <img src="/images/G-TeacherLogo.png" alt="G-Teacher">
+      <a href="/" class="header-brand">
+        <div class="brand-icon">
+          <img src="/images/place.png" alt="G-Teacher">
         </div>
-        <span class="brand-name" style="font-size: 1.1rem;"><span class="brand-g">G</span>-Teacher</span>
-      </div>
+        <div class="brand-text">
+          <span class="brand-name"><span class="brand-g">G</span>-Teacher</span>
+        </div>
+      </a>
       <button class="mobile-nav-close" id="mobileClose">
         <i class="fas fa-times"></i>
       </button>
@@ -1622,7 +1547,7 @@
 
           <!-- Cart Data -->
           <script>
-            window.cartData = <%- JSON.stringify(cart || []) %>;
+            window.cartData = <% - JSON.stringify(cart || []) %>;
           </script>
 
           <!-- Cart JavaScript -->

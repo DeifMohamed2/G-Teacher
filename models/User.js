@@ -894,6 +894,159 @@ UserSchema.methods.updateContentProgress = async function (
   }
 };
 
+// Safe enrollment method that handles duplicates and supports startingOrder
+// startingOrder: If provided, only topics with order >= startingOrder will be included in contentProgress
+UserSchema.methods.safeEnrollInCourse = async function (courseId, startingOrder = null) {
+  const Course = mongoose.model('Course');
+  const Topic = mongoose.model('Topic');
+
+  // Check if already enrolled
+  const existingEnrollment = this.enrolledCourses.find(
+    (e) => e.course && e.course.toString() === courseId.toString()
+  );
+
+  if (existingEnrollment) {
+    return { success: false, message: 'Already enrolled in this course', alreadyEnrolled: true };
+  }
+
+  // Get course to find teacher and topics
+  const course = await Course.findById(courseId).populate('topics');
+  if (!course) {
+    return { success: false, message: 'Course not found' };
+  }
+
+  // Initialize contentProgress based on startingOrder
+  let contentProgress = [];
+  
+  if (startingOrder !== null && startingOrder !== undefined) {
+    // Get only topics with order >= startingOrder
+    const topics = await Topic.find({
+      course: courseId,
+      isPublished: true,
+      order: { $gte: startingOrder }
+    }).select('_id content');
+
+    // Initialize progress for each content item in these topics
+    for (const topic of topics) {
+      if (topic.content && Array.isArray(topic.content)) {
+        for (const content of topic.content) {
+          contentProgress.push({
+            topicId: topic._id,
+            contentId: content._id,
+            contentType: content.type || 'video',
+            completionStatus: 'not_started',
+            progressPercentage: 0,
+            lastAccessed: new Date(),
+            timeSpent: 0,
+            attempts: 0,
+            lastPosition: 0,
+            watchCount: 0,
+            bestScore: 0,
+          });
+        }
+      }
+    }
+  }
+
+  // Create enrollment
+  this.enrolledCourses.push({
+    course: courseId,
+    teacher: course.teacher,
+    enrolledAt: new Date(),
+    progress: 0,
+    status: 'active',
+    completedTopics: [],
+    contentProgress: contentProgress,
+  });
+
+  await this.save();
+
+  // Also update course's enrolledStudents if not already there
+  if (!course.enrolledStudents.includes(this._id)) {
+    course.enrolledStudents.push(this._id);
+    await course.save();
+  }
+
+  return { success: true, message: 'Successfully enrolled' };
+};
+
+// Cleanup duplicate enrollments and purchases
+UserSchema.methods.cleanupDuplicates = async function () {
+  let duplicatesRemoved = 0;
+  let enrollmentsRemoved = 0;
+  let coursePurchasesRemoved = 0;
+
+  // Clean up duplicate enrolledCourses
+  if (this.enrolledCourses && this.enrolledCourses.length > 0) {
+    const seenCourses = new Set();
+    const originalLength = this.enrolledCourses.length;
+    
+    this.enrolledCourses = this.enrolledCourses.filter((enrollment) => {
+      if (!enrollment.course) return false;
+      const courseId = enrollment.course.toString();
+      if (seenCourses.has(courseId)) {
+        return false;
+      }
+      seenCourses.add(courseId);
+      return true;
+    });
+    
+    enrollmentsRemoved = originalLength - this.enrolledCourses.length;
+    duplicatesRemoved += enrollmentsRemoved;
+  }
+
+  // Clean up duplicate purchasedCourses
+  if (this.purchasedCourses && this.purchasedCourses.length > 0) {
+    const seenPurchases = new Set();
+    const originalLength = this.purchasedCourses.length;
+    
+    this.purchasedCourses = this.purchasedCourses.filter((purchase) => {
+      if (!purchase.course) return false;
+      const courseId = purchase.course.toString();
+      if (seenPurchases.has(courseId)) {
+        return false;
+      }
+      seenPurchases.add(courseId);
+      return true;
+    });
+    
+    coursePurchasesRemoved = originalLength - this.purchasedCourses.length;
+    duplicatesRemoved += coursePurchasesRemoved;
+  }
+
+  // Clean up duplicate contentProgress within each enrollment
+  for (const enrollment of this.enrolledCourses) {
+    if (enrollment.contentProgress && enrollment.contentProgress.length > 0) {
+      const seenContent = new Set();
+      const originalLength = enrollment.contentProgress.length;
+      
+      enrollment.contentProgress = enrollment.contentProgress.filter((cp) => {
+        if (!cp.contentId) return false;
+        const key = `${cp.topicId?.toString() || ''}-${cp.contentId.toString()}`;
+        if (seenContent.has(key)) {
+          return false;
+        }
+        seenContent.add(key);
+        return true;
+      });
+      
+      duplicatesRemoved += originalLength - enrollment.contentProgress.length;
+    }
+  }
+
+  if (duplicatesRemoved > 0) {
+    this.markModified('enrolledCourses');
+    this.markModified('purchasedCourses');
+    await this.save();
+  }
+
+  return {
+    duplicatesRemoved,
+    enrollmentsRemoved,
+    coursePurchasesRemoved,
+  };
+};
+
 // Indexes for better query performance (excluding fields with unique: true which auto-create indexes)
 UserSchema.index({ isActive: 1 });
 UserSchema.index({ 'enrolledCourses.course': 1 });

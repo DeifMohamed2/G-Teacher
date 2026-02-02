@@ -347,4 +347,112 @@ router.get('/admin/zoom/:meetingId/report', isAdmin, async (req, res) => {
   }
 });
 
+// ==================== BUNNY CDN MANAGEMENT ROUTES ====================
+
+const bunnyCDNService = require('../utils/bunnyCDNService');
+
+/**
+ * List all videos in Bunny CDN library
+ * GET /api/zoom/admin/bunny/videos
+ */
+router.get('/admin/bunny/videos', isAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const search = req.query.search || '';
+
+    const result = await bunnyCDNService.listVideos(page, 100, search);
+
+    res.json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    console.error('❌ Error listing Bunny videos:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to list videos',
+    });
+  }
+});
+
+/**
+ * Find duplicate videos in Bunny CDN library
+ * GET /api/zoom/admin/bunny/duplicates
+ */
+router.get('/admin/bunny/duplicates', isAdmin, async (req, res) => {
+  try {
+    const duplicates = await bunnyCDNService.findDuplicateVideos();
+
+    res.json({
+      success: true,
+      ...duplicates,
+    });
+  } catch (error) {
+    console.error('❌ Error finding duplicate videos:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to find duplicates',
+    });
+  }
+});
+
+/**
+ * Cleanup duplicate videos in Bunny CDN library
+ * POST /api/zoom/admin/bunny/cleanup
+ * Body: { dryRun: true/false } - If true, only reports what would be deleted
+ */
+router.post('/admin/bunny/cleanup', isAdmin, async (req, res) => {
+  try {
+    const dryRun = req.body.dryRun !== false; // Default to dry run for safety
+
+    console.log(`🧹 Starting Bunny CDN cleanup (dryRun: ${dryRun})`);
+
+    const result = await bunnyCDNService.cleanupDuplicateVideos(dryRun);
+
+    res.json({
+      success: true,
+      message: dryRun 
+        ? `Dry run completed. ${result.totalDuplicates} duplicate videos would be deleted.`
+        : `Cleanup completed. ${result.deleted} videos deleted, ${result.failed} failed.`,
+      ...result,
+    });
+  } catch (error) {
+    console.error('❌ Error cleaning up duplicate videos:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to cleanup duplicates',
+    });
+  }
+});
+
+/**
+ * Delete a specific video from Bunny CDN
+ * DELETE /api/zoom/admin/bunny/videos/:videoId
+ */
+router.delete('/admin/bunny/videos/:videoId', isAdmin, async (req, res) => {
+  try {
+    const { videoId } = req.params;
+
+    if (!videoId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Video ID is required',
+      });
+    }
+
+    const deleted = await bunnyCDNService.deleteVideo(videoId);
+
+    res.json({
+      success: deleted,
+      message: deleted ? 'Video deleted successfully' : 'Failed to delete video',
+    });
+  } catch (error) {
+    console.error('❌ Error deleting video:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to delete video',
+    });
+  }
+});
+
 module.exports = router;
