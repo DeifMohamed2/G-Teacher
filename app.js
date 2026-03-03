@@ -7,10 +7,10 @@ const MongoStore = require('connect-mongo');
 const flash = require('connect-flash');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
-const mongoose = require('mongoose');
 const http = require('http');
 const socketIo = require('socket.io');
 const methodOverride = require('method-override');
+const { connectDB } = require('./config/db');
 
 // Load environment variables
 dotenv.config();
@@ -140,9 +140,9 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl:process.env.DATABASE_URL,
-      touchAfter: 24 * 3600, // lazy session update - only touch the session if it's been more than 24 hours
-      ttl: 7 * 24 * 60 * 60, // 7 days session expiration
+      clientPromise: connectDB(),
+      touchAfter: 24 * 3600,
+      ttl: 7 * 24 * 60 * 60,
     }),
     cookie: {
       secure: false, // Set to true in production with HTTPS
@@ -251,12 +251,10 @@ app.set('io', io);
 console.log('Socket.IO initialized', io.engine.clientsCount);
 
 // Database connection and server startup
-const dbURI =process.env.DATABASE_URL;
 const PORT = process.env.PORT || 5091;
 
-mongoose
-  .connect(dbURI)
-  .then((result) => {
+connectDB()
+  .then(() => {
     server.listen(PORT, '0.0.0.0', () => {
       console.log('Connected to database and listening on port', PORT);
       console.log('server is running in', 'http://localhost:' + PORT);
