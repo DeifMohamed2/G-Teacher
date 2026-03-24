@@ -67,11 +67,8 @@
       </a>
     </div>
 
-  </nav>
-
-  <!-- Footer actions (pinned to bottom) -->
-  <div class="admin-sidebar-footer">
-    <div class="admin-nav-group">
+    <!-- System (same scrollable nav as Main / Communications) -->
+    <div class="admin-nav-group admin-nav-group-footer">
       <span class="admin-nav-group-label">System</span>
       <a href="/admin/create-admin" class="admin-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'create-admin' ? 'active' : '' %>">
         <span class="admin-nav-item-icon"><i class="fas fa-user-plus"></i></span>
@@ -82,7 +79,8 @@
         <span class="admin-nav-item-text">Logout</span>
       </a>
     </div>
-  </div>
+
+  </nav>
 </aside>
 
 <style>

@@ -259,24 +259,22 @@
   color: #f87171;
 }
 
-/* ---- Footer (pinned to bottom) ---- */
-.admin-sidebar-footer {
-  flex-shrink: 0;
-  padding: 16px 0 20px;
+/* ---- System / logout block (inside scrollable nav; visual footer strip) ---- */
+.admin-nav-group-footer {
+  margin-top: 8px;
+  padding-top: 12px;
   border-top: 1px solid var(--admin-sidebar-border);
-  background: rgba(255, 255, 255, 0.6);
-}
-
-.dark-theme .admin-sidebar-footer {
-  border-top-color: var(--admin-sidebar-border-dark);
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.admin-sidebar-footer .admin-nav-group {
+  background: rgba(255, 255, 255, 0.45);
   margin-bottom: 0;
+  padding-bottom: 8px;
 }
 
-.admin-sidebar-footer .admin-nav-group-label {
+.dark-theme .admin-nav-group-footer {
+  border-top-color: var(--admin-sidebar-border-dark);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.admin-nav-group-footer .admin-nav-group-label {
   margin-top: 0;
 }
 

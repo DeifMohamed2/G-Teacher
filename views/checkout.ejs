@@ -1960,9 +1960,6 @@
     </div>
   </div>
 
-  <!-- PlayerJS Library for Video Control -->
-  <script src="https://assets.mediadelivery.net/playerjs/playerjs-latest.min.js"></script>
-
   <!-- Checkout Terms Modal Reading Tracking Script -->
   <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -1970,19 +1967,6 @@
       let checkoutTermsRead = false;
       let checkoutHasScrolledToBottom = false;
       let checkoutModalLang = localStorage.getItem('checkoutModalLang') || 'en';
-
-      // Video tracking variables (for checkout terms video)
-      let checkoutTermsVideoPlayer = null;
-      let checkoutTermsVideoDuration = 0;
-      let checkoutTermsVideoWatchedTime = 0;
-      let checkoutTermsVideoMaxWatched = 0;
-      let checkoutTermsVideoIsPlaying = false;
-      let checkoutTermsVideoCompleted = false;
-      let checkoutTermsVideoLastTime = 0;
-
-      // Initialize Terms Video Anti-Skip Tracking - Variables must be outside function to persist
-      let checkoutLastUpdateTimestamp = Date.now();
-      let checkoutIsSeeking = false;
 
       // Modal Elements
       const checkoutModal = document.getElementById('checkoutReadingModal');
@@ -2028,19 +2012,6 @@
           <li><i class="fas fa-check-circle"></i> Camera Must be on during live sessions for better participation and communication.</li>
         </ul>
       </div>
-      
-      <div class="checkout-document-section">
-        <h3><span class="checkout-section-number">6</span> Important Video (Anti-Skip)</h3>
-        <p><strong>Please watch the following video completely. Skipping is not allowed.</strong></p>
-        <div class="checkout-terms-video-container" id="checkoutTermsVideoContainer">
-          <div style="position:relative;padding-top:56.25%;">
-            <iframe id="checkoutTermsVideoIframe" src="https://iframe.mediadelivery.net/embed/533780/15dc74bf-f70b-4a87-b74d-993ad32adc2c?autoplay=false&loop=false&muted=false&preload=true&responsive=true&controls=false" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe>
-          </div>
-          <div class="checkout-video-watch-status" id="checkoutVideoWatchStatus" style="margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px; display: none;">
-            <i class="fas fa-info-circle"></i> <span id="checkoutVideoWatchStatusText">Video must be watched completely to proceed.</span>
-          </div>
-        </div>
-      </div>
     </div>
   `;
 
@@ -2066,19 +2037,6 @@
           <li><i class="fas fa-check-circle"></i><span> <strong>يجب تشغيل الكاميرا</strong> أثناء جلسات البث المباشر لمشاركة وتواصل أفضل.</span></li>
         </ul>
       </div>
-      
-      <div class="checkout-document-section">
-        <h3><span class="checkout-section-number">6</span> فيديو مهم (منع التخطي)</h3>
-        <p><strong>يرجى مشاهدة الفيديو التالي بالكامل. التخطي غير مسموح.</strong></p>
-        <div class="checkout-terms-video-container" id="checkoutTermsVideoContainer">
-          <div style="position:relative;padding-top:56.25%;">
-            <iframe id="checkoutTermsVideoIframe" src="https://iframe.mediadelivery.net/embed/533780/15dc74bf-f70b-4a87-b74d-993ad32adc2c?autoplay=false&loop=false&muted=false&preload=true&responsive=true&controls=false" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe>
-          </div>
-          <div class="checkout-video-watch-status" id="checkoutVideoWatchStatus" style="margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px; display: none;">
-            <i class="fas fa-info-circle"></i> <span id="checkoutVideoWatchStatusText">يجب مشاهدة الفيديو بالكامل للمتابعة.</span>
-          </div>
-        </div>
-      </div>
     </div>
   `;
 
@@ -2090,15 +2048,6 @@
         }
 
         checkoutHasScrolledToBottom = false;
-
-        // Reset video completion state
-        checkoutTermsVideoCompleted = false;
-        checkoutTermsVideoWatchedTime = 0;
-        checkoutTermsVideoMaxWatched = 0;
-        checkoutTermsVideoLastTime = 0;
-        checkoutTermsVideoIsPlaying = false;
-        checkoutLastUpdateTimestamp = Date.now();
-        checkoutIsSeeking = false;
 
         // Reset progress
         checkoutReadingProgressFill.style.width = '0%';
@@ -2131,161 +2080,14 @@
 
         // Update scroll tracking
         updateCheckoutScrollProgress();
-
-        // Initialize video tracking
-        setTimeout(initCheckoutTermsVideoTracking, 500);
       }
 
-      // Initialize Checkout Terms Video Anti-Skip Tracking
-      function initCheckoutTermsVideoTracking() {
-        const videoIframe = document.getElementById('checkoutTermsVideoIframe');
-        const videoStatus = document.getElementById('checkoutVideoWatchStatus');
-        const videoStatusText = document.getElementById('checkoutVideoWatchStatusText');
-
-        if (!videoIframe) return;
-
-        // Reset video tracking
-        checkoutTermsVideoCompleted = false;
-        checkoutTermsVideoWatchedTime = 0;
-        checkoutTermsVideoMaxWatched = 0;
-        checkoutTermsVideoLastTime = 0;
-        checkoutTermsVideoIsPlaying = false;
-        checkoutLastUpdateTimestamp = Date.now();
-        checkoutIsSeeking = false;
-
-        // Show status
-        if (videoStatus) {
-          videoStatus.style.display = 'flex';
-          videoStatus.className = 'checkout-video-watch-status';
-          if (checkoutModalLang === 'ar') {
-            videoStatusText.textContent = 'يجب مشاهدة الفيديو بالكامل للمتابعة. التخطي غير مسموح.';
-          } else {
-            videoStatusText.textContent = 'Video must be watched completely to proceed. Skipping is not allowed.';
-          }
-        }
-
-        // Wait for playerjs to be available
-        if (typeof playerjs === 'undefined') {
-          console.error('PlayerJS library not loaded');
-          return;
-        }
-
-        try {
-          checkoutTermsVideoPlayer = new playerjs.Player(videoIframe);
-
-          checkoutTermsVideoPlayer.on('ready', function () {
-            checkoutTermsVideoPlayer.getDuration(function (duration) {
-              checkoutTermsVideoDuration = duration;
-              console.log('📹 Checkout terms video duration:', checkoutTermsVideoDuration);
-            });
-          });
-
-          checkoutTermsVideoPlayer.on('play', function () {
-            checkoutTermsVideoIsPlaying = true;
-            if (videoStatus) {
-              videoStatus.className = 'checkout-video-watch-status watching';
-              if (checkoutModalLang === 'ar') {
-                videoStatusText.textContent = 'جاري المشاهدة... يرجى مشاهدة الفيديو حتى النهاية.';
-              } else {
-                videoStatusText.textContent = 'Watching... Please watch the video until the end.';
-              }
-            }
-          });
-
-          checkoutTermsVideoPlayer.on('pause', function () {
-            checkoutTermsVideoIsPlaying = false;
-          });
-
-          // STRICT ANTI-SKIP: Track time updates with smart tolerance
-          checkoutTermsVideoPlayer.on('timeupdate', function (data) {
-            if (checkoutTermsVideoCompleted || checkoutIsSeeking) return;
-
-            const currentTime = data.seconds;
-            const now = Date.now();
-            const timeSinceLastUpdate = now - checkoutLastUpdateTimestamp;
-            const timeDiff = currentTime - checkoutTermsVideoLastTime;
-            const SKIP_TOLERANCE = 2; // seconds
-
-            // Check for skips regardless of playing state (catches timeline clicks, etc.)
-            // Check for forward skip: current time jumped ahead significantly beyond what's been watched
-            if (currentTime > checkoutTermsVideoMaxWatched + SKIP_TOLERANCE) {
-              // User tried to skip ahead - seek back silently
-              checkoutIsSeeking = true;
-              checkoutTermsVideoPlayer.setCurrentTime(checkoutTermsVideoMaxWatched);
-              setTimeout(() => { checkoutIsSeeking = false; }, 100);
-              return;
-            }
-
-            // Check for backward skip: only prevent if significantly behind max watched (more than 1 second)
-            if (currentTime < checkoutTermsVideoMaxWatched - 1) {
-              // User tried to go backward - prevent it silently
-              checkoutIsSeeking = true;
-              checkoutTermsVideoPlayer.setCurrentTime(checkoutTermsVideoMaxWatched);
-              setTimeout(() => { checkoutIsSeeking = false; }, 100);
-              return;
-            }
-
-            // Only update max watched time if video is playing forward normally
-            if (checkoutTermsVideoIsPlaying) {
-              // Calculate expected time advancement based on elapsed time (allow 10% tolerance for buffering)
-              const expectedAdvancement = (timeSinceLastUpdate / 1000) * 1.1; // 1.1x for tolerance
-
-              // Update max watched time if playing forward normally
-              // Allow small jumps (up to 2 seconds) for buffering/loading
-              if (currentTime > checkoutTermsVideoLastTime && timeDiff >= 0 && timeDiff <= 2.0) {
-                if (currentTime > checkoutTermsVideoMaxWatched) {
-                  checkoutTermsVideoMaxWatched = currentTime;
-                }
-              }
-            }
-
-            checkoutTermsVideoLastTime = currentTime;
-            checkoutLastUpdateTimestamp = now;
-
-            // Check if video is completed (watched 100%)
-            if (checkoutTermsVideoDuration > 0 && checkoutTermsVideoMaxWatched >= checkoutTermsVideoDuration * 0.99) {
-              checkoutTermsVideoCompleted = true;
-              if (videoStatus) {
-                videoStatus.className = 'checkout-video-watch-status completed';
-                if (checkoutModalLang === 'ar') {
-                  videoStatusText.textContent = '✓ تمت مشاهدة الفيديو بالكامل! يمكنك الآن المتابعة.';
-                } else {
-                  videoStatusText.textContent = '✓ Video watched completely! You can now proceed.';
-                }
-              }
-              // Enable confirm button immediately (video completion is sufficient)
-              checkCheckoutTermsCompletion();
-            }
-          });
-
-          // Handle video end
-          checkoutTermsVideoPlayer.on('ended', function () {
-            checkoutTermsVideoCompleted = true;
-            checkoutTermsVideoMaxWatched = checkoutTermsVideoDuration;
-            if (videoStatus) {
-              videoStatus.className = 'checkout-video-watch-status completed';
-              if (checkoutModalLang === 'ar') {
-                videoStatusText.textContent = '✓ تمت مشاهدة الفيديو بالكامل! يمكنك الآن المتابعة.';
-              } else {
-                videoStatusText.textContent = '✓ Video watched completely! You can now proceed.';
-              }
-            }
-            // Enable confirm button immediately (video completion is sufficient)
-            checkCheckoutTermsCompletion();
-          });
-
-        } catch (error) {
-          console.error('Error initializing checkout terms video player:', error);
-        }
-      }
-
-      // Check if checkout terms can be completed (video completed is sufficient - no scroll required)
+      // Check if checkout terms can be completed (scroll to bottom required)
       function checkCheckoutTermsCompletion() {
         // Only enable buttons if:
-        // 1. Video is completed (this is the main requirement)
+        // 1. User has scrolled to bottom
         // 2. Modal is actually active
-        // Note: Scrolling to bottom is NOT required - video completion is enough
-        if (checkoutTermsVideoCompleted && checkoutModal && checkoutModal.classList.contains('active')) {
+        if (checkoutHasScrolledToBottom && checkoutModal && checkoutModal.classList.contains('active')) {
           if (checkoutCloseModalBtn) {
             checkoutCloseModalBtn.disabled = false;
             if (checkoutModalLang === 'ar') {
@@ -2299,8 +2101,8 @@
             checkoutConfirmReadBtn.style.opacity = '1';
             checkoutConfirmReadBtn.style.cursor = 'pointer';
           }
-        } else if (!checkoutTermsVideoCompleted) {
-          // Ensure buttons are disabled if video not completed
+        } else if (!checkoutHasScrolledToBottom) {
+          // Ensure buttons are disabled if not scrolled to bottom
           if (checkoutCloseModalBtn) checkoutCloseModalBtn.disabled = true;
           if (checkoutConfirmReadBtn) {
             checkoutConfirmReadBtn.disabled = true;
@@ -2333,9 +2135,6 @@
         // Update modal content
         const content = lang === 'ar' ? checkoutTermsContentAR : checkoutTermsContentEN;
         checkoutModalContent.innerHTML = content;
-
-        // Reinitialize video after content update
-        setTimeout(initCheckoutTermsVideoTracking, 100);
 
         // Update modal title
         const titleText = lang === 'ar' ? 'الشروط والأحكام' : 'Terms & Conditions';
@@ -2443,8 +2242,7 @@
           checkoutHasScrolledToBottom = false;
         }
 
-        // Always check completion status (video completion is the main requirement, not scrolling)
-        // This allows button to be enabled as soon as video completes, regardless of scroll position
+        // Always check completion status (scroll to bottom required)
         checkCheckoutTermsCompletion();
       }
 
@@ -2457,19 +2255,8 @@
 
       // Confirm Read Function
       function confirmCheckoutRead() {
-        // Only require video completion (scrolling is not required)
-        if (!checkoutTermsVideoCompleted) {
-          const videoStatus = document.getElementById('checkoutVideoWatchStatus');
-          const videoStatusText = document.getElementById('checkoutVideoWatchStatusText');
-          if (videoStatus) {
-            videoStatus.style.display = 'flex';
-            videoStatus.className = 'checkout-video-watch-status';
-            if (checkoutModalLang === 'ar') {
-              videoStatusText.textContent = '⚠️ يجب مشاهدة الفيديو بالكامل قبل المتابعة!';
-            } else {
-              videoStatusText.textContent = '⚠️ You must watch the video completely before proceeding!';
-            }
-          }
+        // Require scroll to bottom before proceeding
+        if (!checkoutHasScrolledToBottom) {
           return;
         }
 
@@ -2556,9 +2343,6 @@
               if (checkoutModalContent) {
                 checkoutModalContent.scrollTop = currentScrollTop;
                 updateCheckoutScrollProgress();
-                // Reinitialize video after language change
-                setTimeout(initCheckoutTermsVideoTracking, 100);
-                // Check completion (video completion is the main requirement)
                 checkCheckoutTermsCompletion();
               }
             }, 50);

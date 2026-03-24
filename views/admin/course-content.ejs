@@ -621,6 +621,15 @@
                 </div>
                 <div class="col-md-3">
                   <div class="mb-3">
+                    <label for="zoomDuration" class="admin-form-label" style="font-weight: 500; color: #4a5568; margin-bottom: 8px;">
+                      <i class="fas fa-clock me-2" style="color: #2d5aa0;"></i>
+                      Duration (min)
+                    </label>
+                    <input type="number" class="admin-form-control" id="zoomDuration" name="duration" min="15" max="480" value="60" placeholder="60" style="border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px 14px; transition: all 0.3s ease;">
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="mb-3">
                     <label for="zoomTimezone" class="admin-form-label" style="font-weight: 500; color: #4a5568; margin-bottom: 8px;">
                       <i class="fas fa-globe me-2" style="color: #2d5aa0;"></i>
                       Timezone
@@ -6445,21 +6454,9 @@ function getContentIcon(type) {
       return `
         <div style="position: relative; padding-top: 56.25%; background: #000; border-radius: 8px; overflow: hidden; margin-top: 12px;">
           <iframe 
-            src="https://www.youtube.com/embed/${videoId}" 
+            src="https://www.youtube-nocookie.com/embed/${videoId}" 
             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen>
-          </iframe>
-        </div>
-      `;
-    } else if (url.includes('iframe.mediadelivery.net') || url.includes('mediadelivery.net')) {
-      // Bunny CDN or similar - use direct iframe
-      return `
-        <div style="position: relative; padding-top: 56.25%; background: #000; border-radius: 8px; overflow: hidden; margin-top: 12px;">
-          <iframe 
-            src="${url}" 
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
-            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
             allowfullscreen>
           </iframe>
         </div>
@@ -6506,7 +6503,7 @@ function getContentIcon(type) {
           
           <small style="display: block; margin-bottom: 12px; color: #666;">
             ✅ You can paste either:<br>
-            • Direct video URL (e.g., https://iframe.mediadelivery.net/...)<br>
+            • YouTube URL (e.g., https://www.youtube.com/watch?v=... or https://youtu.be/...)<br>
             • Full iframe embed code (we'll extract the URL automatically)
           </small>
           

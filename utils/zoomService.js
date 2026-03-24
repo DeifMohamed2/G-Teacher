@@ -2,7 +2,7 @@ const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const ZoomMeeting = require('../models/ZoomMeeting');
 const User = require('../models/User');
-const bunnyCDNService = require('./bunnyCDNService');
+const youtubeService = require('./youtubeService');
 
 class ZoomService {
   constructor() {
@@ -786,7 +786,7 @@ class ZoomService {
 
   /**
    * Handle recording completed event
-   * Downloads MP4 from Zoom and uploads to Bunny CDN
+   * Downloads MP4 from Zoom and uploads to YouTube
    */
   async handleRecordingCompleted(payload) {
     // Must be function-scoped so catch() can access them
@@ -806,10 +806,10 @@ class ZoomService {
     console.log('📋 Recording files available:', recordingFiles.length);
 
     // ✅ DEDUPLICATION CHECK #1: Check in-memory cache for already processed recordings
-    const cachedProcessing = bunnyCDNService.isRecordingProcessed(recordingUuid);
-    if (cachedProcessing) {
-      console.log('⏭️ Recording already processed (from cache), skipping duplicate');
-      console.log('📹 Existing Bunny Video ID:', cachedProcessing.bunnyVideoId);
+    const cachedYouTube = youtubeService.isRecordingProcessed(recordingUuid);
+    if (cachedYouTube) {
+      console.log('⏭️ Recording already processed (from YouTube cache), skipping duplicate');
+      console.log('📹 Existing YouTube Video ID:', cachedYouTube.youtubeVideoId);
       return;
     }
 
@@ -829,15 +829,15 @@ class ZoomService {
       return; // Exit early if upload is in progress
     }
 
-    // ✅ DEDUPLICATION CHECK #2: For external meetings (not in DB), check Bunny CDN for duplicates
-    if (!meetingExists && bunnyCDNService.isConfigured()) {
-      console.log('🔍 External meeting detected, checking for duplicate recordings in Bunny CDN...');
-      const duplicateCheck = await bunnyCDNService.checkDuplicateRecording(meetingId, recordingUuid);
+    // ✅ DEDUPLICATION CHECK #2: For external meetings (not in DB), check YouTube for duplicates
+    const useYouTube = youtubeService.isConfigured();
+    if (!meetingExists && useYouTube) {
+      console.log('🔍 External meeting detected, checking for duplicate recordings in YouTube...');
+      const duplicateCheck = await youtubeService.checkDuplicateRecording(meetingId, recordingUuid);
       if (duplicateCheck && duplicateCheck.isDuplicate) {
-        console.log('⏭️ Duplicate recording found in Bunny CDN, skipping upload');
-        console.log('📹 Existing video:', duplicateCheck.bunnyVideoId, '-', duplicateCheck.videoTitle);
-        // Cache this result to prevent future duplicate attempts
-        bunnyCDNService.markRecordingProcessed(recordingUuid, duplicateCheck.bunnyVideoId);
+        console.log('⏭️ Duplicate recording found in YouTube, skipping upload');
+        console.log('📹 Existing video:', duplicateCheck.youtubeVideoId);
+        youtubeService.markRecordingProcessed(recordingUuid, duplicateCheck.youtubeVideoId);
         return;
       }
     }
@@ -1133,66 +1133,42 @@ class ZoomService {
 
     console.log('✅ MP4 validated');
 
-    // Upload to Bunny
+    // Upload to YouTube (only supported destination)
     let uploadResult = null;
+    const title = meetingExists && zoomMeeting?.meetingName
+      ? zoomMeeting.meetingName
+      : `Zoom Recording ${meetingId}`;
 
-    if (bunnyCDNService.isConfigured()) {
-      const videoId =
-        object.uuid.replace(/[^a-zA-Z0-9]/g, '') ||
-        `zoom-${meetingId}-${Date.now()}`;
-
-      const title = meetingExists && zoomMeeting?.meetingName
-        ? zoomMeeting.meetingName
-        : `Zoom Recording ${meetingId}`;
-
-      console.log('📤 Uploading to Bunny CDN...');
-      uploadResult = await bunnyCDNService.uploadVideo(
-        videoBuffer,
-        videoId,
-        title
-      );
-
-      console.log('✅ Uploaded to Bunny:', uploadResult.bunnyVideoId);
-      
-      // ✅ Mark recording as processed to prevent duplicate uploads
-      bunnyCDNService.markRecordingProcessed(recordingUuid, uploadResult.bunnyVideoId);
+    if (useYouTube) {
+      console.log('📤 Uploading to YouTube...');
+      uploadResult = await youtubeService.uploadVideo(videoBuffer, title, {
+        meetingId,
+        recordingUuid,
+      });
+      console.log('✅ Uploaded to YouTube:', uploadResult.youtubeVideoId);
+      youtubeService.markRecordingProcessed(recordingUuid, uploadResult.youtubeVideoId);
     } else {
-      console.log('⚠️ Bunny CDN not configured, skipping upload');
+      console.log('⚠️ YouTube not configured, skipping upload');
     }
 
     // Save DB (optional)
     if (meetingExists) {
       zoomMeeting.recordingStatus = 'completed';
-      
-      // Save Bunny CDN embed code if available, otherwise save original Zoom URL as backup
-      if (uploadResult?.bunnyVideoId) {
-        // Generate and save Bunny CDN embed code
-        const embedCode = bunnyCDNService.getEmbedCode(uploadResult.bunnyVideoId, {
-          autoplay: true,
-          loop: false,
-          muted: false,
-          preload: true,
-          responsive: true,
-        });
-        zoomMeeting.recordingUrl = embedCode;
-        zoomMeeting.bunnyVideoId = uploadResult.bunnyVideoId;
-        zoomMeeting.bunnyVideoUrl =
-          uploadResult.videoUrl ||
-          bunnyCDNService.getPlaybackUrl(uploadResult.bunnyVideoId);
-        
-        console.log('💾 Saved Bunny CDN embed code to recordingUrl');
+
+      if (uploadResult?.youtubeVideoId) {
+        zoomMeeting.recordingUrl = uploadResult.embedUrl;
+        zoomMeeting.youtubeVideoId = uploadResult.youtubeVideoId;
+        console.log('💾 Saved YouTube embed URL to recordingUrl');
       } else {
-        // Fallback: save original Zoom download URL if Bunny upload failed
         zoomMeeting.recordingUrl = mp4File.download_url;
-        console.log('💾 Saved original Zoom URL to recordingUrl (Bunny upload not available)');
+        console.log('💾 Saved original Zoom URL to recordingUrl (YouTube not configured)');
       }
 
       await zoomMeeting.save();
       console.log('💾 Recording info saved to DB');
     } else {
-      // For external meetings (not in DB), log that recording was uploaded but not tracked
-      console.log('⚠️ External meeting recording uploaded to Bunny but not tracked in database');
-      console.log('📹 Bunny Video ID:', uploadResult?.bunnyVideoId || 'N/A');
+      console.log('⚠️ External meeting recording uploaded but not tracked in database');
+      console.log('📹 Video ID:', uploadResult?.youtubeVideoId || 'N/A');
     }
 
     console.log('🎉 Recording processing finished successfully');

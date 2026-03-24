@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
+const { google } = require('googleapis');
 const zoomService = require('../utils/zoomService');
+const youtubeService = require('../utils/youtubeService');
 const { isAdmin, isStudent, isAuthenticated } = require('../middlewares/auth');
 const {
   createZoomMeeting,
@@ -347,112 +349,120 @@ router.get('/admin/zoom/:meetingId/report', isAdmin, async (req, res) => {
   }
 });
 
-// ==================== BUNNY CDN MANAGEMENT ROUTES ====================
+// ==================== YOUTUBE OAUTH ROUTES ====================
 
-const bunnyCDNService = require('../utils/bunnyCDNService');
-
-/**
- * List all videos in Bunny CDN library
- * GET /api/zoom/admin/bunny/videos
- */
-router.get('/admin/bunny/videos', isAdmin, async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const search = req.query.search || '';
-
-    const result = await bunnyCDNService.listVideos(page, 100, search);
-
-    res.json({
-      success: true,
-      ...result,
-    });
-  } catch (error) {
-    console.error('❌ Error listing Bunny videos:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to list videos',
-    });
-  }
-});
+const YOUTUBE_SCOPES = [
+  'https://www.googleapis.com/auth/youtube.upload',
+  'https://www.googleapis.com/auth/youtube',
+];
 
 /**
- * Find duplicate videos in Bunny CDN library
- * GET /api/zoom/admin/bunny/duplicates
+ * Initiate YouTube OAuth flow - redirects to Google for authorization
+ * GET /zoom/admin/youtube/oauth
  */
-router.get('/admin/bunny/duplicates', isAdmin, async (req, res) => {
+router.get('/admin/youtube/oauth', isAdmin, (req, res) => {
   try {
-    const duplicates = await bunnyCDNService.findDuplicateVideos();
+    const clientId = process.env.YOUTUBE_CLIENT_ID;
+    const clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const redirectUri = process.env.YOUTUBE_REDIRECT_URI || `${baseUrl}/zoom/admin/youtube/oauth/callback`;
 
-    res.json({
-      success: true,
-      ...duplicates,
-    });
-  } catch (error) {
-    console.error('❌ Error finding duplicate videos:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to find duplicates',
-    });
-  }
-});
-
-/**
- * Cleanup duplicate videos in Bunny CDN library
- * POST /api/zoom/admin/bunny/cleanup
- * Body: { dryRun: true/false } - If true, only reports what would be deleted
- */
-router.post('/admin/bunny/cleanup', isAdmin, async (req, res) => {
-  try {
-    const dryRun = req.body.dryRun !== false; // Default to dry run for safety
-
-    console.log(`🧹 Starting Bunny CDN cleanup (dryRun: ${dryRun})`);
-
-    const result = await bunnyCDNService.cleanupDuplicateVideos(dryRun);
-
-    res.json({
-      success: true,
-      message: dryRun 
-        ? `Dry run completed. ${result.totalDuplicates} duplicate videos would be deleted.`
-        : `Cleanup completed. ${result.deleted} videos deleted, ${result.failed} failed.`,
-      ...result,
-    });
-  } catch (error) {
-    console.error('❌ Error cleaning up duplicate videos:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to cleanup duplicates',
-    });
-  }
-});
-
-/**
- * Delete a specific video from Bunny CDN
- * DELETE /api/zoom/admin/bunny/videos/:videoId
- */
-router.delete('/admin/bunny/videos/:videoId', isAdmin, async (req, res) => {
-  try {
-    const { videoId } = req.params;
-
-    if (!videoId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Video ID is required',
-      });
+    if (!clientId || !clientSecret) {
+      return res.status(400).send(`
+        <h2>YouTube OAuth not configured</h2>
+        <p>Please set YOUTUBE_CLIENT_ID and YOUTUBE_CLIENT_SECRET in your .env file.</p>
+        <p>Get these from <a href="https://console.cloud.google.com/">Google Cloud Console</a> → APIs & Services → Credentials.</p>
+      `);
     }
 
-    const deleted = await bunnyCDNService.deleteVideo(videoId);
+    console.log('🔗 YouTube OAuth redirect URI being sent to Google:', redirectUri);
 
-    res.json({
-      success: deleted,
-      message: deleted ? 'Video deleted successfully' : 'Failed to delete video',
+    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
+    const authUrl = oauth2Client.generateAuthUrl({
+      access_type: 'offline',
+      scope: YOUTUBE_SCOPES,
+      prompt: 'consent', // Force consent to ensure we get refresh token
     });
+
+    res.redirect(authUrl);
   } catch (error) {
-    console.error('❌ Error deleting video:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to delete video',
-    });
+    console.error('❌ YouTube OAuth initiation error:', error);
+    res.status(500).send(`<h2>Error</h2><p>${error.message}</p>`);
   }
+});
+
+/**
+ * YouTube OAuth callback - exchanges code for tokens, displays refresh token
+ * GET /zoom/admin/youtube/oauth/callback
+ */
+router.get('/admin/youtube/oauth/callback', isAdmin, async (req, res) => {
+  try {
+    const { code } = req.query;
+    if (!code) {
+      return res.status(400).send(`
+        <h2>Authorization failed</h2>
+        <p>No authorization code received. Please try again.</p>
+        <p><a href="/zoom/admin/youtube/oauth">Retry OAuth</a></p>
+      `);
+    }
+
+    const clientId = process.env.YOUTUBE_CLIENT_ID;
+    const clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const redirectUri = process.env.YOUTUBE_REDIRECT_URI || `${baseUrl}/zoom/admin/youtube/oauth/callback`;
+
+    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
+    const { tokens } = await oauth2Client.getToken(code);
+
+    if (!tokens.refresh_token) {
+      return res.status(400).send(`
+        <h2>No refresh token received</h2>
+        <p>Google did not return a refresh token. This can happen if you've already authorized this app.</p>
+        <p>Try revoking access at <a href="https://myaccount.google.com/permissions">Google Account Permissions</a> and try again.</p>
+        <p><a href="/zoom/admin/youtube/oauth">Retry OAuth</a></p>
+      `);
+    }
+
+    console.log('✅ YouTube OAuth success - refresh token obtained');
+
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head><title>YouTube Connected</title></head>
+      <body style="font-family: system-ui; max-width: 600px; margin: 40px auto; padding: 20px;">
+        <h2>✅ YouTube OAuth Successful</h2>
+        <p>Add this to your <code>.env</code> file:</p>
+        <pre style="background: #f5f5f5; padding: 16px; overflow-x: auto;">YOUTUBE_REFRESH_TOKEN=${tokens.refresh_token}</pre>
+        <p>Also set:</p>
+        <pre style="background: #f5f5f5; padding: 16px;">YOUTUBE_UPLOAD_ENABLED=true
+RECORDING_UPLOAD_DESTINATION=youtube</pre>
+        <p>Then restart your server. Zoom recordings will upload to YouTube after meetings end.</p>
+      </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('❌ YouTube OAuth callback error:', error);
+    res.status(500).send(`<h2>OAuth Error</h2><p>${error.message}</p>`);
+  }
+});
+
+/**
+ * Check YouTube configuration status
+ * GET /zoom/admin/youtube/status
+ */
+router.get('/admin/youtube/status', isAdmin, (req, res) => {
+  const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+  const redirectUri = process.env.YOUTUBE_REDIRECT_URI || `${baseUrl}/zoom/admin/youtube/oauth/callback`;
+  res.json({
+    configured: youtubeService.isConfigured(),
+    hasClientId: !!process.env.YOUTUBE_CLIENT_ID,
+    hasClientSecret: !!process.env.YOUTUBE_CLIENT_SECRET,
+    hasRefreshToken: !!process.env.YOUTUBE_REFRESH_TOKEN,
+    uploadEnabled: process.env.YOUTUBE_UPLOAD_ENABLED === 'true',
+    destination: process.env.RECORDING_UPLOAD_DESTINATION || 'auto',
+    redirectUriUsed: redirectUri,
+    redirectUriFromEnv: process.env.YOUTUBE_REDIRECT_URI || '(not set)',
+  });
 });
 
 module.exports = router;

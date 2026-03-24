@@ -128,13 +128,16 @@ const zoomMeetingSchema = new mongoose.Schema({
     default: 'not_recorded',
   },
   recordingUrl: {
-    type: String, // Bunny CDN embed iframe code (or original Zoom recording URL as backup)
+    type: String, // YouTube embed URL or Zoom fallback
   },
   bunnyVideoId: {
     type: String, // Bunny CDN video ID
   },
   bunnyVideoUrl: {
     type: String, // Bunny CDN playback URL
+  },
+  youtubeVideoId: {
+    type: String, // YouTube video ID (when uploaded to YouTube)
   },
 
   // Students who watched the recording (after session ended)

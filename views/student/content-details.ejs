@@ -340,11 +340,6 @@
       }
 
       /* Ensure video container is responsive on mobile */
-      .bunny-video-container-inner {
-        width: 100% !important;
-        max-width: 100% !important;
-      }
-
       /* Mobile video player container - allow fullscreen */
       .video-player-container {
         position: relative !important;
@@ -492,7 +487,6 @@
 
       /* Make video container full-width and bigger */
       .video-player-wrapper-with-watermark,
-      .bunny-video-wrapper,
       .video-player-container,
       .recording-video-container {
         min-height: 220px !important;
@@ -601,7 +595,6 @@
     /* Extra small screens - even more compact */
     @media (max-width: 480px) {
       .video-player-wrapper-with-watermark,
-      .bunny-video-wrapper,
       .video-player-container,
       .recording-video-container {
         min-height: 200px !important;
@@ -1593,10 +1586,14 @@
                   const studentCode = student.studentCode || student.studentNumber || '';
                 %>
                 <% if (isYouTube && youtubeVideoId) { %>
-                  <!-- YouTube Player Container with Dynamic Watermark -->
-                  <div class="video-player-wrapper-with-watermark" id="youtube-video-wrapper">
-                    <div id="youtube-player-container" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);">
+                  <!-- YouTube Player Container with Dynamic Watermark, Security, and Fullscreen -->
+                  <div class="video-player-wrapper-with-watermark" id="youtube-video-wrapper" oncontextmenu="return false" oncopy="return false" ondragstart="return false" style="user-select: none; -webkit-user-select: none;">
+                    <div id="youtube-player-container" class="video-player-container" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); user-select: none; -webkit-user-select: none;" oncontextmenu="return false" oncopy="return false" ondragstart="return false">
                       <div id="youtube-player" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+                      <!-- Fullscreen Button -->
+                      <button type="button" class="custom-fullscreen-btn" onclick="toggleYoutubeFullscreen()" title="Fullscreen" aria-label="Fullscreen">
+                        <i class="fas fa-expand"></i>
+                      </button>
                       <!-- Dynamic Moving Watermark -->
                       <div class="video-watermark video-watermark-moving" id="youtubeWatermark">
                         <span class="watermark-text"><%= studentName %></span>
@@ -1648,89 +1645,12 @@
                     };
                   </script>
                 <% } else { %>
-                  <!-- Regular video content (Bunny Stream, etc.) with Dynamic Watermark -->
-                  <div class="video-player-wrapper-with-watermark" id="bunny-video-wrapper">
-                    <div class="bunny-video-container-inner" id="bunny-video-container-inner">
-                      <%- contentItem.content %>
-                    </div>
-                    <!-- Dynamic Moving Watermark - positioned on wrapper -->
-                    <style>
-                      @media (max-width: 768px) {
-                        #bunnyWatermark, #youtubeWatermark {
-                          position: relative !important;
-                          top: auto !important;
-                          left: auto !important;
-                          right: auto !important;
-                          bottom: auto !important;
-                          transform: none !important;
-                          animation: none !important;
-                          display: flex !important;
-                          justify-content: center !important;
-                          align-items: center !important;
-                          width: 100% !important;
-                          height: 16px !important;
-                          font-size: 6px !important;
-                          padding: 2px 6px !important;
-                          margin-top: 4px !important;
-                          gap: 2px !important;
-                          border-radius: 0 !important;
-                          background: rgba(0,0,0,0.7) !important;
-                          backdrop-filter: none !important;
-                          box-shadow: none !important;
-                        }
-                        #bunnyWatermark span, #youtubeWatermark span {
-                          font-size: 6px !important;
-                          text-shadow: none !important;
-                        }
-                      }
-                    </style>
-                    <div class="video-watermark video-watermark-moving" id="bunnyWatermark">
-                      <span class="watermark-text"><%= studentName %></span>
-                      <% if (studentCode) { %>
-                      <span class="watermark-separator">|</span>
-                      <span class="watermark-code"><%= studentCode %></span>
-                      <% } %>
-                    </div>
-                    <!-- Real-time Watch Progress Indicator -->
-                    <div id="videoWatchProgress" style="position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.85); color: white; padding: 12px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: none; backdrop-filter: blur(10px);">
-                      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                        <i class="fas fa-eye" style="color: #10b981;"></i>
-                        <span style="font-size: 14px;">Watch Progress</span>
-                      </div>
-                      <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="flex: 1;">
-                          <div style="font-size: 20px; color: #10b981; margin-bottom: 2px;" id="watchProgressPercent">0%</div>
-                          <div style="font-size: 11px; opacity: 0.8;" id="watchProgressTime">0:00 / 0:00</div>
-                        </div>
-                        <div style="width: 50px; height: 50px; position: relative;">
-                          <svg width="50" height="50" style="transform: rotate(-90deg);">
-                            <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="3"></circle>
-                            <circle id="watchProgressCircle" cx="25" cy="25" r="20" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="125.6" stroke-dashoffset="125.6" stroke-linecap="round"></circle>
-                          </svg>
-                          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: bold;" id="watchProgressCircleText">0%</div>
-                        </div>
-                      </div>
-                      <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 11px; opacity: 0.9;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
-                          <span>Required:</span>
-                          <span style="color: #fbbf24;">90%</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                          <span>Remaining:</span>
-                          <span style="color: #ef4444;" id="watchProgressRemaining">90%</span>
-                        </div>
-                        <div style="font-size: 10px; opacity: 0.7; margin-top: 4px;">
-                          <i class="fas fa-info-circle"></i> Can seek up to: <span id="maxSeekTime" style="color: #10b981;">0:00</span>
-                        </div>
-                      </div>
-                    </div>
+                  <!-- Non-YouTube video content no longer supported -->
+                  <div class="placeholder-content" style="background: linear-gradient(135deg, #64748b, #475569); color: white;">
+                    <i class="fas fa-video-slash" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <h3 style="margin-bottom: 0.5rem;">Video Not Available</h3>
+                    <p style="margin-bottom: 0;">This video is no longer available. Please use YouTube for video content.</p>
                   </div>
-                  <script>
-                    window.studentWatermark = {
-                      name: '<%= studentName %>',
-                      code: '<%= studentCode %>'
-                    };
-                  </script>
                 <% } %>
               <% } else { %>
               <div class="placeholder-content">
@@ -2269,21 +2189,9 @@
           %>
 
           <% if (zoomMeeting) { %>
-          <div class="zoom-meeting-container">
+          <div class="zoom-meeting-container <%= (zoomMeeting.status === 'ended' && zoomMeeting.recordingUrl) ? 'zoom-recording-mode' : '' %>">
             <!-- Meeting Info Header Card - Simplified for ended sessions -->
             <% if (zoomMeeting.status === 'ended') { %>
-            <!-- Compact header for recordings -->
-            <div class="meeting-info-card-compact" style="background: linear-gradient(135deg, var(--primary-color), #b91c1c); color: white; padding: 12px 16px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-video" style="font-size: 1.1rem;"></i>
-                <span style="font-weight: 600; font-size: 1rem;"><%= zoomMeeting.meetingName %></span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85rem; opacity: 0.95;">
-                <% if (zoomMeeting.duration) { %>
-                <span><i class="fas fa-clock me-1"></i><%= zoomMeeting.duration %> min</span>
-                <% } %>
-              </div>
-            </div>
             <% } else { %>
             <!-- Full header for scheduled/active meetings -->
             <div class="meeting-info-card">
@@ -2379,25 +2287,13 @@
             </div>
 
             <% } else if (zoomMeeting.status === 'ended') { %>
-            <!-- Meeting Ended -->
-            <div class="meeting-compact-info">
-              <div class="compact-info-left">
-                <i class="fas fa-video"></i>
-                <span>Session Recording</span>
-              </div>
-              <% if (contentProgress.isCompleted) { %>
-              <div class="compact-info-right completed">
-                <i class="fas fa-check-circle"></i>
-                <span>Watched</span>
-              </div>
-              <% } %>
-            </div>
+            <!-- Meeting Ended - Recording player only, no header -->
 
             <% if (zoomMeeting.recordingUrl) { %>
             <div class="recording-player-section">
 
 
-                <!-- Video Player Container - Supports both Bunny and YouTube with Watermark -->
+                <!-- Video Player Container - YouTube with Watermark -->
                 <div class="recording-player-wrapper">
                   <% 
                     // Check if recording URL is a YouTube video
@@ -2414,9 +2310,13 @@
                   %>
                   <div class="video-player-wrapper-with-watermark" id="recording-video-wrapper">
                     <% if (isRecordingYouTube && recordingYoutubeVideoId) { %>
-                      <!-- YouTube Player Container with Watermark -->
-                      <div class="video-player-container" style="position: relative; padding-top: 56.25%; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);">
+                      <!-- YouTube Player Container with Watermark, Security, and Fullscreen -->
+                      <div class="video-player-container recording-video-container-full" style="position: relative; padding-top: 56.25%; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); user-select: none; -webkit-user-select: none;" oncontextmenu="return false" oncopy="return false" ondragstart="return false">
                         <div id="recording-youtube-player" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+                        <!-- Fullscreen Button -->
+                        <button type="button" class="custom-fullscreen-btn" onclick="toggleRecordingFullscreen()" title="Fullscreen" aria-label="Fullscreen">
+                          <i class="fas fa-expand"></i>
+                        </button>
                         <!-- Dynamic Moving Watermark -->
                         <div class="video-watermark video-watermark-moving" id="recordingYoutubeWatermark">
                           <span class="watermark-text"><%= recordingStudentName %></span>
@@ -2430,122 +2330,11 @@
                         window.recordingYoutubeVideoId = '<%= recordingYoutubeVideoId %>';
                       </script>
                     <% } else { %>
-                      <!-- Bunny/Regular Video Player Container with Watermark -->
-                      <% 
-                        // Check if recordingUrl is HTML embed code or a regular URL
-                        const isEmbedCode = zoomMeeting.recordingUrl && (
-                          zoomMeeting.recordingUrl.includes('<div') || 
-                          zoomMeeting.recordingUrl.includes('<iframe') ||
-                          zoomMeeting.recordingUrl.trim().startsWith('<')
-                        );
-                      %>
-                      <div class="video-player-container recording-video-container" style="position: relative; padding-top: 56.25%; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);">
-                        <% if (isEmbedCode) { %>
-                          <!-- Render embed code directly (Bunny CDN embed) -->
-                          <div class="bunny-embed-wrapper" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
-                            <%- zoomMeeting.recordingUrl %>
-                          </div>
-                          <style>
-                            /* Ensure Bunny embed iframe fills its container */
-                            .bunny-embed-wrapper iframe,
-                            .bunny-embed-wrapper > div,
-                            .bunny-embed-wrapper > div > iframe {
-                              position: absolute !important;
-                              top: 0 !important;
-                              left: 0 !important;
-                              width: 100% !important;
-                              height: 100% !important;
-                              border: 0 !important;
-                            }
-                            .bunny-embed-wrapper > div {
-                              position: absolute !important;
-                              width: 100% !important;
-                              height: 100% !important;
-                            }
-                          </style>
-                        <% } else { %>
-                          <!-- Regular URL - use iframe -->
-                          <iframe id="recordingPlayer" 
-                            src="<%= zoomMeeting.recordingUrl %>" 
-                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" 
-                            loading="lazy"
-                            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;" 
-                            allowfullscreen="true">
-                          </iframe>
-                        <% } %>
-                        <!-- Dynamic Moving Watermark -->
-                        <style>
-                          @media (max-width: 768px) {
-                            #recordingBunnyWatermark, #recordingYoutubeWatermark {
-                              position: relative !important;
-                              top: auto !important;
-                              left: auto !important;
-                              right: auto !important;
-                              bottom: auto !important;
-                              transform: none !important;
-                              animation: none !important;
-                              display: flex !important;
-                              justify-content: center !important;
-                              align-items: center !important;
-                              width: 100% !important;
-                              height: 16px !important;
-                              font-size: 6px !important;
-                              padding: 2px 6px !important;
-                              margin-top: 4px !important;
-                              gap: 2px !important;
-                              border-radius: 0 !important;
-                              background: rgba(0,0,0,0.7) !important;
-                              backdrop-filter: none !important;
-                              box-shadow: none !important;
-                            }
-                            #recordingBunnyWatermark span, #recordingYoutubeWatermark span {
-                              font-size: 6px !important;
-                              text-shadow: none !important;
-                            }
-                          }
-                        </style>
-                        <div class="video-watermark video-watermark-moving" id="recordingBunnyWatermark">
-                          <span class="watermark-text"><%= recordingStudentName %></span>
-                          <% if (recordingStudentCode) { %>
-                          <span class="watermark-separator">|</span>
-                          <span class="watermark-code"><%= recordingStudentCode %></span>
-                          <% } %>
-                        </div>
-                        <!-- Watch Progress Overlay for Non-Attendees (same as regular video) -->
-                        <% if (!studentAttendedLiveMeeting && !contentProgress.isCompleted) { %>
-                        <div id="recordingWatchProgressOverlay" style="position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.85); color: white; padding: 12px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.3); backdrop-filter: blur(10px);">
-                          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                            <i class="fas fa-eye" style="color: #10b981;"></i>
-                            <span style="font-size: 14px;">Watch Progress</span>
-                          </div>
-                          <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="flex: 1;">
-                              <div style="font-size: 20px; color: #10b981; margin-bottom: 2px;" id="recWatchPercent">0%</div>
-                              <div style="font-size: 11px; opacity: 0.8;" id="recWatchTime">0:00 / 0:00</div>
-                            </div>
-                            <div style="width: 50px; height: 50px; position: relative;">
-                              <svg width="50" height="50" style="transform: rotate(-90deg);">
-                                <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="3"></circle>
-                                <circle id="recWatchCircle" cx="25" cy="25" r="20" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="125.6" stroke-dashoffset="125.6" stroke-linecap="round"></circle>
-                              </svg>
-                              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: bold;" id="recWatchCircleText">0%</div>
-                            </div>
-                          </div>
-                          <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 11px; opacity: 0.9;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
-                              <span>Required:</span>
-                              <span style="color: #fbbf24;">90%</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                              <span>Remaining:</span>
-                              <span style="color: #ef4444;" id="recWatchRemaining">90%</span>
-                            </div>
-                            <div style="font-size: 10px; opacity: 0.7; margin-top: 4px;">
-                              <i class="fas fa-info-circle"></i> Can seek up to: <span id="recMaxSeekTime" style="color: #10b981;">0:00</span>
-                            </div>
-                          </div>
-                        </div>
-                        <% } %>
+                      <!-- Non-YouTube recording no longer supported -->
+                      <div class="placeholder-content" style="background: linear-gradient(135deg, #64748b, #475569); color: white;">
+                        <i class="fas fa-video-slash" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 0.5rem;">Recording Not Available</h3>
+                        <p style="margin-bottom: 0;">This recording is no longer available. Recordings are now hosted on YouTube.</p>
                       </div>
                     <% } %>
                   </div>
@@ -2718,9 +2507,6 @@
       </div>
     </main>
   </div>
-
-  <!-- PlayerJS Library -->
-  <script src="https://assets.mediadelivery.net/playerjs/playerjs-latest.min.js"></script>
 
   <!-- YouTube IFrame Player API -->
   <script src="https://www.youtube.com/iframe_api"></script>
@@ -3278,12 +3064,10 @@
     function initializeVideoWatermark() {
       console.log('🚀 Initializing video watermarks...');
       
-      // List of watermark configurations
+      // List of watermark configurations (YouTube only)
       const configs = [
-        { wrapperId: 'bunny-video-wrapper', watermarkId: 'bunnyWatermark' },
         { wrapperId: 'youtube-video-wrapper', watermarkId: 'youtubeWatermark' },
-        { wrapperId: 'recording-video-wrapper', watermarkId: 'recordingYoutubeWatermark' },
-        { wrapperId: 'recording-video-wrapper', watermarkId: 'recordingBunnyWatermark' }
+        { wrapperId: 'recording-video-wrapper', watermarkId: 'recordingYoutubeWatermark' }
       ];
 
       configs.forEach(config => {
@@ -3292,19 +3076,6 @@
         
         if (wrapper && watermark) {
           console.log('📍 Found:', config.watermarkId);
-          
-          // For Bunny videos, move watermark to video container
-          if (config.watermarkId === 'bunnyWatermark') {
-            const videoContainer = wrapper.querySelector('div[style*="padding-top"]');
-            if (videoContainer) {
-              videoContainer.style.position = 'relative';
-              if (watermark.parentElement !== videoContainer) {
-                videoContainer.appendChild(watermark);
-              }
-            }
-          }
-          
-          // Setup fullscreen handling
           setupFullscreenWatermark(wrapper, watermark);
         }
       });
@@ -3407,15 +3178,36 @@
       console.log('✅ Setup complete for:', watermarkId);
     }
 
-    // Helper function to request fullscreen on wrapper (keep for custom button)
+    // Toggle fullscreen for recording player (keeps watermark & security)
+    function toggleRecordingFullscreen() {
+      const container = document.querySelector('#recording-video-wrapper .video-player-container');
+      if (!container) return;
+      const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+      if (isFs) {
+        (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen).call(document);
+      } else {
+        const el = container;
+        (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen).call(el);
+      }
+    }
+
+    // Toggle fullscreen for regular YouTube player
+    function toggleYoutubeFullscreen() {
+      const container = document.querySelector('#youtube-player-container');
+      if (!container) return;
+      const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+      if (isFs) {
+        (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen).call(document);
+      } else {
+        (container.requestFullscreen || container.webkitRequestFullscreen || container.mozRequestFullScreen || container.msRequestFullscreen).call(container);
+      }
+    }
 
     // Watermark protection - simplified
     function protectWatermark() {
       const watermarkIds = [
-        'bunnyWatermark',
         'youtubeWatermark',
-        'recordingYoutubeWatermark',
-        'recordingBunnyWatermark'
+        'recordingYoutubeWatermark'
       ];
 
       setInterval(() => {
@@ -3462,7 +3254,6 @@
       
       // Prevent context menu on video wrappers and watermarks
       const videoWrappers = [
-        'bunny-video-wrapper',
         'youtube-video-wrapper',
         'recording-video-wrapper'
       ];
@@ -3488,10 +3279,8 @@
       
       // Prevent context menu on watermarks
       const watermarkIds = [
-        'bunnyWatermark',
         'youtubeWatermark',
-        'recordingYoutubeWatermark',
-        'recordingBunnyWatermark'
+        'recordingYoutubeWatermark'
       ];
       
       watermarkIds.forEach(id => {
@@ -3508,22 +3297,14 @@
     // Re-initialize after dynamic content loads
     setTimeout(initializeVideoWatermark, 1000);
 
-    // PlayerJS Video Tracking
+    // Non-YouTube video tracking removed (Bunny no longer supported - YouTube only)
     document.addEventListener('DOMContentLoaded', function() {
-      // Check if this is a video content that needs tracking
       const isVideoContent = '<%= contentItem.type %>' === 'video';
       const hasVideoContent = '<%= contentItem.content ? "true" : "false" %>' === 'true';
-      const isAlreadyCompleted = '<%= contentProgress.isCompleted ? "true" : "false" %>' === 'true';
-      
-      // Video watch limit info - use global variables that can be updated
-      const watchLimitReached = <%= watchLimitInfo && watchLimitInfo.limitReached ? 'true' : 'false' %>;
-      const hasWatchLimit = <%= watchLimitInfo && watchLimitInfo.hasLimit ? 'true' : 'false' %>;
-      // Use global variables for watch count (will be updated dynamically)
-      // watchCount and maxWatchCount are defined globally above
+      const isYouTubeVideoContent = <%= (contentItem.content && (contentItem.content.includes('youtube.com') || contentItem.content.includes('youtu.be'))) ? 'true' : 'false' %>;
 
-      // Initialize player for videos - even if already completed (to track watch count)
-      // Only skip if watch limit is reached
-      if (isVideoContent && hasVideoContent && !watchLimitReached) {
+      // PlayerJS block disabled - only YouTube supported, uses YouTube IFrame API tracking
+      if (false) {
         let player = null;
         let videoDuration = 0;
         let playerReady = false;
@@ -4620,18 +4401,21 @@
             return;
           }
         
-        // Initialize YouTube player
+        // Initialize YouTube player with privacy-enhanced nocookie domain
         try {
-          youtubePlayer = new YT.Player('youtube-player', {
-            height: '100%',
-            width: '100%',
-            videoId: window.youtubeVideoId,
-            playerVars: {
-              'playsinline': 1,
-              'rel': 0,
-              'modestbranding': 1,
-              'enablejsapi': 1
-            },
+          const iframe = document.createElement('iframe');
+          const params = new URLSearchParams({
+            enablejsapi: '1',
+            origin: window.location.origin,
+            playsinline: '1',
+            rel: '0',
+            modestbranding: '1',
+            disablekb: '1'
+          });
+          iframe.src = `https://www.youtube-nocookie.com/embed/${window.youtubeVideoId}?${params}`;
+          iframe.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%;';
+          playerContainer.appendChild(iframe);
+          youtubePlayer = new YT.Player(iframe, {
             events: {
               'onReady': onYouTubePlayerReady,
               'onStateChange': onYouTubeStateChange
@@ -4877,16 +4661,20 @@
             return;
           }
 
-          recordingYouTubePlayer = new YT.Player('recording-youtube-player', {
-            height: '100%',
-            width: '100%',
-            videoId: window.recordingYoutubeVideoId,
-            playerVars: {
-              'playsinline': 1,
-              'rel': 0,
-              'modestbranding': 1,
-              'enablejsapi': 1
-            },
+          // Use privacy-enhanced nocookie domain
+          const iframe = document.createElement('iframe');
+          const params = new URLSearchParams({
+            enablejsapi: '1',
+            origin: window.location.origin,
+            playsinline: '1',
+            rel: '0',
+            modestbranding: '1',
+            disablekb: '1'
+          });
+          iframe.src = `https://www.youtube-nocookie.com/embed/${window.recordingYoutubeVideoId}?${params}`;
+          iframe.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%;';
+          playerContainer.appendChild(iframe);
+          recordingYouTubePlayer = new YT.Player(iframe, {
             events: {
               'onReady': onRecordingYouTubeReady,
               'onStateChange': onRecordingYouTubeStateChange
@@ -5293,23 +5081,14 @@
     }
     
     function initRecordingAntiSkipTracking() {
-      // Find the recording iframe
+      // YouTube recording uses initializeRecordingYouTubePlayer - skip PlayerJS
+      if (window.recordingYoutubeVideoId) return;
+      // Bunny/no-YouTube recording no longer supported
       const recordingContainer = document.querySelector('.recording-video-container');
       if (!recordingContainer) return;
-      
       const iframe = recordingContainer.querySelector('iframe');
-      if (!iframe) {
-        // Try to find iframe in bunny-embed-wrapper
-        const bunnyWrapper = recordingContainer.querySelector('.bunny-embed-wrapper');
-        if (bunnyWrapper) {
-          const bunnyIframe = bunnyWrapper.querySelector('iframe');
-          if (bunnyIframe) {
-            setupRecordingPlayer(bunnyIframe);
-          }
-        }
-        return;
-      }
-      
+      if (!iframe) return;
+      if (typeof playerjs === 'undefined') return;
       setupRecordingPlayer(iframe);
     }
     
@@ -6387,6 +6166,26 @@
       margin-bottom: 16px;
     }
 
+    /* Larger recording player - full width, minimal padding, maximize player size */
+    .zoom-meeting-container.zoom-recording-mode {
+      padding: 12px 16px !important;
+      max-width: 100% !important;
+    }
+    .zoom-recording-mode .recording-player-section {
+      max-width: 100% !important;
+    }
+    .recording-player-section {
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 0 !important;
+    }
+    .recording-player-wrapper,
+    .recording-video-container-full,
+    #recording-video-wrapper .video-player-container {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+
     .recording-auto-complete-message {
       display: flex;
       align-items: center;
@@ -6537,11 +6336,6 @@
       width: 100%;
     }
 
-    .bunny-video-container-inner {
-      position: relative;
-      width: 100%;
-    }
-
     .video-watermark {
       position: absolute;
       z-index: 1000;
@@ -6620,9 +6414,7 @@
     @media (max-width: 768px) {
       .video-watermark,
       .video-watermark-moving,
-      #recordingBunnyWatermark,
       #recordingYoutubeWatermark,
-      #bunnyWatermark,
       #youtubeWatermark {
         font-size: 7px !important;
         padding: 3px 6px !important;
@@ -6644,9 +6436,7 @@
     @media (max-width: 480px) {
       .video-watermark,
       .video-watermark-moving,
-      #recordingBunnyWatermark,
       #recordingYoutubeWatermark,
-      #bunnyWatermark,
       #youtubeWatermark {
         font-size: 6px !important;
         padding: 2px 4px !important;
@@ -6737,12 +6527,29 @@
 
     /* Custom fullscreen button styles */
     .custom-fullscreen-btn {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      z-index: 1001;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
       opacity: 0.8;
       transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease;
     }
 
     .custom-fullscreen-btn:hover {
       opacity: 1;
+      background: rgba(0, 0, 0, 0.8);
     }
 
     .custom-fullscreen-btn:active {

@@ -597,12 +597,10 @@
   color: var(--admin-text-dark);
 }
 
-/* Sidebar Footer */
+/* Sidebar footer: stay in document flow (absolute overlay breaks redesigned sidebar flex) */
 .admin-sidebar-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
+  flex-shrink: 0;
   padding: 20px;
   border-top: 1px solid var(--admin-border-light);
   text-align: center;
