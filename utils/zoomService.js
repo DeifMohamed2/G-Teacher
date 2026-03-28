@@ -1133,17 +1133,44 @@ class ZoomService {
 
     console.log('✅ MP4 validated');
 
+    // Resolve Zoom topic for YouTube title/description (webhook, then API fallback)
+    let meetingTopic = (object.topic || object.subject || '').trim() || null;
+    if (!meetingTopic) {
+      try {
+        const details = await this.getMeetingDetails(meetingId);
+        if (details.topic) {
+          meetingTopic = String(details.topic).trim() || null;
+        }
+      } catch (e) {
+        console.warn(
+          '⚠️ Could not fetch meeting topic for YouTube metadata:',
+          e.message
+        );
+      }
+    }
+
+    let title;
+    let descriptionTopic;
+    if (meetingExists && zoomMeeting?.meetingName) {
+      title = youtubeService.sanitizeYoutubeTitle(zoomMeeting.meetingName);
+      descriptionTopic = zoomMeeting.meetingName || meetingTopic;
+    } else {
+      title = youtubeService.buildExternalZoomRecordingTitle(
+        meetingTopic,
+        meetingId
+      );
+      descriptionTopic = meetingTopic;
+    }
+
     // Upload to YouTube (only supported destination)
     let uploadResult = null;
-    const title = meetingExists && zoomMeeting?.meetingName
-      ? zoomMeeting.meetingName
-      : `Zoom Recording ${meetingId}`;
 
     if (useYouTube) {
       console.log('📤 Uploading to YouTube...');
       uploadResult = await youtubeService.uploadVideo(videoBuffer, title, {
         meetingId,
         recordingUuid,
+        meetingTopic: descriptionTopic || undefined,
       });
       console.log('✅ Uploaded to YouTube:', uploadResult.youtubeVideoId);
       youtubeService.markRecordingProcessed(recordingUuid, uploadResult.youtubeVideoId);
@@ -1227,6 +1254,7 @@ class ZoomService {
           id: meetingId,
           uuid: recordingData.uuid,
           recording_files: recordingData.recording_files,
+          topic: recordingData.topic,
         },
       };
 

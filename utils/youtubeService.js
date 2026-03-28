@@ -93,6 +93,46 @@ class YouTubeService {
   }
 
   /**
+   * Truncate and normalize title for YouTube (max 100 characters).
+   * @param {String} str
+   * @param {Number} maxLen
+   * @returns {String}
+   */
+  sanitizeYoutubeTitle(str, maxLen = 100) {
+    if (str == null || str === '') return '';
+    const s = String(str).replace(/\s+/g, ' ').trim();
+    if (s.length <= maxLen) return s;
+    return s.slice(0, Math.max(0, maxLen - 1)) + '…';
+  }
+
+  /**
+   * Title for uploads when the Zoom meeting is not in G-Teacher (external).
+   * Uses meeting topic plus meeting ID for disambiguation; max 100 chars.
+   * @param {String|null|undefined} meetingTopic - Zoom topic / meeting name
+   * @param {String} meetingId - Zoom numeric meeting ID
+   * @returns {String}
+   */
+  buildExternalZoomRecordingTitle(meetingTopic, meetingId) {
+    const id = String(meetingId);
+    const maxLen = 100;
+    const suffix = ` (${id})`;
+    const fallback = `Zoom Recording ${id}`;
+    const topic = meetingTopic && String(meetingTopic).trim();
+    if (!topic) {
+      return this.sanitizeYoutubeTitle(fallback, maxLen);
+    }
+    if (topic.length + suffix.length <= maxLen) {
+      return topic + suffix;
+    }
+    const room = maxLen - suffix.length;
+    const truncated =
+      topic.length > room
+        ? topic.slice(0, Math.max(0, room - 3)) + '...'
+        : topic;
+    return this.sanitizeYoutubeTitle(truncated + suffix, maxLen);
+  }
+
+  /**
    * Get OAuth2 client for YouTube API
    * @returns {Promise<Object>} Authorized YouTube client
    */
@@ -117,6 +157,7 @@ class YouTubeService {
    * @param {Object} options - Optional metadata
    * @param {String} options.meetingId - Zoom meeting ID (for description)
    * @param {String} options.recordingUuid - Recording UUID
+   * @param {String} options.meetingTopic - Zoom topic / meeting name (description)
    * @param {String} options.description - Video description
    * @param {String} options.privacyStatus - public, private, or unlisted
    * @returns {Promise<Object>} Upload response with video ID and URLs
@@ -128,7 +169,20 @@ class YouTubeService {
       }
 
       const privacyStatus = options.privacyStatus || this.defaultPrivacy;
-      const description = options.description || `Zoom meeting recording${options.meetingId ? ` - Meeting ID: ${options.meetingId}` : ''}`;
+      let description = options.description;
+      if (!description) {
+        const parts = ['Zoom meeting recording'];
+        if (options.meetingTopic) {
+          parts.push(`Topic: ${options.meetingTopic}`);
+        }
+        if (options.meetingId) {
+          parts.push(`Meeting ID: ${options.meetingId}`);
+        }
+        if (options.recordingUuid) {
+          parts.push(`Recording UUID: ${options.recordingUuid}`);
+        }
+        description = parts.join('\n');
+      }
 
       console.log(`📤 Starting upload to YouTube: ${title}`);
       console.log(`📊 Video size: ${(videoBuffer.length / 1024 / 1024).toFixed(2)} MB`);
